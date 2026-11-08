@@ -1,6 +1,7 @@
 // Match log and stats for Vijuga.
 // POST /api/matches  {mid, mode, rounds, players:[{name, slug, human, place, score, wins, kills}]} -> stores one finished match (once per mid)
 // GET  /api/stats    -> totals, activity per day, per-player detail and recent matches
+// POST /api/troll   {from, to, id} -> counts who pranked whom (fun stats only)
 // DELETE /api/matches/:mid (header x-admin-key) -> remove one match (maintenance)
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
@@ -16,7 +17,7 @@ const SLUG = /^[a-z0-9-]{1,40}$/;
 const ADMIN_KEY_SHA256 = "f5200fc8e8b6f62b67cebbfb4087e15b344faffeb42fe51c14c4957ce940c306";
 
 type MatchPlayer = { name: string; slug: string | null; human: boolean; place: number; score: number; wins: number; kills: number };
-type Match = { mid: string; mode: "online" | "local"; rounds: number; at: number; players: MatchPlayer[] };
+type Match = { mid: string; mode: "online" | "local"; rounds: number; at: number; players: MatchPlayer[]; kx?: [string, string, number][] };
 type Account = { slug: string; name: string; color?: number; coins?: number; matches?: number; wins?: number; kills?: number; created?: number; updatedAt?: number; invitedBy?: string; eq?: { skin?: string; badge?: string }; owned?: string[]; inv?: Record<string, number>; spent?: number; purchases?: number; playMs?: number; siteMs?: number; trollsSent?: number; trollsGot?: number };
 
 function cleanMatch(body: unknown): Match | string {
@@ -38,11 +39,15 @@ function cleanMatch(body: unknown): Match | string {
     kills: int(x?.kills, 1000),
   }));
   if (!players.some((p) => p.human)) return "no human players";
-  return { mid, mode, rounds, at: Date.now(), players };
+  // kills between two human players: [killerSlug, victimSlug, count], only for slugs that played this match
+  const inMatch = new Set(players.filter((p) => p.human && p.slug).map((p) => p.slug as string));
+  const kx = (Array.isArray(b.kx) ? b.kx : []).slice(0, 30).filter((k: any) => Array.isArray(k) && inMatch.has(k[0]) && inMatch.has(k[1]) && k[0] !== k[1])
+    .map((k: any) => [k[0], k[1], int(k[2], 200)] as [string, string, number]).filter((k) => k[2] > 0);
+  return { mid, mode, rounds, at: Date.now(), players, ...(kx.length ? { kx } : {}) };
 }
 
 // shop prices, to count purchases made before spending was tracked
-const PRICES: Record<string, number> = {"bd_p_hdz": 1500, "bd_p_sdp": 1500, "bd_p_mozemo": 1500, "bd_p_most": 1500, "bd_p_dp": 1500, "bd_p_hss": 1500, "bd_p_ids": 1500, "bd_p_rf": 1500, "bd_lgbt": 1500, "bd_qplus": 1500, "bd_trans": 1500, "bd_bi": 1500, "bd_nb": 1500, "bd_hr": 1000, "bd_sibenik": 1000, "bd_funcut": 1000, "bd_dinamo": 1000, "bd_hajduk": 1000, "bd_mihovil": 1000, "bd_katedrala": 1000, "sk_boat": 180, "sk_dog": 180, "bd_boat": 120, "bd_dog": 120, "sk_dragon": 5000, "sk_galaxy": 3500, "sk_bolt": 3000, "sz_pumpkin": 1200, "sz_snow": 1200, "sz_love": 1200, "sz_sun": 1200, "pr_goldname": 2500, "pr_title": 2000, "pr_entrance": 2000, "bg_space": 3000, "bg_lava": 3000, "bg_sea": 3000, "pr_room": 1500, "pr_vip": 4000, "pr_tomb": 1800, "te_fire": 220, "te_spark": 180, "te_hearts": 160, "te_bubble": 140, "ds_confetti": 150, "ds_ghost": 170, "ds_poop": 150, "ds_boom": 200, "vs_fanfare": 140, "vs_fart": 120, "vs_horn": 160, "vs_laugh": 140, "sk_diamond": 900, "bd_comet": 700, "sk_neon": 120, "sk_dash": 90, "sk_pixel": 90, "sk_rainbow": 220, "sk_gold": 320, "sk_dildo": 150, "sk_vag": 160, "sk_boobs": 160, "sk_condom": 160, "sk_hairy": 170, "bd_bolt": 60, "bd_star": 100, "bd_skull": 140, "bd_gem": 180, "bd_crown": 300, "bd_ucross": 200, "bd_vag": 120, "bd_boobs": 120, "bd_hairy": 130, "bd_condom": 120, "fastS": 110, "slowS": 110, "thinS": 110, "ghostS": 110, "wrapS": 110, "jumpS": 110, "slowO": 170, "thickO": 170, "revO": 170, "sqO": 170};
+const PRICES: Record<string, number> = {"lx_heli": 18000, "lx_yacht": 20000, "lx_rolex": 15000, "bd_p_hdz": 1500, "bd_p_sdp": 1500, "bd_p_mozemo": 1500, "bd_p_most": 1500, "bd_p_dp": 1500, "bd_p_hss": 1500, "bd_p_ids": 1500, "bd_p_rf": 1500, "bd_lgbt": 1500, "bd_qplus": 1500, "bd_trans": 1500, "bd_bi": 1500, "bd_nb": 1500, "bd_hr": 1000, "bd_sibenik": 1000, "bd_funcut": 1000, "bd_dinamo": 1000, "bd_hajduk": 1000, "bd_mihovil": 1000, "bd_katedrala": 1000, "sk_boat": 180, "sk_dog": 180, "bd_boat": 120, "bd_dog": 120, "sk_dragon": 5000, "sk_galaxy": 3500, "sk_bolt": 3000, "sz_pumpkin": 1200, "sz_snow": 1200, "sz_love": 1200, "sz_sun": 1200, "pr_goldname": 2500, "pr_title": 2000, "pr_entrance": 2000, "bg_space": 3000, "bg_lava": 3000, "bg_sea": 3000, "pr_room": 1500, "pr_vip": 4000, "pr_tomb": 1800, "te_fire": 220, "te_spark": 180, "te_hearts": 160, "te_bubble": 140, "ds_confetti": 150, "ds_ghost": 170, "ds_poop": 150, "ds_boom": 200, "vs_fanfare": 140, "vs_fart": 120, "vs_horn": 160, "vs_laugh": 140, "sk_diamond": 900, "bd_comet": 700, "sk_neon": 120, "sk_dash": 90, "sk_pixel": 90, "sk_rainbow": 220, "sk_gold": 320, "sk_dildo": 150, "sk_vag": 160, "sk_boobs": 160, "sk_condom": 160, "sk_hairy": 170, "bd_bolt": 60, "bd_star": 100, "bd_skull": 140, "bd_gem": 180, "bd_crown": 300, "bd_ucross": 200, "bd_vag": 120, "bd_boobs": 120, "bd_hairy": 130, "bd_condom": 120, "fastS": 110, "slowS": 110, "thinS": 110, "ghostS": 110, "wrapS": 110, "jumpS": 110, "slowO": 170, "thickO": 170, "revO": 170, "sqO": 170};
 const dayKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 async function stats() {
@@ -107,7 +112,51 @@ async function stats() {
   const weekly = Object.values(wk).sort((a, b) => b.score - a.score)[0] || null;
   const leaders = { playMs: top("playMs"), spent: top("spent"), items: top("items"), trollsSent: top("trollsSent"), trollsGot: top("trollsGot"), invited: top("invited"), kills: top("kills") };
 
+  // ranked: online matches with at least two logged-in humans. Elo from pairwise places, plus head-to-head records.
+  const nameOf = (slug: string) => accounts.find((a) => a.slug === slug)?.name || slug;
+  const elo: Record<string, { r: number; games: number; best: number }> = {};
+  const h2h: Record<string, { a: string; b: string; games: number; aw: number; bw: number }> = {};
+  const pairKey = (x: string, y: string) => (x < y ? x + "|" + y : y + "|" + x);
+  for (const m of [...matches].reverse()) {
+    if (m.mode !== "online") continue;
+    const hs = m.players.filter((p) => p.human && p.slug) as (MatchPlayer & { slug: string })[];
+    if (new Set(hs.map((p) => p.slug)).size < 2) continue;
+    for (const p of hs) elo[p.slug] ||= { r: 1000, games: 0, best: 1000 };
+    const delta: Record<string, number> = {};
+    for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) {
+      const A = hs[i], B = hs[j]; if (A.slug === B.slug) continue;
+      const ea = 1 / (1 + 10 ** ((elo[B.slug].r - elo[A.slug].r) / 400)), sa = A.place < B.place ? 1 : A.place > B.place ? 0 : 0.5;
+      const k = 32 / (hs.length - 1);
+      delta[A.slug] = (delta[A.slug] || 0) + k * (sa - ea); delta[B.slug] = (delta[B.slug] || 0) - k * (sa - ea);
+      const key = pairKey(A.slug, B.slug), [a, b2] = key.split("|");
+      const h = (h2h[key] ||= { a, b: b2, games: 0, aw: 0, bw: 0 }); h.games++;
+      const winner = A.place < B.place ? A.slug : B.place < A.place ? B.slug : null;
+      if (winner === a) h.aw++; else if (winner === b2) h.bw++;
+    }
+    for (const [sl, d] of Object.entries(delta)) { const e = elo[sl]; e.r += d; e.games++; e.best = Math.max(e.best, e.r); }
+  }
+  const ranked = Object.entries(elo).map(([slug, e]) => ({ slug, name: nameOf(slug), elo: Math.round(e.r), best: Math.round(e.best), games: e.games })).sort((a, b) => b.elo - a.elo);
+  const rivals = Object.values(h2h).sort((x, y) => y.games - x.games).slice(0, 15).map((h) => ({ a: h.a, aName: nameOf(h.a), b: h.b, bName: nameOf(h.b), games: h.games, aw: h.aw, bw: h.bw }));
+  const killPairs: Record<string, number> = {};
+  for (const m of matches) for (const [k, v, n] of m.kx || []) killPairs[k + ">" + v] = (killPairs[k + ">" + v] || 0) + n;
+  const kills2 = Object.entries(killPairs).map(([k, n]) => { const [a, b2] = k.split(">"); return { killer: a, killerName: nameOf(a), victim: b2, victimName: nameOf(b2), n }; }).sort((x, y) => y.n - x.n).slice(0, 15);
+  const tStore = getStore({ name: "vijuga-trolls", consistency: "strong" });
+  const { blobs: tKeys } = await tStore.list();
+  const trollPairs = ((await Promise.all(tKeys.map(async (k) => { const [a, b2] = k.key.split("/"); const v = (await tStore.get(k.key, { type: "json" })) as { n?: number } | null; return { from: a, fromName: nameOf(a), to: b2, toName: nameOf(b2), n: Number(v?.n) || 0 }; }))) as { from: string; fromName: string; to: string; toName: string; n: number }[])
+    .filter((t) => t.n > 0).sort((x, y) => y.n - x.n).slice(0, 15);
+  const facts: string[] = [];
+  if (ranked[0]) facts.push(`👑 ${ranked[0].name} vodi rang listu s ${ranked[0].elo} bodova`);
+  if (kills2[0]) facts.push(`💀 Najveća žrtva: ${kills2[0].killerName} → ${kills2[0].victimName}, ${kills2[0].n} rušenja`);
+  if (kills2[1]) facts.push(`🔪 ${kills2[1].killerName} → ${kills2[1].victimName}: ${kills2[1].n} rušenja`);
+  if (trollPairs[0]) facts.push(`🤡 Najveći troll: ${trollPairs[0].fromName} → ${trollPairs[0].toName}, ${trollPairs[0].n} psina`);
+  for (const r of rivals.slice(0, 3)) if (r.games >= 2) facts.push(r.aw === r.bw ? `⚔️ ${r.aName} i ${r.bName}: ${r.games} susreta, izjednačeno ${r.aw}:${r.bw}` : `⚔️ ${r.aw > r.bw ? r.aName : r.bName} vodi protiv ${r.aw > r.bw ? r.bName : r.aName} ${Math.max(r.aw, r.bw)}:${Math.min(r.aw, r.bw)}`);
+  const kTop = players.filter((p) => p.kills > 0).sort((x, y) => y.kills - x.kills)[0]; if (kTop) facts.push(`🎯 Najviše rušenja: ${kTop.name} (${kTop.kills})`);
+  const pTop = players.filter((p) => p.playMs > 0).sort((x, y) => y.playMs - x.playMs)[0]; if (pTop) facts.push(`⏱️ Najviše igre: ${pTop.name}, ${Math.round(pTop.playMs / 60000)} min`);
+  const rich = [...players].sort((x, y) => y.coins - x.coins)[0]; if (rich && rich.coins > 0) facts.push(`💰 Najbogatiji: ${rich.name} (${rich.coins} 🪙)`);
+  if (weekly) facts.push(`🏆 Igrač tjedna: ${weekly.name}`);
+
   return {
+    ranked, rivals, killPairs: kills2, trollPairs, facts,
     generatedAt: now,
     totals: {
       players: accounts.length,
@@ -139,6 +188,18 @@ async function stats() {
 export default async (req: Request, context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const url = new URL(req.url);
+  if (url.pathname.endsWith("/troll")) {
+    if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
+    const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+    const from = String(b?.from ?? ""), to = String(b?.to ?? "");
+    if (!SLUG.test(from) || !SLUG.test(to) || from === to) return json({ error: "bad pair" }, 400);
+    const acc = getStore({ name: "vijuga-accounts", consistency: "strong" });
+    if (!(await acc.get(from)) || !(await acc.get(to))) return json({ error: "unknown player" }, 404);
+    const t = getStore({ name: "vijuga-trolls", consistency: "strong" }), key = `${from}/${to}`;
+    const cur = ((await t.get(key, { type: "json" })) as { n?: number } | null) || {};
+    await t.setJSON(key, { n: (Number(cur.n) || 0) + 1, last: Date.now() });
+    return json({ ok: true });
+  }
   if (url.pathname.endsWith("/stats")) {
     if (req.method !== "GET") return json({ error: "method not allowed" }, 405);
     return json(await stats());
@@ -161,4 +222,4 @@ export default async (req: Request, context: Context) => {
   return json({ ok: true, stored: modified !== false });
 };
 
-export const config: Config = { path: ["/api/matches", "/api/matches/:mid", "/api/stats"] };
+export const config: Config = { path: ["/api/matches", "/api/matches/:mid", "/api/stats", "/api/troll"] };

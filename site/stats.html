@@ -157,6 +157,12 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
     <p class="note">Mečevi i pobjede uključuju i mečeve odigrane prije uvođenja statistike (iz profila igrača). Postolje = 1.–3. mjesto. Runde = osvojene runde. Rušenja = koliko je puta netko udario u igračev trag.</p>
   </section>
 
+  <section class="panel" aria-labelledby="rkH">
+    <h2 id="rkH">Ranked i rivalstva <small>online mečevi igrač protiv igrača</small></h2>
+    <div class="leaders" id="ranked"></div>
+    <p class="note">Rang bodovi (Elo) računaju se samo iz online mečeva s barem dva prijavljena igrača; svi počinju s 1000. Rivalstva = međusobni susreti, tko je završio više.</p>
+  </section>
+
   <section class="panel" aria-labelledby="ldH">
     <h2 id="ldH">Rekorderi</h2>
     <div class="leaders" id="leaders"></div>
@@ -187,7 +193,7 @@ const API = 'https://vijuga.netlify.app/api/stats';
 const GAME = 'https://zmijica.onrender.com/';
 const INVITE = GAME + '?pozivnica';
 const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42'];
-const SKIN = { sk_boat: 'Brodić ⛵', sk_dog: 'Psić 🐶', sk_dragon: 'Zmaj 🐉', sk_galaxy: 'Galaksija 🌌', sk_bolt: 'Munja ⚡', sz_pumpkin: 'Bundeva 🎃', sz_snow: 'Snježni ❄️', sz_love: 'Ljubav 💘', sz_sun: 'Ljeto ☀️', pr_goldname: '👑 Zlatno ime', pr_title: '🏷️ Titula', pr_entrance: '📣 Ulazak s pompom', bg_space: '🌌 Arena Svemir', bg_lava: '🌋 Arena Lava', bg_sea: '🌊 Arena More', pr_room: '🔒 Privatna soba', pr_vip: '💎 VIP', pr_tomb: '🪦 Spomenik', sk_diamond: 'Dijamant 💎', sk_none: 'Obični', sk_neon: 'Neon', sk_dash: 'Crtice', sk_pixel: 'Piksel', sk_rainbow: 'Duga', sk_gold: 'Zlato', sk_dildo: 'Dildo', sk_vag: 'Vagina', sk_boobs: 'Dojke', sk_condom: 'Kondom', sk_hairy: 'Dlakava jaja' };
+const SKIN = { lx_heli: '🚁 Helikopter', lx_yacht: '🛥️ Jahta', lx_rolex: '⌚ Rolex', sk_boat: 'Brodić ⛵', sk_dog: 'Psić 🐶', sk_dragon: 'Zmaj 🐉', sk_galaxy: 'Galaksija 🌌', sk_bolt: 'Munja ⚡', sz_pumpkin: 'Bundeva 🎃', sz_snow: 'Snježni ❄️', sz_love: 'Ljubav 💘', sz_sun: 'Ljeto ☀️', pr_goldname: '👑 Zlatno ime', pr_title: '🏷️ Titula', pr_entrance: '📣 Ulazak s pompom', bg_space: '🌌 Arena Svemir', bg_lava: '🌋 Arena Lava', bg_sea: '🌊 Arena More', pr_room: '🔒 Privatna soba', pr_vip: '💎 VIP', pr_tomb: '🪦 Spomenik', sk_diamond: 'Dijamant 💎', sk_none: 'Obični', sk_neon: 'Neon', sk_dash: 'Crtice', sk_pixel: 'Piksel', sk_rainbow: 'Duga', sk_gold: 'Zlato', sk_dildo: 'Dildo', sk_vag: 'Vagina', sk_boobs: 'Dojke', sk_condom: 'Kondom', sk_hairy: 'Dlakava jaja' };
 const BADGE = { bd_p_hdz: 'HDZ', bd_p_sdp: 'SDP', bd_p_mozemo: 'Možemo!', bd_p_most: 'Most', bd_p_dp: 'Domovinski pokret', bd_p_hss: 'HSS', bd_p_ids: 'IDS', bd_p_rf: 'Radnička fronta', bd_lgbt: '🏳️‍🌈 LGBT', bd_qplus: 'Progress Pride', bd_trans: 'Trans zastava', bd_bi: 'Bi zastava', bd_nb: 'Nebinarna zastava', bd_hr: '🇭🇷 Hrvatska', bd_sibenik: 'Šibenska zastava', bd_funcut: 'Šibenski Funcuti', bd_dinamo: 'Dinamo Zagreb', bd_hajduk: 'Hajduk Split', bd_mihovil: 'Sveti Mihovil', bd_katedrala: 'Katedrala sv. Jakova', bd_boat: '⛵ Brodić', bd_dog: '🐶 Psić', bd_comet: '☄ Komet', bd_none: 'Bez ikone', bd_bolt: '⚡ Munja', bd_star: '★ Zvijezda', bd_skull: '☠ Lubanja', bd_gem: '◆ Dragulj', bd_crown: '♛ Kruna', bd_ucross: 'U s križem', bd_vag: 'Vagina', bd_boobs: 'Dojke', bd_condom: 'Kondom', bd_hairy: 'Dlakava jaja' };
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -347,8 +353,19 @@ function leaders() {
     ['trollsSent', 'Glavni zezator', v => v + '×'], ['trollsGot', 'Najzezaniji', v => v + '×'], ['kills', 'Najviše rušenja', v => nf.format(v)], ['invited', 'Najviše pozvanih', v => v]];
   $('#leaders').innerHTML = box.map(([k, t, f]) => `<div class="lead"><h3>${t}</h3>${(L[k] || []).length ? '<ol>' + L[k].map(x => `<li>${esc(x.name)}<span>${f(x.value)}</span></li>`).join('') + '</ol>' : '<p class="empty">Još nitko.</p>'}</div>`).join('');
 }
+function ranked() {
+  const li = (a, f) => a.length ? '<ol>' + a.map(f).join('') + '</ol>' : '<p class="empty">Još nema online mečeva između igrača.</p>';
+  const facts = data.facts || [];
+  $('#ranked').innerHTML = [
+    ['🏅 Rang lista', li((data.ranked || []).slice(0, 10), x => `<li>${esc(x.name)}<span>${x.elo} · ${x.games} meč.</span></li>`)],
+    ['⚔️ Međusobni susreti', li(data.rivals || [], x => `<li>${esc(x.aName)} – ${esc(x.bName)}<span>${x.aw}:${x.bw} (${x.games})</span></li>`)],
+    ['💀 Tko koga najviše ruši', li(data.killPairs || [], x => `<li>${esc(x.killerName)} → ${esc(x.victimName)}<span>${x.n}×</span></li>`)],
+    ['🤡 Tko koga najviše zeza', li(data.trollPairs || [], x => `<li>${esc(x.fromName)} → ${esc(x.toName)}<span>${x.n}×</span></li>`)],
+    ['💡 Fun facts', facts.length ? '<ul style="margin:0;padding-left:18px;display:grid;gap:4px">' + facts.map(f => `<li>${esc(f)}</li>`).join('') + '</ul>' : '<p class="empty">Još nema.</p>'],
+  ].map(([t, h]) => `<div class="lead"><h3>${t}</h3>${h}</div>`).join('');
+}
 function renderWeek() { const w = data.weekly, b = $('#weekBox'); if (!w) { b.hidden = true; return; } b.hidden = false; b.innerHTML = `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap" data-player="${esc(w.slug)}"><span style="font-size:46px">🏆</span><div><div class="note" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Igrač tjedna</div><div style="font-family:var(--display);font-size:28px;color:var(--amber)">${esc(w.name)}</div><div class="note">${w.firsts} pobjeda · ${w.podiums} postolja · ${w.kills} rušenja · ${w.matches} mečeva u zadnjih 7 dana</div></div></div>`; }
-function render() { renderRecent(); renderWeek(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
+function render() { renderRecent(); renderWeek(); ranked(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
 addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
 
