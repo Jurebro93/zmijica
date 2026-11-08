@@ -43,6 +43,7 @@ function clean(input: unknown, slug: string): Doc | string {
     eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20) },
     bonus500: !!d.bonus500,
     created: num(d.created, 9e15),
+    invitedBy: typeof d.invitedBy === "string" && /^[a-z0-9-]{1,40}$/.test(d.invitedBy) ? d.invitedBy : undefined,
     updatedAt: Date.now(),
   };
   if (typeof d.pinHash === "string" && /^[0-9a-f]{64}$/.test(d.pinHash)) doc.pinHash = d.pinHash;
@@ -60,7 +61,7 @@ export default async (req: Request, context: Context) => {
     const { blobs } = await store.list();
     const docs = await Promise.all(blobs.map((b) => store.get(b.key, { type: "json" }) as Promise<Doc | null>));
     const list = docs.filter((d): d is Doc => !!d).map(publicView);
-    list.sort((a, b) => Number(b.coins) - Number(a.coins));
+    list.sort((a, b) => Number((b as Record<string, unknown>).coins) - Number((a as Record<string, unknown>).coins));
     return json({ accounts: list });
   }
 
@@ -86,6 +87,8 @@ export default async (req: Request, context: Context) => {
     if (existing && existing.pinHash && body?.auth !== existing.pinHash) return json({ error: "wrong pin" }, 403);
     if (existing && existing.pinHash && !doc.pinHash) doc.pinHash = existing.pinHash;
     if (existing && existing.created) doc.created = existing.created as number;
+    if (existing) doc.invitedBy = (existing.invitedBy as string | undefined) ?? doc.invitedBy;
+    if (!existing && !doc.created) doc.created = Date.now();
     await store.setJSON(slug, doc);
     return json({ account: publicView(doc) });
   }

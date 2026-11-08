@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vijuga statistika</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one column of panels on the game's slate palette; summary tiles first, then activity, players, matches. */
+:root {
+  --ink: #0b121b; --slate: #101b27; --panel: #152232; --line: #24364a;
+  --fg: #e9eff6; --muted: #8396ab; --amber: #ffb547; --good: #3ddc97;
+  --display: "Bungee", "Impact", "Arial Black", sans-serif;
+  --body: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--ink); color: var(--fg); font: 16px/1.4 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: max(20px, env(safe-area-inset-top, 0px)) 48px; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 22px; }
+header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+header h1 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 6vw, 44px); margin: 0; line-height: 1; }
+header h1 span { color: var(--amber); }
+.upd { color: var(--muted); font-size: 14px; margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.btn { border: 0; border-radius: 9px; padding: 9px 16px; background: var(--amber); color: #1a1205; font-weight: 700; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 17px; letter-spacing: .04em; margin: 0 0 12px; }
+h2 small { font-family: var(--body); letter-spacing: 0; font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 6px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.invite { display: grid; gap: 12px; }
+.invite .link { display: flex; gap: 8px; flex-wrap: wrap; }
+.invite input { flex: 1 1 260px; min-width: 0; background: var(--ink); border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px; font-weight: 600; }
+.share { display: flex; gap: 8px; flex-wrap: wrap; }
+.share a { color: var(--fg); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 15px; }
+.share a:hover { border-color: var(--amber); }
+.msg { color: var(--muted); font-size: 14px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 2px; align-content: start; }
+.tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.tile .v { font-family: var(--display); font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile .s { font-size: 14px; color: var(--muted); }
+.tile.hero .v { color: var(--amber); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 220px; overflow: visible; }
+.chart .tip { position: absolute; pointer-events: none; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 14px; white-space: nowrap; transform: translate(-50%, -110%); opacity: 0; transition: opacity .1s; }
+.chart .tip b { font-variant-numeric: tabular-nums; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 22px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; }
+th { text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 6px 8px; white-space: nowrap; }
+th button { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-transform: inherit; letter-spacing: inherit; }
+th[aria-sort] button { color: var(--fg); }
+td { text-align: right; padding: 7px 8px; border-top: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+.who { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.filter { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.filter input { background: var(--ink); border: 1px solid var(--line); border-radius: 9px; padding: 7px 10px; min-width: 0; flex: 1 1 200px; }
+.match { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--line); }
+.match:first-child { border-top: 0; padding-top: 0; }
+.match .top { display: flex; gap: 8px; color: var(--muted); font-size: 14px; flex-wrap: wrap; }
+.match .tag { border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.match .pl { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 15px; }
+.match .pl span.first { color: var(--amber); font-weight: 700; }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: minmax(0, 120px) 1fr auto; gap: 10px; align-items: center; font-size: 15px; }
+.bar .track { height: 10px; border-radius: 5px; background: var(--slate); overflow: hidden; }
+.bar .track i { display: block; height: 100%; background: var(--amber); border-radius: 0 5px 5px 0; }
+.empty { color: var(--muted); padding: 10px 0; }
+.note { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.err { color: #ff5d73; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Vijuga <span>statistika</span></h1>
+    <div class="upd"><span id="upd">Učitavam…</span><button class="btn ghost" id="refresh" type="button">Osvježi</button><a class="btn" href="./">Igraj</a></div>
+  </header>
+
+  <section class="panel invite" aria-labelledby="invH">
+    <h2 id="invH">Pozivnica za nove igrače <small>podijeli na društvenim mrežama</small></h2>
+    <div class="link"><input id="invUrl" readonly aria-label="Pozivni link"><button class="btn" id="copyBtn" type="button">Kopiraj link</button><button class="btn ghost" id="shareBtn" type="button" hidden>Podijeli…</button></div>
+    <div class="share" id="shareLinks"></div>
+    <div class="msg" id="invMsg">Tko otvori link, odmah dobije prozor za registraciju (ime, boja, PIN) i 500 zlatnika za trgovinu.</div>
+  </section>
+
+  <section aria-labelledby="sumH">
+    <h2 id="sumH" class="sr">Pregled</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="actH">
+    <h2 id="actH">Odigrani mečevi po danima <small>zadnjih 14 dana</small></h2>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="plH">
+    <h2 id="plH">Igrači <small id="plCount"></small></h2>
+    <div class="filter"><input id="q" type="search" placeholder="Traži igrača…" aria-label="Traži igrača"></div>
+    <div class="tablewrap"><table id="players"></table></div>
+    <p class="note">Mečevi i pobjede uključuju i mečeve odigrane prije uvođenja statistike (iz profila igrača). Postolje = 1.–3. mjesto. Runde = osvojene runde. Rušenja = koliko je puta netko udario u igračev trag.</p>
+  </section>
+
+  <div class="cols">
+    <section class="panel" aria-labelledby="recH">
+      <h2 id="recH">Zadnji mečevi</h2>
+      <div id="recent"></div>
+    </section>
+    <section class="panel" aria-labelledby="skH">
+      <h2 id="skH">Popularni skinovi i ikone</h2>
+      <div class="bars" id="skins"></div>
+      <div style="height:14px"></div>
+      <div class="bars" id="badges"></div>
+    </section>
+  </div>
+</div>
+<script>
+(() => {
+'use strict';
+const API = 'https://vijuga.netlify.app/api/stats';
+const GAME = 'https://zmijica.onrender.com/';
+const INVITE = GAME + '?pozivnica';
+const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42'];
+const SKIN = { sk_none: 'Obični', sk_neon: 'Neon', sk_dash: 'Crtice', sk_pixel: 'Piksel', sk_rainbow: 'Duga', sk_gold: 'Zlato', sk_dildo: 'Dildo', sk_vag: 'Vagina', sk_boobs: 'Dojke', sk_condom: 'Kondom' };
+const BADGE = { bd_none: 'Bez ikone', bd_bolt: '⚡ Munja', bd_star: '★ Zvijezda', bd_skull: '☠ Lubanja', bd_gem: '◆ Dragulj', bd_crown: '♛ Kruna', bd_ucross: 'U s križem', bd_vag: 'Vagina', bd_boobs: 'Dojke', bd_condom: 'Kondom' };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = new Intl.NumberFormat('hr-HR');
+const fmtDate = t => t ? new Date(t).toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric', year: '2-digit' }) : '–';
+const fmtWhen = t => { if (!t) return '–'; const d = (Date.now() - t) / 60000; if (d < 2) return 'upravo'; if (d < 60) return `prije ${Math.round(d)} min`; if (d < 1440) return `prije ${Math.round(d / 60)} h`; return fmtDate(t); };
+
+// ---- invite
+const shareText = 'Igraj Vijugu sa mnom: zmije, skokovi i power-upovi, u pregledniku i na mobitelu. Besplatno, 500 zlatnika za početak!';
+$('#invUrl').value = INVITE;
+const enc = encodeURIComponent;
+$('#shareLinks').innerHTML = [
+  ['WhatsApp', `https://wa.me/?text=${enc(shareText + ' ' + INVITE)}`],
+  ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${enc(INVITE)}`],
+  ['X', `https://twitter.com/intent/tweet?text=${enc(shareText)}&url=${enc(INVITE)}`],
+  ['Telegram', `https://t.me/share/url?url=${enc(INVITE)}&text=${enc(shareText)}`],
+  ['Viber', `viber://forward?text=${enc(shareText + ' ' + INVITE)}`],
+].map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join('');
+$('#copyBtn').onclick = async () => {
+  try { await navigator.clipboard.writeText(INVITE); $('#invMsg').textContent = 'Link je kopiran. Zalijepi ga u objavu ili poruku.'; }
+  catch (e) { $('#invUrl').select(); $('#invMsg').textContent = 'Označio sam link: kopiraj ga ručno.'; }
+};
+if (navigator.share) { $('#shareBtn').hidden = false; $('#shareBtn').onclick = () => navigator.share({ title: 'Vijuga', text: shareText, url: INVITE }).catch(() => {}); }
+
+// ---- data
+let data = null, sortKey = 'matches', sortDir = -1;
+async function load() {
+  $('#upd').textContent = 'Učitavam…';
+  try {
+    const r = await fetch(API, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+    data = await r.json(); render();
+    $('#upd').textContent = 'Ažurirano ' + new Date(data.generatedAt).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { $('#upd').innerHTML = '<span class="err">Poslužitelj se ne javlja. Pokušaj ponovno za minutu.</span>'; }
+}
+$('#refresh').onclick = load;
+
+function tiles() {
+  const t = data.totals;
+  const items = [
+    ['Registrirani igrači', nf.format(t.players), `+${t.newPlayers7d} u zadnjih 7 dana`, true],
+    ['Odigrani mečevi', nf.format(t.matches), `${t.matchesOnline} online · ${t.matchesLocal} lokalno`, true],
+    ['Mečevi u 7 dana', nf.format(t.matches7d), `${t.activePlayers7d} aktivnih igrača`],
+    ['Sudjelovanja u mečevima', nf.format(t.playerMatches), 'zbroj mečeva svih igrača'],
+    ['Odigrane runde', nf.format(t.roundsPlayed), 'u zabilježenim mečevima'],
+    ['Rušenja', nf.format(t.kills), 'udarci u tuđi trag'],
+    ['Zlatnici kod igrača', nf.format(t.coinsHeld), 'nakon kupovina'],
+    ['Došli preko pozivnice', nf.format(t.invitedPlayers), 'igrači s pozivnim linkom igrača'],
+  ];
+  $('#tiles').innerHTML = items.map(([k, v, s, hero]) => `<div class="tile${hero ? ' hero' : ''}"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${s}</span></div>`).join('');
+}
+
+function chart() {
+  const days = data.days, box = $('#chart');
+  const W = Math.max(300, Math.round(box.clientWidth || 700)), H = 220, padL = 28, padB = 26, padT = 10, padR = 6;
+  const max = Math.max(4, ...days.map(d => d.matches));
+  const step = Math.ceil(max / 4), top = step * 4;
+  const iw = W - padL - padR, ih = H - padT - padB, bw = iw / days.length, barW = Math.max(6, bw - 6);
+  const y = v => padT + ih - (v / top) * ih;
+  let g = '';
+  for (let i = 0; i <= 4; i++) { const v = i * step; g += `<line x1="${padL}" x2="${W - padR}" y1="${y(v)}" y2="${y(v)}" stroke="#24364a" stroke-width="1"/><text x="${padL - 6}" y="${y(v) + 4}" fill="#8396ab" font-size="11" text-anchor="end">${v}</text>`; }
+  days.forEach((d, i) => {
+    const x = padL + i * bw + (bw - barW) / 2, h = (d.matches / top) * ih, r = Math.min(4, barW / 2, h);
+    if (d.matches > 0) g += `<path d="M${x},${y(0)} V${y(d.matches) + r} Q${x},${y(d.matches)} ${x + r},${y(d.matches)} H${x + barW - r} Q${x + barW},${y(d.matches)} ${x + barW},${y(d.matches) + r} V${y(0)} Z" fill="#ffb547"/>`;
+    const lbl = d.day.slice(8, 10) + '.' + d.day.slice(5, 7) + '.';
+    if (i % (bw < 34 ? 2 : 1) === 0) g += `<text x="${x + barW / 2}" y="${H - 8}" fill="#8396ab" font-size="11" text-anchor="middle">${lbl}</text>`;
+    g += `<rect class="hit" data-i="${i}" x="${padL + i * bw}" y="${padT}" width="${bw}" height="${ih}" fill="transparent"/>`;
+  });
+  g += `<line x1="${padL}" x2="${W - padR}" y1="${y(0)}" y2="${y(0)}" stroke="#8396ab" stroke-width="1"/>`;
+  const total = days.reduce((s, d) => s + d.matches, 0);
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mečevi po danima, ukupno ${total} u 14 dana">${g}</svg><div class="tip" id="tip"></div>` + (total ? '' : '<p class="empty">Još nema zabilježenih mečeva. Pojavit će se čim netko odigra meč do kraja.</p>');
+  const tip = $('#tip'), svg = box.querySelector('svg');
+  svg.addEventListener('pointermove', e => {
+    const t = e.target.closest('.hit'); if (!t) { tip.style.opacity = 0; return; }
+    const d = days[+t.dataset.i], r = box.getBoundingClientRect(), sr = svg.getBoundingClientRect();
+    const cx = (padL + (+t.dataset.i + .5) * bw) / W * sr.width + (sr.left - r.left);
+    tip.innerHTML = `${new Date(d.day).toLocaleDateString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric' })}: <b>${d.matches}</b> ${d.matches === 1 ? 'meč' : 'mečeva'} · ${d.players} igrača`;
+    tip.style.left = Math.max(70, Math.min(r.width - 70, cx)) + 'px'; tip.style.top = (y(d.matches) / H * sr.height + (sr.top - r.top)) + 'px'; tip.style.opacity = 1;
+  });
+  svg.addEventListener('pointerleave', () => { tip.style.opacity = 0; });
+}
+
+const COLS = [
+  ['name', 'Igrač', 'l'], ['matches', 'Mečevi'], ['wins', 'Pobjede'], ['winRate', '% pobjeda'], ['podiums', 'Postolje'], ['roundsWon', 'Runde'],
+  ['kills', 'Rušenja'], ['coins', 'Zlatnici'], ['online', 'Online'], ['invited', 'Pozvao'], ['created', 'Registriran'], ['lastSeen', 'Zadnje igrao'],
+];
+function players() {
+  const q = $('#q').value.trim().toLowerCase();
+  const all = data.players;
+  const byslug = Object.fromEntries(all.map(p => [p.slug, p.name]));
+  let rows = all.filter(p => !q || p.name.toLowerCase().includes(q));
+  rows.sort((a, b) => { const x = a[sortKey], y = b[sortKey]; return (typeof x === 'string' ? x.localeCompare(y, 'hr') : (x - y)) * sortDir; });
+  $('#plCount').textContent = `${all.length} registriranih`;
+  const head = '<thead><tr>' + COLS.map(([k, n, c]) => `<th class="${c || ''}" ${k === sortKey ? `aria-sort="${sortDir < 0 ? 'descending' : 'ascending'}"` : ''}><button type="button" data-k="${k}">${n}${k === sortKey ? (sortDir < 0 ? ' ↓' : ' ↑') : ''}</button></th>`).join('') + '</tr></thead>';
+  const body = rows.length ? rows.map(p => `<tr><td class="l"><span class="who"><span class="dot" style="background:${COLORS[p.color] || COLORS[0]}"></span>${esc(p.name)}</span>${p.invitedBy ? `<div class="note">pozvao ${esc(byslug[p.invitedBy] || p.invitedBy)}</div>` : ''}</td><td>${p.matches}</td><td>${p.wins}</td><td>${p.matches ? p.winRate + ' %' : '–'}</td><td>${p.podiums}</td><td>${p.roundsWon}</td><td>${p.kills}</td><td>${nf.format(p.coins)}</td><td>${p.online}</td><td>${p.invited}</td><td>${fmtDate(p.created)}</td><td>${fmtWhen(p.lastSeen)}</td></tr>`).join('')
+    : `<tr><td class="l" colspan="${COLS.length}"><span class="empty">${all.length ? 'Nitko ne odgovara pretrazi.' : 'Još nema registriranih igrača. Podijeli pozivnicu gore.'}</span></td></tr>`;
+  $('#players').innerHTML = head + '<tbody>' + body + '</tbody>';
+  $('#players').querySelectorAll('th button').forEach(b => b.onclick = () => { const k = b.dataset.k; if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = k === 'name' ? 1 : -1; } players(); });
+}
+$('#q').oninput = () => data && players();
+
+function recent() {
+  const r = data.recent;
+  $('#recent').innerHTML = r.length ? r.map(m => `<div class="match"><div class="top"><span class="tag">${m.mode === 'online' ? 'online' : 'lokalno'}</span><span>${fmtWhen(m.at)}</span><span>${m.rounds} rundi</span></div><div class="pl">${m.players.map(p => `<span class="${p.place === 1 ? 'first' : ''}">${p.place}. ${esc(p.name)}${p.human ? '' : ' (bot)'} · ${p.score}</span>`).join('')}</div></div>`).join('')
+    : '<p class="empty">Još nema zabilježenih mečeva.</p>';
+}
+function popularity(id, map, names) {
+  const e = Object.entries(map).filter(([k]) => k !== 'sk_none' && k !== 'bd_none').sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const max = Math.max(1, ...e.map(x => x[1]));
+  $(id).innerHTML = e.length ? e.map(([k, v]) => `<div class="bar"><span>${esc(names[k] || k)}</span><span class="track"><i style="width:${Math.round(100 * v / max)}%"></i></span><span>${v}</span></div>`).join('') : `<p class="empty">${id === '#skins' ? 'Nitko još nema kupljen skin.' : 'Nitko još nema kupljenu ikonu.'}</p>`;
+}
+function render() { tiles(); chart(); players(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); }
+addEventListener('resize', () => data && chart());
+load(); setInterval(load, 60000);
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Vijuga: igra zmija za do 6 igrača. Skreći, preskači tragove, ostani zadnji živ.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vijuga">
+<meta property="og:title" content="Vijuga: igraj sa mnom">
+<meta property="og:description" content="Zmije, skokovi i power-upovi. Igraj s prijateljima u pregledniku i na mobitelu. Besplatno, 500 zlatnika za početak.">
+<meta property="og:url" content="https://zmijica.onrender.com/">
+<meta property="og:image" content="https://zmijica.onrender.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zmijica.onrender.com/og.png">
+<meta name="theme-color" content="#0b121b">
 <style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -48,6 +59,10 @@ button:disabled { cursor: default; opacity: .5; }
 .me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #0b121b; }
 .me b { font-weight: 700; }
 .me .coins { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
+#toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; transition: .25s; background: var(--fg); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); z-index: 20; pointer-events: none; word-break: break-all; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+.invite { margin: 0; background: color-mix(in srgb, var(--amber) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
+.me button.inv { color: var(--amber); font-weight: 600; }
 .me button { background: transparent; border: 0; color: var(--muted); padding: 0 2px; text-decoration: underline; }
 #preview { width: 100%; height: 120px; display: block; border-radius: 10px; background: var(--slate); border: 1px solid var(--line); }
 .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
@@ -448,7 +463,8 @@ function renderMe() {
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
-  box.innerHTML = `<span class="av" style="background:${c}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>${esc(profile.name)}${badgeOf(profile)}</b><span class="coins">● ${profile.coins}</span><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  box.innerHTML = `<span class="av" style="background:${c}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>${esc(profile.name)}${badgeOf(profile)}</b><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  $('#invBtn').onclick = shareInvite;
   $('#editBtn').onclick = () => showRegister();
   $('#outBtn').onclick = logout;
 }
@@ -489,7 +505,7 @@ function showRegister() {
   const cur = profile || blankProfile('', Math.random() * 6 | 0);
   let color = cur.color;
   m.innerHTML = `<form id="regForm" novalidate>
-    <h3>${editing ? 'Uredi profil' : 'Novi igrač'}</h3>
+    <h3>${editing ? 'Uredi profil' : 'Novi igrač'}</h3>${!editing && INVITE ? `<p class="invite">${INVITE === 'svi' ? 'Pozvan si u Vijugu!' : 'Pozvao te igrač <b>' + esc((accounts.list.find(a => a.slug === INVITE) || { name: INVITE }).name) + '</b>.'} Odaberi ime i boju i za minutu igraš.</p>` : ''}
     <p class="hint" style="margin:0">Ime vide ostali igrači u predvorju i na ljestvici.${dbNs ? '' : ' Spremam ga na ovaj uređaj.'}</p>
     <label><span class="label">Tvoje ime</span><input type="text" id="regName" maxlength="14" autocomplete="nickname" value="${esc(editing ? cur.name : '')}" placeholder="npr. Zmaj"></label>
     <div><span class="label">Boja</span><div class="colors" id="regColors"></div></div>
@@ -513,19 +529,29 @@ function showRegister() {
       const taken = await accountGet(slug);
       if (taken) { $('#regErr').textContent = 'To ime već postoji. Odaberi ga na popisu ili uzmi drugo.'; return; }
     }
-    if (!editing) profile = blankProfile(name, color); else { profile.name = name; profile.slug = slug; profile.color = color; }
+    if (!editing) { profile = blankProfile(name, color); if (INVITE && INVITE !== 'svi' && INVITE !== slug) profile.invitedBy = INVITE; } else { profile.name = name; profile.slug = slug; profile.color = color; }
     if (pin) profile.pinHash = await pinHash(pin, slug);
     rememberLogin(slug);
     setup.players[0].name = name; saveSetup();
     await saveProfile(); m.hidden = true; renderPlayers(); renderNet();
   };
 }
+const GAME_URL = 'https://zmijica.onrender.com/';
+const INVITE = (() => { try { const v = new URLSearchParams(location.search).get('pozivnica'); return v && /^[a-z0-9-]{1,40}$/.test(v) ? v : (v === '' ? 'svi' : null); } catch (e) { return null; } })();
+function inviteLink() { return GAME_URL + '?pozivnica=' + (profile ? profile.slug : ''); }
+async function shareInvite() {
+  const url = inviteLink(), text = 'Igraj Vijugu sa mnom: zmije, skokovi i power-upovi, u pregledniku i na mobitelu.';
+  try { if (navigator.share) { await navigator.share({ title: 'Vijuga', text, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast('Pozivni link je kopiran: ' + url); } catch (e) { toast('Pozivni link: ' + url); }
+}
+function toast(msg) { let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); } t.textContent = msg; t.className = 'show'; clearTimeout(t._h); t._h = setTimeout(() => { t.className = ''; }, 3500); }
 async function bootAccounts() {
   // import an old single profile from v1
   try { const old = JSON.parse(localStorage.getItem('vijuga-profile') || 'null'); if (old && old.name) { const d = normalize(old); d.slug = slugOf(d.name); const o = localAccounts(); if (!o[d.slug]) localSave(d); localStorage.removeItem('vijuga-profile'); rememberLogin(d.slug); } } catch (e) {}
   if (!dbNs) refreshLocalList();
   let last = null; try { last = localStorage.getItem('vijuga-login'); } catch (e) {}
   if (last) { const d = await accountGet(last); if (d) { loginAs(d); return; } }
+  if (INVITE) { showRegister(); return; }
   showLogin();
 }
 function awardCoins(place, kills, won) {
@@ -754,7 +780,7 @@ function newMatch(netPlayers) {
   }
   const speedMul = { sporo: 0.8, normalno: 1, brzo: 1.25 }[setup.speed];
   G = { players: ps, target: targetFor(ps.length), speedMul, round: 0, phase: 'count', phaseT: 0, gt: 0,
-        pus: [], nextPu: 0, wrapAllUntil: 0, inset: 0, parts: [], over: false, ff: false, lastCount: 4, clr: 0, rank: null };
+        pus: [], nextPu: 0, wrapAllUntil: 0, inset: 0, parts: [], over: false, ff: false, lastCount: 4, clr: 0, rank: null, mid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) };
   sizeArena();
   newRound();
 }
@@ -1031,11 +1057,18 @@ function endRound(winner) {
   sfx.round();
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; setTimeout(() => showResults(), 900); return; }
+  if (G.round >= G.target) { G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
 const ROUND_PAUSE = 10;
+const API_BASE = 'https://vijuga.netlify.app/api';
+function reportMatch(sorted) {
+  if (net && net.role === 'client') return;
+  const mid = (net && net.mid) || G.mid; if (!mid || G.reported) return; G.reported = true;
+  const players = sorted.map((p, i) => ({ name: p.name, slug: p.mine && profile ? profile.slug : (p.slug || null), human: !!p.human, place: i + 1, score: p.score, wins: p.wins, kills: p.kills }));
+  fetch(API_BASE + '/matches', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mid, mode: net ? 'online' : 'local', rounds: G.target, players }) }).catch(() => {});
+}
 function showRoundBanner() {
   const winner = G.players.find(p => p.id === G.winner) || null;
   const top = ranking()[0];
@@ -1376,7 +1409,7 @@ function leaveOnline() {
 let roomState = { connected: false, peers: [], me: null, ready: false, hostPeer: null, watching: false, lastSt: null };
 let myPres = {};
 function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.presence(patch).catch(() => {}); }
-function myLobbyPres() { return { nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
+function myLobbyPres() { return { sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
 function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); }
 function findHost() {
   const hosts = roomState.peers.filter(p => p.presence && p.presence.st && typeof p.presence.st === 'object').sort((a, b) => a.peer < b.peer ? -1 : 1);
@@ -1459,7 +1492,7 @@ function hostStart(rematch) {
     let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
     const me = pr.isMe && pr.sameTab;
     players.push({ id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
-      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', mine: me });
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null });
   });
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'srednje', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; return; }
