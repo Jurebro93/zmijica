@@ -658,6 +658,8 @@ const SKINS = {
   sk_pixel:   { name: 'Piksel', d: 'Kockasti, retro trag', price: 90 },
   sk_rainbow: { name: 'Duga', d: 'Trag stalno mijenja boju', price: 220 },
   sk_gold:    { name: 'Zlato', d: 'Zlatni trag bez obzira na boju', price: 320 },
+  sk_boat:    { name: 'Brodić ⛵', d: 'Brodić na čelu, iza njega valovi', price: 180 },
+  sk_dog:     { name: 'Psić 🐶', d: 'Psić na čelu, iza njega šapice', price: 180 },
   sk_dragon:  { name: 'Zmaj 🐉', d: 'PREMIUM: ljuskice, glava zmaja i rika kad nekoga sruši', price: 5000, premium: true },
   sk_galaxy:  { name: 'Galaksija 🌌', d: 'PREMIUM: trag pun zvijezda koje trepere', price: 3500, premium: true },
   sk_bolt:    { name: 'Munja ⚡', d: 'PREMIUM: trag se iskri i pucketa kao struja', price: 3000, premium: true },
@@ -679,6 +681,8 @@ const BADGES = {
   bd_skull: { g: '☠', name: 'Lubanja', d: 'Za one koji ruše', price: 140 },
   bd_gem:   { g: '◆', name: 'Dragulj', d: 'Rijetko', price: 180 },
   bd_crown: { g: '♛', name: 'Kruna', d: 'Samo za prvake', price: 300 },
+  bd_boat:  { g: '⛵', name: 'Brodić', d: 'Za mornare', price: 120 },
+  bd_dog:   { g: '🐶', name: 'Psić', d: 'Najbolji prijatelj', price: 120 },
   bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
   bd_ucross: { g: '⁺U', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M4 9v7a6 6 0 0 0 12 0V9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 1v6M7 4h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', name: 'U s križem', d: 'Veliko U, križić na vrhu', price: 200 },
   bd_vag:   { g: '◊', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>', name: 'Vagina', d: 'Ikona za odrasle', price: 120 },
@@ -1098,6 +1102,8 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sk_pixel': c.lineCap = 'butt'; c.lineJoin = 'miter'; c.setLineDash([r * 1.2, r * 0.5]); break;
     case 'sk_rainbow': c.strokeStyle = `hsl(${(gt * 160) % 360} 90% 62%)`; break;
     case 'sk_gold': c.strokeStyle = '#ffd700'; c.shadowBlur = 6; c.shadowColor = '#ffb547'; break;
+    case 'sk_boat': c.strokeStyle = '#4cc9f0'; break;
+    case 'sk_dog': c.strokeStyle = '#b07a4f'; break;
     case 'sk_dragon': c.strokeStyle = '#1f8a4c'; c.shadowBlur = 8; c.shadowColor = '#ffd23f'; break;
     case 'sk_galaxy': c.strokeStyle = '#3b1f7a'; c.shadowBlur = 12; c.shadowColor = '#b48cff'; break;
     case 'sk_bolt': c.strokeStyle = '#e8fbff'; c.shadowBlur = 14; c.shadowColor = '#4cc9f0'; break;
@@ -1722,16 +1728,21 @@ function blockedBy(x, y, p, grace) {
 
 // ---------- trail drawing ----------
 function skinAfter(c, skin, pts, r, p) {
-  if ((skin === 'sk_dragon' || skin === 'sk_galaxy' || skin === 'sk_bolt' || skin === 'sz_snow' || skin === 'sz_love') && pts.length >= 4) {
+  const DECO = { sk_boat: 9, sk_dog: 26, sk_dragon: 7, sk_galaxy: 4, sk_bolt: 12, sz_snow: 30, sz_love: 42 };
+  if (DECO[skin] && p && pts.length >= 4) {
+    // decorations are spaced by distance travelled (the trail comes in tiny pieces)
     c.save(); c.shadowBlur = 0; c.setLineDash([]);
     for (let i = 2; i < pts.length; i += 2) {
-      const x0 = pts[i - 2], y0 = pts[i - 1], x1 = pts[i], y1 = pts[i + 1], len = Math.hypot(x1 - x0, y1 - y0); if (len < 0.5) continue;
-      const nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
-      if (skin === 'sk_dragon' && Math.random() < 0.5) { c.strokeStyle = '#ffd23f'; c.lineWidth = Math.max(0.8, r * 0.35); c.beginPath(); c.arc((x0 + x1) / 2, (y0 + y1) / 2, r * 0.75, Math.atan2(ny, nx) - 1.2, Math.atan2(ny, nx) + 1.2); c.stroke(); }
-      else if (skin === 'sk_galaxy' && Math.random() < 0.6) { const o = (Math.random() - .5) * r * 2; c.fillStyle = Math.random() < .5 ? '#ffffff' : '#9fe8ff'; c.fillRect(x1 + nx * o - 0.7, y1 + ny * o - 0.7, 1.4, 1.4); }
-      else if (skin === 'sk_bolt' && Math.random() < 0.4) { c.strokeStyle = '#ffe94a'; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x0 + nx * r * 1.6, y0 + ny * r * 1.6); c.lineTo((x0 + x1) / 2 - nx * r * 1.6, (y0 + y1) / 2 - ny * r * 1.6); c.lineTo(x1 + nx * r * 1.2, y1 + ny * r * 1.2); c.stroke(); }
-      else if (skin === 'sz_snow' && Math.random() < 0.2) { c.fillStyle = '#ffffff'; c.font = `${Math.round(r * 3)}px sans-serif`; c.textAlign = 'center'; c.fillText('❄', x1 + nx * r * 1.8, y1 + ny * r * 1.8); }
-      else if (skin === 'sz_love' && Math.random() < 0.12) { c.font = `${Math.round(r * 3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.fillText('💘', x1, y1 - r * 2); }
+      const x0 = pts[i - 2], y0 = pts[i - 1], x1 = pts[i], y1 = pts[i + 1], len = Math.hypot(x1 - x0, y1 - y0); if (len < 0.01 || len > 40) continue;
+      p.decoAcc = (p.decoAcc || 0) + len; if (p.decoAcc < DECO[skin]) continue; p.decoAcc = 0; p.decoN = (p.decoN || 0) + 1;
+      const nx = -(y1 - y0) / len, ny = (x1 - x0) / len, side = p.decoN % 2 ? 1 : -1;
+      if (skin === 'sk_boat') { c.strokeStyle = 'rgba(220,245,255,.8)'; c.lineWidth = 1.2; for (const sd of [-1, 1]) { const a = Math.atan2(ny * sd, nx * sd); c.beginPath(); c.arc(x1 + nx * sd * r * 1.7, y1 + ny * sd * r * 1.7, r * 0.9, a - 1.1, a + 1.1); c.stroke(); } }
+      else if (skin === 'sk_dog') { c.font = `${Math.round(r * 3.4)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🐾', x1 + nx * side * r * 2.2, y1 + ny * side * r * 2.2); }
+      else if (skin === 'sk_dragon') { c.strokeStyle = '#ffd23f'; c.lineWidth = Math.max(0.8, r * 0.35); const a = Math.atan2(ny * side, nx * side); c.beginPath(); c.arc(x1, y1, r * 0.8, a - 1.2, a + 1.2); c.stroke(); }
+      else if (skin === 'sk_galaxy') { const o = (Math.random() - .5) * r * 2.2; c.fillStyle = Math.random() < .5 ? '#ffffff' : '#9fe8ff'; c.fillRect(x1 + nx * o - 0.8, y1 + ny * o - 0.8, 1.6, 1.6); }
+      else if (skin === 'sk_bolt') { c.strokeStyle = '#ffe94a'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(x1 - (x1 - x0) / len * 10 + nx * r * 1.7 * side, y1 - (y1 - y0) / len * 10 + ny * r * 1.7 * side); c.lineTo(x1 - (x1 - x0) / len * 5 - nx * r * 1.7 * side, y1 - (y1 - y0) / len * 5 - ny * r * 1.7 * side); c.lineTo(x1 + nx * r * 1.3 * side, y1 + ny * r * 1.3 * side); c.stroke(); }
+      else if (skin === 'sz_snow') { c.fillStyle = '#ffffff'; c.font = `${Math.round(r * 3)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('❄', x1 + nx * side * r * 2, y1 + ny * side * r * 2); }
+      else if (skin === 'sz_love') { c.font = `${Math.round(r * 3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💘', x1 + nx * side * r * 2.2, y1 + ny * side * r * 2.2); }
     }
     c.restore();
   }
@@ -2106,7 +2117,7 @@ function render() {
     ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
-    if (p.skin === 'sk_dragon' && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🐉', 0, 0); ctx.restore(); }
+    if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
     else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
     // winner's badge blinks above the head between rounds
