@@ -40,6 +40,20 @@ button:disabled { cursor: default; opacity: .5; }
 .me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #0b121b; }
 .me b { font-weight: 700; }
 .me .coins { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
+.onhero { display: grid; gap: 10px; background: color-mix(in srgb, var(--good) 9%, var(--panel)); border: 1px solid color-mix(in srgb, var(--good) 40%, var(--line)); border-radius: 14px; padding: 14px; }
+.onhero.empty { background: var(--panel); border-color: var(--line); }
+.onhero .row1 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.onhero .count { display: flex; align-items: center; gap: 10px; flex: 1 1 200px; min-width: 0; }
+.onhero .count b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1; color: var(--good); font-variant-numeric: tabular-nums; }
+.onhero.empty .count b { color: var(--muted); }
+.onhero .count span { font-weight: 600; line-height: 1.2; }
+.onhero .count small { display: block; color: var(--muted); font-weight: 500; font-size: 14px; }
+.onhero .dotlive { width: 14px; height: 14px; border-radius: 50%; background: var(--good); animation: livePulse 1.8s infinite; flex: none; }
+.onhero.empty .dotlive { background: var(--muted); animation: none; }
+.onhero .people { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn.go-online { font-size: 22px; padding: 14px 26px; background: var(--good); color: #062014; }
+.btn.go-online.join { background: var(--amber); color: #1a1205; }
+.botnote { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: color-mix(in srgb, var(--good) 9%, var(--panel)); border: 1px solid color-mix(in srgb, var(--good) 40%, var(--line)); border-radius: 12px; padding: 10px 12px; }
 .onbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: color-mix(in srgb, var(--good) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--good) 40%, var(--line)); border-radius: 12px; padding: 8px 12px; }
 .onbar .lbl { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--good); font-size: 14px; text-transform: uppercase; letter-spacing: .06em; }
 .onbar .lbl::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 var(--good); animation: livePulse 1.8s infinite; }
@@ -284,19 +298,20 @@ button.pu:hover { border-color: var(--line); }
         <p>Do šest zmija na jednoj ploči. Skreći, preskači tragove i ostani zadnji živ.</p>
         <div class="me" id="me"></div>
       </header>
-      <div class="onbar" id="onbar" hidden></div>
+      <div class="onhero" id="onbar" aria-live="polite"></div>
       <canvas id="preview" aria-hidden="true"></canvas>
 
       <div class="tabs" role="tablist" id="tabs">
-        <button role="tab" data-tab="local" aria-selected="true">Lokalna igra</button>
-        <button role="tab" data-tab="online" aria-selected="false">Online</button>
+        <button role="tab" data-tab="online" aria-selected="true">Online</button>
+        <button role="tab" data-tab="local" aria-selected="false">S botovima</button>
         <button role="tab" data-tab="shop" aria-selected="false">Trgovina</button>
         <button role="tab" data-tab="board" aria-selected="false">Ljestvica</button>
         <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
         <a class="tablink" href="stats.html">Statistika</a>
       </div>
 
-      <div class="tab" id="tab-local">
+      <div class="tab" id="tab-local" hidden>
+        <div class="botnote" id="botNote" hidden></div>
         <div>
           <h2>Igrači <small>na ovom uređaju</small></h2>
           <p class="secnote">Igrač = osoba za ovom tipkovnicom ili ekranom, Bot = računalo (Lako / Srednje / Teško). Prvi ljudski igrač igra s tvojim profilom: skin, ikona i zlatnici. Za igru preko interneta idi na karticu Online.</p>
@@ -318,7 +333,7 @@ button.pu:hover { border-color: var(--line); }
         </div>
       </div>
 
-      <div class="tab" id="tab-online" hidden>
+      <div class="tab" id="tab-online">
         <div class="net" id="net"></div>
       </div>
 
@@ -785,8 +800,7 @@ function renderLegend() {
 $('#puAll').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = true); saveSetup(); renderLegend(); };
 $('#puNone').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = false); saveSetup(); renderLegend(); };
 $('#puSelf').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = POWERUPS[k].t === 's'); saveSetup(); renderLegend(); };
-let curTab = 'local';
-try { curTab = localStorage.getItem('vijuga-tab') || 'local'; } catch (e) {}
+let curTab = 'online'; // the game always opens on the online tab
 function showTab(t) {
   curTab = t; try { localStorage.setItem('vijuga-tab', t); } catch (e) {}
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
@@ -1568,11 +1582,40 @@ function notify(html, opts = {}) {
 }
 function renderOnbar() {
   const bar = $('#onbar'); if (!bar) return;
-  const others = onlineOthers();
-  if (!roomNs || !others.length) { bar.hidden = true; return; }
-  bar.hidden = false;
-  bar.innerHTML = `<span class="lbl">Online sada</span>` + others.slice(0, 6).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span><button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button></span>`; }).join('') + (others.length > 6 ? `<span class="st">+${others.length - 6}</span>` : '');
+  if (!roomNs) { bar.className = 'onhero empty'; bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><span>${roomState.resolved ? 'Online soba trenutno nije dostupna.<small>Osvježi stranicu za novi pokušaj. Do tada možeš igrati s botovima.</small>' : 'Spajanje na online sobu…'}</span></div></div>`; renderBotNote(0); return; }
+  const others = onlineOthers(), n = others.length;
+  const host = findHost(), hostOther = host && !(host.isMe && host.sameTab);
+  const inLobby = others.filter(p => p.presence.rd).length;
+  bar.className = 'onhero' + (n ? '' : ' empty');
+  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${pr.rd || pr.st ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
+  const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
+    : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
+    : inLobby ? `${inLobby} ${inLobby === 1 ? 'čeka' : 'čekaju'} u predvorju. Uđi i krenite!`
+    : 'Uđi u predvorje i pozovi ih, puno je zabavnije od botova.';
+  const label = n === 0 ? 'Samo ti si online' : n === 1 ? '1 igrač online uz tebe' : `${n} igrača online uz tebe`;
+  const mainBtn = !profile ? `<button class="btn go-online" type="button" id="goOnlineBtn">Prijavi se i igraj online</button>`
+    : roomState.ready && !hostOther && inLobby ? `<button class="btn go-online join" type="button" id="startNowBtn">Pokreni meč (${inLobby + 1} igrača)</button>`
+    : roomState.ready && !hostOther ? `<button class="btn go-online" type="button" id="goOnlineBtn">U predvorju si ✓</button>`
+    : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? 'Priključi se meču' : 'Igraj online'}</button>`;
+  const second = !n ? `<button class="btn ghost" type="button" id="heroInvite">Pozovi prijatelje</button><button class="btn ghost" type="button" id="heroBots">Igraj s botovima</button>` : '';
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${n ? `<div class="people">${people}</div>` : ''}`;
   bar.querySelectorAll('.pingbtn').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
+  if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (!net) hostStart(); };
+  if ($('#goOnlineBtn')) $('#goOnlineBtn').onclick = () => {
+    if (!profile) { showLogin(); return; }
+    goOnlineLobby();
+    const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) clientBegin(h);
+  };
+  if ($('#heroInvite')) $('#heroInvite').onclick = () => shareInvite();
+  if ($('#heroBots')) $('#heroBots').onclick = () => { showTab('local'); };
+  renderBotNote(n);
+}
+function renderBotNote(n) {
+  const el = $('#botNote'); if (!el) return;
+  if (!n) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<span>🟢 <b>${n}</b> ${n === 1 ? 'pravi igrač je' : 'pravih igrača je'} online. Igra s ljudima je zabavnija od botova.</span><button class="btn sm" type="button" id="botNoteBtn">Igraj online</button>`;
+  $('#botNoteBtn').onclick = () => { if (!profile) { showLogin(); return; } goOnlineLobby(); const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) clientBegin(h); };
 }
 function sendPing(peer) {
   if (!roomNs || !profile || !peer) return;
@@ -1645,7 +1688,7 @@ function collectSocial() {
   renderOnbar();
 }
 setTimeout(() => { social.settled = true; if (profile) { const o = onlineOthers(); if (o.length) { const names = o.slice(0, 3).map(q => esc(String(q.presence.nm).slice(0, 14))); const n = notify(`🟢 Online sada: <b>${names.join(', ')}</b>${o.length > 3 ? ' i još ' + (o.length - 3) : ''}.`, { actions: o.length === 1 ? `<button class="pingbtn" type="button">Pozovi na igru</button>` : '' }); if (n && o.length === 1) n.querySelector('.pingbtn').onclick = () => { sendPing(o[0].peer); n.remove(); }; } } }, 3500);
-function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); }
+function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); renderOnbar(); }
 function findHost() {
   const hosts = roomState.peers.filter(p => p.presence && p.presence.st && typeof p.presence.st === 'object').sort((a, b) => a.peer < b.peer ? -1 : 1);
   return hosts[0] || null;
@@ -1653,7 +1696,7 @@ function findHost() {
 function renderNet() {
   const box = $('#net'); if (!box) return;
   if (!roomNs && roomState.resolved) {
-    box.innerHTML = `<div class="notice">Online soba trenutno nije dostupna (nema veze s poslužiteljem). Lokalna igra, trgovina i profili rade. Osvježi stranicu za novi pokušaj.</div>`; return;
+    box.innerHTML = `<div class="notice">Online soba trenutno nije dostupna (nema veze s poslužiteljem). Igra s botovima, trgovina i profili rade. Osvježi stranicu za novi pokušaj.</div>`; return;
   }
   if (!roomNs) { box.innerHTML = `<div class="status"><span class="led"></span>Povezujem se s predvorjem…</div>`; return; }
   if (!profile) { box.innerHTML = `<div class="notice">Za online igru prvo se prijavi.</div><div class="go"><button class="btn" id="netReg">Prijava</button></div>`; $('#netReg').onclick = () => showLogin(); return; }
@@ -1667,7 +1710,7 @@ function renderNet() {
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
   html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
-  html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „Lokalna igra”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
+  html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „S botovima”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
   wireChat('#lchatIn', '#lchatSend'); renderChat();
@@ -1892,14 +1935,14 @@ async function initSupabase() {
   const ch = sb.channel(ROOM, { config: { presence: { key: myPeer }, broadcast: { self: false } } });
   ch.on('presence', { event: 'sync' }, () => {
     const st = ch.presenceState(); const seen = new Set();
-    for (const key in st) { const pr = st[key][0] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong } : {}; peersMap[key] = mkPeer(key, Object.assign({}, fast, pr)); }
+    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { if ('rd' in prev.presence) fast.rd = prev.presence.rd; if ('again' in prev.presence) fast.again = prev.presence.again; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   });
   ch.on('broadcast', { event: 'p' }, ({ payload }) => {
     if (!payload || typeof payload.peer !== 'string' || payload.peer === myPeer || !payload.patch) return;
     const prev = peersMap[payload.peer]; if (!prev) return;
-    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch)); fire();
+    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch, ('rd' in payload.patch || 'again' in payload.patch) ? { fastAt: Date.now() } : {})); fire();
   });
   const lobbyPres = {}; let trackTimer = 0;
   ch.subscribe((status) => { const c = status === 'SUBSCRIBED'; if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } if (c) ch.track(Object.assign({}, lobbyPres)); });
@@ -1907,7 +1950,7 @@ async function initSupabase() {
   roomNs = {
     async presence(patch) {
       const fast = {}, slow = {}; let hasFast = false, hasSlow = false;
-      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg' || k === 'ping' || k === 'pong') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; } }
+      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg' || k === 'ping' || k === 'pong') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again') { fast[k] = patch[k]; hasFast = true; } } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
@@ -1930,7 +1973,7 @@ async function initCapabilities() {
     dbNs = makeApiAccounts();
     if (SUPA.url && SUPA.key) { try { await initSupabase(); } catch (e) { roomNs = null; } }
   }
-  roomState.resolved = true;
+  roomState.resolved = true; renderOnbar();
   if (dbNs) {
     let failed = false;
     await new Promise(res => {
@@ -1945,7 +1988,7 @@ async function initCapabilities() {
   await bootAccounts();
   renderPlayers(); renderMe(); renderShop();
   if (roomNs) {
-    roomNs.onConnection(c => { roomState.connected = c; if (curTab === 'online' && $('#menu').hidden === false) renderNet(); }, () => { roomNs = null; roomState.connected = false; renderNet(); });
+    roomNs.onConnection(c => { roomState.connected = c; renderOnbar(); if (curTab === 'online' && $('#menu').hidden === false) renderNet(); }, () => { roomNs = null; roomState.connected = false; renderNet(); });
     roomNs.onPeers(ch => {
       roomState.peers = ch.peers;
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
