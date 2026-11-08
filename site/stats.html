@@ -296,7 +296,7 @@ addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
 
 // ---- who is online right now (listens to the game's lobby without appearing in it)
-const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa' };
+const SUPA = { url: 'https://hbyyhdtbmebmxyacowza.supabase.co', key: 'sb_publishable_6N7y8tXDJf5Q3WbNTcK1PA_mpmpRkoo' };
 const ROOM = (() => { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; })();
 const SOBA = ROOM === 'vijuga-lobby' ? '' : '&soba=' + ROOM.slice(13);
 const status = pr => pr.pg === 'stats' ? 'gleda statistiku' : (pr.st || pr.hs) ? 'igra online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'igra online meč' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'čeka u predvorju' : 'na stranici';
