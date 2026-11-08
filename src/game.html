@@ -26,10 +26,10 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: .5; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-#app { height: 100%; position: relative; }
+#app { height: 100%; height: 100dvh; position: relative; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
 
 /* ---------- MENU ---------- */
-#menu { height: 100%; overflow-y: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+#menu { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; box-sizing: border-box; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 80px; }
 .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 22px; }
 .brand { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .brand h1 { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 9vw, 84px); line-height: .9; margin: 0; letter-spacing: .01em; }
