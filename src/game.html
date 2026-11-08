@@ -92,6 +92,16 @@ button:disabled { cursor: default; opacity: .5; }
 #replayBox .rphead { display: flex; align-items: center; } #replayBox .rphead b { flex: 1; }
 #replayBox .rphead button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 18px; }
 #replayBox canvas { border-radius: 8px; max-width: 100%; } #replayBox .rprow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.thead { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; } .tcup { font-size: 46px; }
+.tpick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; } .tpk { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 5px 12px; } .tpk.on { border-color: var(--amber); } .tpk small { color: var(--muted); }
+.tcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.trow1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .trow1 h3 { margin: 0; flex: 1; font-family: var(--display); font-weight: 400; font-size: 22px; } .tst { border: 1px solid var(--amber); color: var(--amber); border-radius: 999px; padding: 2px 10px; font-weight: 700; }
+.tinfo { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; } .tinfo div { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: grid; } .tinfo b { font-size: 18px; } .tinfo b.gold { color: #ffd23f; } .tinfo span { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+.tplayers { display: flex; flex-wrap: wrap; gap: 6px; } .tcard h4 { margin: 6px 0 0; }
+.ttables { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; } .ttable { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 6px; } .ttable.mine { border-color: var(--amber); }
+.podium3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: end; } .pd { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; justify-items: center; } .pd span { font-size: 34px; } .pd.p1 { border-color: #ffd23f; padding-top: 22px; } .pd small { color: var(--amber); }
+.tadmin { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--line); padding-top: 10px; } .tadmin input, .tnew input { background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; color: var(--fg); }
+.tnew { margin-top: 14px; } .tnew label { display: grid; gap: 4px; margin: 8px 0; max-width: 320px; } .tnew summary { cursor: pointer; font-weight: 700; }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
 .dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
@@ -414,6 +424,7 @@ button.pu:hover { border-color: var(--line); }
         <button role="tab" data-tab="online" aria-selected="true">Online</button>
         <button role="tab" data-tab="local" aria-selected="false">S botovima</button>
         <button role="tab" data-tab="shop" aria-selected="false">Trgovina</button>
+        <button role="tab" data-tab="tour" aria-selected="false">Turnir 🏆</button>
         <button role="tab" data-tab="board" aria-selected="false">Ljestvica</button>
         <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
         <a class="tablink" href="stats.html">Statistika</a>
@@ -456,6 +467,7 @@ button.pu:hover { border-color: var(--line); }
         <div><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><div class="shop" id="shopTrolls"></div></div>
       </div>
 
+      <div class="tab" id="tab-tour" hidden><div id="tour"></div></div>
       <div class="tab" id="tab-board" hidden><div id="board"></div></div>
 
       <div class="tab" id="tab-help" hidden>
@@ -810,6 +822,7 @@ async function collectGifts() {
     const r = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug), { cache: 'no-store' }); if (!r.ok) return;
     const { gifts } = await r.json(); if (!gifts || !gifts.length) return;
     for (const g of gifts) {
+      if (/^coins:\d+$/.test(g.item)) { const n = Number(g.item.slice(6)); profile.coins += n; notify(`💰 <b>${esc(g.fromName || 'Turnir')}</b>: +${n} zlatnika`, { ms: 9000 }); await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '' }) }).catch(() => {}); continue; }
       if (TROLLS[g.item] || g.item === 'shield') profile.inv[g.item] = (profile.inv[g.item] || 0) + 1;
       else if ((SKINS[g.item] || BADGES[g.item]) && !profile.owned.includes(g.item)) profile.owned.push(g.item);
       else profile.coins += itemPrice(g.item) || 0;
@@ -820,7 +833,8 @@ async function collectGifts() {
   } catch (e) {}
 }
 setTimeout(() => { if (pushOn()) navigator.serviceWorker.register('sw.js').catch(() => {}); }, 3000);
-setTimeout(collectGifts, 4000); setInterval(collectGifts, 45000);
+setTimeout(collectGifts, 4000);
+setTimeout(() => { try { if (new URLSearchParams(location.search).get('tab') === 'turnir') showTab('tour'); } catch (e) {} if (TMODE) { const go = () => roomState.resolved && profile ? initTourTable() : setTimeout(go, 400); go(); } }, 600); setInterval(collectGifts, 45000);
 function showProfile() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -1155,10 +1169,91 @@ $('#puAll').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = true); s
 $('#puNone').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = false); saveSetup(); renderLegend(); };
 $('#puSelf').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = POWERUPS[k].t === 's'); saveSetup(); renderLegend(); };
 let curTab = 'online'; // the game always opens on the online tab
+// ================= tournaments =================
+const TOUR_API = 'https://vijuga.netlify.app/api/tournament', TOUR_FEE = 500;
+const TMODE = (() => { try { const q = new URLSearchParams(location.search); const id = q.get('turnir'); return id && /^[a-z0-9]{4,20}$/.test(id) ? { id, k: Number(q.get('kolo')) || 0, s: Number(q.get('stol')) || 0 } : null; } catch (e) { return null; } })();
+let tours = [], tourAdmins = [], tourSel = null, tourTimer = 0;
+const isAdmin = () => !!(profile && tourAdmins.includes(profile.slug));
+async function loadTours() {
+  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; tourAdmins = j.admins || []; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
+  if (!tourSel || !tours.some(t => t.id === tourSel)) tourSel = (tours.find(t => t.status !== 'done' && t.status !== 'cancelled') || tours[0] || {}).id || null;
+  renderTour(); clearTimeout(tourTimer); if (curTab === 'tour' && !$('#menu').hidden) tourTimer = setTimeout(loadTours, 20000);
+}
+async function tourCall(id, action, extra) {
+  if (!profile) { showLogin(); return null; }
+  try { const r = await fetch(TOUR_API + (id ? '/' + id + (action ? '/' + action : '') : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) });
+    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
+  catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
+}
+function tableUrl(t, k, tb) { return GAME_URL + `?soba=t${t.id}-k${k}-s${tb.id}&turnir=${t.id}&kolo=${k}&stol=${tb.id}`; }
+function renderTour() {
+  const box = $('#tour'); if (!box) return;
+  const t = tours.find(x => x.id === tourSel), me = profile && profile.slug;
+  const fmtT = ms => new Date(ms).toLocaleString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const pick = tours.length > 1 ? `<div class="tpick">${tours.map(x => `<button type="button" class="tpk ${x.id === tourSel ? 'on' : ''}" data-id="${x.id}">${esc(x.name)} <small>${{ open: 'prijave', running: 'u tijeku', final: 'finale', done: 'gotov', cancelled: 'otkazan' }[x.status]}</small></button>`).join('')}</div>` : '';
+  let html = `<div class="thead"><span class="tcup">🏆</span><div><h2 style="margin:0">Turniri</h2><p class="hint" style="margin:0">Kotizacija <b>${TOUR_FEE}</b> zlatnika, pa ih prvo zaradi u mečevima. 3 kola po stolovima (bodovi 10/6/3/1/0), 5 najboljih ide u finale. Fond: 🥇 60 % · 🥈 30 % · 🥉 10 %.</p></div></div>${pick}`;
+  if (!t) html += '<p class="hint">Trenutno nema turnira. Admin ga raspisuje ovdje, a ti ćeš dobiti mjesto čim se otvore prijave.</p>';
+  else {
+    const inT = t.players.some(p => p.slug === me), enough = profile && profile.coins >= TOUR_FEE;
+    const status = { open: '📝 Prijave otvorene', running: `⚔️ Kolo ${t.rounds.length} od 3`, final: '🔥 Finale', done: '🏁 Gotov', cancelled: '✖ Otkazan' }[t.status];
+    html += `<div class="tcard"><div class="trow1"><h3>${esc(t.name)}</h3><span class="tst">${status}</span></div>
+      <div class="tinfo"><div><b>${fmtT(t.start)}</b><span>početak</span></div><div><b class="gold">💰 ${t.pot}</b><span>fond${t.bonus ? ` (admin +${t.bonus})` : ''}</span></div><div><b>${t.players.length}/${t.max}</b><span>prijavljeno</span></div><div><b>${t.fee}</b><span>kotizacija</span></div></div>`;
+    if (t.status === 'open') html += !profile ? '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>' : inT ? `<p>✅ Prijavljen si. Budi online u ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (vraća ${t.fee})</button>` : enough ? `<button class="btn" type="button" id="tJoin">Prijavi se · ● ${t.fee}</button>` : `<p class="hint">Imaš ● ${profile.coins}. Zaradi još <b>${TOUR_FEE - profile.coins}</b> zlatnika u mečevima za kotizaciju.</p>`;
+    html += `<div class="tplayers">${t.players.map(p => `<span class="onp" data-player="${esc(p.slug)}">${esc(p.name)}${t.points[p.slug] != null ? ` <span class="st">${t.points[p.slug]} b</span>` : ''}</span>`).join('') || '<span class="hint">Još nitko.</span>'}</div>`;
+    if (t.rounds.length) {
+      const stand = [...t.players].sort((a, b) => (t.points[b.slug] || 0) - (t.points[a.slug] || 0));
+      html += `<h4>🏅 Poredak</h4><table class="board"><tbody>${stand.map((p, i) => `<tr data-player="${esc(p.slug)}"${p.slug === me ? ' style="color:var(--amber)"' : ''}><td>${i + 1}.</td><td style="text-align:left">${esc(p.name)}${i < 5 && t.status === 'running' ? ' <small class="hint">→ finale</small>' : ''}</td><td>${t.points[p.slug] || 0} b</td></tr>`).join('')}</tbody></table>`;
+      for (const r of [...t.rounds].reverse()) html += `<h4>Kolo ${r.k}</h4><div class="ttables">${r.tables.map(tb => { const mine = tb.players.includes(me); return `<div class="ttable ${mine ? 'mine' : ''}"><b>Stol ${tb.id}</b> ${tb.result ? '✓' : '⏳'}<div>${(tb.result || tb.players).map((s, i) => `${tb.result ? (i + 1) + '. ' : ''}${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(tb.result ? ' · ' : ', ')}</div>${mine && !tb.result && t.status === 'running' && r.k === t.rounds.length ? `<a class="btn" href="${tableUrl(t, r.k, tb)}">▶ Uđi za svoj stol</a>` : ''}</div>`; }).join('')}</div>`;
+    }
+    if (t.final) { const f = t.final, mine = f.players.includes(me); html += `<h4>🔥 Finale</h4><div class="ttable ${mine ? 'mine' : ''}">${(f.result || f.players).map((s, i) => `${f.result ? ['🥇', '🥈', '🥉'][i] || (i + 1) + '.' : ''} ${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(' · ')}${mine && !f.result ? `<a class="btn" href="${tableUrl(t, 0, f)}">▶ Uđi u finale</a>` : ''}</div>`; }
+    if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>+${w.prize} 💰</small></div>`).join('')}</div>`;
+    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>Admin</b>${t.status === 'open' ? '<button class="btn sm" type="button" id="tStart">Pokreni turnir</button>' : ''}<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button><button class="btn sm ghost" type="button" id="tCancel">Otkaži (vrati kotizacije)</button></div>`;
+    html += '</div>';
+  }
+  if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (admin)</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label><label>Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label><button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
+  box.innerHTML = html;
+  box.querySelectorAll('.tpk').forEach(b => b.onclick = () => { tourSel = b.dataset.id; renderTour(); });
+  const after = (j) => { if (j && j.tournament) { const i = tours.findIndex(x => x.id === j.tournament.id); const v = Object.assign({}, j.tournament, { pot: j.pot }); if (i >= 0) tours[i] = v; else tours.unshift(v); tourSel = v.id; renderTour(); } };
+  if ($('#tLogin')) $('#tLogin').onclick = () => showLogin();
+  if ($('#tJoin')) $('#tJoin').onclick = async () => { if (profile.coins < TOUR_FEE) return; if (!confirm(`Kotizacija je ${TOUR_FEE} zlatnika. Prijaviti se?`)) return; const j = await tourCall(t.id, 'join'); if (j) { profile.coins -= TOUR_FEE; profile.spent = (profile.spent || 0) + TOUR_FEE; saveProfile(); toast('🏆 Prijavljen si na turnir!'); after(j); } };
+  if ($('#tLeave')) $('#tLeave').onclick = async () => { const j = await tourCall(t.id, 'leave'); if (j) { toast('Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); setTimeout(collectGifts, 1500); } };
+  if ($('#tStart')) $('#tStart').onclick = async () => { if (!confirm('Pokrenuti turnir sada? Prijave se zatvaraju i kreće 1. kolo.')) return; after(await tourCall(t.id, 'start')); };
+  if ($('#tBonus')) $('#tBonus').onclick = async () => { const a = Math.floor(Number($('#tBonusIn').value) || 0); if (a <= 0) return; after(await tourCall(t.id, 'bonus', { amount: a })); };
+  if ($('#tCancel')) $('#tCancel').onclick = async () => { if (!confirm('Otkazati turnir i vratiti kotizacije svima?')) return; after(await tourCall(t.id, 'cancel')); };
+  if ($('#tnGo')) { const d = new Date(Date.now() + 3600000); d.setMinutes(0, 0, 0); $('#tnStart').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(); after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: $('#tnBonus').value })); }; }
+}
+// ---- playing a tournament table (opened from "Uđi za svoj stol")
+let tourTable = null, tourReported = false, tourArrived = 0;
+async function initTourTable() {
+  if (!TMODE) return;
+  try { const r = await fetch(TOUR_API + '/' + TMODE.id, { cache: 'no-store' }); const j = await r.json(); const t = j.tournament; const tb = TMODE.k === 0 ? t.final : (t.rounds.find(x => x.k === TMODE.k) || { tables: [] }).tables.find(x => x.id === TMODE.s); if (!tb) return; tourTable = { t, tb }; } catch (e) { return; }
+  Object.assign(setup, { rounds: TMODE.k === 0 ? '5' : '3', target: 'auto', netBots: false, teams: false });
+  tourArrived = performance.now();
+  if (profile && tourTable.tb.players.includes(profile.slug) && !roomState.ready) joinLobby(true);
+  renderOnbar();
+}
+function tourTick() {
+  if (!TMODE || !tourTable || net || !profile || tourTable.tb.result) return;
+  const seats = tourTable.tb.players, here = roomState.peers.filter(p => p.presence && p.presence.rd && seats.includes(p.presence.sl));
+  const hereSlugs = [...new Set(here.map(p => p.presence.sl))];
+  const hostSlug = seats.find(s => hereSlugs.includes(s));
+  if (hostSlug !== profile.slug) return;
+  const all = seats.every(s => hereSlugs.includes(s)), waited = performance.now() - tourArrived > 120000;
+  if ((all || waited) && hereSlugs.length >= 2 && !findHost()) hostStart();
+}
+setInterval(tourTick, 1500);
+async function reportTour(sorted) {
+  if (!TMODE || !tourTable || tourReported || !profile) return; tourReported = true;
+  const ranking = sorted.filter(p => p.human).map(p => p.mine ? profile.slug : p.slug).filter(Boolean);
+  const j = await tourCall(TMODE.id, 'result', { round: TMODE.k, table: TMODE.s, ranking });
+  if (j) toast('🏆 Rezultat stola je upisan u turnir.');
+}
 function showTab(t) {
   curTab = t; try { localStorage.setItem('vijuga-tab', t); } catch (e) {}
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  ['local', 'online', 'shop', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
+  ['local', 'online', 'shop', 'tour', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
+  if (t === 'tour') loadTours();
   if (t === 'online') renderNet();
   if (t === 'board') renderBoard();
 }
@@ -1634,7 +1729,7 @@ function endRound(winner) {
   sfx.round(); if (winner && winner.vs) setTimeout(() => playVictory(winner.vs), 350);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { setTimeout(refundBounties, 800); G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
+  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -2073,6 +2168,8 @@ function togglePause(force) {
   } else { showOverlay(null); lastTs = performance.now(); if (G.phase === 'end') showRoundBanner(); }
 }
 function showResults() {
+  if (TMODE && net && !net.spectate) { const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking(); const mine = rows.find(p => p.mine || p.id === net.myId); if (mine && profile && !G.awarded) { G.awarded = true; awardCoins(rows.indexOf(mine), mine.kills, rows.indexOf(mine) === 0); }
+    showOverlay(`<div class="banner"><span class="label">🏆 Turnir · ${TMODE.k ? 'kolo ' + TMODE.k + ', stol ' + TMODE.s : 'finale'}</span><h3>Poredak stola</h3><p>${rows.map((p, i) => `${i + 1}. ${esc(p.name)}`).join(' · ')}</p><p class="hint">Bodovi: 10 / 6 / 3 / 1 / 0. Sljedeće kolo kreće kad svi stolovi završe.</p><div class="row"><a class="btn" href="${GAME_URL}?tab=turnir">Natrag na turnir</a></div></div>`); return; }
   if (net && net.spectate) {
     const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking(); const w = rows[0];
     showOverlay(`<div class="banner"><span class="label">Kraj meča koji gledaš</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}</h3><p>${rows.map((p, i) => `${i + 1}. ${esc(p.name)} (${p.score})`).join(' · ')}</p><div class="row"><button class="btn" id="specStay">Gledaj dalje</button><button class="btn ghost" id="specLeave">Izađi</button></div></div>`);
@@ -2255,9 +2352,10 @@ function renderOnbar() {
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
   const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
   const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
+  const tourHtml = TMODE && tourTable ? `<div class="weekbar">🏆 <b>${esc(tourTable.t.name)}</b> · ${TMODE.k ? 'kolo ' + TMODE.k + ', stol ' + TMODE.s : 'FINALE'} <span class="ms">Za stolom: ${tourTable.tb.players.map(s => esc(tourTable.t.players.find(p => p.slug === s)?.name || s)).join(', ')}. Meč kreće kad svi stignu (najkasnije 2 min).</span></div>` : '';
   const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
   const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button>${profile && !pushOn() ? '<button type="button" class="btn sm ghost" id="pushBtn">🔔 Podsjeti me</button>' : ''}<a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${weekHtml}${meetHtml}${profile ? dailyHtml() : ''}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${tourHtml}${weekHtml}${meetHtml}${profile ? dailyHtml() : ''}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
   $('#meetBtn').onclick = () => showMeet();
   if ($('#pushBtn')) $('#pushBtn').onclick = () => enablePush();
   $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
@@ -2733,7 +2831,7 @@ function hostStart(rematch) {
   // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
   const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
-  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd));
+  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd));
   const meP = cand.find(p => p.isMe && p.sameTab);
   const queue = cand.filter(p => p !== meP && !lastIds.has(p.peer)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
   const prev = cand.filter(p => p !== meP && lastIds.has(p.peer)).sort((a, b) => order.indexOf(a.peer) - order.indexOf(b.peer));
