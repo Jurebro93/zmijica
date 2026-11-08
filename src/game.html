@@ -76,6 +76,7 @@ button:disabled { cursor: default; opacity: .5; }
 @keyframes ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-3deg); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); } }
 .specbar { display: grid; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 8px; background: var(--ink); border-top: 1px solid var(--line); }
 .specbar[hidden] { display: none; }
+.queueNote { background: rgba(255,181,71,.12); border: 1px solid rgba(255,181,71,.4); border-radius: 9px; padding: 6px 10px; font-size: 14px; }
 .specTop { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; }
 .specTop .coinsmall { margin-left: auto; color: var(--amber); font-weight: 700; }
 .specTargets { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -1498,7 +1499,7 @@ function frame(ts) {
   if (!G) return;
   if (profile && G.phase === 'run' && !watchingNow()) { profile.playMs = (profile.playMs || 0) + dt * 1000; profileDirty = true; }
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return; }
-  else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > 110) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
+  else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
   render(); renderHud(); updatePads(); tickCountdown();
   raf = requestAnimationFrame(frame);
 }
@@ -1569,7 +1570,7 @@ function startGame() {
 }
 function toMenu() {
   cancelAnimationFrame(raf); paused = false; G = null;
-  netPresence({ ig: null, pl: null, sp: null, watch: null }); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
+  netPresence({ ig: null, pl: null, sp: null, watch: null }); followHost(null); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
   if (profile && profileDirty) { profileDirty = false; saveProfile(); }
   if (net) { if (net.role === 'host') netPresence({ st: null }); net = null; }
   $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true; $('#reactPop').hidden = true;
@@ -1623,7 +1624,7 @@ function rematchState() {
     const peer = p.remote || (p.mine && net.role === 'host' ? roomState.me : null) || p.peerId;
     const pe = peer && roomState.peers.find(q => q.peer === peer);
     const pr = (pe && pe.presence) || {};
-    const here = !!pe && (!!pr.rd || pr.again === net.mid || !!pr.st); const ready = here && pr.again === net.mid;
+    const here = !!pe && (!!pr.rd || pr.again === net.mid || !!pr.st || !!pr.hs); const ready = here && pr.again === net.mid;
     return { name: p.name, color: p.color, here, ready };
   });
 }
@@ -1634,7 +1635,8 @@ function renderReady() {
   const b = $('#readyBtn'); if (b) b.textContent = myPres.again === net.mid ? 'Odustani od nove igre' : 'Spreman za novu igru';
   if (net.role === 'host' && G.over) {
     const present = list.filter(r => r.here);
-    const enough = present.length >= 2 || (setup.netBots && present.length >= 1);
+    const queued = queueList().length;
+    const enough = present.length + queued >= 2 || (setup.netBots && present.length >= 1);
     const hint = $('#readyHint'); if (hint) hint.textContent = enough ? '' : 'Za novu igru trebaju barem 2 igrača (ili uključi „dopuni botovima” u predvorju).';
     if (enough && present.every(r => r.ready) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
   }
@@ -1649,12 +1651,12 @@ function leaveOnline() {
 let roomState = { connected: false, peers: [], me: null, ready: false, hostPeer: null, watching: false, lastSt: null };
 let myPres = {};
 function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.presence(patch).catch(() => {}); }
-function myLobbyPres() { return { sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
+function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null };
 function onlineOthers() { return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug || !p.isMe)); }
-function peerStatus(pr) { return pr.st ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
-function canWatch(pr) { return !!(pr && (pr.st || (pr.ig && pr.pl))); }
+function peerStatus(pr) { return (pr.st || pr.hs) ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
+function canWatch(pr) { return !!(pr && (pr.st || pr.hs || (pr.ig && pr.pl))); }
 function notify(html, opts = {}) {
   const box = $('#notes'); if (!box) return null;
   const n = document.createElement('div'); n.className = 'note-card' + (opts.warn ? ' warn' : ''); n.innerHTML = `<div class="txt">${html}</div>` + (opts.actions || '') + '<button class="x" type="button" aria-label="Zatvori">×</button>';
@@ -1687,7 +1689,7 @@ function renderOnbar() {
   if ($('#goOnlineBtn')) $('#goOnlineBtn').onclick = () => {
     if (!profile) { showLogin(); return; }
     goOnlineLobby();
-    const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) clientBegin(h);
+    const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) joinHost(h);
   };
   if ($('#heroInvite')) $('#heroInvite').onclick = () => shareInvite();
   if ($('#heroBots')) $('#heroBots').onclick = () => { showTab('local'); };
@@ -1698,7 +1700,7 @@ function renderBotNote(n) {
   if (!n) { el.hidden = true; return; }
   el.hidden = false;
   el.innerHTML = `<span>🟢 <b>${n}</b> ${n === 1 ? 'pravi igrač je' : 'pravih igrača je'} online. Igra s ljudima je zabavnija od botova.</span><button class="btn sm" type="button" id="botNoteBtn">Igraj online</button>`;
-  $('#botNoteBtn').onclick = () => { if (!profile) { showLogin(); return; } goOnlineLobby(); const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) clientBegin(h); };
+  $('#botNoteBtn').onclick = () => { if (!profile) { showLogin(); return; } goOnlineLobby(); const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) joinHost(h); };
 }
 function sendPing(peer) {
   if (!roomNs || !profile || !peer) return;
@@ -1777,20 +1779,28 @@ const TROLLS = {
   horn:   { e: '📯', name: 'Truba', price: 60, ms: 1500, d: 'Glasna truba i natpis preko ekrana' },
   poop:   { e: '💩', name: 'Kakice', price: 80, ms: 4000, d: 'Kakice padaju preko arene' },
   shake:  { e: '💥', name: 'Potres', price: 120, ms: 2500, d: 'Ekran se trese' },
+  sticker:{ e: '🤡', name: 'Naljepnica', price: 100, ms: 4000, d: 'Veliki emotikon mu sjedne točno ispred glave i prati ga' },
   flash:  { e: '⚡', name: 'Bljesak', price: 150, ms: 1300, d: 'Ekran zabljesne bijelo' },
+  fog:    { e: '🌫️', name: 'Magla', price: 180, ms: 3500, d: 'Cijeli ekran mu se zamuti' },
   dark:   { e: '🌑', name: 'Mrak', price: 250, ms: 4000, d: 'Mrak, vidi se samo oko glave' },
   flip:   { e: '🙃', name: 'Naglavačke', price: 300, ms: 3500, d: 'Arena se okrene naglavačke' },
 };
 const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0;
 const seenDm = {}, seenTr = {};
 function watchingNow() { return !!(net && net.role === 'client' && (net.spectate || net.myId == null)); }
+// lobby players waiting for a place in the running match, longest wait first
+function queueList() {
+  const inMatch = new Set(G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
+  if (net && net.role === 'client' && net.hostPeer) inMatch.add(net.hostPeer);
+  return roomState.peers.filter(p => p.presence && p.presence.rd && !p.presence.hs && !inMatch.has(p.peer) && !(p.presence.again && net && p.presence.again === net.mid)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
+}
 function watcherCount() { const me = roomState.me; return me ? roomState.peers.filter(p => !(p.isMe && p.sameTab) && p.presence && p.presence.watch === me).length : 0; }
 function startSpectate(peer) {
   const pe = roomState.peers.find(p => p.peer === peer); if (!pe) { notify('Igrač više nije online.', { warn: true }); return; }
   if (!canWatch(pe.presence)) { notify(`<b>${esc(String(pe.presence.nm || 'Igrač'))}</b> trenutno ne igra.`, { warn: true, ms: 5000 }); return; }
   if (net) return;
-  const key = pe.presence.st ? 'st' : 'sp';
-  netPresence({ watch: peer });
+  const key = (pe.presence.st || pe.presence.hs) ? 'st' : 'sp';
+  netPresence({ watch: peer }); followHost(peer);
   notify(`Spajam se na igru igrača <b>${esc(String(pe.presence.nm))}</b>…`, { ms: 3000 });
   const t0 = performance.now();
   const wait = () => { const p2 = roomState.peers.find(p => p.peer === peer); if (p2 && p2.presence && p2.presence[key]) { clientBegin(p2, key, true); return; } if (performance.now() - t0 > 6000) { netPresence({ watch: null }); notify('Igra se nije uspjela učitati. Pokušaj ponovno.', { warn: true }); return; } setTimeout(wait, 200); };
@@ -1811,7 +1821,8 @@ function renderSpecBar() {
   const targets = specTargets(); if (!net.trollTarget || !targets.some(t => t.peer === net.trollTarget)) net.trollTarget = (targets.find(t => t.peer === net.target) || targets[0] || {}).peer;
   const coins = profile ? profile.coins : 0, cool = performance.now() - lastTrollSent < 5000;
   const tname = (targets.find(t => t.peer === net.trollTarget) || {}).name || '';
-  bar.innerHTML = `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
+  const qpos = !net.spectate ? queueList().findIndex(p => p.isMe && p.sameTab) : -1;
+  bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">⏳ Meč je pun (najviše ${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč. Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
     <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || coins < t.price || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>● ${t.price}</small></button>`).join('')}</div>
     <div class="chatrow"><input type="text" id="dmIn" maxlength="60" placeholder="${tname ? 'Poruka za ' + esc(tname) + '…' : 'Poruka…'}" aria-label="Poruka igraču"><button type="button" id="dmSend">Pošalji</button></div>
     ${!profile ? '<p class="hint" style="margin:0">Prijavi se da možeš zezati igrače zlatnicima.</p>' : cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi prije sljedeće zezancije.</p>' : ''}`;
@@ -1854,11 +1865,11 @@ function showIgMsg(html, warn) {
   while (box.children.length > 3) box.firstChild.remove();
   setTimeout(() => el.remove(), 5000);
 }
-function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; c.style.transition = ''; } }
+function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; c.style.transition = ''; c.style.filter = ''; } }
 function drawTrolls(c) {
   const now = performance.now();
   for (let i = trollFx.length - 1; i >= 0; i--) if (trollFx[i].until < now) trollFx.splice(i, 1);
-  let tf = '';
+  let tf = '', blur = 0;
   for (const f of trollFx) {
     const k = (now - f.start) / (f.until - f.start);
     const me = G.players.find(p => p.mine) || (net && net.myId != null ? G.players.find(p => p.id === net.myId) : null);
@@ -1879,12 +1890,19 @@ function drawTrolls(c) {
     else if (f.id === 'horn') { const s = 1 + 0.15 * Math.sin(k * 40); c.globalAlpha = k > .8 ? (1 - k) / .2 : 1; c.font = `400 ${Math.round(Math.min(W, H) * 0.12 * s)}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('TUUUUT! 📯', W / 2, H / 2); }
     else if (f.id === 'shake') { const a = 14 * (1 - k); tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * 0.15}deg)`; }
     else if (f.id === 'flip') { tf = 'rotate(180deg)'; }
+    else if (f.id === 'fog') { blur = Math.max(blur, 7 * (k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1)); }
+    else if (f.id === 'sticker' && me) {
+      const STK = ['🤡', '🍆', '🍑', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(W, H) * 0.2);
+      c.globalAlpha = k > .85 ? (1 - k) / .15 : 1; c.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      c.fillText(e, me.x + Math.cos(me.a) * sz * 0.75, me.y + Math.sin(me.a) * sz * 0.75);
+    }
     // who did it
     c.globalAlpha = 1; c.font = '700 16px "Barlow Semi Condensed", sans-serif'; c.fillStyle = '#ffb547';
     c.fillText(`${TROLLS[f.id].e} od ${f.from}`, W / 2, 20);
     c.restore();
   }
   const cvs = $('#cv');
+  if (cvs) { const fl = blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : ''; if (cvs.style.filter !== fl) cvs.style.filter = fl; }
   if (cvs) { if (tf) { cvs.style.transition = tf.startsWith('rotate(180') ? 'transform .35s' : ''; cvs.style.transform = tf; } else if (cvs.style.transform) { cvs.style.transition = 'transform .35s'; cvs.style.transform = ''; } }
 }
 function collectDirect() {
@@ -1910,7 +1928,7 @@ function tryWatchSlug() {
 setTimeout(() => { if (WATCH_SLUG && !tryWatchSlug.done) { tryWatchSlug.done = true; notify('Taj igrač trenutno ne igra. Pogledaj tko je online gore.', { warn: true }); } }, 9000);
 function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); renderOnbar(); }
 function findHost() {
-  const hosts = roomState.peers.filter(p => p.presence && p.presence.st && typeof p.presence.st === 'object').sort((a, b) => a.peer < b.peer ? -1 : 1);
+  const hosts = roomState.peers.filter(p => p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs)).sort((a, b) => a.peer < b.peer ? -1 : 1);
   return hosts[0] || null;
 }
 function renderNet() {
@@ -1939,7 +1957,7 @@ function renderNet() {
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
   if ($('#netStart')) $('#netStart').onclick = hostStart;
-  if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; clientBegin(host); };
+  if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; joinHost(host); };
   $('#netBots').onchange = (e) => { setup.netBots = e.target.checked; saveSetup(); };
 }
 // chat over presence: {msg:[text, counter, time]} — the newest message per person is visible to everyone in the room
@@ -2015,9 +2033,17 @@ function renderBoard() {
 }
 
 // host
+const MAX_PLAYERS = 5;
 function hostStart(rematch) {
   const lastMid = net && net.mid;
-  const peers = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd)).sort((a, b) => a.peer < b.peer ? -1 : 1).slice(0, 6);
+  // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
+  const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
+  const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
+  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd));
+  const meP = cand.find(p => p.isMe && p.sameTab);
+  const queue = cand.filter(p => p !== meP && !lastIds.has(p.peer)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
+  const prev = cand.filter(p => p !== meP && lastIds.has(p.peer)).sort((a, b) => order.indexOf(a.peer) - order.indexOf(b.peer));
+  const peers = [meP, ...queue, ...prev].filter(Boolean).slice(0, MAX_PLAYERS);
   if (!peers.length) return;
   const used = new Set(); const players = [];
   peers.forEach((pr, i) => {
@@ -2035,7 +2061,7 @@ function hostStart(rematch) {
   newMatch(players); buildPads(); enterGame(); hostSend(true);
 }
 function hostSend(force) {
-  const now = performance.now(); if (!force && now - net.lastSend < (net.supa ? 80 : 40)) return; net.lastSend = now;
+  const now = performance.now(); const gap = !net.supa ? 40 : (G.phase === 'run' || G.phase === 'count') ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
   // read remote inputs
   for (const p of G.players) if (p.remote) {
     const pr = roomState.peers.find(q => q.peer === p.remote);
@@ -2053,11 +2079,19 @@ function buildSnap() {
 }
 
 // client
+function followHost(peer) { if (roomNs && roomNs.follow) roomNs.follow(peer); }
+function joinHost(host) {
+  if (net || !host) return; followHost(host.peer);
+  if (joinHost.busy === host.peer) return; joinHost.busy = host.peer; const t0 = performance.now();
+  const wait = () => { const h = roomState.peers.find(p => p.peer === host.peer); if (net) { joinHost.busy = null; return; } if (h && h.presence && h.presence.st) { joinHost.busy = null; clientBegin(h); return; } if (performance.now() - t0 > 6000) { joinHost.busy = null; return; } setTimeout(wait, 150); };
+  wait();
+}
 function clientBegin(host, key = 'st', spectate = false) {
   if (net && net.role === 'client') return;
   const st = host.presence[key]; if (!st) return;
   net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid, key, spectate, target: spectate ? host.peer : null };
   if (!spectate) netPresence({ again: null });
+  if (!spectate && myPres.rd && !(st.pl || []).some(q => q.rm === roomState.me)) { roomState.rqAt = Date.now(); netPresence({ rq: roomState.rqAt }); }
   Object.assign(setup, st.s || {});
   G = { players: [], target: st.tg, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, pus: [], inset: 0, wrapAllUntil: 0, parts: [], over: false, ff: false, speedMul: 1, clr: st.clr, rank: null };
   $('#menu').hidden = true; $('#game').hidden = false;
@@ -2163,24 +2197,44 @@ async function initSupabase() {
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   });
-  ch.on('broadcast', { event: 'p' }, ({ payload }) => {
+  const onP = ({ payload }) => {
     if (!payload || typeof payload.peer !== 'string' || payload.peer === myPeer || !payload.patch) return;
     const prev = peersMap[payload.peer]; if (!prev) return;
-    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch, ('rd' in payload.patch || 'again' in payload.patch || 'ig' in payload.patch || 'pl' in payload.patch || 'watch' in payload.patch) ? { fastAt: Date.now() } : {})); fire();
-  });
+    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch, ('rd' in payload.patch || 'again' in payload.patch || 'ig' in payload.patch || 'pl' in payload.patch || 'watch' in payload.patch || 'hs' in payload.patch) ? { fastAt: Date.now() } : {})); fire();
+  };
+  ch.on('broadcast', { event: 'p' }, onP);
+  // Match snapshots and inputs travel on a per-host channel, so only the players and
+  // spectators of that match receive them (every broadcast is billed once per receiver).
+  const gchans = {}; let following = null;
+  const gname = (peer) => ROOM + '-g-' + peer;
+  const gjoin = (peer) => { const n = gname(peer); if (gchans[n]) return gchans[n]; const g = { ch: sb.channel(n, { config: { broadcast: { self: false } } }), ok: false }; g.ch.on('broadcast', { event: 'p' }, onP); g.ch.subscribe((s) => { g.ok = s === 'SUBSCRIBED'; }); gchans[n] = g; return g; };
+  const gleave = (peer) => { const n = gname(peer); const g = gchans[n]; if (g) { sb.removeChannel(g.ch); delete gchans[n]; } };
+  const gsend = (peer, patch) => { const g = gjoin(peer); if (g.ok) g.ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch } }).catch(() => {}); };
   const lobbyPres = {}; let trackTimer = 0;
   ch.subscribe((status) => { const c = status === 'SUBSCRIBED'; if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } if (c) ch.track(Object.assign({}, lobbyPres)); });
   peersMap[myPeer] = mkPeer(myPeer, {});
   roomNs = {
     async presence(patch) {
-      const fast = {}, slow = {}; let hasFast = false, hasSlow = false;
-      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'sp' || k === 'dm' || k === 'tr') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } } }
+      const fast = {}, slow = {}, own = {}, toHost = {}; let hasFast = false, hasSlow = false, hasOwn = false, hasToHost = false;
+      for (const k in patch) {
+        if (k === 'st' || k === 'sp') {
+          own[k] = patch[k]; hasOwn = true;
+          // the lobby only learns that a match is running (hs), not every frame of it
+          if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { slow.hs = on; fast.hs = on; hasSlow = hasFast = true; } }
+        } else if (k === 'in' || k === 'j') { toHost[k] = patch[k]; hasToHost = true; }
+        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr') { fast[k] = patch[k]; hasFast = true; }
+        else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } }
+      }
+      if (hasOwn && connected) gsend(myPeer, own);
+      if (hasToHost && connected && following && following !== myPeer) gsend(following, toHost);
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
       fire();
     },
     peers: toPeers,
+    // receive one host's match channel (null = none); my own channel stays open while I host
+    follow(peer) { if (following === peer) return; if (following && following !== myPeer) gleave(following); following = peer; if (peer) gjoin(peer); },
     onPeers(h) { peerHandlers.push(h); setTimeout(() => h({ peers: toPeers(), joined: toPeers(), left: [], updated: [] }), 0); return () => {}; },
     connected: () => connected,
     onConnection(h) { connHandlers.push(h); setTimeout(() => h(connected), 0); return () => {}; },
@@ -2218,7 +2272,7 @@ async function initCapabilities() {
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
       collectChat(); collectSocial(); collectDirect(); tryWatchSlug(); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
       if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { netPresence({ st: null }); toMenu(); } }
-      if (!net && roomState.ready && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) clientBegin(h); }
+      if (!net && roomState.ready && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();
     }, () => { roomNs = null; renderNet(); });
     netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 }));

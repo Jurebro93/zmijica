@@ -289,7 +289,7 @@ load(); setInterval(load, 60000);
 const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa' };
 const ROOM = (() => { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; })();
 const SOBA = ROOM === 'vijuga-lobby' ? '' : '&soba=' + ROOM.slice(13);
-const status = pr => pr.st ? 'igra online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'igra online meč' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'čeka u predvorju' : 'na stranici';
+const status = pr => (pr.st || pr.hs) ? 'igra online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'igra online meč' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'čeka u predvorju' : 'na stranici';
 function renderLive(ch) {
   const st = ch.presenceState(), seen = new Map();
   for (const k in st) { const m = st[k] || []; const pr = m[m.length - 1] || {}; if (!pr.nm) continue; const id = pr.sl || pr.nm; const prev = seen.get(id); if (!prev || (pr.ig && !prev.ig)) seen.set(id, pr); }
