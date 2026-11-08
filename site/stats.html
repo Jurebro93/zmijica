@@ -107,6 +107,7 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
 .pcard .chips span.on { border-color: var(--amber); color: var(--amber); }
 .pcard .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
 .pcard .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.weekp { background: linear-gradient(90deg, rgba(255,215,0,.14), var(--panel)); border-color: rgba(255,215,0,.45); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
@@ -116,6 +117,8 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
     <h1>Vijuga <span>statistika</span></h1>
     <div class="upd"><span id="upd">Učitavam…</span><button class="btn ghost" id="refresh" type="button">Osvježi</button><a class="btn" href="./">Natrag u igru</a></div>
   </header>
+
+  <section class="panel weekp" id="weekBox" hidden></section>
 
   <section class="panel" aria-labelledby="liveH">
     <div id="inviteBox" class="invitebox" hidden></div>
@@ -183,8 +186,8 @@ const API = 'https://vijuga.netlify.app/api/stats';
 const GAME = 'https://zmijica.onrender.com/';
 const INVITE = GAME + '?pozivnica';
 const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42'];
-const SKIN = { sk_none: 'Obični', sk_neon: 'Neon', sk_dash: 'Crtice', sk_pixel: 'Piksel', sk_rainbow: 'Duga', sk_gold: 'Zlato', sk_dildo: 'Dildo', sk_vag: 'Vagina', sk_boobs: 'Dojke', sk_condom: 'Kondom', sk_hairy: 'Dlakava jaja' };
-const BADGE = { bd_none: 'Bez ikone', bd_bolt: '⚡ Munja', bd_star: '★ Zvijezda', bd_skull: '☠ Lubanja', bd_gem: '◆ Dragulj', bd_crown: '♛ Kruna', bd_ucross: 'U s križem', bd_vag: 'Vagina', bd_boobs: 'Dojke', bd_condom: 'Kondom', bd_hairy: 'Dlakava jaja' };
+const SKIN = { sk_diamond: 'Dijamant 💎', sk_none: 'Obični', sk_neon: 'Neon', sk_dash: 'Crtice', sk_pixel: 'Piksel', sk_rainbow: 'Duga', sk_gold: 'Zlato', sk_dildo: 'Dildo', sk_vag: 'Vagina', sk_boobs: 'Dojke', sk_condom: 'Kondom', sk_hairy: 'Dlakava jaja' };
+const BADGE = { bd_comet: '☄ Komet', bd_none: 'Bez ikone', bd_bolt: '⚡ Munja', bd_star: '★ Zvijezda', bd_skull: '☠ Lubanja', bd_gem: '◆ Dragulj', bd_crown: '♛ Kruna', bd_ucross: 'U s križem', bd_vag: 'Vagina', bd_boobs: 'Dojke', bd_condom: 'Kondom', bd_hairy: 'Dlakava jaja' };
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = new Intl.NumberFormat('hr-HR');
@@ -292,7 +295,7 @@ function players() {
 $('#q').oninput = () => data && players();
 
 // ---- public player card (click any player)
-const TROLL = { hearts: '💖 Srčeka', horn: '📯 Truba', poop: '💩 Kakice', shake: '💥 Potres', sticker: '🤡 Naljepnica', flash: '⚡ Bljesak', fog: '🌫️ Magla', dark: '🌑 Mrak', flip: '🙃 Naglavačke' };
+const TROLL = { shield: '🛡️ Štit', mirror: '🪞 Zrcalo', fakepu: '🎁 Lažni power-up', colors: '🎨 Lude boje', hearts: '💖 Srčeka', horn: '📯 Truba', poop: '💩 Kakice', shake: '💥 Potres', sticker: '🤡 Naljepnica', flash: '⚡ Bljesak', fog: '🌫️ Magla', dark: '🌑 Mrak', flip: '🙃 Naglavačke' };
 const ADMIN = new URLSearchParams(location.search).has('admin');
 function showCard(slug) {
   const p = data && data.players.find(x => x.slug === slug); if (!p) return;
@@ -341,7 +344,8 @@ function leaders() {
     ['trollsSent', 'Glavni zezator', v => v + '×'], ['trollsGot', 'Najzezaniji', v => v + '×'], ['kills', 'Najviše rušenja', v => nf.format(v)], ['invited', 'Najviše pozvanih', v => v]];
   $('#leaders').innerHTML = box.map(([k, t, f]) => `<div class="lead"><h3>${t}</h3>${(L[k] || []).length ? '<ol>' + L[k].map(x => `<li>${esc(x.name)}<span>${f(x.value)}</span></li>`).join('') + '</ol>' : '<p class="empty">Još nitko.</p>'}</div>`).join('');
 }
-function render() { renderRecent(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
+function renderWeek() { const w = data.weekly, b = $('#weekBox'); if (!w) { b.hidden = true; return; } b.hidden = false; b.innerHTML = `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap" data-player="${esc(w.slug)}"><span style="font-size:46px">🏆</span><div><div class="note" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Igrač tjedna</div><div style="font-family:var(--display);font-size:28px;color:var(--amber)">${esc(w.name)}</div><div class="note">${w.firsts} pobjeda · ${w.podiums} postolja · ${w.kills} rušenja · ${w.matches} mečeva u zadnjih 7 dana</div></div></div>`; }
+function render() { renderRecent(); renderWeek(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
 addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
 

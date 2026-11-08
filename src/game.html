@@ -79,6 +79,28 @@ button:disabled { cursor: default; opacity: .5; }
 .mwho { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
 .mwho small { color: var(--muted); font-weight: 500; }
 .meetbest { font-size: 15px; } .meetbest b { color: var(--amber); }
+.weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
+.weekbar .ms { color: var(--muted); font-size: 13px; }
+.dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
+.dailych .dc { background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+.dailych .dc.ok { border-color: var(--good); }
+.dailych .dc small { color: var(--muted); }
+.lvchip { background: var(--amber); color: #1a1205; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 800; margin-left: 6px; }
+.lvl { display: grid; gap: 4px; } .lvl .bar { height: 10px; border-radius: 5px; background: var(--ink); border: 1px solid var(--line); overflow: hidden; } .lvl .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), #ffd23f); }
+.lvl small { color: var(--muted); }
+.achs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ach { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); opacity: .35; font-size: 16px; }
+.ach small { font-size: 12px; } .ach.on { opacity: 1; border-color: var(--amber); background: rgba(255,181,71,.1); }
+.dailyrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+.daily { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 12px; border-radius: 12px; border: 1px solid var(--amber); background: rgba(255,181,71,.08); }
+.daily .tag { grid-column: 1 / -1; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); }
+.daily .hint { grid-column: 1; } .daily .btn { grid-column: 2; grid-row: 2 / 4; }
+.item .rare { font-size: 12px; font-weight: 800; color: #7df9ff; text-transform: uppercase; letter-spacing: .05em; }
+.item.flash { outline: 3px solid var(--amber); }
+.giftlist { display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
+.giftopt { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); text-align: left; }
+.giftopt small { color: var(--muted); } .giftopt:disabled { opacity: .4; }
+.boxpop { animation: boxpop .6s ease-out; } @keyframes boxpop { 0% { transform: scale(.2) rotate(-20deg); } 70% { transform: scale(1.25) rotate(8deg); } 100% { transform: scale(1); } }
 .onhero .recent { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
 .onhero .recent .rl { color: var(--muted); font-size: 13px; font-weight: 600; margin-right: 2px; }
 .onp.rec { opacity: .92; }
@@ -413,6 +435,7 @@ button.pu:hover { border-color: var(--line); }
 
       <div class="tab" id="tab-shop" hidden>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
+        <div class="dailyrow" id="shopDaily"></div>
         <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
@@ -550,6 +573,7 @@ const SKINS = {
   sk_pixel:   { name: 'Piksel', d: 'Kockasti, retro trag', price: 90 },
   sk_rainbow: { name: 'Duga', d: 'Trag stalno mijenja boju', price: 220 },
   sk_gold:    { name: 'Zlato', d: 'Zlatni trag bez obzira na boju', price: 320 },
+  sk_diamond: { name: 'Dijamant 💎', d: 'RIJETKO: samo 3 igrača ga mogu imati. Ledeni sjaj.', price: 900, limit: 3 },
   sk_dildo:   { name: 'Dildo', d: 'Ružičasti, debeli trag s glavicom. Za odrasle.', price: 150 },
   sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
   sk_boobs:   { name: 'Dojke', d: 'Trag boje kože s parovima dojki. Za odrasle.', price: 160 },
@@ -563,6 +587,7 @@ const BADGES = {
   bd_skull: { g: '☠', name: 'Lubanja', d: 'Za one koji ruše', price: 140 },
   bd_gem:   { g: '◆', name: 'Dragulj', d: 'Rijetko', price: 180 },
   bd_crown: { g: '♛', name: 'Kruna', d: 'Samo za prvake', price: 300 },
+  bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
   bd_ucross: { g: '⁺U', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M4 9v7a6 6 0 0 0 12 0V9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 1v6M7 4h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', name: 'U s križem', d: 'Veliko U, križić na vrhu', price: 200 },
   bd_vag:   { g: '◊', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>', name: 'Vagina', d: 'Ikona za odrasle', price: 120 },
   bd_boobs: { g: '(.)(.)', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="11" r="1.5" fill="currentColor"/><circle cx="17" cy="11" r="1.5" fill="currentColor"/></svg>', name: 'Dojke', d: 'Ikona za odrasle', price: 120 },
@@ -619,7 +644,7 @@ function backfillSpend(P) {
   return P;
 }
 function normalize(d) { return backfillSpend(refundRetired(normalize0(d))); }
-function normalize0(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, inv: (d.inv && typeof d.inv === 'object') ? Object.fromEntries(Object.entries(d.inv).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))]).filter(([, v]) => v > 0)) : {}, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
+function normalize0(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, daily: d.daily && typeof d.daily === 'object' ? d.daily : null, inv: (d.inv && typeof d.inv === 'object') ? Object.fromEntries(Object.entries(d.inv).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))]).filter(([, v]) => v > 0)) : {}, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
 function applyBonus(p) { if (p && !p.bonus500) { p.coins = (Number(p.coins) || 0) + START_COINS; p.bonus500 = true; p._bonusNew = true; } return p; }
 function slugOf(name) { const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return (base || 'igrac').slice(0, 40); }
 async function pinHash(pin, slug) {
@@ -663,7 +688,7 @@ function renderMe() {
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
-  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><button type="button" id="profBtn">profil</button><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><span class="lvchip">Nv ${levelOf(profile).lv}</span><button type="button" id="profBtn">profil</button><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
   $('#invBtn').onclick = shareInvite;
   box.querySelector('.av').onclick = box.querySelector('b').onclick = () => showProfile();
   box.querySelector('.av').style.cursor = box.querySelector('b').style.cursor = 'pointer';
@@ -689,23 +714,71 @@ function showPlayer(slug) {
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
+    ${levelHtml(P)}
+    <h4>Postignuća <small>${achOf(P).length} od ${ACH.length}</small></h4>${achHtml(P)}
     <h4>Kolekcija <small>✓ = trenutno koristi</small></h4>
     <span class="label">Tragovi</span><div class="wrow">${skins.map(k => chip(P.eq.skin === k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('') || none}</div>
     <span class="label">Ikone</span><div class="wrow">${badges.map(k => chip(P.eq.badge === k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('') || none}</div>
     <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
-    <div class="go">${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
+    <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
   $('#pClose').onclick = () => { m.hidden = true; };
   if ($('#pWatch')) $('#pWatch').onclick = () => { m.hidden = true; startSpectate(pe.peer); };
   if ($('#pPing')) $('#pPing').onclick = () => { m.hidden = true; sendPing(pe.peer); };
+  if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
 }
 // any element with data-player opens that player's card
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-player]'); if (!el || e.target.closest('button:not([data-player]), a')) return;
   const slug = el.dataset.player; if (slug && /^[a-z0-9-]{1,40}$/.test(slug)) showPlayer(slug);
 });
+const GIFTS_API = 'https://vijuga.netlify.app/api/gifts';
+function giftOptions(P) {
+  const out = [];
+  for (const [id, it] of Object.entries(SKINS)) if (it.price > 0 && !it.limit && !P.owned.includes(id)) out.push({ id, name: it.name, price: it.price, kind: 'Trag' });
+  for (const [id, it] of Object.entries(BADGES)) if (it.price > 0 && !it.limit && !P.owned.includes(id)) out.push({ id, name: it.name, price: it.price, kind: 'Ikona' });
+  for (const [id, t] of Object.entries(TROLLS)) out.push({ id, name: t.e + ' ' + t.name, price: t.price, kind: 'Zezalica' });
+  out.push({ id: 'shield', name: '🛡️ Štit', price: SHIELD_PRICE, kind: 'Zezalica' });
+  return out;
+}
+function showGift(P) {
+  const m = $('#regModal'); m.hidden = false;
+  const opts = giftOptions(P);
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false"><h3>🎁 Poklon za ${esc(P.name)}</h3><p class="hint" style="margin:0">Plaćaš ti, a ${esc(P.name)} dobije stvar čim otvori igru. Imaš ● ${profile.coins}.</p>
+    <div class="giftlist">${opts.map(o => `<button type="button" class="giftopt" data-id="${o.id}" ${profile.coins < o.price ? 'disabled' : ''}><span>${esc(o.name)}</span><small>${o.kind} · ● ${o.price}</small></button>`).join('')}</div>
+    <div class="err" id="giftErr"></div><div class="go"><button class="btn ghost" type="button" id="giftBack">Natrag</button></div></form>`;
+  $('#giftBack').onclick = () => showPlayer(P.slug);
+  m.querySelectorAll('.giftopt').forEach(b => b.onclick = async () => {
+    const o = opts.find(x => x.id === b.dataset.id); if (!o || profile.coins < o.price) return;
+    if (!confirm(`Poklanjaš ${o.name} igraču ${P.name} za ${o.price} zlatnika?`)) return;
+    b.disabled = true;
+    try {
+      const r = await fetch(GIFTS_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ to: P.slug, from: profile.slug, item: o.id, auth: profile.pinHash || '' }) });
+      if (!r.ok) { $('#giftErr').textContent = 'Poklon nije poslan (' + r.status + ').'; b.disabled = false; return; }
+      profile.coins -= o.price; profile.spent = (profile.spent || 0) + o.price; profile.purchases = (profile.purchases || 0) + 1; saveProfile();
+      m.hidden = true; toast(`🎁 Poklon poslan: ${o.name} → ${P.name}`);
+      const pe = roomState.peers.find(q => q.presence && q.presence.sl === P.slug); if (pe) { dmN++; netPresence({ dm: [pe.peer, `🎁 Poslao sam ti poklon: ${o.name}!`, dmN, Date.now()] }); }
+    } catch (e) { $('#giftErr').textContent = 'Nema veze s poslužiteljem.'; b.disabled = false; }
+  });
+}
+async function collectGifts() {
+  if (!profile) return;
+  try {
+    const r = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug), { cache: 'no-store' }); if (!r.ok) return;
+    const { gifts } = await r.json(); if (!gifts || !gifts.length) return;
+    for (const g of gifts) {
+      if (TROLLS[g.item] || g.item === 'shield') profile.inv[g.item] = (profile.inv[g.item] || 0) + 1;
+      else if ((SKINS[g.item] || BADGES[g.item]) && !profile.owned.includes(g.item)) profile.owned.push(g.item);
+      else profile.coins += itemPrice(g.item) || 0;
+      notify(`🎁 <b>${esc(g.fromName || g.from)}</b> ti je poklonio: <b>${esc(itemName(g.item))}</b>`, { ms: 8000 });
+      await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '' }) }).catch(() => {});
+    }
+    saveProfile(); renderShop(); checkAchievements();
+  } catch (e) {}
+}
+setTimeout(collectGifts, 4000); setInterval(collectGifts, 45000);
 function showProfile() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -718,6 +791,8 @@ function showProfile() {
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
+    ${levelHtml(P)}
+    <h4>Postignuća <small>${achOf(P).length} od ${ACH.length}</small></h4>${achHtml(P)}
     <h4>Garderoba <small>dodirni da promijeniš</small></h4>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
@@ -825,8 +900,11 @@ async function bootAccounts() {
 function awardCoins(place, kills, won) {
   if (!profile) return 0;
   const n = (PLACE_COINS[place] || 12) + kills * KILL_COINS;
+  const lv0 = levelOf(profile).lv;
   profile.coins += n; profile.matches++; profile.kills += kills; if (won) profile.wins++;
-  saveProfile(); return n;
+  dailyCount({ m: 1, w: won ? 1 : 0, k: kills, top3: place < 3 ? 1 : 0 });
+  const lv1 = levelOf(profile).lv; if (lv1 > lv0) { const bonus = 50 * lv1; profile.coins += bonus; notify(`⬆️ Nivo <b>${lv1}</b>! Nagrada +${bonus} zlatnika`, { ms: 6000 }); }
+  saveProfile(); checkAchievements(); return n;
 }
 function skinPreview(cv, skinId, color) {
   const c = cv.getContext('2d'); const w = cv.width = 200, h = cv.height = 44;
@@ -859,6 +937,7 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sk_pixel': c.lineCap = 'butt'; c.lineJoin = 'miter'; c.setLineDash([r * 1.2, r * 0.5]); break;
     case 'sk_rainbow': c.strokeStyle = `hsl(${(gt * 160) % 360} 90% 62%)`; break;
     case 'sk_gold': c.strokeStyle = '#ffd700'; c.shadowBlur = 6; c.shadowColor = '#ffb547'; break;
+    case 'sk_diamond': c.strokeStyle = `hsl(190 95% ${78 + 12 * Math.sin(gt * 9)}%)`; c.shadowBlur = 14; c.shadowColor = '#7df9ff'; break;
     case 'sk_dildo': c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2 * 1.45; return true;
     case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
     case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
@@ -866,7 +945,35 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sk_hairy': c.strokeStyle = '#cf9580'; c.lineWidth = r * 2 * 1.15; return true;
   }
 }
+function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function dailyOffer() { const pool = [...Object.keys(SKINS), ...Object.keys(BADGES)].filter(k => (SKINS[k] || BADGES[k]).price > 0 && !(SKINS[k] || BADGES[k]).limit); return pool[dayHash('offer') % pool.length]; }
+const BOX_PRICE = 150;
+function openBox() {
+  if (!profile || profile.coins < BOX_PRICE) { toast('Nemaš dovoljno zlatnika.'); return; }
+  profile.coins -= BOX_PRICE; profile.spent = (profile.spent || 0) + BOX_PRICE; profile.purchases = (profile.purchases || 0) + 1;
+  const items = [...Object.keys(SKINS), ...Object.keys(BADGES), ...STARTER_PU].filter(k => !profile.owned.includes(k) && !(SKINS[k] || BADGES[k] || {}).limit && itemPrice(k) > 0);
+  const roll = Math.random(); let msg;
+  if (items.length && roll < 0.35) { const k = items[Math.floor(Math.random() * items.length)]; profile.owned.push(k); msg = `🎉 ${itemName(k)}! (vrijedi ${itemPrice(k)})`; }
+  else if (roll < 0.55) { const n = 200 + Math.floor(Math.random() * 7) * 25; profile.coins += n; msg = `💰 ${n} zlatnika!`; }
+  else { const ids = Object.keys(TROLLS); const a = ids[Math.floor(Math.random() * ids.length)], b = ids[Math.floor(Math.random() * ids.length)]; profile.inv[a] = (profile.inv[a] || 0) + 1; profile.inv[b] = (profile.inv[b] || 0) + 1; msg = `😈 Zezalice: ${TROLLS[a].e} ${TROLLS[a].name} i ${TROLLS[b].e} ${TROLLS[b].name}`; }
+  sfx.pick(); saveProfile(); renderShop();
+  const m = $('#regModal'); m.hidden = false;
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><div style="font-size:64px" class="boxpop">🎁</div><h3>Iz kutije si dobio</h3><p style="font-size:20px;margin:0">${msg}</p><div class="go" style="justify-content:center"><button class="btn" type="button" id="boxOk">Super!</button>${profile.coins >= BOX_PRICE ? '<button class="btn ghost" type="button" id="boxAgain">Otvori još jednu (● ' + BOX_PRICE + ')</button>' : ''}</div></form>`;
+  $('#boxOk').onclick = () => { m.hidden = true; }; if ($('#boxAgain')) $('#boxAgain').onclick = openBox;
+}
+function itemName(k) { return (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
+function renderDailyShop() {
+  const box = $('#shopDaily'); if (!box) return;
+  const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
+  box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana</span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>
+    <div class="daily"><span class="tag">🎁 Kutija iznenađenja</span><b>● ${BOX_PRICE}</b><span class="hint">skin, ikona, start power-up, 200–350 zlatnika ili 2 zezalice</span><button class="btn sm" type="button" id="openBox" ${!profile || profile.coins < BOX_PRICE ? 'disabled' : ''}>Otvori</button></div>`;
+  $('#openBox').onclick = openBox;
+  $('#goOffer').onclick = () => { const el = [...document.querySelectorAll('#shopSkins .item, #shopBadges .item')].find(x => x.textContent.includes(it.name)); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); } };
+}
+function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
+function limitLeft(id) { const it = SKINS[id] || BADGES[id]; if (!it || !it.limit) return Infinity; return Math.max(0, it.limit - ownersOf(id)); }
 function renderShop() {
+  renderDailyShop();
   const make = (box, items, kind) => {
     box.innerHTML = '';
     items.forEach(([id, it]) => {
@@ -879,12 +986,14 @@ function renderShop() {
       d.appendChild(prev);
       d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`);
       const act = document.createElement('div'); act.className = 'act';
-      const price = document.createElement('span'); price.className = 'price'; price.textContent = it.price ? `● ${it.price}` : 'besplatno';
+      const price = document.createElement('span'); price.className = 'price'; const disc = dailyOffer() === id && !owned ? Math.round(it.price * 0.7) : 0; const cost = disc || it.price;
+      price.innerHTML = it.price ? (disc ? `<s style="opacity:.6">● ${it.price}</s> ● ${disc}` : `● ${it.price}`) : 'besplatno';
+      if (it.limit) d.insertAdjacentHTML('beforeend', `<span class="rare">${limitLeft(id) > 0 ? `još ${limitLeft(id)} od ${it.limit}` : 'rasprodano'}</span>`);
       const b = document.createElement('button'); b.type = 'button';
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
       else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } }; }
       else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[kind] = id; saveProfile(); }; }
-      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; profile.coins -= it.price; profile.spent = (profile.spent || 0) + it.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); }; }
+      else { b.textContent = it.limit && limitLeft(id) <= 0 ? 'Rasprodano' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost || (it.limit && limitLeft(id) <= 0); b.onclick = () => { if (profile.coins < cost || (it.limit && limitLeft(id) <= 0)) return; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); }; }
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
   };
@@ -893,6 +1002,12 @@ function renderShop() {
   const tb = $('#shopTrolls');
   if (tb) {
     tb.innerHTML = '';
+    { const have = profile ? (profile.inv.shield || 0) : 0; const d = document.createElement('div'); d.className = 'item' + (have ? ' eq' : '');
+      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">🛡️</span></div><div><b>Štit</b><small>Automatski odbije sljedeću zezanciju koju ti netko pošalje, a njemu piše ODBIJENO!${have ? ` · <b style="color:var(--amber)">imaš ${have}</b>` : ''}</small></div>`;
+      const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${SHIELD_PRICE}`;
+      const b = document.createElement('button'); b.type = 'button';
+      if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); } else { b.textContent = have ? 'Kupi još' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < SHIELD_PRICE; b.onclick = () => { if (profile.coins < SHIELD_PRICE) return; profile.coins -= SHIELD_PRICE; profile.spent = (profile.spent || 0) + SHIELD_PRICE; profile.purchases = (profile.purchases || 0) + 1; profile.inv.shield = (profile.inv.shield || 0) + 1; sfx.pick(); saveProfile(); toast(`🛡️ Štit: imaš ${profile.inv.shield}`); }; }
+      act.append(pr, b); d.appendChild(act); tb.appendChild(d); }
     Object.entries(TROLLS).forEach(([id, t]) => {
       const have = profile ? (profile.inv[id] || 0) : 0;
       const d = document.createElement('div'); d.className = 'item' + (have ? ' eq' : '');
@@ -1244,7 +1359,8 @@ function flushTrail(p, keepLast) {
 function humanIn(p) {
   if (p.remote) return p.remoteIn || 0;
   const k = KEYS[p.id];
-  return ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0);
+  const v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0);
+  return mirrorOn() ? -v : v;
 }
 function tryJump(p) {
   if (!p.alive || G.phase !== 'run' || !setup.jump || G.gt < p.jumpReady) return;
@@ -1612,6 +1728,46 @@ let profileDirty = false;
 setInterval(() => { if (profile && document.visibilityState === 'visible') { profile.siteMs = (profile.siteMs || 0) + 15000; profileDirty = true; } }, 15000);
 setInterval(() => { if (profile && profileDirty) { profileDirty = false; saveProfile(); } }, 60000);
 addEventListener('pagehide', () => { if (profile && profileDirty) { profileDirty = false; try { localSave(profile); fetch(ACCOUNTS_API + '/' + encodeURIComponent(profile.slug), { method: 'PUT', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc: profile, auth: profile.pinHash || '' }) }); } catch (e) {} } });
+const DAILY_POOL = [
+  { id: 'm3', n: 'Odigraj 3 meča', k: 'm', goal: 3, r: 60 }, { id: 'm5', n: 'Odigraj 5 mečeva', k: 'm', goal: 5, r: 100 },
+  { id: 'w1', n: 'Pobijedi u jednom meču', k: 'w', goal: 1, r: 80 }, { id: 'w2', n: 'Pobijedi u 2 meča', k: 'w', goal: 2, r: 150 },
+  { id: 'k5', n: 'Sruši 5 igrača', k: 'k', goal: 5, r: 60 }, { id: 'k10', n: 'Sruši 10 igrača', k: 'k', goal: 10, r: 120 },
+  { id: 't1', n: 'Pošalji zezanciju', k: 't', goal: 1, r: 30 }, { id: 't3', n: 'Pošalji 3 zezancije', k: 't', goal: 3, r: 70 },
+  { id: 'p3', n: 'Budi među prva 3 u 3 meča', k: 'top3', goal: 3, r: 90 },
+];
+function dailyList() { const out = [], h = dayHash('daily'); for (let i = 0; out.length < 3 && i < 20; i++) { const c = DAILY_POOL[(h + i * 7) % DAILY_POOL.length]; if (!out.some(o => o.k === c.k)) out.push(c); } return out; }
+function dailyState() { if (!profile) return null; const d = zDay(Date.now()); if (!profile.daily || profile.daily.d !== d) profile.daily = { d, c: {}, done: [] }; return profile.daily; }
+function dailyCount(add) {
+  const st = dailyState(); if (!st) return;
+  for (const k in add) st.c[k] = (st.c[k] || 0) + add[k];
+  for (const ch of dailyList()) if (!st.done.includes(ch.id) && (st.c[ch.k] || 0) >= ch.goal) { st.done.push(ch.id); profile.coins += ch.r; notify(`✅ Dnevni izazov: <b>${esc(ch.n)}</b> · +${ch.r} zlatnika`, { ms: 6000 }); }
+  profileDirty = true;
+}
+function dailyHtml() {
+  const st = dailyState(); if (!st) return '';
+  return `<div class="dailych"><b>🎯 Dnevni izazovi</b>${dailyList().map(ch => { const v = Math.min(ch.goal, st.c[ch.k] || 0), ok = st.done.includes(ch.id); return `<span class="dc ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(ch.n)} <small>${v}/${ch.goal} · +${ch.r}</small></span>`; }).join('')}</div>`;
+}
+function xpOf(P) { return Math.round((P.matches || 0) * 10 + (P.wins || 0) * 25 + (P.kills || 0) * 3 + (P.playMs || 0) / 60000 * 2 + (P.trollsSent || 0) * 2); }
+function levelOf(P) { const xp = xpOf(P), lv = Math.floor(Math.sqrt(xp / 40)) + 1, a = 40 * (lv - 1) ** 2, b = 40 * lv ** 2; return { lv, xp, pct: Math.max(0, Math.min(100, Math.round(100 * (xp - a) / (b - a)))), next: b - xp }; }
+const ACH = [
+  { id: 'w1', e: '🥇', n: 'Prva pobjeda', t: P => P.wins >= 1 }, { id: 'w10', e: '🏆', n: '10 pobjeda', t: P => P.wins >= 10 }, { id: 'w50', e: '👑', n: '50 pobjeda', t: P => P.wins >= 50 },
+  { id: 'm10', e: '🎮', n: '10 mečeva', t: P => P.matches >= 10 }, { id: 'm100', e: '🕹️', n: '100 mečeva', t: P => P.matches >= 100 },
+  { id: 'k25', e: '💥', n: '25 rušenja', t: P => P.kills >= 25 }, { id: 'k100', e: '☠️', n: '100 rušenja', t: P => P.kills >= 100 },
+  { id: 't1', e: '😈', n: 'Prva zezancija', t: P => (P.trollsSent || 0) >= 1 }, { id: 't20', e: '🤡', n: 'Zezator (20)', t: P => (P.trollsSent || 0) >= 20 },
+  { id: 'g10', e: '🎯', n: 'Meta (zezan 10×)', t: P => (P.trollsGot || 0) >= 10 }, { id: 'c5', e: '🧺', n: 'Kolekcionar (5 stvari)', t: P => (P.owned || []).filter(x => itemPrice(x) > 0).length >= 5 },
+  { id: 'r2k', e: '💰', n: 'Bogataš (2000 zlatnika)', t: P => P.coins >= 2000 }, { id: 'h1', e: '⏱️', n: 'Sat u igri', t: P => (P.playMs || 0) >= 3600000 },
+  { id: 'rare', e: '💎', n: 'Vlasnik rijetkosti', t: P => (P.owned || []).some(x => (SKINS[x] || BADGES[x] || {}).limit) },
+];
+function achOf(P) { return ACH.filter(a => { try { return a.t(P); } catch (e) { return false; } }); }
+function achHtml(P) { const got = new Set(achOf(P).map(a => a.id)); return `<div class="achs">${ACH.map(a => `<span class="ach ${got.has(a.id) ? 'on' : ''}" title="${esc(a.n)}">${a.e}<small>${esc(a.n)}</small></span>`).join('')}</div>`; }
+function levelHtml(P) { const L = levelOf(P); return `<div class="lvl"><b>Nivo ${L.lv}</b><span class="bar"><i style="width:${L.pct}%"></i></span><small>${L.xp} XP · još ${L.next} do nivoa ${L.lv + 1}</small></div>`; }
+let achKnown = null;
+function checkAchievements() {
+  if (!profile) return; const now = achOf(profile).map(a => a.id);
+  let seen = null; try { seen = JSON.parse(localStorage.getItem('vijuga-ach-' + profile.slug) || 'null'); } catch (e) {}
+  if (!seen) { seen = now; } else { for (const id of now) if (!seen.includes(id)) { const a = ACH.find(x => x.id === id); notify(`🏅 Novo postignuće: <b>${a.e} ${esc(a.n)}</b>`, { ms: 6000 }); } }
+  try { localStorage.setItem('vijuga-ach-' + profile.slug, JSON.stringify(now)); } catch (e) {}
+}
 function fmtDur(ms) { const m = Math.round((ms || 0) / 60000); if (m < 60) return m + ' min'; const h = Math.floor(m / 60); return h + ' h ' + (m % 60) + ' min'; }
 function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
@@ -1795,6 +1951,9 @@ function recentPlayers(onlineSlugs) {
 }
 // ---------- "when do we meet?" poll ----------
 const MEET_API = 'https://vijuga.netlify.app/api/meet';
+let weekly = null;
+async function loadWeekly() { try { const r = await fetch('https://vijuga.netlify.app/api/stats', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); weekly = j.weekly || null; renderOnbar(); } } catch (e) {} }
+setTimeout(loadWeekly, 2500); setInterval(loadWeekly, 600000);
 const MEET_HOURS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 const meet = { votes: {}, loaded: false, timers: {} };
 const zDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb' }).format(t);
@@ -1886,8 +2045,9 @@ function renderOnbar() {
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
   const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
   const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
+  const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
   const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button><a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${meetHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${weekHtml}${meetHtml}${profile ? dailyHtml() : ''}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
   $('#meetBtn').onclick = () => showMeet();
   $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
@@ -1991,8 +2151,11 @@ const TROLLS = {
   fog:    { e: '🌫️', name: 'Magla', price: 180, ms: 3500, d: 'Cijeli ekran mu se zamuti' },
   dark:   { e: '🌑', name: 'Mrak', price: 250, ms: 4000, d: 'Mrak, vidi se samo oko glave' },
   flip:   { e: '🙃', name: 'Naglavačke', price: 300, ms: 3500, d: 'Arena se okrene naglavačke' },
+  mirror: { e: '🪞', name: 'Zrcalo', price: 220, ms: 3000, d: 'Lijevo i desno zamijenjeni 3 sekunde' },
+  fakepu: { e: '🎁', name: 'Lažni power-up', price: 110, ms: 4500, d: 'Ispred njega se pojavi lažni power-up. Prevaren!' },
+  colors: { e: '🎨', name: 'Lude boje', price: 90, ms: 4000, d: 'Sve boje mu se izmiješaju na 4 sekunde' },
 };
-const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0;
+const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0, blockN = 0; const seenTb = {};
 const seenDm = {}, seenTr = {};
 function watchingNow() { return !!(net && net.role === 'client' && (net.spectate || net.myId == null)); }
 // lobby players waiting for a place in the running match, longest wait first
@@ -2044,6 +2207,9 @@ function sendDm(peer, text) {
   text = String(text || '').trim().slice(0, 60); if (!text || !peer || !roomNs) return;
   dmN++; netPresence({ dm: [peer, text, dmN, Date.now()] }); toast('Poruka poslana.');
 }
+const SHIELD_PRICE = 120;
+let mirrorUntil = 0;
+function mirrorOn() { return performance.now() < mirrorUntil; }
 function sendTroll(peer, id) {
   const t = TROLLS[id]; if (!t || !peer || !profile || !roomNs) return;
   const stocked = (profile.inv[id] || 0) > 0;
@@ -2052,12 +2218,17 @@ function sendTroll(peer, id) {
   if (performance.now() - lastTrollSent < 5000) return;
   lastTrollSent = performance.now(); trollN++;
   if (stocked) profile.inv[id]--; else { profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; }
-  profile.trollsSent = (profile.trollsSent || 0) + 1; saveProfile();
+  profile.trollsSent = (profile.trollsSent || 0) + 1; dailyCount({ t: 1 }); saveProfile(); checkAchievements();
   netPresence({ tr: [peer, id, trollN, Date.now()] });
   toast(`${t.e} ${t.name} poslano!${stocked ? ` (ostalo ${profile.inv[id]})` : ` (−${t.price})`}`); beep(520, .08); renderSpecBar(); renderTrollPop(); setTimeout(() => { renderSpecBar(); renderTrollPop(); }, 5100);
 }
-function receiveTroll(id, fromName) {
+function receiveTroll(id, fromName, fromPeer) {
   const t = TROLLS[id]; if (!t) return;
+  if (profile && (profile.inv.shield || 0) > 0) {
+    profile.inv.shield--; saveProfile(); blockN++; netPresence({ tb: [fromPeer, id, blockN, Date.now()] });
+    showIgMsg(`🛡️ Štit je odbio: ${t.e} ${t.name} od ${esc(fromName)} (ostalo štitova: ${profile.inv.shield})`); beep(880, .12, 'triangle', .06); return;
+  }
+  if (id === 'mirror') mirrorUntil = performance.now() + t.ms;
   if (profile) { profile.trollsGot = (profile.trollsGot || 0) + 1; profileDirty = true; }
   const now = performance.now();
   if ($('#game').hidden || !G) { notify(`${t.e} <b>${esc(fromName)}</b> te pokušao zezati (${t.name}), ali nisi bio u igri.`, { warn: true, ms: 6000 }); return; }
@@ -2079,7 +2250,7 @@ function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; 
 function drawTrolls(c) {
   const now = performance.now();
   for (let i = trollFx.length - 1; i >= 0; i--) if (trollFx[i].until < now) trollFx.splice(i, 1);
-  let tf = '', blur = 0;
+  let tf = '', blur = 0, hue = 0;
   for (const f of trollFx) {
     const k = (now - f.start) / (f.until - f.start);
     const me = G.players.find(p => p.mine) || (net && net.myId != null ? G.players.find(p => p.id === net.myId) : null);
@@ -2100,6 +2271,16 @@ function drawTrolls(c) {
     else if (f.id === 'horn') { const s = 1 + 0.15 * Math.sin(k * 40); c.globalAlpha = k > .8 ? (1 - k) / .2 : 1; c.font = `400 ${Math.round(Math.min(W, H) * 0.12 * s)}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('TUUUUT! 📯', W / 2, H / 2); }
     else if (f.id === 'shake') { const a = 14 * (1 - k); tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * 0.15}deg)`; }
     else if (f.id === 'flip') { tf = 'rotate(180deg)'; }
+    else if (f.id === 'mirror') { c.globalAlpha = k > .85 ? (1 - k) / .15 : 0.9; c.font = '400 26px Bungee, Impact, sans-serif'; c.fillStyle = '#7df9ff'; c.fillText('🪞 ZRCALO: ← → zamijenjeni!', W / 2, H - 40); }
+    else if (f.id === 'colors') { hue = 90 + 180 * k; }
+    else if (f.id === 'fakepu' && me) {
+      const d = 90, fx = me.x + Math.cos(me.a) * d, fy = me.y + Math.sin(me.a) * d;
+      if (!f.pos) f.pos = [fx, fy];
+      const gone = Math.hypot(me.x - f.pos[0], me.y - f.pos[1]) < 18 || k > .95;
+      if (gone && !f.popped) { f.popped = now; }
+      if (!f.popped) { c.globalAlpha = 1; drawPuIcon(c, 'fastS', f.pos[0], f.pos[1], PU_R); }
+      else if (now - f.popped < 1400) { c.globalAlpha = 1 - (now - f.popped) / 1400; c.font = '400 28px Bungee, Impact, sans-serif'; c.fillStyle = '#ffb547'; c.fillText('😜 PREVAREN!', f.pos[0], f.pos[1] - 20); }
+    }
     else if (f.id === 'fog') { blur = Math.max(blur, 7 * (k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1)); }
     else if (f.id === 'sticker' && me) {
       const STK = ['🤡', '🍆', '🍑', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(W, H) * 0.2);
@@ -2112,7 +2293,7 @@ function drawTrolls(c) {
     c.restore();
   }
   const cvs = $('#cv');
-  if (cvs) { const fl = blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : ''; if (cvs.style.filter !== fl) cvs.style.filter = fl; }
+  if (cvs) { const fl = [blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : '', hue ? `hue-rotate(${hue.toFixed(0)}deg) saturate(2.2)` : ''].filter(Boolean).join(' '); if (cvs.style.filter !== fl) cvs.style.filter = fl; }
   if (cvs) { if (tf) { cvs.style.transition = tf.startsWith('rotate(180') ? 'transform .35s' : ''; cvs.style.transform = tf; } else if (cvs.style.transform) { cvs.style.transition = 'transform .35s'; cvs.style.transform = ''; } }
 }
 function collectDirect() {
@@ -2121,7 +2302,8 @@ function collectDirect() {
     if (p.isMe && p.sameTab) continue;
     const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
     if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
-    if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000) receiveTroll(pr.tr[1], from); } }
+    if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000) receiveTroll(pr.tr[1], from, p.peer); } }
+    if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
   }
   // spectator count in my HUD
   const w = $('#watchers'); if (w) { const n = watcherCount(); w.hidden = !n || watchingNow(); w.textContent = '👀 ' + n; w.title = n + (n === 1 ? ' osoba te gleda' : ' osoba te gleda'); }
@@ -2402,7 +2584,7 @@ function predictHeads() {
     if (!p.alive || p.sx == null || !p.v) continue;
     let a = p.sa;
     if (p.id === net.myId && !has(p, 'square')) {
-      const k = KEYS[0]; let v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0); if (has(p, 'reverse')) v = -v;
+      const k = KEYS[0]; let v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
       const tr = TURN * (p.v / BASE_SPEED); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
@@ -2412,7 +2594,7 @@ function clientInput() {
   if (!net || net.role !== 'client' || net.myId == null) return;
   const me = G.players.find(p => p.id === net.myId); if (!me) return;
   const k = KEYS[0];
-  const v = ((held[k.r] || me.touchR) ? 1 : 0) - ((held[k.l] || me.touchL) ? 1 : 0);
+  let v = ((held[k.r] || me.touchR) ? 1 : 0) - ((held[k.l] || me.touchL) ? 1 : 0); if (mirrorOn()) v = -v;
   const key = v + ':' + net.jumpN;
   if (key !== net.lastIn) { net.lastIn = key; netPresence({ in: v, j: net.jumpN }); }
 }
@@ -2454,7 +2636,7 @@ async function initSupabase() {
   let ch = null;
   const onSync = () => {
     const st = ch ? ch.presenceState() : {}; const seen = new Set();
-    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr, fol: prev.presence.fol, vis: prev.presence.vis } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
+    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr, tb: prev.presence.tb, fol: prev.presence.fol, vis: prev.presence.vis } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   };
@@ -2500,7 +2682,7 @@ async function initSupabase() {
           // the lobby only learns that a match is running (hs), not every frame of it
           if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { slow.hs = on; fast.hs = on; hasSlow = hasFast = true; } }
         } else if (k === 'in' || k === 'j' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
-        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
+        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'tb' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
         else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } }
       }
       if (hasOwn && connected) gsend(myPeer, own);

@@ -42,7 +42,7 @@ function cleanMatch(body: unknown): Match | string {
 }
 
 // shop prices, to count purchases made before spending was tracked
-const PRICES: Record<string, number> = {"sk_neon": 120, "sk_dash": 90, "sk_pixel": 90, "sk_rainbow": 220, "sk_gold": 320, "sk_dildo": 150, "sk_vag": 160, "sk_boobs": 160, "sk_condom": 160, "sk_hairy": 170, "bd_bolt": 60, "bd_star": 100, "bd_skull": 140, "bd_gem": 180, "bd_crown": 300, "bd_ucross": 200, "bd_vag": 120, "bd_boobs": 120, "bd_hairy": 130, "bd_condom": 120, "fastS": 110, "slowS": 110, "thinS": 110, "ghostS": 110, "wrapS": 110, "jumpS": 110, "slowO": 170, "thickO": 170, "revO": 170, "sqO": 170};
+const PRICES: Record<string, number> = {"sk_diamond": 900, "bd_comet": 700, "sk_neon": 120, "sk_dash": 90, "sk_pixel": 90, "sk_rainbow": 220, "sk_gold": 320, "sk_dildo": 150, "sk_vag": 160, "sk_boobs": 160, "sk_condom": 160, "sk_hairy": 170, "bd_bolt": 60, "bd_star": 100, "bd_skull": 140, "bd_gem": 180, "bd_crown": 300, "bd_ucross": 200, "bd_vag": 120, "bd_boobs": 120, "bd_hairy": 130, "bd_condom": 120, "fastS": 110, "slowS": 110, "thinS": 110, "ghostS": 110, "wrapS": 110, "jumpS": 110, "slowO": 170, "thickO": 170, "revO": 170, "sqO": 170};
 const dayKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 async function stats() {
@@ -96,6 +96,15 @@ async function stats() {
   const owned: Record<string, number> = {};
   for (const a of accounts) for (const id of new Set(Array.isArray(a.owned) ? a.owned : [])) if (id !== "sk_none" && id !== "bd_none") owned[id] = (owned[id] || 0) + 1;
   const top = (key: keyof (typeof players)[number]) => [...players].filter((p) => Number(p[key]) > 0).sort((x, y) => Number(y[key]) - Number(x[key])).slice(0, 5).map((p) => ({ name: p.name, slug: p.slug, value: Number(p[key]) }));
+  // player of the week: wins, podiums and kills in the last 7 days
+  const wk: Record<string, { name: string; slug: string; firsts: number; matches: number; podiums: number; kills: number; score: number }> = {};
+  for (const m of matches) if (m.at > now - 7 * DAY) for (const p of m.players) {
+    if (!p.human || !p.slug) continue;
+    const r = (wk[p.slug] ||= { name: p.name, slug: p.slug, firsts: 0, matches: 0, podiums: 0, kills: 0, score: 0 });
+    r.matches++; if (p.place === 1) r.firsts++; if (p.place <= 3) r.podiums++; r.kills += p.kills;
+  }
+  for (const r of Object.values(wk)) { r.score = r.firsts * 5 + r.podiums * 2 + r.kills * 0.3 + r.matches * 0.5; const acc = accounts.find((a) => a.slug === r.slug); if (acc) r.name = acc.name; }
+  const weekly = Object.values(wk).sort((a, b) => b.score - a.score)[0] || null;
   const leaders = { playMs: top("playMs"), spent: top("spent"), items: top("items"), trollsSent: top("trollsSent"), trollsGot: top("trollsGot"), invited: top("invited"), kills: top("kills") };
 
   return {
@@ -123,7 +132,7 @@ async function stats() {
     days,
     players,
     recent: matches.slice(0, 25).map((m) => ({ mid: m.mid, at: m.at, mode: m.mode, rounds: m.rounds, players: [...m.players].sort((a, b) => a.place - b.place).map((p) => ({ name: p.name, human: p.human, place: p.place, score: p.score, kills: p.kills })) })),
-    skins, badges, owned, leaders,
+    skins, badges, owned, leaders, weekly,
   };
 }
 
