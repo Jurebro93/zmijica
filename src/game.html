@@ -1226,7 +1226,8 @@ function updatePads() {
 let frameN = 0;
 function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
-  if (net && net.role === 'client') { clientTick(); }
+  if (!G) return;
+  if (net && net.role === 'client') { if (clientTick() === 'restarted') return; }
   else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } }
   render(); renderHud(); updatePads(); tickCountdown();
   raf = requestAnimationFrame(frame);
@@ -1338,7 +1339,8 @@ function rematchState() {
   return G.players.filter(p => p.human).map(p => {
     const peer = p.remote || (p.mine && net.role === 'host' ? roomState.me : null) || p.peerId;
     const pe = peer && roomState.peers.find(q => q.peer === peer);
-    const here = !!pe; const ready = here && !!pe.presence && pe.presence.again === net.mid;
+    const pr = (pe && pe.presence) || {};
+    const here = !!pe && (!!pr.rd || pr.again === net.mid || !!pr.st); const ready = here && pr.again === net.mid;
     return { name: p.name, color: p.color, here, ready };
   });
 }
@@ -1526,7 +1528,7 @@ function applyState(st, first) {
 function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
   const st = host && host.presence && host.presence.st;
-  if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h); return; }
+  if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h); return 'restarted'; }
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); applyState(st); } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
   else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   updateParts(1 / 60);
