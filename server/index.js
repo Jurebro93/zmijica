@@ -65,6 +65,11 @@ wss.on("connection", (ws) => {
     if (m.t === "ping") { send(ws, { t: "pong", n: m.n, now: Date.now() }); return; }
     if (m.t === "pres" && m.patch && typeof m.patch === "object") {
       for (const k in m.patch) { if (m.patch[k] === null) delete me.presence[k]; else me.presence[k] = m.patch[k]; }
+      // the same account on a new connection (reload, network change): the old connection is a ghost -> drop it
+      const sl = typeof m.patch.sl === "string" ? m.patch.sl : null;
+      if (sl && me.presence.pg !== "stats" && !me.presence.obs) {
+        for (const [k, o] of [...room]) if (k !== peer && o.presence.sl === sl && o.presence.pg !== "stats" && !o.presence.obs) { try { o.ws.close(4001, "replaced"); } catch {} room.delete(k); for (const q of room.values()) send(q.ws, { t: "bye", peer: k }); }
+      }
       const out = JSON.stringify({ t: "p", peer, patch: m.patch });
       for (const [k, o] of room) if (k !== peer && o.ws.readyState === 1) o.ws.send(out);
       return;
@@ -90,6 +95,6 @@ wss.on("connection", (ws) => {
   ws.on("error", () => {});
 });
 // drop dead sockets (phone went to sleep without closing)
-setInterval(() => { for (const ws of wss.clients) { if (ws.isAlive === false) { try { ws.terminate(); } catch {} continue; } ws.isAlive = false; try { ws.ping(); } catch {} } }, 15000);
+setInterval(() => { for (const ws of wss.clients) { if (ws.isAlive === false) { try { ws.terminate(); } catch {} continue; } ws.isAlive = false; try { ws.ping(); } catch {} } }, 6000);
 
 server.listen(PORT, () => console.log(`vijuga-server listening on ${PORT}`));

@@ -67,6 +67,7 @@ button:disabled { cursor: default; opacity: .5; }
   .shop .item button, .rolepick button, .giftopt { min-height: 40px; }
 }
 #menu[hidden] #bnav { display: none; }
+  body.typing #bnav, body.typing #fabPlay { display: none !important; }
 #fabPlay { position: fixed; right: 22px; bottom: 22px; z-index: 20; border: 0; border-radius: 999px; padding: 14px 22px; font-weight: 800; font-size: 17px; background: var(--good); color: #062b14; box-shadow: 0 6px 18px rgba(0,0,0,.45); cursor: pointer; }
 #coinFloat { position: fixed; top: max(8px, env(safe-area-inset-top, 0px)); right: 12px; z-index: 21; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
 #coinFloat span { color: var(--amber); font-weight: 800; margin-left: 4px; }
@@ -2630,7 +2631,8 @@ function showResults() {
 function rematchState() {
   return G.players.filter(p => p.human).map(p => {
     const peer = p.remote || (p.mine && net.role === 'host' ? roomState.me : null) || p.peerId;
-    const pe = peer && roomState.peers.find(q => q.peer === peer);
+    let pe = peer && roomState.peers.find(q => q.peer === peer);
+    if (p.slug && !(pe && pe.presence && (pe.presence.again === net.mid || pe.presence.rd))) { const alt = roomState.peers.filter(q => q.presence && q.presence.sl === p.slug && q.presence.pg !== 'stats' && !q.presence.obs).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0]; if (alt) pe = alt; }
     const pr = (pe && pe.presence) || {};
     const here = !!pe && (!!pr.rd || pr.again === net.mid || !!pr.st || !!pr.hs); const ready = here && pr.again === net.mid;
     return { name: p.name, color: p.color, here, ready };
@@ -2646,7 +2648,10 @@ function renderReady() {
     const queued = queueList().length;
     const enough = present.length + queued >= 2 || (setup.netBots && present.length >= 1);
     const hint = $('#readyHint'); if (hint) hint.textContent = enough ? '' : 'Za novu igru trebaju barem 2 igrača (ili uključi „dopuni botovima” u predvorju).';
-    if (enough && present.every(r => r.ready) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
+    const readyN = present.filter(r => r.ready).length; if (readyN && !net.firstReadyAt) net.firstReadyAt = performance.now(); if (!readyN) net.firstReadyAt = 0;
+    const waitedLong = readyN >= 2 && net.firstReadyAt && performance.now() - net.firstReadyAt > 25000;
+    if (hint && readyN && !present.every(r => r.ready)) hint.textContent = waitedLong ? '' : `Čekamo još: ${present.filter(r => !r.ready).map(r => r.name).join(', ')} (kreće samo za ${Math.max(0, Math.ceil((25000 - (performance.now() - net.firstReadyAt)) / 1000))} s)`;
+    if (enough && (present.every(r => r.ready) || waitedLong) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
   }
 }
 function leaveOnline() {
@@ -3389,6 +3394,8 @@ function hostStart(rematch) {
   const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
   const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd) && !invitePending(p.peer));
+  { const bySl = {}; for (const c of [...cand].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))) { const sl = c.presence.sl; if (sl) { if (bySl[sl]) c._dup = true; else bySl[sl] = c; } } }
+  const cand2 = cand.filter(c => !c._dup); cand.length = 0; cand.push(...cand2);
   const meP = cand.find(p => p.isMe && p.sameTab);
   const queue = cand.filter(p => p !== meP && !lastIds.has(p.peer)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
   const prev = cand.filter(p => p !== meP && lastIds.has(p.peer)).sort((a, b) => order.indexOf(a.peer) - order.indexOf(b.peer));
@@ -3732,6 +3739,10 @@ async function initWsRoom() {
   };
 }
 const netStats = { rtt: 0 };
+// phone keyboard: hide the bottom bar while typing and keep the field being typed in on screen
+document.addEventListener('focusin', (e) => { const el = e.target; if (!el || !/^(INPUT|TEXTAREA)$/.test(el.tagName) || el.type === 'checkbox' || el.type === 'radio') return; document.body.classList.add('typing'); const show = () => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (er) {} }; setTimeout(show, 250); setTimeout(show, 600); });
+document.addEventListener('focusout', () => setTimeout(() => { if (!document.activeElement || !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) document.body.classList.remove('typing'); }, 50));
+if (window.visualViewport) visualViewport.addEventListener('resize', () => { const el = document.activeElement; if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !$('#menu').hidden) setTimeout(() => { try { el.scrollIntoView({ block: 'center' }); } catch (er) {} }, 50); });
 // ?debug=1 : small live panel with connection and input facts (for reports from phones)
 const DEBUG = (() => { try { return new URLSearchParams(location.search).get('debug') === '1'; } catch (e) { return false; } })();
 let dbgEl = null, dbgAt = 0, dbgFrames = 0, dbgFps = 0, dbgFpsAt = 0;
