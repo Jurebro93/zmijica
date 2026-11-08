@@ -816,8 +816,11 @@ async function saveProfile() {
   profile.updatedAt = Date.now();
   localSave(profile);
   if (dbNs && dbWritable !== false) {
-    try { await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; }
-    catch (e) { profileStore = 'local'; if (e && e.status === 403) { dbWritable = false; if (!window.__pinWarned) { window.__pinWarned = true; notify('⚠️ <b>Napredak se ne sprema na server</b>: PIN na ovom uređaju ne odgovara (promijenjen drugdje?). Odjavi se i prijavi ponovno s ispravnim PIN-om.', { warn: true, ms: 0 }); } } }
+    if (window.__replaced) return; // another tab/device took over this account: this copy must not overwrite it
+    try { const srv = await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; if (srv && srv.updatedAt && profile) profile._rev = srv.updatedAt; }
+    catch (e) { profileStore = 'local';
+      if (e && e.status === 409 && e.account && profile) { const pin = profile.pinHash; const srvDoc = normalize(e.account); srvDoc.pinHash = pin; srvDoc._rev = srvDoc.updatedAt || null; profile = applyBonus(srvDoc); localSave(profile); renderMe(); renderShop(); toast('🔄 Profil je osvježen s drugog uređaja/kartice.'); return; }
+      if (e && e.status === 403) { dbWritable = false; if (!window.__pinWarned) { window.__pinWarned = true; notify('⚠️ <b>Napredak se ne sprema na server</b>: PIN na ovom uređaju ne odgovara (promijenjen drugdje?). Odjavi se i prijavi ponovno s ispravnim PIN-om.', { warn: true, ms: 0 }); } } }
   }
   if (!dbNs) refreshLocalList();
   renderMe(); renderShop(); renderBoard();
@@ -825,6 +828,7 @@ async function saveProfile() {
 }
 function rememberLogin(slug) { try { if (slug) localStorage.setItem('vijuga-login', slug); else localStorage.removeItem('vijuga-login'); } catch (e) {} }
 function loginAs(doc) {
+  doc._rev = doc.updatedAt || null;
   const local = localAccounts()[doc.slug];
   if (!doc.pinHash && doc.hasPin && local && local.pinHash) doc = Object.assign({}, doc, { pinHash: local.pinHash });
   if (!doc.pinHash && doc.hasPin === false && local && local.pinHash) { const all = localAccounts(); delete all[doc.slug].pinHash; try { localStorage.setItem('vijuga-accounts', JSON.stringify(all)); } catch (e) {} }
@@ -874,7 +878,7 @@ function showPlayer(slug) {
     <span class="label">Efekti</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
     ${myRole() === 'master' ? `<div class="rolepick"><b>Uloga</b>${[['', 'Igrač'], ['moderator', '🛡️ Moderator'], ['turnir', '🏆 Voditelj turnira'], ['admin', '⭐ Admin']].map(([k, n]) => `<button type="button" class="rp ${roleOfSlug(P.slug) === k ? 'on' : ''}" data-r="${k}">${n}</button>`).join('')}</div>` : ''}
-    ${myRole() === 'master' ? `<div class="rolepick"><b>Zlatnici</b><button type="button" class="rp" id="pGrant">💰 Daj zlatnike</button></div>` : ''}
+    ${myRole() === 'master' ? `<div class="rolepick"><b>Pokloni</b><button type="button" class="rp" id="pGrant">💰 Zlatnici</button><button type="button" class="rp" id="pGrantItem">🎁 Zezalica</button></div>` : ''}
     ${canMute() && roleOfSlug(P.slug) !== 'master' ? `<div class="rolepick"><b>Chat</b>${mutedUntil(P.slug) ? '<button type="button" class="mu" data-m="0">🔊 Ukini utišavanje</button>' : [[10, '🔇 10 min'], [60, '🔇 1 h'], [1440, '🔇 1 dan']].map(([m, n]) => `<button type="button" class="mu" data-m="${m}">${n}</button>`).join('')}</div>` : ''}
     ${['master', 'admin'].includes(myRole()) && raw.hasPin ? '<div class="rolepick"><b>Račun</b><button type="button" id="pReset">🔑 Obriši zaboravljeni PIN</button></div>' : ''}
     <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${!online && profile ? '<button class="btn ghost" type="button" id="pPush">🔔 Pozovi obaviješću</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
@@ -886,6 +890,7 @@ function showPlayer(slug) {
   if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
   if ($('#pPush')) $('#pPush').onclick = () => pushInvite(P);
   m.querySelectorAll('.rp').forEach(b => b.onclick = async () => { const r = b.dataset.r; if (!confirm(r ? `Dati ulogu „${ROLE_INFO[r].n}” igraču ${P.name}?` : `Oduzeti ulogu igraču ${P.name}?`)) return; if (await roleCall('set', { target: P.slug, role: r })) { toast(r ? `${P.name} je sada ${ROLE_INFO[r].n}.` : `${P.name} više nema ulogu.`); showPlayer(P.slug); } });
+  if ($('#pGrantItem')) $('#pGrantItem').onclick = async () => { const ids = Object.keys(TROLLS).concat('shield'); const id = String(prompt(`Koju zezalicu dati igraču ${P.name}?\n${ids.join(', ')}`, 'hearts') || '').trim(); if (!ids.includes(id)) { if (id) toast('Nepoznata zezalica.'); return; } const j = await roleCall('grant', { target: P.slug, item: id, note: `${profile.name} (admin): poklon` }); if (j) toast(`🎁 ${P.name} dobiva ${(TROLLS[id] || { name: 'Štit' }).name} pri sljedećem otvaranju igre.`); };
   if ($('#pGrant')) $('#pGrant').onclick = async () => { const v = Math.floor(Number(prompt(`Koliko zlatnika dati igraču ${P.name}? (1–50000)`, '500')) || 0); if (!v) return; const j = await roleCall('grant', { target: P.slug, amount: v, note: `${profile.name} (admin): bonus` }); if (j) toast(`💰 ${P.name} dobiva ${v} zlatnika pri sljedećem otvaranju igre.`); };
   m.querySelectorAll('.mu').forEach(b => b.onclick = async () => { const mm = Number(b.dataset.m); if (await roleCall('mute', { target: P.slug, minutes: mm })) { toast(mm ? `🔇 Utišano: ${P.name}.` : `🔊 ${P.name} opet može pisati.`); showPlayer(P.slug); } });
   if ($('#pReset')) $('#pReset').onclick = () => resetPinOf(P);
@@ -2406,7 +2411,7 @@ let frameN = 0;
 let profileDirty = false;
 setInterval(() => { if (profile && document.visibilityState === 'visible') { profile.siteMs = (profile.siteMs || 0) + 15000; profileDirty = true; } }, 15000);
 setInterval(() => { if (profile && profileDirty) { profileDirty = false; saveProfile(); } }, 60000);
-addEventListener('pagehide', () => { if (profile && profileDirty) { profileDirty = false; try { localSave(profile); fetch(ACCOUNTS_API + '/' + encodeURIComponent(profile.slug), { method: 'PUT', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc: profile, auth: profile.pinHash || '' }) }); } catch (e) {} } });
+addEventListener('pagehide', () => { if (profile && profileDirty && !window.__replaced) { profileDirty = false; try { localSave(profile); fetch(ACCOUNTS_API + '/' + encodeURIComponent(profile.slug), { method: 'PUT', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ basedOn: profile._rev == null ? null : profile._rev, doc: profile, auth: profile.pinHash || '' }) }); } catch (e) {} } });
 const DAILY_POOL = [
   { id: 'm3', n: 'Odigraj 3 meča', k: 'm', goal: 3, r: 60 }, { id: 'm5', n: 'Odigraj 5 mečeva', k: 'm', goal: 5, r: 100 },
   { id: 'w1', n: 'Pobijedi u jednom meču', k: 'w', goal: 1, r: 80 }, { id: 'w2', n: 'Pobijedi u 2 meča', k: 'w', goal: 2, r: 150 },
@@ -3626,7 +3631,7 @@ function makeApiAccounts() {
   return {
     doc(path) { const slug = path.split('/').pop(); return {
       async get() { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { cache: 'no-store' }); if (r.status === 404) return { exists: false, data: () => undefined }; if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); return { exists: true, data: () => j.account }; },
-      async set(doc) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc, auth: doc.pinHash || '' }) }); if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; } poll(); },
+      async set(doc) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc, auth: doc.pinHash || '', basedOn: doc._rev == null ? null : doc._rev }) }); if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; try { const j = await r.json(); if (j && j.account) e.account = j.account; } catch (er) {} throw e; } poll(); try { const j = await r.json(); return j && j.account; } catch (er) { return null; } },
       async login(pinHashValue) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug) + '/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pinHash: pinHashValue }) }); if (r.status === 403) return null; if (!r.ok) throw new Error('HTTP ' + r.status); return (await r.json()).account; },
     }; },
     collection() { return { onSnapshot(c, e) { cb = c; errCb = e; poll(); const t = setInterval(poll, 15000); return () => clearInterval(t); } }; },
@@ -3727,7 +3732,7 @@ async function initWsRoom() {
   window.__room = ROOM; window.__supaMode = true; window.__srvMode = true;
   const lobbyPres = {}; let following = null, ws = null, backoff = 500, pingT = 0, lastPong = 0, replaced = false;
   const showReplaced = () => { const m = $('#inviteModal'); if (!m) return; m.innerHTML = `<div class="invite-card"><div class="big">📱</div><h3>Vijuga je otvorena na drugom mjestu</h3><p class="hint" style="margin:0">Isti račun se upravo prijavio u drugoj kartici ili na drugom uređaju, pa je ova veza zaustavljena (inače bi te igra vidjela dvaput).</p><div class="go" style="justify-content:center"><button class="btn" id="rpTake" type="button">Nastavi ovdje</button><button class="btn ghost" id="rpClose" type="button">Zatvori</button></div></div>`; m.hidden = false;
-    $('#rpTake').onclick = () => { m.hidden = true; replaced = false; backoff = 500; connect(); }; $('#rpClose').onclick = () => { m.hidden = true; }; };
+    $('#rpTake').onclick = () => { m.hidden = true; replaced = false; window.__replaced = false; backoff = 500; connect(); }; $('#rpClose').onclick = () => { m.hidden = true; }; };
   const sendRaw = (o) => { if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(o)); } catch (e) {} } };
   const setConnected = (c) => { if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } };
   const connect = () => {
@@ -3741,7 +3746,7 @@ async function initWsRoom() {
       if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; peersMap[m.peer] = mkPeer(m.peer, Object.assign({}, prev.presence, m.patch)); fire(); return; }
       if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
       if (m.t === 'pong') { lastPong = performance.now(); netStats.rtt = Math.round(performance.now() - m.n); return; }
-      if (m.t === 'replaced') { replaced = true; try { sock.close(); } catch (e) {} for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; setConnected(false); fire(); showReplaced(); return; }
+      if (m.t === 'replaced') { replaced = true; window.__replaced = true; try { sock.close(); } catch (e) {} for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; setConnected(false); fire(); showReplaced(); return; }
     };
     sock.onclose = (ev) => { if (ws !== sock) return; ws = null; setConnected(false);
       if (replaced || (ev && ev.code === 4001)) { replaced = true; for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; fire(); showReplaced(); return; }
@@ -3902,7 +3907,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, get W() { return W; }, get H() { return H; } };
 })();
 </script>
 

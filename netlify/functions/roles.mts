@@ -41,7 +41,7 @@ export default async (req: Request, context: Context) => {
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null; if (!b) return json({ error: "body missing" }, 400);
   const slug = String(b.slug ?? ""), target = String(b.target ?? "");
   if (!(await authed(slug, b.auth))) return json({ error: "auth" }, 403);
-  if (context.params.action !== "treasury" && (!SLUG.test(target) || target === MASTER)) return json({ error: "bad target" }, 400);
+  if (context.params.action !== "treasury" && (!SLUG.test(target) || (target === MASTER && context.params.action !== "grant"))) return json({ error: "bad target" }, 400);
   const mine = slug === MASTER ? "master" : roles[slug] || "";
   if (context.params.action === "set") {
     if (mine !== "master") return json({ error: "master only" }, 403);
@@ -53,11 +53,12 @@ export default async (req: Request, context: Context) => {
   if (context.params.action === "grant") {
     // master gives a player coins (as a gift the player's game collects on its next load)
     if (mine !== "master") return json({ error: "master only" }, 403);
-    const amount = Math.floor(Number(b.amount) || 0); if (amount < 1 || amount > 50000) return json({ error: "bad amount" }, 400);
+    const item = typeof b.item === "string" && /^[a-z]{2,12}$/.test(b.item) && b.item !== "coins" ? b.item : null;
+    const amount = Math.floor(Number(b.amount) || 0); if (!item && (amount < 1 || amount > 50000)) return json({ error: "bad amount" }, 400);
     const acc = await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(target, { type: "json" }) as Record<string, unknown> | null; if (!acc) return json({ error: "unknown player" }, 404);
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    await getStore({ name: "vijuga-gifts", consistency: "strong" }).setJSON(`${target}/${id}`, { id, from: "admin", fromName: String(b.note ?? "").slice(0, 40) || "Admin: bonus", item: "coins:" + amount, at: Date.now() });
-    return json({ ok: true, id, amount });
+    await getStore({ name: "vijuga-gifts", consistency: "strong" }).setJSON(`${target}/${id}`, { id, from: "admin", fromName: String(b.note ?? "").slice(0, 40) || "Admin: bonus", item: item || "coins:" + amount, at: Date.now() });
+    return json({ ok: true, id, amount, item });
   }
   if (context.params.action === "treasury") {
     if (mine !== "master") return json({ error: "master only" }, 403);

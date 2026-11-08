@@ -114,10 +114,12 @@ export default async (req: Request, context: Context) => {
   }
 
   if (req.method === "PUT") {
-    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string } | null;
+    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string; basedOn?: number | null } | null;
     const doc = clean(body?.doc, slug);
     if (typeof doc === "string") return json({ error: doc }, 400);
     if (existing && existing.pinHash && body?.auth !== existing.pinHash) return json({ error: "wrong pin" }, 403);
+    // a tab that holds an older copy of the profile must not overwrite what another device saved since
+    if (existing && body?.basedOn != null && existing.updatedAt && Number(body.basedOn) !== existing.updatedAt) return json({ error: "stale", account: publicView(existing) }, 409);
     if (existing && existing.pinHash && !doc.pinHash) doc.pinHash = existing.pinHash;
     if (existing && existing.created) doc.created = existing.created as number;
     if (existing) doc.invitedBy = (existing.invitedBy as string | undefined) ?? doc.invitedBy;
