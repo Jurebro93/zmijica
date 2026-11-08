@@ -32,7 +32,7 @@ function clean(input: unknown, slug: string): Doc | string {
   const name = String(d.name ?? "").trim();
   if (name.length < 1 || name.length > 14) return "name must be 1-14 characters";
   const num = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
-  const strArr = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length <= 20).slice(0, 60) : []);
+  const strArr = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length <= 20).slice(0, 200) : []);
   const eq = (d.eq && typeof d.eq === "object" ? d.eq : {}) as Record<string, unknown>;
   const doc: Doc = {
     slug,
@@ -54,6 +54,7 @@ function clean(input: unknown, slug: string): Doc | string {
     eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20), te: String(eq.te ?? "").slice(0, 20), ds: String(eq.ds ?? "").slice(0, 20), vs: String(eq.vs ?? "").slice(0, 20), bg: String(eq.bg ?? "").slice(0, 20) },
     title: typeof d.title === "string" ? d.title.replace(/[<>]/g, "").slice(0, 24) : undefined,
     bonus500: !!d.bonus500,
+    room: typeof d.room === "string" && /^[a-z0-9]{4,8}$/.test(d.room) ? d.room : undefined,
     created: num(d.created, 9e15),
     invitedBy: typeof d.invitedBy === "string" && /^[a-z0-9-]{1,40}$/.test(d.invitedBy) ? d.invitedBy : undefined,
     updatedAt: Date.now(),
@@ -102,7 +103,13 @@ export default async (req: Request, context: Context) => {
   if (req.method === "POST" && action === "login") {
     if (!existing) return json({ error: "not found" }, 404);
     const body = (await req.json().catch(() => ({}))) as { pinHash?: string };
-    if (existing.pinHash && body.pinHash !== existing.pinHash) return json({ error: "wrong pin" }, 403);
+    if (existing.pinHash) { // at most 5 wrong PINs per minute per account
+      const lim = getStore({ name: "vijuga-limits", consistency: "strong" }), key = `login/${slug}`;
+      const cur = ((await lim.get(key, { type: "json" })) as { n: number; t: number } | null) || { n: 0, t: 0 };
+      if (Date.now() - cur.t > 60000) { cur.n = 0; cur.t = Date.now(); }
+      if (cur.n >= 5) return json({ error: "too many attempts" }, 429);
+      if (body.pinHash !== existing.pinHash) { cur.n++; await lim.setJSON(key, cur); return json({ error: "wrong pin" }, 403); }
+    }
     return json({ account: existing });
   }
 

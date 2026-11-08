@@ -3,6 +3,7 @@
 // POST /api/chat {room, slug, auth, text, at}      -> appends one message (sender's PIN checked); text only, 80 chars
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { loadRoles } from "./roles.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -28,6 +29,7 @@ export default async (req: Request) => {
   if (!ROOM.test(room) || !SLUG.test(slug) || !text) return json({ error: "bad request" }, 400);
   const acc = (await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(slug, { type: "json" })) as Record<string, unknown> | null;
   if (!acc || (acc.pinHash && acc.pinHash !== b.auth)) return json({ error: "auth" }, 403);
+  const { mutes } = await loadRoles(); if ((mutes[slug] || 0) > Date.now()) return json({ error: "muted", until: mutes[slug] }, 403);
   const at = Math.min(Date.now() + 60000, Math.max(Date.now() - 600000, Math.floor(Number(b.at) || Date.now())));
   const id = `${slug}:${at}`;
   const msgs = ((await store.get(room, { type: "json" })) as Msg[] | null) || [];

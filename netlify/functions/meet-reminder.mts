@@ -21,10 +21,10 @@ export default async () => {
   const { blobs } = await meet.list({ prefix: day + "/" });
   const votes = ((await Promise.all(blobs.map((b) => meet.get(b.key, { type: "json" })))) as { slug: string; name: string; slots: number[] }[]).filter((v) => v && Array.isArray(v.slots) && v.slots.includes(hour));
   await push.set(mark, String(Date.now()));
-  if (votes.length < 1) return new Response("no voters");
+  if (votes.length < 2) return new Response("not enough voters");
   const names = votes.map((v) => v.name).join(", ");
   let sent = 0;
-  for (const v of votes) sent += await sendTo(v.slug, { title: `⏰ Vijuga u ${hour}:00!`, body: `Za 15 minuta igramo. Dolaze: ${names}. Dodirni da uđeš.`, url: "https://zmijica.onrender.com/", tag: `meet-${day}-${hour}` });
+  for (const v of votes) sent += await sendTo(v.slug, { title: `⏰ Vijuga u ${hour}:00!`, body: `Uskoro igramo (u ${hour}:00). Dolaze: ${names}. Dodirni da uđeš.`, url: "https://zmijica.onrender.com/", tag: `meet-${day}-${hour}` });
   return new Response(`sent ${sent} to ${votes.length} voters`);
 };
 

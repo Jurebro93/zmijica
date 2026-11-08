@@ -80,7 +80,7 @@ export default async (req: Request, context: Context) => {
 
   if (action === "join") {
     if (t.status !== "open") return json({ error: "registration closed" }, 409);
-    if (t.players.some((p) => p.slug === slug)) return save();
+    if (t.players.some((p) => p.slug === slug)) { const r = await save(); const j = await r.json(); return json({ ...j, already: true }); }
     if (t.players.length >= t.max) return json({ error: "full" }, 409);
     t.players.push({ slug, name: String(acc.name ?? slug).slice(0, 14) }); return save();
   }

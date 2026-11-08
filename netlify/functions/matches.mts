@@ -194,7 +194,9 @@ export default async (req: Request, context: Context) => {
     const from = String(b?.from ?? ""), to = String(b?.to ?? "");
     if (!SLUG.test(from) || !SLUG.test(to) || from === to) return json({ error: "bad pair" }, 400);
     const acc = getStore({ name: "vijuga-accounts", consistency: "strong" });
-    if (!(await acc.get(from)) || !(await acc.get(to))) return json({ error: "unknown player" }, 404);
+    const fa = (await acc.get(from, { type: "json" })) as Record<string, unknown> | null;
+    if (!fa || !(await acc.get(to))) return json({ error: "unknown player" }, 404);
+    if (fa.pinHash && fa.pinHash !== b?.auth) return json({ error: "auth" }, 403);
     const t = getStore({ name: "vijuga-trolls", consistency: "strong" }), key = `${from}/${to}`;
     const cur = ((await t.get(key, { type: "json" })) as { n?: number } | null) || {};
     await t.setJSON(key, { n: (Number(cur.n) || 0) + 1, last: Date.now() });
@@ -215,8 +217,14 @@ export default async (req: Request, context: Context) => {
     return json({ ok: true });
   }
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
-  const m = cleanMatch(await req.json().catch(() => null));
+  const raw = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  const m = cleanMatch(raw);
   if (typeof m === "string") return json({ error: m }, 400);
+  // the reporter must be a logged-in player of this match (PIN checked)
+  const rep = String(raw?.slug ?? "");
+  if (!SLUG.test(rep) || !m.players.some((p) => p.slug === rep)) return json({ error: "reporter not in match" }, 403);
+  const racc = (await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(rep, { type: "json" })) as Record<string, unknown> | null;
+  if (!racc || (racc.pinHash && racc.pinHash !== raw?.auth)) return json({ error: "auth" }, 403);
   const store = getStore({ name: "vijuga-matches", consistency: "strong" });
   const { modified } = await store.setJSON(m.mid, m, { onlyIfNew: true });
   return json({ ok: true, stored: modified !== false });

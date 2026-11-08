@@ -207,6 +207,7 @@ button:disabled { cursor: default; opacity: .5; }
 @keyframes ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-3deg); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); } }
 .specbar { display: grid; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 8px; background: var(--ink); border-top: 1px solid var(--line); }
 .specbar[hidden] { display: none; }
+@media (max-width: 760px) { .specbar { max-height: 38vh; overflow-y: auto; gap: 6px; padding-block: 6px; } .specbar .trolls { display: flex !important; overflow-x: auto; gap: 6px; scrollbar-width: none; padding-bottom: 2px; } .specbar .troll { flex: 0 0 76px; padding: 4px 2px; } .specbar .troll small { font-size: 10px; } .queueNote { font-size: 13px; } }
 .queueNote { background: rgba(255,181,71,.12); border: 1px solid rgba(255,181,71,.4); border-radius: 9px; padding: 6px 10px; font-size: 14px; }
 .specTop { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; }
 .specTop .coinsmall { margin-left: auto; color: var(--amber); font-weight: 700; }
@@ -246,6 +247,7 @@ button:disabled { cursor: default; opacity: .5; }
 .me button { background: transparent; border: 0; color: var(--muted); padding: 0 2px; text-decoration: underline; }
 #preview { width: 100%; height: 120px; display: block; border-radius: 10px; background: var(--slate); border: 1px solid var(--line); }
 .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+@media (max-width: 760px) { .tabs { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); padding-right: 40px; } }
 .tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-family: var(--display); font-size: 15px; letter-spacing: .04em; color: var(--muted); white-space: nowrap; margin-bottom: -1px; }
 .tabs a.tablink { padding: 10px 14px; font-family: var(--display); font-size: 15px; letter-spacing: .04em; color: var(--amber); white-space: nowrap; text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px; }
 .tabs a.tablink:hover { border-bottom-color: var(--amber); }
@@ -569,7 +571,7 @@ button.pu:hover { border-color: var(--line); }
               <li>Iza sebe ostavljaš trag. Udariš li u bilo čiji trag ili u zid, ispadaš.</li>
               <li>U tragu se povremeno otvori rupa kroz koju se može provući.</li>
               <li>Kad netko ispadne, svi koji su još živi dobiju 1 bod.</li>
-              <li>Pobjeđuje tko prvi dođe do cilja s barem 2 boda prednosti.</li>
+              <li>Meč ima točno toliko rundi koliko je odabrano (3, 5, 7 ili 10); pobjeđuje tko na kraju ima najviše bodova, kod izjednačenja odlučuju rušenja.</li>
               <li><b>Skok</b><span class="new">NOVO</span> preleti preko tragova, puni se 5 sekundi.</li>
               <li><b>Sužavanje</b><span class="new">NOVO</span> nakon 20 s arena se počne stezati.</li>
               <li><b>Zlatnici</b><span class="new">NOVO</span> dobivaš po plasmanu na kraju meča i trošiš ih u trgovini.</li>
@@ -583,7 +585,7 @@ button.pu:hover { border-color: var(--line); }
               <li>Podijeli ovu stranicu s prijateljima (gumb Share, pozivnica e-poštom).</li>
               <li>Svatko otvori karticu Online i pritisne „Uđi u predvorje”.</li>
               <li>Jedan igrač pritisne „Pokreni meč” i postaje domaćin. Njegov uređaj vodi igru, ostali šalju svoje poteze.</li>
-              <li>Tko uđe kasnije, gleda do kraja meča.</li>
+              <li>Tko uđe kasnije, gleda do kraja runde; ako u meču igra bot, ulazi umjesto njega već od sljedeće runde, inače čeka revanš.</li>
               <li>Između rundi ima 10 sekundi za poruke u chatu, zatim nova runda kreće sama.</li>
             </ol>
           </div>
@@ -814,7 +816,7 @@ async function saveProfile() {
   localSave(profile);
   if (dbNs && dbWritable !== false) {
     try { await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; }
-    catch (e) { profileStore = 'local'; if (e && e.status === 403) dbWritable = false; }
+    catch (e) { profileStore = 'local'; if (e && e.status === 403) { dbWritable = false; if (!window.__pinWarned) { window.__pinWarned = true; notify('⚠️ <b>Napredak se ne sprema na server</b>: PIN na ovom uređaju ne odgovara (promijenjen drugdje?). Odjavi se i prijavi ponovno s ispravnim PIN-om.', { warn: true, ms: 0 }); } } }
   }
   if (!dbNs) refreshLocalList();
   renderMe(); renderShop(); renderBoard();
@@ -823,7 +825,8 @@ async function saveProfile() {
 function rememberLogin(slug) { try { if (slug) localStorage.setItem('vijuga-login', slug); else localStorage.removeItem('vijuga-login'); } catch (e) {} }
 function loginAs(doc) {
   const local = localAccounts()[doc.slug];
-  if (!doc.pinHash && local && local.pinHash) doc = Object.assign({}, doc, { pinHash: local.pinHash });
+  if (!doc.pinHash && doc.hasPin && local && local.pinHash) doc = Object.assign({}, doc, { pinHash: local.pinHash });
+  if (!doc.pinHash && doc.hasPin === false && local && local.pinHash) { const all = localAccounts(); delete all[doc.slug].pinHash; try { localStorage.setItem('vijuga-accounts', JSON.stringify(all)); } catch (e) {} }
   profile = applyBonus(normalize(doc)); delete profile.hasPin; rememberLogin(profile.slug);
   setup.players[0].name = profile.name; saveSetup();
   if (profile._bonusNew) saveProfile(); else { renderMe(); renderShop(); renderBoard(); if (roomNs) netPresence(myLobbyPres()); }
@@ -881,7 +884,7 @@ function showPlayer(slug) {
   if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
   if ($('#pPush')) $('#pPush').onclick = () => pushInvite(P);
   m.querySelectorAll('.rp').forEach(b => b.onclick = async () => { const r = b.dataset.r; if (!confirm(r ? `Dati ulogu „${ROLE_INFO[r].n}” igraču ${P.name}?` : `Oduzeti ulogu igraču ${P.name}?`)) return; if (await roleCall('set', { target: P.slug, role: r })) { toast(r ? `${P.name} je sada ${ROLE_INFO[r].n}.` : `${P.name} više nema ulogu.`); showPlayer(P.slug); } });
-  m.querySelectorAll('.mu').forEach(b => b.onclick = async () => { const mm = Number(b.dataset.m); if (await roleCall('mute', { target: P.slug, minutes: mm })) { toast(mm ? `${P.name} je utišan.` : `${P.name} više nije utišan.`); showPlayer(P.slug); } });
+  m.querySelectorAll('.mu').forEach(b => b.onclick = async () => { const mm = Number(b.dataset.m); if (await roleCall('mute', { target: P.slug, minutes: mm })) { toast(mm ? `🔇 Utišano: ${P.name}.` : `🔊 ${P.name} opet može pisati.`); showPlayer(P.slug); } });
   if ($('#pReset')) $('#pReset').onclick = () => resetPinOf(P);
 }
 // any element with data-player opens that player's card
@@ -944,7 +947,7 @@ function showGift(P) {
   });
 }
 async function collectGifts() {
-  if (!profile) return;
+  if (!profile || collectGifts.busy) return; collectGifts.busy = true;
   try {
     const r = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug), { cache: 'no-store' }); if (!r.ok) return;
     const { gifts } = await r.json(); if (!gifts || !gifts.length) return;
@@ -1125,11 +1128,11 @@ async function bootAccounts() {
   if (INVITE) { showRegister(); return; }
   showLogin();
 }
+// more players in the match, bigger reward: each extra human +30 %, each extra bot +10 %
+function coinMult() { const humans = G ? G.players.filter(q => q.human).length : 1, bots = G ? G.players.length - humans : 0; return 1 + 0.3 * Math.max(0, humans - 1) + 0.1 * bots; }
 function awardCoins(place, kills, won) {
   if (!profile) return 0;
-  // more players in the match, bigger reward: each extra human +30 %, each extra bot +10 %
-  const humans = G ? G.players.filter(q => q.human).length : 1, bots = G ? G.players.length - humans : 0;
-  const mult = 1 + 0.3 * Math.max(0, humans - 1) + 0.1 * bots;
+  const mult = coinMult();
   const n = Math.round((PLACE_COINS[place] || 12) * mult) + kills * KILL_COINS;
   const lv0 = levelOf(profile).lv;
   profile.coins += n; profile.matches++; profile.kills += kills; if (won) profile.wins++;
@@ -1186,7 +1189,7 @@ function applySkin(c, skinId, color, r, gt) {
   }
 }
 function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
-function dailyOffer() { const pool = [...Object.keys(SKINS), ...Object.keys(BADGES)].filter(k => (SKINS[k] || BADGES[k]).price > 0 && !(SKINS[k] || BADGES[k]).limit); return pool[dayHash('offer') % pool.length]; }
+function dailyOffer() { const pool = [...Object.keys(SKINS), ...Object.keys(BADGES)].filter(k => { const x = SKINS[k] || BADGES[k]; return x.price > 0 && !x.limit && !x.premium && !x.unique && (x.season == null || x.season === seasonNow()); }); return pool[dayHash('offer') % pool.length]; }
 const BOX_PRICE = 150;
 function openBox() {
   if (!profile || profile.coins < BOX_PRICE) { toast('Nemaš dovoljno zlatnika.'); return; }
@@ -1210,7 +1213,7 @@ function renderDailyShop() {
   $('#openBox').onclick = openBox;
   $('#goOffer').onclick = () => { const el = [...document.querySelectorAll('#shopSkins .item, #shopBadges .item')].find(x => x.textContent.includes(it.name)); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); } };
 }
-function seasonNow() { return Math.floor((Date.now() / 86400000 + 3) / 7) % 4; }
+function seasonNow() { const m = new Date().getMonth(); return m >= 9 ? (m === 11 ? 1 : 0) : m === 0 ? 1 : m <= 2 ? 2 : 3; } // 0 bundeva (lis–stu), 1 snijeg (pro–sij), 2 ljubav (velj–ožu), 3 ljeto (tra–ruj)
 function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
 function limitLeft(id) { const it = SKINS[id] || BADGES[id]; if (!it || !it.limit) return Infinity; return Math.max(0, it.limit - ownersOf(id) - ((auct && auct.active) || []).filter(l => l.item === id).length); }
 function buyUndo(id, cost, kind, prevEq) {
@@ -1355,7 +1358,7 @@ function renderPlayers() {
   });
   const active = setup.players.filter(p => p.type !== 'off').length;
   const first = setup.players.find(p => p.type === 'human');
-  $('#startHint').textContent = active < 2 ? 'Uključi barem dva igrača.' : `${active} igrača · ${roundsFor()} rundi` + (profile && first ? ` · zlatnike dobiva ${first.name}` : '');
+  $('#startHint').textContent = active < 2 ? 'Uključi barem dva igrača.' : `${active} igrača · ${plural(roundsFor(), 'runda', 'runde', 'rundi')}` + (profile && first ? ` · zlatnike dobiva ${first.name}` : '');
   $('#start').disabled = active < 2;
 }
 function roundsFor() { const n = Number(setup.rounds); return n >= 1 && n <= 20 ? n : 5; }
@@ -1366,7 +1369,7 @@ function renderSettings() {
   const upd = (k) => (v) => { setup[k] = v; saveSetup(); renderSettings(); renderPlayers(); renderLegend(); };
   add('Zidovi', seg([['smrt', 'Ubijaju'], ['prolaz', 'Propuštaju']], setup.walls, upd('walls')), 'Ubijaju: udarac u rub arene znači ispadanje. Propuštaju: izlaziš na suprotnoj strani.');
   add('Arena', seg([['klasicna', 'Klasična'], ['zidovi', 'Zidovi'], ['portali', 'Portali'], ['krug', 'Krug']], setup.arena || 'klasicna', upd('arena')), 'Zidovi: prepreke u areni (mijenjaju se po rundi). Portali: uđeš u jedan, izađeš na drugom. Krug: okrugla arena.');
-  add('Timovi 2 na 2', seg([[false, 'Svatko za sebe'], [true, 'Timovi']], !!setup.teams, upd('teams')), 'S 4 zmije: dva tima (crveni i plavi). Runda je gotova kad preživi samo jedan tim; svaki član pobjedničkog tima dobiva bod.');
+  add('Timovi (2 na 2 / 3 na 3)', seg([[false, 'Svatko za sebe'], [true, 'Timovi']], !!setup.teams, upd('teams')), 'S 4 zmije: dva tima (crveni i plavi). Runda je gotova kad preživi samo jedan tim; svaki član pobjedničkog tima dobiva bod.');
   add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
@@ -1454,7 +1457,7 @@ function renderTour() {
     if (t.rounds.length) {
       const stand = [...t.players].sort((a, b) => (t.points[b.slug] || 0) - (t.points[a.slug] || 0));
       html += `<h4>🏅 Poredak</h4><table class="board"><tbody>${stand.map((p, i) => `<tr data-player="${esc(p.slug)}"${p.slug === me ? ' style="color:var(--amber)"' : ''}><td>${i + 1}.</td><td style="text-align:left">${esc(p.name)}${i < 5 && t.status === 'running' ? ' <small class="hint">→ finale</small>' : ''}</td><td>${t.points[p.slug] || 0} b</td></tr>`).join('')}</tbody></table>`;
-      for (const r of [...t.rounds].reverse()) html += `<h4>Kolo ${r.k}</h4><div class="ttables">${r.tables.map(tb => { const mine = tb.players.includes(me); return `<div class="ttable ${mine ? 'mine' : ''}"><b>Stol ${tb.id}</b> ${tb.result ? '✓' : '⏳'}<div>${(tb.result || tb.players).map((s, i) => `${tb.result ? (i + 1) + '. ' : ''}${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(tb.result ? ' · ' : ', ')}</div>${mine && !tb.result && t.status === 'running' && r.k === t.rounds.length ? `<a class="btn" href="${tableUrl(t, r.k, tb)}">▶ Uđi za svoj stol</a>` : ''}</div>`; }).join('')}</div>`;
+      for (const r of [...t.rounds].reverse()) html += `<h4>Kolo ${r.k}</h4><div class="ttables">${r.tables.map(tb => { const mine = tb.players.includes(me); return `<div class="ttable ${mine ? 'mine' : ''}"><b>Stol ${tb.id}</b> ${tb.result ? '✓' : '⏳'}${!tb.result && isAdmin() ? ` <button class="btn sm ghost" type="button" data-close-table="${r.k}:${tb.id}" title="Zaključi stol bez meča (forfeit)">⚑ zaključi</button>` : ''}<div>${(tb.result || tb.players).map((s, i) => `${tb.result ? (i + 1) + '. ' : ''}${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(tb.result ? ' · ' : ', ')}</div>${mine && !tb.result && t.status === 'running' && r.k === t.rounds.length ? `<a class="btn" href="${tableUrl(t, r.k, tb)}">▶ Uđi za svoj stol</a>` : ''}</div>`; }).join('')}</div>`;
     }
     if (t.final) { const f = t.final, mine = f.players.includes(me); html += `<h4>🔥 Finale</h4><div class="ttable ${mine ? 'mine' : ''}">${(f.result || f.players).map((s, i) => `${f.result ? ['🥇', '🥈', '🥉'][i] || (i + 1) + '.' : ''} ${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(' · ')}${mine && !f.result ? `<a class="btn" href="${tableUrl(t, 0, f)}">▶ Uđi u finale</a>` : ''}</div>`; }
     if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>+${w.prize} 💰</small></div>`).join('')}</div>`;
@@ -1468,10 +1471,11 @@ function renderTour() {
   if ($('#trVal')) roleCall('treasury', {}).then(j => { if (j && $('#trVal')) $('#trVal').textContent = j.treasury; });
   const after = (j) => { if (j && j.tournament) { const i = tours.findIndex(x => x.id === j.tournament.id); const v = Object.assign({}, j.tournament, { pot: j.pot }); if (i >= 0) tours[i] = v; else tours.unshift(v); tourSel = v.id; renderTour(); } };
   if ($('#tLogin')) $('#tLogin').onclick = () => showLogin();
-  if ($('#tJoin')) $('#tJoin').onclick = async () => { if (profile.coins < TOUR_FEE) return; if (!confirm(`Kotizacija je ${TOUR_FEE} zlatnika. Prijaviti se?`)) return; const j = await tourCall(t.id, 'join'); if (j) { profile.coins -= TOUR_FEE; profile.spent = (profile.spent || 0) + TOUR_FEE; saveProfile(); toast('🏆 Prijavljen si na turnir!'); after(j); } };
+  if ($('#tJoin')) $('#tJoin').onclick = async () => { if (profile.coins < TOUR_FEE) return; if (!confirm(`Kotizacija je ${TOUR_FEE} zlatnika. Prijaviti se?`)) return; $('#tJoin').disabled = true; const j = await tourCall(t.id, 'join'); if (j && !j.already) { profile.coins -= TOUR_FEE; profile.spent = (profile.spent || 0) + TOUR_FEE; saveProfile(); toast('🏆 Prijavljen si na turnir!'); after(j); } };
   if ($('#tLeave')) $('#tLeave').onclick = async () => { const j = await tourCall(t.id, 'leave'); if (j) { toast('Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); setTimeout(collectGifts, 1500); } };
   if ($('#tStart')) $('#tStart').onclick = async () => { if (!confirm('Pokrenuti turnir sada? Prijave se zatvaraju i kreće 1. kolo.')) return; after(await tourCall(t.id, 'start')); };
   if ($('#tBonus')) $('#tBonus').onclick = async () => { const a = Math.floor(Number($('#tBonusIn').value) || 0); if (a <= 0) return; after(await tourCall(t.id, 'bonus', { amount: a })); };
+  $('#tab-tour').querySelectorAll('[data-close-table]').forEach(b => b.onclick = async () => { const [k, tid] = b.dataset.closeTable.split(':').map(Number); if (!confirm('Zaključiti ovaj stol bez odigranog meča? Igrači se rangiraju po redoslijedu sjedenja.')) return; after(await tourCall(t.id, 'result', { round: k, table: tid, ranking: [] })); });
   if ($('#tCancel')) $('#tCancel').onclick = async () => { if (!confirm('Otkazati turnir i vratiti kotizacije svima?')) return; after(await tourCall(t.id, 'cancel')); };
   if ($('#tnGo')) { const d = new Date(Date.now() + 3600000); d.setMinutes(0, 0, 0); $('#tnStart').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(); after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: $('#tnBonus') ? $('#tnBonus').value : 0 })); }; }
@@ -1499,8 +1503,8 @@ setInterval(tourTick, 1500);
 async function reportTour(sorted) {
   if (!TMODE || !tourTable || tourReported || !profile) return; tourReported = true;
   const ranking = sorted.filter(p => p.human).map(p => p.mine ? profile.slug : p.slug).filter(Boolean);
-  const j = await tourCall(TMODE.id, 'result', { round: TMODE.k, table: TMODE.s, ranking });
-  if (j) toast('🏆 Rezultat stola je upisan u turnir.');
+  let j = null; for (let i = 0; i < 3 && !j; i++) { j = await tourCall(TMODE.id, 'result', { round: TMODE.k, table: TMODE.s, ranking }); if (!j) await new Promise(r => setTimeout(r, 2500)); }
+  if (j) toast('🏆 Rezultat stola je upisan u turnir.'); else toast('Rezultat stola nije upisan (poslužitelj se ne javlja). Admin ga može zaključiti ručno.');
 }
 // ================= auction house =================
 const AUCT_API = 'https://vijuga.netlify.app/api/auction';
@@ -1539,7 +1543,7 @@ function renderAuct() {
     profile.owned = profile.owned.filter(x => x !== item); for (const k of ['skin', 'badge']) if (profile.eq[k] === item) profile.eq[k] = k === 'skin' ? 'sk_none' : 'bd_none';
     saveProfile(); toast('🔨 Stvar je na aukciji.'); loadAuct();
   };
-  const bid = async (id, amount) => { if (!profile || profile.coins < amount) { toast('Nemaš dovoljno zlatnika.'); return; } if (!confirm(`Ponuditi ${amount} zlatnika? Zlatnici se odmah zaključaju.`)) return; const j = await auctCall('/' + id + '/bid', { amount }); if (!j) return; profile.coins -= j.paid; profile.spent = (profile.spent || 0) + j.paid; saveProfile(); toast(j.lot.status === 'sold' ? '🎉 Kupljeno! Stvar stiže za par sekundi.' : '🔨 Ponuda je tvoja.'); if (j.lot.status === 'sold') setTimeout(collectGifts, 1500); loadAuct(); };
+  const bid = async (id, amount) => { if (!profile || profile.coins < amount) { toast('Nemaš dovoljno zlatnika.'); return; } if (!confirm(`Ponuditi ${amount} zlatnika? Zlatnici se odmah zaključaju.`)) return; const j = await auctCall('/' + id + '/bid', { amount }); if (!j) return; profile.coins -= j.paid; if (j.lot.status === 'sold') profile.spent = (profile.spent || 0) + j.paid; saveProfile(); toast(j.lot.status === 'sold' ? '🎉 Kupljeno! Stvar stiže za par sekundi.' : '🔨 Ponuda je tvoja.'); if (j.lot.status === 'sold') setTimeout(collectGifts, 1500); loadAuct(); };
   box.querySelectorAll('[data-bid]').forEach(b => b.onclick = () => bid(b.dataset.bid, Math.floor(Number(box.querySelector(`[data-in="${b.dataset.bid}"]`).value) || 0)));
   box.querySelectorAll('[data-bn]').forEach(b => b.onclick = () => bid(b.dataset.bn, Number(b.dataset.v)));
   box.querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => { if (!confirm('Prihvatiti najvišu ponudu i prodati?')) return; if (await auctCall('/' + b.dataset.acc + '/accept')) { toast('💰 Prodano! Zlatnici stižu za par sekundi.'); setTimeout(collectGifts, 1500); loadAuct(); } });
@@ -1553,7 +1557,7 @@ function announceUnique() {
 }
 setTimeout(announceUnique, 5000);
 function showTab(t) {
-  curTab = t; try { localStorage.setItem('vijuga-tab', t); } catch (e) {}
+  curTab = t;
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   ['local', 'online', 'shop', 'tour', 'auct', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
   if (t === 'tour') loadTours();
@@ -1626,7 +1630,7 @@ function isVip() { return !!(profile && profile.owned.includes('pr_vip')); }
 function vipCost(n) { return isVip() ? Math.round(n * 0.9) : n; }
 function titleOf(slug) { const a = profile && slug === profile.slug ? profile : accounts.list.find(x => x.slug === slug); return a && ownsSlug(slug, 'pr_title') && a.title ? String(a.title).slice(0, 24) : ''; }
 function nameHtml(slug, name) { const gold = slug && ownsSlug(slug, 'pr_goldname'); const t = slug ? titleOf(slug) : ''; return `<span class="${gold ? 'goldname' : ''}">${esc(name)}</span>${t ? `<span class="ptitle">${esc(t)}</span>` : ''}`; }
-function myRoomLink() { if (!profile) return ''; let code = ''; try { code = localStorage.getItem('vijuga-room-' + profile.slug) || ''; } catch (e) {} if (!code) { code = Math.random().toString(36).slice(2, 8); try { localStorage.setItem('vijuga-room-' + profile.slug, code); } catch (e) {} } return GAME_URL + '?soba=p-' + profile.slug.slice(0, 10) + '-' + code; }
+function myRoomLink() { if (!profile) return ''; let code = profile.room || ''; if (!code) { try { code = localStorage.getItem('vijuga-room-' + profile.slug) || ''; } catch (e) {} } if (!code) code = Math.random().toString(36).slice(2, 8); if (profile.room !== code) { profile.room = code; saveProfile(); } return GAME_URL + '?soba=p-' + profile.slug.slice(0, 10) + '-' + code; }
 const EFFECTS = {
   te_fire:   { kind: 'te', e: '🔥', name: 'Vatreni trag', d: 'Iza tebe lete plamičci', price: 220 },
   te_spark:  { kind: 'te', e: '✨', name: 'Iskrice', d: 'Iza tebe frcaju iskre', price: 180 },
@@ -1737,6 +1741,14 @@ function sizeArena() {
 }
 let fitRO = null, lastFit = '';
 function watchStage() { if (fitRO || !('ResizeObserver' in window)) return; fitRO = new ResizeObserver(() => { if (G && !$('#game').hidden) fitCanvas(); }); fitRO.observe($('#stage')); }
+function setArenaSize(w, h) { if (w === W && h === H) return; W = w; H = h; GW = W / CELL; GH = H / CELL; owner = new Uint8Array(GW * GH); stampT = new Uint32Array(GW * GH); fitCanvas(); }
+// online: the arena shape suits everybody who is in or waiting for the match; re-checked at each round start
+function matchRatio() {
+  const peers = roomState.peers.filter(pr => pr.presence && (pr.presence.rd || (G && G.players.some(p => p.remote === pr.peer))));
+  const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 0).filter(r => r > 0.3 && r < 3);
+  if (!rs.length) return 0;
+  return Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / rs.length)));
+}
 function fitCanvas() {
   if ($('#game').hidden) return;
   const st = $('#stage').getBoundingClientRect();
@@ -1776,6 +1788,7 @@ function drawBg() {
 function rand(a, b) { return a + Math.random() * (b - a); }
 function newRound() {
   if (G.round >= 1) seatQueuedHumans();
+  if (net && net.role === 'host' && G.round >= 1) { const r = matchRatio(); if (r && Math.abs(r / (netRatio || r) - 1) > 0.08) { netRatio = r; sizeArena(); } }
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
   owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
@@ -2110,7 +2123,7 @@ function reportMatch(sorted) {
   if (net && net.role === 'client') return;
   const mid = (net && net.mid) || G.mid; if (!mid || G.reported) return; G.reported = true;
   const players = sorted.map((p, i) => ({ name: p.name, slug: p.mine && profile ? profile.slug : (p.slug || null), human: !!p.human, place: i + 1, score: p.score, wins: p.wins, kills: p.kills }));
-  fetch(API_BASE + '/matches', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mid, mode: net ? 'online' : 'local', rounds: G.target, players, kx: Object.entries(G.kx || {}).map(([k, n]) => [...k.split('>'), n]) }) }).catch(() => {});
+  fetch(API_BASE + '/matches', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mid, slug: profile ? profile.slug : null, auth: profile ? (profile.pinHash || '') : '', mode: net ? 'online' : 'local', rounds: G.target, players, kx: Object.entries(G.kx || {}).map(([k, n]) => [...k.split('>'), n]) }) }).catch(() => {});
 }
 function showRoundBanner() {
   const winner = G.players.find(p => p.id === G.winner) || null;
@@ -2551,6 +2564,7 @@ function startGame() {
 }
 function toMenu() {
   cancelAnimationFrame(raf); paused = false; G = null;
+  if (net && net.role === 'client' && net.savedSetup) { Object.assign(setup, net.savedSetup); net.savedSetup = null; }
   if (net && net.role === 'client' && net.myId != null) netPresence({ vis: 0 });
   netPresence({ ig: null, pl: null, sp: null, watch: null }); followHost(null); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
   if (profile && profileDirty) { profileDirty = false; saveProfile(); }
@@ -2583,7 +2597,7 @@ function showResults() {
   if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${p.color}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human ? '+' + ((PLACE_COINS[i] || 12) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
+    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${p.color}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
     </tbody></table></div>`;
   let actions;
   if (net) {
@@ -2746,7 +2760,7 @@ function renderOnbar() {
   const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
   const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
     : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
-    : inLobby ? `${inLobby} ${inLobby === 1 ? 'čeka' : 'čekaju'} u predvorju. Uđi i krenite!`
+    : inLobby ? `${inLobby} ${inLobby >= 2 && inLobby <= 4 ? 'čekaju' : 'čeka'} u predvorju. Uđi i krenite!`
     : 'Uđi u predvorje i pozovi ih, puno je zabavnije od botova.';
   const label = n === 0 ? 'Samo ti si online' : n === 1 ? '1 igrač online uz tebe' : `${n} igrača online uz tebe`;
   const mainBtn = !profile ? `<button class="btn go-online" type="button" id="goOnlineBtn">Prijavi se i igraj online</button>`
@@ -2920,7 +2934,8 @@ function renderSpecBar() {
   const coins = profile ? profile.coins : 0, cool = performance.now() - lastTrollSent < 5000;
   const tname = (targets.find(t => t.peer === net.trollTarget) || {}).name || '';
   const qpos = !net.spectate ? queueList().findIndex(p => p.isMe && p.sameTab) : -1;
-  bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">⏳ Meč je pun (najviše ${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč. Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
+  const nBots = G ? G.players.filter(p => !p.human).length : 0, nHum = G ? G.players.filter(p => p.human).length : 0;
+  bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">${nBots && qpos < nBots ? `⏳ Meč je u tijeku (${nHum} ${nHum === 1 ? 'igrač' : nHum <= 4 ? 'igrača' : 'igrača'} + ${nBots} bot). <b>Ulaziš umjesto bota od sljedeće runde.</b>` : nHum >= MAX_PLAYERS ? `⏳ Meč je pun (${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč.` : `⏳ Meč je već krenuo (${nHum} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč.`} Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
     <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => { const have = profile ? (profile.inv[id] || 0) : 0; return `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || (!have && coins < t.price) || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>${have ? `imaš ${have}` : `● ${t.price}`}</small></button>`; }).join('')}</div>
     <div class="betrow">${(() => { const t = G && G.players.find(x => peerOfPlayer(x) === net.trollTarget) || null; if (!t) return ''; const open = G.phase === 'count' || (G.phase === 'run' && G.gt < 4), has = myBet && myBet.mid === curMid() && myBet.round === G.round; return `<span>💰 ${has ? `Oklada: <b>${myBet.amount}</b> na ${esc(myBet.name)} (×${myBet.mult})` : open ? `Okladi se da <b>${esc(t.name)}</b> pobjeđuje rundu:` : 'Oklade: na početku sljedeće runde'}</span>${!has && open ? [50, 100, 200].map(a => `<button type="button" class="betb" data-a="${a}" data-p="${t.id}" ${coins < a ? 'disabled' : ''}>${a}</button>`).join('') : ''}<span class="sep"></span><span>🎯 Ucjena:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" data-p="${t.id}" ${coins < a || !t.alive ? 'disabled' : ''}>${a}</button>`).join('')}`; })()}</div>
     <div class="chatrow"><input type="text" id="dmIn" maxlength="60" placeholder="${tname ? 'Poruka za ' + esc(tname) + '…' : 'Poruka…'}" aria-label="Poruka igraču"><button type="button" id="dmSend">Pošalji</button></div>
@@ -3043,12 +3058,12 @@ function sendTroll(peer, id) {
   if (stocked) profile.inv[id]--; else { profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; }
   profile.trollsSent = (profile.trollsSent || 0) + 1; dailyCount({ t: 1 }); saveProfile(); checkAchievements();
   netPresence({ tr: [peer, id, trollN, Date.now()] });
-  { const pe = roomState.peers.find(q => q.peer === peer); const to = pe && pe.presence && pe.presence.sl; if (to && to !== profile.slug) fetch(API_BASE + '/troll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, to, id }) }).catch(() => {}); }
+  { const pe = roomState.peers.find(q => q.peer === peer); const to = pe && pe.presence && pe.presence.sl; if (to && to !== profile.slug) fetch(API_BASE + '/troll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, auth: profile.pinHash || '', to, id }) }).catch(() => {}); }
   toast(`${t.e} ${t.name} poslano!${stocked ? ` (ostalo ${profile.inv[id]})` : ` (−${t.price})`}`); beep(520, .08); renderSpecBar(); renderTrollPop(); setTimeout(() => { renderSpecBar(); renderTrollPop(); }, 5100);
 }
 function receiveTroll(id, fromName, fromPeer) {
   const t = TROLLS[id]; if (!t) return;
-  if (profile && (profile.inv.shield || 0) > 0) {
+  if (profile && (profile.inv.shield || 0) > 0 && !$('#game').hidden && G) {
     profile.inv.shield--; saveProfile(); blockN++; netPresence({ tb: [fromPeer, id, blockN, Date.now()] });
     showIgMsg(`🛡️ Štit je odbio: ${t.e} ${t.name} od ${esc(fromName)} (ostalo štitova: ${profile.inv.shield})`); beep(880, .12, 'triangle', .06); return;
   }
@@ -3132,7 +3147,7 @@ function collectDirect() {
     if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
   }
   // spectator count in my HUD
-  const w = $('#watchers'); if (w) { const n = watcherCount(); w.hidden = !n || watchingNow(); w.textContent = '👀 ' + n; w.title = n + (n === 1 ? ' osoba te gleda' : ' osoba te gleda'); }
+  const w = $('#watchers'); if (w) { const n = watcherCount(); w.hidden = !n || watchingNow(); w.textContent = '👀 ' + n; w.title = n === 1 ? '1 osoba te gleda' : n <= 4 ? n + ' osobe te gledaju' : n + ' osoba te gleda'; }
 }
 // open ?gledaj=<player> from the stats page
 const WATCH_SLUG = (() => { try { const v = new URLSearchParams(location.search).get('gledaj'); return v && /^[a-z0-9-]{1,40}$/.test(v) ? v : null; } catch (e) { return null; } })();
@@ -3208,9 +3223,10 @@ async function loadChatHistory(room) {
   if (!room) { try { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); room = v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; } catch (e) { room = 'vijuga-lobby'; } }
   chatRoom = room; if (chatHistLoaded) return; chatHistLoaded = true;
   try { const r = await fetch(API_BASE + '/chat?room=' + encodeURIComponent(chatRoom), { cache: 'no-store' }); if (!r.ok) return; const j = await r.json();
-    let ch = false; for (const m of j.msgs || []) if (pushChat({ id: m.id, sl: m.sl, name: String(m.name || 'Netko').slice(0, 14), text: String(m.text || '').slice(0, 80), audio: null, me: !!(profile && m.sl === profile.slug), at: Number(m.at) || 0, t: 0, peer: 'hist:' + m.sl })) ch = true;
+    let ch = false; for (const m of j.msgs || []) if (!mutedUntil(m.sl) && pushChat({ id: m.id, sl: m.sl, name: String(m.name || 'Netko').slice(0, 14), text: String(m.text || '').slice(0, 80), audio: null, me: !!(profile && m.sl === profile.slug), at: Number(m.at) || 0, t: 0, peer: 'hist:' + m.sl })) ch = true;
     if (chatLog.length > 150) chatLog.splice(0, chatLog.length - 150); if (ch) renderChat(); } catch (e) {}
 }
+function plural(n, one, few, many) { const m10 = n % 10, m100 = n % 100; return n + ' ' + (m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many); }
 function fmtChatTime(at) { if (!at) return ''; const d = new Date(at), n = new Date(); const t = d.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }); return d.toDateString() === n.toDateString() ? t : d.toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric' }) + ' ' + t; }
 const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🍆', '🍑', '🖕', '👏', '🥳', '😈'];
 const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
@@ -3323,7 +3339,7 @@ function renderBoard() {
 }
 
 // host
-const MAX_PLAYERS = 5;
+const MAX_PLAYERS = 6;
 const countLen = () => (net && G && (G.round === 1 || G.joinRound === G.round) ? 5 : 2.4); // online: 5 s before the match starts
 function netPlayerFrom(pr, c) {
   const me = pr.isMe && pr.sameTab;
@@ -3373,7 +3389,7 @@ function hostStart(rematch) {
   newMatch(players); buildPads(); enterGame(); hostSend(true);
 }
 function hostSend(force) {
-  const now = performance.now(); const gap = !net.supa ? 40 : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 125 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
+  const now = performance.now(); const gap = !net.supa ? 40 : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
   netPresence({ st: buildSnap() });
 }
 function hostReadInputs() {
@@ -3435,6 +3451,7 @@ function clientBegin(host, key = 'st', spectate = false) {
   net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid, key, spectate, target: spectate ? host.peer : null };
   if (!spectate) netPresence({ again: null, vis: 1 });
   if (!spectate && myPres.rd && !(st.pl || []).some(q => q.rm === roomState.me)) { roomState.rqAt = Date.now(); netPresence({ rq: roomState.rqAt }); }
+  if (!net.savedSetup) net.savedSetup = Object.assign({}, setup);
   Object.assign(setup, st.s || {});
   G = { players: [], target: st.tg, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, pus: [], inset: 0, wrapAllUntil: 0, parts: [], over: false, ff: false, speedMul: 1, clr: st.clr, rank: null };
   $('#menu').hidden = true; $('#game').hidden = false;
@@ -3461,7 +3478,8 @@ function applyState(st, first) {
     if (q.rm === mePeer) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) setTimeout(() => { buildPads(); renderSpecBar(); if (G.round > 1) showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
-    p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
+    if (p._lgt != null && st.gt > p._lgt && q.al) { let da = q.a - p._la; da = Math.atan2(Math.sin(da), Math.cos(da)); const wa = da / (st.gt - p._lgt); p._wa = Math.abs(wa) < 12 ? (p._wa == null ? wa : p._wa * 0.5 + wa * 0.5) : 0; }
+    p._la = q.a; p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
     if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); onDeath(p, q.kb); }
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
     // trail segment
@@ -3491,8 +3509,9 @@ function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
   const st = host && host.presence && host.presence[net.key || 'st'];
   if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) net.target = tg || net.target; return 'restarted'; }
-  if (net.myId != null && G && G.phase === 'run' && performance.now() - (net.inSentAt || 0) > 400) clientInput(true);
+  if (net.myId != null && G && G.phase === 'run' && performance.now() - (net.inSentAt || 0) > 250) clientInput(true);
   if (roomNs && roomNs.rejoin && performance.now() - net.lastSeen > 3500 && performance.now() - (net.rejoinAt || 0) > 5000) { net.rejoinAt = performance.now(); roomNs.rejoin(); }
+  if (st && st.W && st.H && (st.W !== W || st.H !== H) && G) { net.W = st.W; net.H = st.H; setArenaSize(st.W, st.H); }
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); const back = net.staleShown; if (back) { net.staleShown = false; showOverlay(null); } applyState(st); if (back && G.phase === 'end' && !G.over) showRoundBanner(); }
     else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
   else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
@@ -3505,16 +3524,17 @@ function clientTick() {
 function predictHeads() {
   if (!net || net.role !== 'client' || !G || G.phase !== 'run') return;
   const nowP = performance.now(), dt = Math.min(0.3, (nowP - net.lastSeen) / 1000);
-  const fdt = Math.min(0.1, (nowP - (net._pf || nowP)) / 1000); net._pf = nowP; const decay = Math.exp(-fdt / 0.09);
+  const fdt = Math.min(0.1, (nowP - (net._pf || nowP)) / 1000); net._pf = nowP; const decay = Math.exp(-fdt / 0.14);
   for (const p of G.players) {
     if (!p.alive || p.sx == null || !p.v) continue;
     let a = p.sa;
+    if (p.id !== net.myId && p._wa && !has(p, 'square')) { a = p.sa + p._wa * dt * 0.5; p.a = p.sa + p._wa * dt; }
     if (p.id === net.myId && !has(p, 'square')) {
       const k = KEYS[0]; let v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
       const tr = TURN * (p.v / BASE_SPEED); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
-    if (p.ex || p.ey || p.ea) { p.ex *= decay; p.ey *= decay; p.ea *= decay; p.x += p.ex; p.y += p.ey; if (p.id === net.myId) p.a += p.ea; if (Math.abs(p.ex) + Math.abs(p.ey) < 0.05) p.ex = p.ey = 0; if (Math.abs(p.ea) < 0.002) p.ea = 0; }
+    if (p.ex || p.ey || p.ea) { p.ex *= decay; p.ey *= decay; p.ea *= decay; p.x += p.ex; p.y += p.ey; p.a += p.ea; if (Math.abs(p.ex) + Math.abs(p.ey) < 0.05) p.ex = p.ey = 0; if (Math.abs(p.ea) < 0.002) p.ea = 0; }
     p._vx = p.x; p._vy = p.y; p._va = p.a;
   }
 }
@@ -3738,7 +3758,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, get W() { return W; }, get H() { return H; } };
 })();
 </script>
 
