@@ -2937,7 +2937,7 @@ function renderSpecBar() {
   const tname = (targets.find(t => t.peer === net.trollTarget) || {}).name || '';
   const qpos = !net.spectate ? queueList().findIndex(p => p.isMe && p.sameTab) : -1;
   const nBots = G ? G.players.filter(p => !p.human).length : 0, nHum = G ? G.players.filter(p => p.human).length : 0;
-  bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">${nBots && qpos < nBots ? `⏳ Meč je u tijeku (${nHum} ${nHum === 1 ? 'igrač' : nHum <= 4 ? 'igrača' : 'igrača'} + ${nBots} bot). <b>Ulaziš umjesto bota od sljedeće runde.</b>` : nHum >= MAX_PLAYERS ? `⏳ Meč je pun (${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč.` : `⏳ Meč je već krenuo (${nHum} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč.`} Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
+  bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">${nBots && qpos < nBots ? `⏳ Meč je u tijeku (${nHum} ${nHum === 1 ? 'igrač' : nHum <= 4 ? 'igrača' : 'igrača'} + ${nBots} bot). <b>Ulaziš umjesto bota od sljedeće runde.</b>` : nHum >= MAX_PLAYERS ? `⏳ Meč je pun (${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč.` : nHum + nBots + qpos < MAX_PLAYERS ? `⏳ Meč je u tijeku (${nHum} igrača). <b>Ulaziš od sljedeće runde.</b>` : `⏳ Meč je već krenuo (${nHum} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč.`} Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
     <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => { const have = profile ? (profile.inv[id] || 0) : 0; return `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || (!have && coins < t.price) || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>${have ? `imaš ${have}` : `● ${t.price}`}</small></button>`; }).join('')}</div>
     <div class="betrow">${(() => { const t = G && G.players.find(x => peerOfPlayer(x) === net.trollTarget) || null; if (!t) return ''; const open = G.phase === 'count' || (G.phase === 'run' && G.gt < 4), has = myBet && myBet.mid === curMid() && myBet.round === G.round; return `<span>💰 ${has ? `Oklada: <b>${myBet.amount}</b> na ${esc(myBet.name)} (×${myBet.mult})` : open ? `Okladi se da <b>${esc(t.name)}</b> pobjeđuje rundu:` : 'Oklade: na početku sljedeće runde'}</span>${!has && open ? [50, 100, 200].map(a => `<button type="button" class="betb" data-a="${a}" data-p="${t.id}" ${coins < a ? 'disabled' : ''}>${a}</button>`).join('') : ''}<span class="sep"></span><span>🎯 Ucjena:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" data-p="${t.id}" ${coins < a || !t.alive ? 'disabled' : ''}>${a}</button>`).join('')}`; })()}</div>
     <div class="chatrow"><input type="text" id="dmIn" maxlength="60" placeholder="${tname ? 'Poruka za ' + esc(tname) + '…' : 'Poruka…'}" aria-label="Poruka igraču"><button type="button" id="dmSend">Pošalji</button></div>
@@ -3352,16 +3352,26 @@ function netPlayerFrom(pr, c) {
 // a real player who is waiting (accepted an invite, sat down in the lobby) takes a bot's seat at the start of the next round
 function seatQueuedHumans() {
   if (!net || net.role !== 'host' || TMODE || !G || G.over) return;
-  const bots = G.players.filter(p => !p.human); if (!bots.length) return;
+  const bots = G.players.filter(p => !p.human);
   const q = queueList().filter(pr => !(pr.isMe && pr.sameTab) && pr.presence.nm);
   for (const pr of q) {
-    if (!bots.length) break; const want = Number(pr.presence.cl) || 0; const bi = bots.findIndex(x => x.id === want); const bot = bots.splice(bi >= 0 ? bi : 0, 1)[0];
-    const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
-    let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = bot.id;
-    const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
-    G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1;
-    G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
-    showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
+    const want = Number(pr.presence.cl) || 0;
+    if (bots.length) { // take a bot's seat (preferably the bot wearing my colour)
+      const bi = bots.findIndex(x => x.id === want); const bot = bots.splice(bi >= 0 ? bi : 0, 1)[0];
+      const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
+      const c = used.has(want) ? bot.id : want;
+      const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
+      G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1;
+      G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
+      showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
+    } else if (G.players.length < MAX_PLAYERS) { // free seat: join the running match from the next round
+      const used = new Set(G.players.map(p => p.id));
+      let c = want; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break;
+      const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
+      G.players.push(np); G.joinRound = G.round + 1;
+      G.toast = { text: `${np.name} ulazi u meč`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
+      showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč od ove runde`);
+    } else break;
   }
   hudDirty = true;
 }
