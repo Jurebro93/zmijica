@@ -322,7 +322,7 @@ button.pu:hover { border-color: var(--line); }
 .board td:first-child, .board th:first-child { text-align: left; }
 .chat { display: grid; gap: 6px; }
 .chatlog { display: grid; gap: 3px; max-height: 150px; overflow-y: auto; font-size: 14px; line-height: 1.3; }
-.chatlog div { color: var(--fg); } .chatlog b { font-weight: 700; } .chatlog .hint { font-size: 13px; }
+.chatlog div { color: var(--fg); } .chatlog .ctime { color: var(--muted); font-size: 11px; margin-right: 6px; font-variant-numeric: tabular-nums; } .chatlog b { font-weight: 700; } .chatlog .hint { font-size: 13px; }
 .chatrow { display: flex; gap: 6px; }
 .chatrow input { flex: 1; min-width: 0; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
 .chatrow button { border: 0; border-radius: 8px; background: var(--amber); color: #1a1205; font-weight: 700; padding: 0 14px; }
@@ -3186,7 +3186,17 @@ function renderNet() {
   $('#netBots').onchange = (e) => { setup.netBots = e.target.checked; saveSetup(); };
 }
 // chat over presence: {msg:[text, counter, time]} — the newest message per person is visible to everyone in the room
-const chatLog = []; const chatSeen = {}; let chatN = 0;
+const chatLog = []; const chatSeen = {}; let chatN = 0; const chatIds = new Set(); let chatRoom = 'vijuga-lobby', chatHistLoaded = false;
+function pushChat(m) { const id = m.id || (m.sl ? m.sl + ':' + m.at : null); if (id) { if (chatIds.has(id)) return false; chatIds.add(id); m.id = id; } chatLog.push(m); chatLog.sort((x, y) => x.at - y.at); return true; }
+// messages stay on the server so whoever comes later sees them, with the time they were sent
+async function loadChatHistory(room) {
+  if (!room) { try { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); room = v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; } catch (e) { room = 'vijuga-lobby'; } }
+  chatRoom = room; if (chatHistLoaded) return; chatHistLoaded = true;
+  try { const r = await fetch(API_BASE + '/chat?room=' + encodeURIComponent(chatRoom), { cache: 'no-store' }); if (!r.ok) return; const j = await r.json();
+    let ch = false; for (const m of j.msgs || []) if (pushChat({ id: m.id, sl: m.sl, name: String(m.name || 'Netko').slice(0, 14), text: String(m.text || '').slice(0, 80), audio: null, me: !!(profile && m.sl === profile.slug), at: Number(m.at) || 0, t: 0, peer: 'hist:' + m.sl })) ch = true;
+    if (chatLog.length > 150) chatLog.splice(0, chatLog.length - 150); if (ch) renderChat(); } catch (e) {}
+}
+function fmtChatTime(at) { if (!at) return ''; const d = new Date(at), n = new Date(); const t = d.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }); return d.toDateString() === n.toDateString() ? t : d.toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric' }) + ' ' + t; }
 const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🍆', '🍑', '🖕', '👏', '🥳', '😈'];
 const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
 let chatOpen = !IS_TOUCH, unread = 0;
@@ -3216,7 +3226,8 @@ function updateUnread() { const u = $('#unread'); if (!u) return; u.hidden = !un
 function sendChat(text) {
   text = String(text || '').trim().slice(0, 80); if (!text || !roomNs) return;
   if (profile && mutedUntil(profile.slug)) { toast(`🔇 Moderator te utišao do ${new Date(mutedUntil(profile.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}.`); return; }
-  chatN++; netPresence({ msg: [text, chatN, Date.now()] });
+  const at = Date.now(); chatN++; netPresence({ msg: [text, chatN, at] });
+  if (profile) fetch(API_BASE + '/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ room: chatRoom, slug: profile.slug, auth: profile.pinHash || '', text, at }) }).catch(() => {});
   const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
 }
 let recState = null;
@@ -3260,7 +3271,7 @@ function collectChat() {
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
     if (mutedUntil(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
     const audio = typeof m[3] === 'string' && /^data:audio\//.test(m[3]) && m[3].length < 100000 ? m[3] : null;
-    chatLog.push({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Date.now(), t: performance.now(), peer: key });
+    if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
     if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio);
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
@@ -3275,11 +3286,11 @@ function collectChat() {
     setTimeout(() => { hudDirty = true; renderNetPeersSoon(); }, 4600);
   }
   updateUnread();
-  if (chatLog.length > 40) chatLog.splice(0, chatLog.length - 40);
+  if (chatLog.length > 150) chatLog.splice(0, chatLog.length - 150);
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
 function renderChat() {
-  const line = (m, t) => `<div>${t && m.at ? `<small>${new Date(m.at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
+  const line = (m, t) => `<div>${m.at ? `<small class="ctime">${fmtChatTime(m.at)}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
   const empty = '<div class="hint">Još nema poruka.</div>';
   const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
@@ -3596,7 +3607,7 @@ async function initCapabilities() {
     dbNs = makeApiAccounts();
     if (SUPA.url && SUPA.key) { try { await initSupabase(); } catch (e) { roomNs = null; } }
   }
-  roomState.resolved = true; renderOnbar();
+  roomState.resolved = true; renderOnbar(); loadChatHistory();
   if (dbNs) {
     let failed = false;
     await new Promise(res => {
