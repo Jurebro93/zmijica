@@ -67,6 +67,10 @@ button:disabled { cursor: default; opacity: .5; }
 #preview { width: 100%; height: 120px; display: block; border-radius: 10px; background: var(--slate); border: 1px solid var(--line); }
 .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-family: var(--display); font-size: 15px; letter-spacing: .04em; color: var(--muted); white-space: nowrap; margin-bottom: -1px; }
+.tabs a.tablink { padding: 10px 14px; font-family: var(--display); font-size: 15px; letter-spacing: .04em; color: var(--amber); white-space: nowrap; text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tabs a.tablink:hover { border-bottom-color: var(--amber); }
+.statlink { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: color-mix(in srgb, var(--amber) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; }
+.statlink a { text-decoration: none; }
 .tabs button[aria-selected=true] { color: var(--fg); border-bottom-color: var(--amber); }
 .tab { display: grid; gap: 22px; }
 h2 { font-family: var(--display); font-weight: 400; font-size: 18px; letter-spacing: .04em; margin: 0 0 10px; color: var(--fg); }
@@ -233,6 +237,7 @@ button.pu:hover { border-color: var(--line); }
         <button role="tab" data-tab="shop" aria-selected="false">Trgovina</button>
         <button role="tab" data-tab="board" aria-selected="false">Ljestvica</button>
         <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
+        <a class="tablink" href="stats.html">Statistika</a>
       </div>
 
       <div class="tab" id="tab-local">
@@ -1362,9 +1367,9 @@ function showResults() {
     </tbody></table></div>`;
   let actions;
   if (net) {
-    actions = `<div class="readybox" id="readyBox"></div><div class="row"><button class="btn" id="readyBtn">Spreman za novu igru</button>${net.role === 'host' ? '<button class="btn ghost" id="setBtn">Promijeni postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><p class="hint">Nova igra kreće kad svi igrači iz ovog meča stisnu „Spreman”. Tko izađe, ne čeka se.</p><p class="hint" id="readyHint"></p>`;
+    actions = `<div class="readybox" id="readyBox"></div><div class="row"><button class="btn" id="readyBtn">Spreman za novu igru</button>${net.role === 'host' ? '<button class="btn ghost" id="setBtn">Promijeni postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><p class="hint">Nova igra kreće kad svi igrači iz ovog meča stisnu „Spreman”. Tko izađe, ne čeka se.</p><p class="hint" id="readyHint"></p><p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Pogledaj statistiku svih igrača</a></p>`;
   } else {
-    actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div>`;
+    actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div><p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Pogledaj statistiku svih igrača</a></p>`;
   }
   showOverlay(`<div class="banner"><span class="label">Kraj meča · ${G.target} rundi</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgeGlyph(w.badge) ? ' ' + badgeGlyph(w.badge) : ''}</h3>${earn}${table}${actions}</div>`);
   if (net) {
@@ -1478,8 +1483,9 @@ function renderBoard() {
   const mine = profile ? `<div class="coinnote" style="margin-bottom:14px"><span>Ti: <b>${esc(profile.name)}</b> · zlatnici <b>${profile.coins}</b> · mečevi <b>${profile.matches}</b> · pobjede <b>${profile.wins}</b> · rušenja <b>${profile.kills}</b></span></div>` : '';
   const rows = [...accounts.list].sort((x, y) => y.coins - x.coins || y.wins - x.wins).slice(0, 30);
   const where = dbNs ? 'Zajednička ljestvica svih igrača.' : 'Bez veze s bazom: ljestvica igrača s ovog uređaja.';
-  if (!rows.length) { b.innerHTML = mine + `<p class="hint">${where} Još je prazna.</p>`; return; }
-  b.innerHTML = mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${esc(String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
+  if (!rows.length) { b.innerHTML = `<div class="statlink"><span>Detaljna statistika svih igrača.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>` + mine + `<p class="hint">${where} Još je prazna.</p>`; return; }
+  const sl = `<div class="statlink"><span>Detaljna statistika svih igrača: mečevi, pobjede, postolja, rušenja, aktivnost po danima i zadnji mečevi.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>`;
+  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${esc(String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 // host
