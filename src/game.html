@@ -1835,6 +1835,8 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 
 // ---------- grid ----------
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
+const SKIN_W = { sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
+const skinW = (p) => SKIN_W[p.skin] || 1;
 function stamp(p, r) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
   const gx0 = cx | 0, gy0 = cy | 0, id = p.id + 1;
@@ -2158,11 +2160,11 @@ function substep() {
       if (hit) { kill(p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)); continue; }
     }
     if (p.gapLeft > 0) p.gapLeft -= step;
-    else if (G.gt > p.nextGap) { p.gapLeft = rand(14, 22) + r * 2; p.nextGap = G.gt + rand(1.5, 3.4); }
+    else if (G.gt > p.nextGap) { p.gapLeft = rand(14, 22) + r * 2 * skinW(p); p.nextGap = G.gt + rand(1.5, 3.4); }
     const drawing = p.gapLeft <= 0 && !jumping;
     p.drawing = drawing;
     if (drawing) {
-      stamp(p, r);
+      stamp(p, r * skinW(p));
       if (p.pts.length && Math.abs(p.ptsR - r) > .01) flushTrail(p, true);
       p.ptsR = r; p.pts.push(p.x, p.y);
     } else if (p.pts.length) flushTrail(p, false);
@@ -3120,6 +3122,7 @@ function collectDirect() {
     const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
     if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
     if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000) receiveTroll(pr.tr[1], from, p.peer); } }
+    else if (Array.isArray(pr.tr) && !(p.isMe && p.sameTab) && G && !$('#game').hidden) { const key = 'w:' + p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; const tgt = roomState.peers.find(q => q.peer === pr.tr[0]); const t = TROLLS[pr.tr[1]]; if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) showIgMsg(`${t.e} <b>${esc(from)}</b> → <b>${esc(String((tgt.presence && tgt.presence.nm) || 'igrač'))}</b>: ${t.name}`); } }
     if (Array.isArray(pr.bt)) { const key = p.peer + ':' + pr.bt[3]; if (!seenBt[key]) { seenBt[key] = 1; if (Date.now() - (Number(pr.bt[4]) || 0) < 600000 && pr.bt[0] === curMid()) { const amt = Math.max(0, Math.min(5000, Number(pr.bt[2]) || 0)); addBounty(pr.bt[0] + ':' + pr.bt[1], amt, from); if (!$('#game').hidden) showIgMsg(`🎯 ${esc(from)} je stavio ucjenu ${amt} na ${esc(String(pr.bt[5] || '').slice(0, 14))}!`, true); } } }
     if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
   }
@@ -3400,11 +3403,10 @@ function hostAwayPause() {
     if (!p.awayAt) p.awayAt = now;
     if (now - p.awayAt < 2000) continue; // a short presence hiccup is not leaving
     const left = AWAY_MS - (now - p.awayAt);
-    if (left <= 0) { kill(p, null); p.awayAt = 0; G.toast = { text: p.name + ' je eliminiran (izašao)', color: '#ff5d73', x: W / 2, y: H / 2, t: G.gt }; continue; }
-    if (!wait || left < wait.left) wait = { name: p.name, left };
+    if (left <= 0) { kill(p, null); p.awayAt = 0; p.awayTold = false; G.toast = { text: p.name + ' je eliminiran (izašao)', color: '#ff5d73', x: W / 2, y: H / 2, t: G.gt }; continue; }
+    if (!p.awayTold) { p.awayTold = true; G.toast = { text: p.name + ' nije tu, zmija ide ravno', color: '#8396ab', x: W / 2, y: H * 0.12, t: G.gt }; }
   }
-  G.pz = wait ? [wait.name, Math.ceil(wait.left / 1000)] : null;
-  return !!wait;
+  G.pz = null; return false; // the match never pauses for one absent player
 }
 function buildSnap() {
   return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
@@ -3610,7 +3612,7 @@ async function initSupabase() {
           // the lobby only learns that a match is running (hs), not every frame of it
           if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { slow.hs = on; fast.hs = on; hasSlow = hasFast = true; } }
         } else if (k === 'in' || k === 'j' || k === 'is' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
-        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'tb' || k === 'bt' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
+        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'tb' || k === 'bt' || k === 'fol') { fast[k] = patch[k]; hasFast = true; if (k === 'tr' || k === 'tb') { slow[k] = patch[k]; hasSlow = true; } }
         else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } }
       }
       if (hasOwn && connected) gsend(myPeer, own);
