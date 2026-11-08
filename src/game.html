@@ -80,7 +80,7 @@ h2 small { font-family: var(--body); font-size: 14px; letter-spacing: 0; color: 
 .legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px 16px; }
 .pu { display: flex; gap: 10px; align-items: center; font-size: 15px; line-height: 1.2; background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 6px; text-align: left; }
 button.pu:hover { border-color: var(--line); }
-.pu i { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; font-size: 16px; border: 2px solid currentColor; }
+.pu i { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 19px; border: 2.5px solid currentColor; background: color-mix(in srgb, currentColor 18%, transparent); }
 .pu i.s { color: var(--good); } .pu i.o { color: var(--bad); } .pu i.a { color: var(--all); }
 .pu b { font-weight: 600; } .pu small { color: var(--muted); display: block; font-size: 13px; }
 .pu.off { opacity: .4; } .pu.off i { border-style: dashed; }
@@ -387,7 +387,7 @@ const PLACE_COINS = [60, 35, 20, 12, 12, 12], KILL_COINS = 3;
 const POWERUPS = {
   fastS:  { t: 's', g: '»', name: 'Brzina', d: 'Ti ubrzavaš', dur: 5 },
   slowS:  { t: 's', g: '«', name: 'Usporenje', d: 'Ti usporavaš, lakše skrećeš', dur: 6 },
-  thinS:  { t: 's', g: '·', name: 'Tanki trag', d: 'Tvoj trag je upola tanji', dur: 7 },
+  thinS:  { t: 's', g: '—', name: 'Tanki trag', d: 'Tvoj trag je upola tanji', dur: 7 },
   ghostS: { t: 's', g: '○', name: 'Duh', d: 'Prolaziš kroz tragove', dur: 3.5 },
   wrapS:  { t: 's', g: '□', name: 'Bez zidova', d: 'Izlaziš na suprotnoj strani', dur: 7 },
   jumpS:  { t: 's', g: '↑', name: 'Puni skok', d: 'Skok je odmah spreman', dur: 0 },
@@ -401,6 +401,29 @@ const POWERUPS = {
 };
 const PU_KEYS = Object.keys(POWERUPS);
 const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff' };
+const PU_R = 17; // pickup radius in arena units (was 13)
+// Bold vector symbol for each power-up, filling most of the circle of radius R.
+function drawPuIcon(c, k, x, y, R) {
+  const s = R * 0.5, lw = Math.max(1.8, R * 0.19);
+  c.save(); c.translate(x, y); c.strokeStyle = '#fff'; c.fillStyle = '#fff'; c.lineWidth = lw; c.lineCap = 'round'; c.lineJoin = 'round'; c.setLineDash([]);
+  const chev = (dir) => { for (const off of [-0.45, 0.45]) { c.beginPath(); c.moveTo((off - 0.3 * dir) * s, -0.7 * s); c.lineTo((off + 0.35 * dir) * s, 0); c.lineTo((off - 0.3 * dir) * s, 0.7 * s); c.stroke(); } };
+  switch (k) {
+    case 'fastS': case 'fastO': chev(1); break;
+    case 'slowS': case 'slowO': chev(-1); break;
+    case 'thinS': c.lineWidth = Math.max(1.2, lw * 0.45); c.beginPath(); c.moveTo(-0.95 * s, 0); c.lineTo(0.95 * s, 0); c.stroke(); break;
+    case 'thickO': c.lineWidth = lw * 2.4; c.beginPath(); c.moveTo(-0.7 * s, 0); c.lineTo(0.7 * s, 0); c.stroke(); break;
+    case 'ghostS': c.setLineDash([lw * 1.1, lw * 1.1]); c.beginPath(); c.arc(0, 0, 0.8 * s, 0, 6.283); c.stroke(); c.setLineDash([]); c.beginPath(); c.arc(0, 0, lw * 0.6, 0, 6.283); c.fill(); break;
+    case 'wrapS': c.strokeRect(-0.75 * s, -0.75 * s, 1.5 * s, 1.5 * s); break;
+    case 'wrapA': c.setLineDash([lw * 1.2, lw * 0.9]); c.strokeRect(-0.8 * s, -0.8 * s, 1.6 * s, 1.6 * s); c.setLineDash([]); break;
+    case 'jumpS': c.beginPath(); c.moveTo(0, 0.9 * s); c.lineTo(0, -0.8 * s); c.moveTo(-0.65 * s, -0.15 * s); c.lineTo(0, -0.85 * s); c.lineTo(0.65 * s, -0.15 * s); c.stroke(); break;
+    case 'revO': c.beginPath(); c.moveTo(-0.9 * s, -0.4 * s); c.lineTo(0.9 * s, -0.4 * s); c.moveTo(0.45 * s, -0.85 * s); c.lineTo(0.9 * s, -0.4 * s); c.lineTo(0.45 * s, 0.05 * s);
+      c.moveTo(0.9 * s, 0.45 * s); c.lineTo(-0.9 * s, 0.45 * s); c.moveTo(-0.45 * s, 0.0 * s); c.lineTo(-0.9 * s, 0.45 * s); c.lineTo(-0.45 * s, 0.9 * s); c.stroke(); break;
+    case 'sqO': c.beginPath(); c.moveTo(-0.8 * s, -0.6 * s); c.lineTo(0.55 * s, -0.6 * s); c.lineTo(0.55 * s, 0.85 * s); c.stroke(); break;
+    case 'clearA': c.beginPath(); c.moveTo(-0.7 * s, -0.7 * s); c.lineTo(0.7 * s, 0.7 * s); c.moveTo(0.7 * s, -0.7 * s); c.lineTo(-0.7 * s, 0.7 * s); c.stroke(); break;
+    default: c.font = `800 ${Math.round(R)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText((POWERUPS[k] || {}).g || '?', 0, 0);
+  }
+  c.restore();
+}
 
 const SKINS = {
   sk_none:    { name: 'Obični', d: 'Standardni trag', price: 0 },
@@ -1207,7 +1230,7 @@ function substep() {
     } else if (p.pts.length) flushTrail(p, false);
     for (let i = G.pus.length - 1; i >= 0; i--) {
       const u = G.pus[i];
-      if (Math.hypot(u.x - p.x, u.y - p.y) < 13 + r) { G.pus.splice(i, 1); applyPu(p, u.k); }
+      if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + r) { G.pus.splice(i, 1); applyPu(p, u.k); }
     }
   }
 }
@@ -1255,16 +1278,19 @@ function render() {
   ctx.strokeRect(bd.l + 1.2, bd.t + 1.2, bd.r - bd.l - 2.4, bd.b - bd.t - 2.4);
   ctx.setLineDash([]);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const puScale = Math.min(1.9, Math.max(1, 0.7 / Math.max(0.05, (cv.clientWidth || W) / W)));
   for (const u of G.pus) {
     const P = POWERUPS[u.k], age = G.gt - u.born, c = PU_COLOR[P.t];
     const fade = age > 11 ? (Math.sin(age * 20) > 0 ? 1 : .35) : 1;
     const pop = Math.max(0.01, Math.min(1, age * 5));
+    // drawn larger on small screens so the icon stays readable; pickup radius stays PU_R for everyone
+    const R = PU_R * puScale * pop, pulse = 1 + 0.06 * Math.sin(G.gt * 5 + u.x);
     ctx.globalAlpha = fade;
-    ctx.beginPath(); ctx.arc(u.x, u.y, 13 * pop, 0, 6.283);
-    ctx.fillStyle = 'rgba(11,18,27,0.85)'; ctx.fill();
-    ctx.lineWidth = 2.5; ctx.strokeStyle = c; ctx.stroke();
-    ctx.fillStyle = c; ctx.font = `700 ${15 * pop}px "Barlow Semi Condensed", sans-serif`;
-    ctx.fillText(P.g, u.x, u.y + 1);
+    ctx.beginPath(); ctx.arc(u.x, u.y, R * 1.35 * pulse, 0, 6.283); ctx.fillStyle = c + '26'; ctx.fill();
+    ctx.beginPath(); ctx.arc(u.x, u.y, R, 0, 6.283);
+    ctx.fillStyle = '#0b121b'; ctx.fill(); ctx.fillStyle = c + '33'; ctx.fill();
+    ctx.lineWidth = Math.max(2.5, R * 0.16); ctx.strokeStyle = c; ctx.stroke();
+    drawPuIcon(ctx, u.k, u.x, u.y, R);
     ctx.globalAlpha = 1;
   }
   for (const p of G.players) {
