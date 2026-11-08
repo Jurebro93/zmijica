@@ -106,6 +106,11 @@ button:disabled { cursor: default; opacity: .5; }
 .rt-master { color: #ffd23f; border-color: #ffd23f; } .rt-admin { color: #ffb547; border-color: #ffb547; } .rt-turnir { color: #3ddc97; border-color: #3ddc97; } .rt-moderator { color: #4cc9f0; border-color: #4cc9f0; }
 .rolepick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .rolepick b { margin-right: 4px; font-size: 13px; color: var(--muted); text-transform: uppercase; }
 .rolepick button { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 4px 11px; font-size: 14px; } .rolepick button.on { border-color: var(--amber); color: var(--amber); }
+.goldname { color: #ffd23f; text-shadow: 0 0 8px rgba(255,210,63,.7); font-weight: 800; }
+.ptitle { display: inline-block; margin-left: 6px; font-size: 11px; font-style: italic; color: #b48cff; font-weight: 600; }
+.vipmsg { color: #ffd23f; }
+.premiumbox { border: 1px solid rgba(255,210,63,.45); background: linear-gradient(180deg, rgba(255,210,63,.08), transparent); border-radius: 14px; padding: 12px; }
+.roomlink { color: var(--amber); font-size: 14px; } .treasury { border: 1px dashed #ffd23f; border-radius: 10px; padding: 8px 12px; } .treasury b { color: #ffd23f; }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
 .dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
@@ -464,6 +469,7 @@ button.pu:hover { border-color: var(--line); }
       <div class="tab" id="tab-shop" hidden>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
+        <div class="premiumbox"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
@@ -604,6 +610,13 @@ const SKINS = {
   sk_pixel:   { name: 'Piksel', d: 'Kockasti, retro trag', price: 90 },
   sk_rainbow: { name: 'Duga', d: 'Trag stalno mijenja boju', price: 220 },
   sk_gold:    { name: 'Zlato', d: 'Zlatni trag bez obzira na boju', price: 320 },
+  sk_dragon:  { name: 'Zmaj 🐉', d: 'PREMIUM: ljuskice, glava zmaja i rika kad nekoga sruši', price: 5000, premium: true },
+  sk_galaxy:  { name: 'Galaksija 🌌', d: 'PREMIUM: trag pun zvijezda koje trepere', price: 3500, premium: true },
+  sk_bolt:    { name: 'Munja ⚡', d: 'PREMIUM: trag se iskri i pucketa kao struja', price: 3000, premium: true },
+  sz_pumpkin: { name: 'Bundeva 🎃', d: 'SEZONSKO: samo ovaj tjedan u trgovini', price: 1200, season: 0 },
+  sz_snow:    { name: 'Snježni ❄️', d: 'SEZONSKO: samo ovaj tjedan u trgovini', price: 1200, season: 1 },
+  sz_love:    { name: 'Ljubav 💘', d: 'SEZONSKO: samo ovaj tjedan u trgovini', price: 1200, season: 2 },
+  sz_sun:     { name: 'Ljeto ☀️', d: 'SEZONSKO: samo ovaj tjedan u trgovini', price: 1200, season: 3 },
   sk_diamond: { name: 'Dijamant 💎', d: 'RIJETKO: samo 3 igrača ga mogu imati. Ledeni sjaj.', price: 900, limit: 3 },
   sk_dildo:   { name: 'Dildo', d: 'Ružičasti, debeli trag s glavicom. Za odrasle.', price: 150 },
   sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
@@ -662,7 +675,7 @@ let dbNs = null, userNs = null, roomNs = null, dbWritable = null;
 const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
-function itemPrice(id) { return (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
+function itemPrice(id) { return (PREMIUM[id] && PREMIUM[id].price) || (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
 const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170 };
 function refundRetired(P) {
   for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
@@ -719,7 +732,7 @@ function renderMe() {
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
-  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><span class="lvchip">Nv ${levelOf(profile).lv}</span>${roleTag(profile.slug)}<button type="button" id="profBtn">profil</button><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><span class="lvchip">Nv ${levelOf(profile).lv}</span>${roleTag(profile.slug)}<button type="button" id="profBtn">profil</button>${profile.owned.includes('pr_room') ? '<a class="roomlink" href="' + myRoomLink() + '">🔒 moja soba</a>' : ''}<span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
   $('#invBtn').onclick = shareInvite;
   box.querySelector('.av').onclick = box.querySelector('b').onclick = () => showProfile();
   box.querySelector('.av').style.cursor = box.querySelector('b').style.cursor = 'pointer';
@@ -743,7 +756,7 @@ function showPlayer(slug) {
   const inv = Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && TROLLS[k]);
   const none = '<span class="hint">ništa još</span>';
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
-    <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)} ${roleTag(P.slug)}</h3><span class="hint">${mutedUntil(P.slug) ? '🔇 utišan do ' + new Date(mutedUntil(P.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + ' · ' : ''}${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
+    <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${nameHtml(P.slug, P.name)} ${badgeOf(P)} ${roleTag(P.slug)}</h3><span class="hint">${mutedUntil(P.slug) ? '🔇 utišan do ' + new Date(mutedUntil(P.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + ' · ' : ''}${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
     ${levelHtml(P)}
     <h4>Postignuća <small>${achOf(P).length} od ${ACH.length}</small></h4>${achHtml(P)}
@@ -1007,6 +1020,13 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sk_pixel': c.lineCap = 'butt'; c.lineJoin = 'miter'; c.setLineDash([r * 1.2, r * 0.5]); break;
     case 'sk_rainbow': c.strokeStyle = `hsl(${(gt * 160) % 360} 90% 62%)`; break;
     case 'sk_gold': c.strokeStyle = '#ffd700'; c.shadowBlur = 6; c.shadowColor = '#ffb547'; break;
+    case 'sk_dragon': c.strokeStyle = '#1f8a4c'; c.shadowBlur = 8; c.shadowColor = '#ffd23f'; break;
+    case 'sk_galaxy': c.strokeStyle = '#3b1f7a'; c.shadowBlur = 12; c.shadowColor = '#b48cff'; break;
+    case 'sk_bolt': c.strokeStyle = '#e8fbff'; c.shadowBlur = 14; c.shadowColor = '#4cc9f0'; break;
+    case 'sz_pumpkin': c.strokeStyle = '#ff8c1a'; c.setLineDash([r * 2.4, r * 0.8]); break;
+    case 'sz_snow': c.strokeStyle = '#e9f6ff'; c.shadowBlur = 8; c.shadowColor = '#9fdcff'; break;
+    case 'sz_love': c.strokeStyle = '#ff5d9e'; break;
+    case 'sz_sun': c.strokeStyle = `hsl(${40 + 15 * Math.sin(gt * 4)} 100% 58%)`; break;
     case 'sk_diamond': c.strokeStyle = `hsl(190 95% ${78 + 12 * Math.sin(gt * 9)}%)`; c.shadowBlur = 14; c.shadowColor = '#7df9ff'; break;
     case 'sk_dildo': c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2 * 1.45; return true;
     case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
@@ -1031,7 +1051,7 @@ function openBox() {
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><div style="font-size:64px" class="boxpop">🎁</div><h3>Iz kutije si dobio</h3><p style="font-size:20px;margin:0">${msg}</p><div class="go" style="justify-content:center"><button class="btn" type="button" id="boxOk">Super!</button>${profile.coins >= BOX_PRICE ? '<button class="btn ghost" type="button" id="boxAgain">Otvori još jednu (● ' + BOX_PRICE + ')</button>' : ''}</div></form>`;
   $('#boxOk').onclick = () => { m.hidden = true; }; if ($('#boxAgain')) $('#boxAgain').onclick = openBox;
 }
-function itemName(k) { return (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
+function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
 function renderDailyShop() {
   const box = $('#shopDaily'); if (!box) return;
   const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
@@ -1040,6 +1060,7 @@ function renderDailyShop() {
   $('#openBox').onclick = openBox;
   $('#goOffer').onclick = () => { const el = [...document.querySelectorAll('#shopSkins .item, #shopBadges .item')].find(x => x.textContent.includes(it.name)); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); } };
 }
+function seasonNow() { return Math.floor((Date.now() / 86400000 + 3) / 7) % 4; }
 function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
 function limitLeft(id) { const it = SKINS[id] || BADGES[id]; if (!it || !it.limit) return Infinity; return Math.max(0, it.limit - ownersOf(id)); }
 function renderShop() {
@@ -1056,8 +1077,8 @@ function renderShop() {
       d.appendChild(prev);
       d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`);
       const act = document.createElement('div'); act.className = 'act';
-      const price = document.createElement('span'); price.className = 'price'; const disc = dailyOffer() === id && !owned ? Math.round(it.price * 0.7) : 0; const cost = disc || it.price;
-      price.innerHTML = it.price ? (disc ? `<s style="opacity:.6">● ${it.price}</s> ● ${disc}` : `● ${it.price}`) : 'besplatno';
+      const price = document.createElement('span'); price.className = 'price'; const disc = dailyOffer() === id && !owned ? Math.round(it.price * 0.7) : 0; const cost = vipCost(disc || it.price);
+      price.innerHTML = it.price ? (cost !== it.price ? `<s style="opacity:.6">● ${it.price}</s> ● ${cost}` : `● ${it.price}`) : 'besplatno';
       if (it.limit) d.insertAdjacentHTML('beforeend', `<span class="rare">${limitLeft(id) > 0 ? `još ${limitLeft(id)} od ${it.limit}` : 'rasprodano'}</span>`);
       const b = document.createElement('button'); b.type = 'button';
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
@@ -1067,8 +1088,28 @@ function renderShop() {
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
   };
-  make($('#shopSkins'), Object.entries(SKINS), 'skin');
+  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
+  make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
   make($('#shopBadges'), Object.entries(BADGES), 'badge');
+  const prb = $('#shopPremium');
+  if (prb) {
+    prb.innerHTML = '';
+    Object.entries(PREMIUM).forEach(([id, it]) => {
+      const owned = profile && profile.owned.includes(id), on = it.bg && profile && profile.eq.bg === id, cost = vipCost(it.price);
+      const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : '');
+      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${it.e}</span></div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
+      const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${cost}`;
+      const b = document.createElement('button'); b.type = 'button';
+      if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+      else if (owned) {
+        if (it.bg) { b.textContent = on ? 'Isključi' : 'Koristi'; b.className = on ? 'on' : ''; b.onclick = () => { profile.eq.bg = on ? '' : id; saveProfile(); }; }
+        else if (id === 'pr_title') { b.textContent = 'Uredi titulu'; b.onclick = () => { const t = prompt('Tvoja titula (do 24 znaka):', profile.title || 'Kralj Vijuge'); if (t != null) { profile.title = t.trim().slice(0, 24); saveProfile(); toast('🏷️ Titula spremljena.'); } }; }
+        else if (id === 'pr_room') { b.textContent = 'Pozovi u sobu'; b.onclick = () => { const url = myRoomLink(); window.open('https://wa.me/?text=' + encodeURIComponent('🔒 Dođi u moju privatnu Vijuga sobu: ' + url), '_blank'); }; }
+        else { b.textContent = 'Aktivno ✓'; b.className = 'on'; b.disabled = true; }
+      } else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost; b.onclick = () => { if (profile.coins < cost) return; if (!confirm(`Kupiti ${it.name} za ${cost} zlatnika?`)) return; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); if (it.bg) profile.eq.bg = id; if (id === 'pr_title') profile.title = 'Kralj Vijuge'; sfx.pick(); saveProfile(); checkAchievements(); toast(`${it.e} ${it.name} je tvoj!`); }; }
+      act.append(pr, b); d.appendChild(act); prb.appendChild(d);
+    });
+  }
   const fxb = $('#shopFx');
   if (fxb) {
     fxb.innerHTML = '';
@@ -1204,7 +1245,7 @@ async function loadRoles() { try { const r = await fetch(ROLES_API, { cache: 'no
 setTimeout(() => { loadRoles(); const h = $('#rolesHelp'); if (h) h.innerHTML = rolesHelpHtml(); }, 1200); setInterval(loadRoles, 60000);
 async function roleCall(action, extra) {
   if (!profile) return null;
-  try { const r = await fetch(ROLES_API + '/' + action, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra)) }); const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'master only': 'Samo master admin dodjeljuje uloge.', 'moderators only': 'Samo moderator ili admin.', 'cannot mute an admin': 'Admina ne možeš utišati.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; } roleState = j; return j; }
+  try { const r = await fetch(ROLES_API + '/' + action, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra)) }); const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'master only': 'Samo master admin.', 'moderators only': 'Samo moderator ili admin.', 'cannot mute an admin': 'Admina ne možeš utišati.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; } if (j.roles) roleState = j; return j; }
   catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
 }
 async function resetPinOf(P) {
@@ -1223,7 +1264,7 @@ async function loadTours() {
 async function tourCall(id, action, extra) {
   if (!profile) { showLogin(); return null; }
   try { const r = await fetch(TOUR_API + (id ? '/' + id + (action ? '/' + action : '') : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
+    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
   catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
 }
 function tableUrl(t, k, tb) { return GAME_URL + `?soba=t${t.id}-k${k}-s${tb.id}&turnir=${t.id}&kolo=${k}&stol=${tb.id}`; }
@@ -1251,9 +1292,11 @@ function renderTour() {
     if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? '<button class="btn sm" type="button" id="tStart">Pokreni turnir</button>' : ''}${canBonus() ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (vrati kotizacije)</button></div>`;
     html += '</div>';
   }
+  if (myRole() === 'master') html += `<p class="treasury">🔒 Tvoja blagajna za turnire: <b id="trVal">…</b> zlatnika <small>(vidiš samo ti; iz nje ide dodatak u fond)</small></p>`;
   if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].n : 'admin'})</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label>${canBonus() ? '<label>Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label>' : ''}<button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
   box.innerHTML = html;
   box.querySelectorAll('.tpk').forEach(b => b.onclick = () => { tourSel = b.dataset.id; renderTour(); });
+  if ($('#trVal')) roleCall('treasury', {}).then(j => { if (j && $('#trVal')) $('#trVal').textContent = j.treasury; });
   const after = (j) => { if (j && j.tournament) { const i = tours.findIndex(x => x.id === j.tournament.id); const v = Object.assign({}, j.tournament, { pot: j.pot }); if (i >= 0) tours[i] = v; else tours.unshift(v); tourSel = v.id; renderTour(); } };
   if ($('#tLogin')) $('#tLogin').onclick = () => showLogin();
   if ($('#tJoin')) $('#tJoin').onclick = async () => { if (profile.coins < TOUR_FEE) return; if (!confirm(`Kotizacija je ${TOUR_FEE} zlatnika. Prijaviti se?`)) return; const j = await tourCall(t.id, 'join'); if (j) { profile.coins -= TOUR_FEE; profile.spent = (profile.spent || 0) + TOUR_FEE; saveProfile(); toast('🏆 Prijavljen si na turnir!'); after(j); } };
@@ -1343,6 +1386,24 @@ function beep(freq, dur, type = 'square', vol = 0.06, slide = 0) {
     o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
   } catch (e) {}
 }
+const PREMIUM = {
+  pr_goldname: { e: '👑', name: 'Zlatno ime', d: 'Tvoje ime u zlatu sa sjajem: predvorje, ljestvica, chat, kartice', price: 2500 },
+  pr_title:    { e: '🏷️', name: 'Titula', d: 'Natpis ispod imena koji sam biraš (npr. „Kralj Vijuge”)', price: 2000 },
+  pr_entrance: { e: '📣', name: 'Ulazak s pompom', d: 'Kad uđeš u predvorje, svima zatrubi i ispiše „X je stigao!”', price: 2000 },
+  bg_space:    { e: '🌌', name: 'Arena: Svemir', d: 'Pozadina arene kad si domaćin (vide je svi)', price: 3000, bg: true },
+  bg_lava:     { e: '🌋', name: 'Arena: Lava', d: 'Pozadina arene kad si domaćin (vide je svi)', price: 3000, bg: true },
+  bg_sea:      { e: '🌊', name: 'Arena: More', d: 'Pozadina arene kad si domaćin (vide je svi)', price: 3000, bg: true },
+  pr_room:     { e: '🔒', name: 'Privatna soba', d: 'Svoja soba s tajnom šifrom: ulaze samo oni kojima pošalješ link', price: 1500 },
+  pr_vip:      { e: '💎', name: 'VIP paket', d: 'Zlatni chat, 5 ekskluzivnih emotikona i 10 % popusta na tragove, ikone i premium stvari', price: 4000 },
+  pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji spomenik s tvojim imenom', price: 1800 },
+};
+const VIP_REACTIONS = ['🦄', '🍾', '🤑', '🧨', '👽'];
+function ownsSlug(slug, id) { if (profile && slug === profile.slug) return profile.owned.includes(id); const a = accounts.list.find(x => x.slug === slug); return !!(a && Array.isArray(a.owned) && a.owned.includes(id)); }
+function isVip() { return !!(profile && profile.owned.includes('pr_vip')); }
+function vipCost(n) { return isVip() ? Math.round(n * 0.9) : n; }
+function titleOf(slug) { const a = profile && slug === profile.slug ? profile : accounts.list.find(x => x.slug === slug); return a && ownsSlug(slug, 'pr_title') && a.title ? String(a.title).slice(0, 24) : ''; }
+function nameHtml(slug, name) { const gold = slug && ownsSlug(slug, 'pr_goldname'); const t = slug ? titleOf(slug) : ''; return `<span class="${gold ? 'goldname' : ''}">${esc(name)}</span>${t ? `<span class="ptitle">${esc(t)}</span>` : ''}`; }
+function myRoomLink() { if (!profile) return ''; let code = ''; try { code = localStorage.getItem('vijuga-room-' + profile.slug) || ''; } catch (e) {} if (!code) { code = Math.random().toString(36).slice(2, 8); try { localStorage.setItem('vijuga-room-' + profile.slug, code); } catch (e) {} } return GAME_URL + '?soba=p-' + profile.slug.slice(0, 10) + '-' + code; }
 const EFFECTS = {
   te_fire:   { kind: 'te', e: '🔥', name: 'Vatreni trag', d: 'Iza tebe lete plamičci', price: 220 },
   te_spark:  { kind: 'te', e: '✨', name: 'Iskrice', d: 'Iza tebe frcaju iskre', price: 180 },
@@ -1422,7 +1483,7 @@ function newMatch(netPlayers) {
       if (cfg.type === 'off') return;
       const mine = cfg.type === 'human' && firstHuman && profile; if (cfg.type === 'human') firstHuman = false;
       ps.push({ id: i, name: cfg.name, color: COLORS[i], human: cfg.type === 'human', diff: cfg.diff,
-        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', starter: mine ? profile.eq.pu : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
+        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', starter: mine ? profile.eq.pu : '', pm: mine && profile.owned.includes('pr_tomb') ? 'tomb' : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
         score: 0, kills: 0, wins: 0, picks: 0, jumps: 0, touchL: false, touchR: false });
     });
   }
@@ -1461,10 +1522,17 @@ function fitCanvas() {
 }
 function drawBg() {
   bgc.width = cv.width; bgc.height = cv.height;
-  const s = cv.width / W;
+  const s = cv.width / W, bg = (G && G.bg) || '';
   bctx.setTransform(1, 0, 0, 1, 0, 0);
   bctx.fillStyle = '#101b27'; bctx.fillRect(0, 0, bgc.width, bgc.height);
   bctx.setTransform(s, 0, 0, s, 0, 0);
+  if (bg) {
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    if (bg === 'bg_space') { const g = bctx.createRadialGradient(W * .7, H * .3, 10, W * .5, H * .5, W * .8); g.addColorStop(0, '#2a1d5c'); g.addColorStop(1, '#070a18'); bctx.fillStyle = g; bctx.fillRect(0, 0, W, H); for (let i = 0; i < 220; i++) { bctx.fillStyle = `rgba(255,255,255,${.3 + rnd() * .7})`; const r = rnd() * 1.4 + .3; bctx.fillRect(rnd() * W, rnd() * H, r, r); } }
+    else if (bg === 'bg_lava') { const g = bctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1c0a07'); g.addColorStop(1, '#3d0f06'); bctx.fillStyle = g; bctx.fillRect(0, 0, W, H); for (let i = 0; i < 14; i++) { const x = rnd() * W, y = rnd() * H, r = 30 + rnd() * 80, gg = bctx.createRadialGradient(x, y, 0, x, y, r); gg.addColorStop(0, 'rgba(255,90,20,.35)'); gg.addColorStop(1, 'rgba(255,90,20,0)'); bctx.fillStyle = gg; bctx.fillRect(x - r, y - r, r * 2, r * 2); } }
+    else if (bg === 'bg_sea') { const g = bctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#06263d'); g.addColorStop(1, '#0a4a63'); bctx.fillStyle = g; bctx.fillRect(0, 0, W, H); bctx.strokeStyle = 'rgba(160,230,255,.12)'; bctx.lineWidth = 2; for (let y = 30; y < H; y += 38) { bctx.beginPath(); for (let x = 0; x <= W; x += 10) bctx.lineTo(x, y + Math.sin(x / 40 + y) * 5); bctx.stroke(); } }
+    return;
+  }
   bctx.fillStyle = 'rgba(131,150,171,0.16)';
   for (let x = 25; x < W; x += 25) for (let y = 25; y < H; y += 25) bctx.fillRect(x - .8, y - .8, 1.6, 1.6);
 }
@@ -1473,7 +1541,7 @@ function rand(a, b) { return a + Math.random() * (b - a); }
 function newRound() {
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
-  owner.fill(0); stampT.fill(0); T = 0; G.arena = null; stampArena(); assignTeams(); G.winTeam = null;
+  owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
   tctx.clearRect(0, 0, W, H);
   const placed = [];
   G.players.forEach(p => {
@@ -1559,6 +1627,19 @@ function blockedBy(x, y, p, grace) {
 
 // ---------- trail drawing ----------
 function skinAfter(c, skin, pts, r, p) {
+  if ((skin === 'sk_dragon' || skin === 'sk_galaxy' || skin === 'sk_bolt' || skin === 'sz_snow' || skin === 'sz_love') && pts.length >= 4) {
+    c.save(); c.shadowBlur = 0; c.setLineDash([]);
+    for (let i = 2; i < pts.length; i += 2) {
+      const x0 = pts[i - 2], y0 = pts[i - 1], x1 = pts[i], y1 = pts[i + 1], len = Math.hypot(x1 - x0, y1 - y0); if (len < 0.5) continue;
+      const nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
+      if (skin === 'sk_dragon' && Math.random() < 0.5) { c.strokeStyle = '#ffd23f'; c.lineWidth = Math.max(0.8, r * 0.35); c.beginPath(); c.arc((x0 + x1) / 2, (y0 + y1) / 2, r * 0.75, Math.atan2(ny, nx) - 1.2, Math.atan2(ny, nx) + 1.2); c.stroke(); }
+      else if (skin === 'sk_galaxy' && Math.random() < 0.6) { const o = (Math.random() - .5) * r * 2; c.fillStyle = Math.random() < .5 ? '#ffffff' : '#9fe8ff'; c.fillRect(x1 + nx * o - 0.7, y1 + ny * o - 0.7, 1.4, 1.4); }
+      else if (skin === 'sk_bolt' && Math.random() < 0.4) { c.strokeStyle = '#ffe94a'; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x0 + nx * r * 1.6, y0 + ny * r * 1.6); c.lineTo((x0 + x1) / 2 - nx * r * 1.6, (y0 + y1) / 2 - ny * r * 1.6); c.lineTo(x1 + nx * r * 1.2, y1 + ny * r * 1.2); c.stroke(); }
+      else if (skin === 'sz_snow' && Math.random() < 0.2) { c.fillStyle = '#ffffff'; c.font = `${Math.round(r * 3)}px sans-serif`; c.textAlign = 'center'; c.fillText('❄', x1 + nx * r * 1.8, y1 + ny * r * 1.8); }
+      else if (skin === 'sz_love' && Math.random() < 0.12) { c.font = `${Math.round(r * 3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.fillText('💘', x1, y1 - r * 2); }
+    }
+    c.restore();
+  }
   if (skin === 'sk_vag') { c.strokeStyle = '#c2496f'; c.lineWidth = Math.max(1, r * 0.7); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
   if (skin === 'sk_condom') { c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.5); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
   if (skin === 'sk_hairy' && p) {
@@ -1914,6 +1995,7 @@ function render() {
   }
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
   drawBounties(ctx);
+  if (G.tombs) for (const t of G.tombs) { ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🪦', t.x, t.y); ctx.font = '700 11px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText('R.I.P. ' + t.name, t.x, t.y + 18); ctx.restore(); }
   if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
     ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
@@ -1929,7 +2011,8 @@ function render() {
     ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
-    if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
+    if (p.skin === 'sk_dragon' && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🐉', 0, 0); ctx.restore(); }
+    else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
     else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
     // winner's badge blinks above the head between rounds
     if (G.phase === 'end' && p.id === G.winner && p.alive && BADGES[p.badge] && BADGES[p.badge].g) { const k = 0.55 + 0.45 * Math.sin(G.phaseT * 9); ctx.globalAlpha = k; drawBadge(ctx, p.badge, p.x, p.y - hr - 16 - 3 * Math.sin(G.phaseT * 4), 22, '#ffb547'); ctx.globalAlpha = 1; }
@@ -2452,8 +2535,11 @@ function showInvite(from, n) {
   beep(880, .15, 'square', .06); setTimeout(() => beep(1175, .2, 'square', .06), 170); setTimeout(() => beep(880, .15, 'square', .06), 420);
   flashTitle('🔔 ' + String(pr.nm || 'Poziv') + ' te zove!');
 }
+const entranceSeen = {};
 function collectSocial() {
   const me = roomState.me;
+  for (const p of roomState.peers) { const pr = p.presence || {}; if (!pr.sl || (p.isMe && p.sameTab)) continue; const was = entranceSeen[p.peer]; entranceSeen[p.peer] = pr.rd ? 1 : 0;
+    if (was === 0 && pr.rd && ownsSlug(pr.sl, 'pr_entrance')) { notify(`📣 <b class="goldname">${esc(String(pr.nm || ''))}</b> je stigao u predvorje!`, { ms: 5000 }); [0, 200, 400].forEach((t, i) => setTimeout(() => beep([523, 659, 880][i], .22, 'square', .07), t)); } }
   for (const p of roomState.peers) {
     const pr = p.presence || {};
     // incoming ping aimed at me
@@ -2591,7 +2677,10 @@ function placeBounty(pid, amount) {
   toast(`🎯 Ucjena ${amount} na ${pl.name}. Dobit će je tko ga sruši.`);
 }
 function addBounty(key, amount, from) { const b = (bounties[key] ||= { amount: 0, from: [] }); b.amount += amount; if (!b.from.includes(from)) b.from.push(from); }
+function roar() { beep(90, .7, 'sawtooth', .1, -40); setTimeout(() => beep(70, .5, 'sawtooth', .08, -30), 200); }
 function onDeath(p, killerId) {
+  { const k = G.players.find(x => x.id === killerId); if (k && k !== p && k.skin === 'sk_dragon') roar(); }
+  if (p.pm && p.pm.includes('tomb')) (G.tombs ||= []).push({ x: p.x, y: p.y, name: p.name });
   const key = curMid() + ':' + p.id, b = bounties[key]; if (!b) return;
   if (killerId == null || killerId < 0) return; // a wall or own trail: the bounty stays
   delete bounties[key];
@@ -2744,7 +2833,7 @@ function renderNet() {
     html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „S botovima”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
@@ -2775,7 +2864,7 @@ let netPeersTimer = 0;
 function renderNetPeersSoon() { if (netPeersTimer || $('#menu').hidden || curTab !== 'online') return; netPeersTimer = setTimeout(() => { netPeersTimer = 0; renderNet(); }, 120); }
 function buildReactPop() {
   const pop = $('#reactPop'); if (pop.childElementCount) return;
-  REACTIONS.forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rbtn'; b.textContent = e; b.setAttribute('aria-label', 'Reakcija ' + e); b.onclick = () => { sendReaction(e); pop.hidden = true; }; pop.appendChild(b); });
+  [...REACTIONS, ...(isVip() ? VIP_REACTIONS : [])].forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rbtn'; b.textContent = e; b.setAttribute('aria-label', 'Reakcija ' + e); b.onclick = () => { sendReaction(e); pop.hidden = true; }; pop.appendChild(b); });
 }
 let chatPhase = null;
 function chatAutoHide() {
@@ -2838,7 +2927,7 @@ function collectChat() {
   }
   for (const p of roomState.peers) {
     const r = p.presence && p.presence.re;
-    if (!Array.isArray(r) || !REACTIONS.includes(r[0])) continue;
+    if (!Array.isArray(r) || !(REACTIONS.includes(r[0]) || (VIP_REACTIONS.includes(r[0]) && ownsSlug(p.presence.sl, 'pr_vip')))) continue;
     if (reactSeen[p.peer] === r[1]) continue;
     const first = !(p.peer in reactSeen); reactSeen[p.peer] = r[1];
     if (first && Date.now() - (Number(r[2]) || 0) > 8000) continue;
@@ -2851,7 +2940,7 @@ function collectChat() {
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
 function renderChat() {
-  const line = (m, t) => `<div>${t && m.at ? `<small>${new Date(m.at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${esc(m.name)}${roleTag(m.sl)}:</b> ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</div>`;
+  const line = (m, t) => `<div>${t && m.at ? `<small>${new Date(m.at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
   const empty = '<div class="hint">Još nema poruka.</div>';
   const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
@@ -2865,7 +2954,7 @@ function renderBoard() {
   const where = dbNs ? 'Zajednička ljestvica svih igrača.' : 'Bez veze s bazom: ljestvica igrača s ovog uređaja.';
   if (!rows.length) { b.innerHTML = `<div class="statlink"><span>Detaljna statistika svih igrača.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>` + mine + `<p class="hint">${where} Još je prazna.</p>`; return; }
   const sl = `<div class="statlink"><span>Detaljna statistika svih igrača: mečevi, pobjede, postolja, rušenja, aktivnost po danima i zadnji mečevi.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>`;
-  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr data-player="${esc(r.slug)}"${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${esc(String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
+  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr data-player="${esc(r.slug)}"${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${nameHtml(r.slug, String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 // host
@@ -2886,7 +2975,7 @@ function hostStart(rematch) {
     let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
     const me = pr.isMe && pr.sameTab;
     players.push({ id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
-      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '' }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null });
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: ownsSlug(pr.presence.sl, 'pr_tomb') ? 'tomb' : '' }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null });
   });
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'srednje', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; return; }
@@ -2929,8 +3018,8 @@ function hostAwayPause() {
   return !!wait;
 }
 function buildSnap() {
-  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -2958,10 +3047,10 @@ function clientBegin(host, key = 'st', spectate = false) {
 function applyState(st, first) {
   const mePeer = roomState.me;
   if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
-  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
+  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; }
   const prevPhase = G.phase;
-  G.pz = st.pz || null; G.winTeam = st.wt >= 0 ? st.wt : null;
+  G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
@@ -2971,7 +3060,7 @@ function applyState(st, first) {
     let p = byId[q.i];
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
-    Object.assign(p, { team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
+    Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;

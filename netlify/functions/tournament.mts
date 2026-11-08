@@ -7,7 +7,7 @@
 // POST /api/tournament/:id/:action  {slug, auth, ...}  join | leave | start (admin) | bonus (admin) | cancel (admin) | result
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import { roleOf } from "./roles.mts";
+import { roleOf, treasury } from "./roles.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -69,7 +69,10 @@ export default async (req: Request, context: Context) => {
   if (!id) { // create
     if (!admin) return json({ error: "admin only" }, 403);
     const start = Number(b.start); if (!Number.isFinite(start) || start < Date.now() - 3600000) return json({ error: "bad start" }, 400);
-    const t: Tour = { id: Date.now().toString(36), name: String(b.name || "Turnir").slice(0, 40), start, max: Math.max(2, Math.min(40, Math.floor(Number(b.max) || 16))), fee: FEE, bonus: canBonus ? Math.max(0, Math.min(100000, Math.floor(Number(b.bonus) || 0))) : 0, created: Date.now(), status: "open", players: [], rounds: [], points: {}, final: null, winners: [] };
+    // a starting pot is paid from the master's treasury
+    let bonus = canBonus ? Math.max(0, Math.min(100000, Math.floor(Number(b.bonus) || 0))) : 0;
+    if (bonus) { const tr = await treasury(-bonus); if (!tr.ok) return json({ error: "treasury", treasury: tr.value }, 409); }
+    const t: Tour = { id: Date.now().toString(36), name: String(b.name || "Turnir").slice(0, 40), start, max: Math.max(2, Math.min(40, Math.floor(Number(b.max) || 16))), fee: FEE, bonus, created: Date.now(), status: "open", players: [], rounds: [], points: {}, final: null, winners: [] };
     await store.setJSON(t.id, t); return json({ tournament: t, pot: pot(t) });
   }
   const t = (await store.get(id, { type: "json" })) as Tour | null; if (!t) return json({ error: "not found" }, 404);
@@ -86,10 +89,16 @@ export default async (req: Request, context: Context) => {
     if (!t.players.some((p) => p.slug === slug)) return save();
     t.players = t.players.filter((p) => p.slug !== slug); await giveCoins(slug, t.fee, "Turnir: povrat kotizacije"); return save();
   }
-  if (action === "bonus") { if (!canBonus) return json({ error: "admin only" }, 403); t.bonus = Math.max(0, Math.min(100000, t.bonus + Math.floor(Number(b.amount) || 0))); return save(); }
+  if (action === "bonus") {
+    if (!canBonus) return json({ error: "admin only" }, 403);
+    const add = Math.max(0, Math.min(100000, Math.floor(Number(b.amount) || 0))); if (!add) return save();
+    const tr = await treasury(-add); if (!tr.ok) return json({ error: "treasury", treasury: tr.value }, 409);
+    t.bonus += add; return save();
+  }
   if (action === "cancel") {
     if (!admin) return json({ error: "admin only" }, 403); if (t.status === "done" || t.status === "cancelled") return save();
     for (const p of t.players) await giveCoins(p.slug, t.fee, "Turnir otkazan: povrat kotizacije");
+    if (t.bonus) await treasury(t.bonus);
     t.status = "cancelled"; return save();
   }
   if (action === "start") {

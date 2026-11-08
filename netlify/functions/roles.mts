@@ -18,6 +18,13 @@ export async function loadRoles() {
   for (const k of Object.keys(mutes)) if (mutes[k] < Date.now()) delete mutes[k];
   return { store, roles, mutes };
 }
+// the master admin's hidden treasury for tournament pots (starts at 10 000)
+export async function treasury(change = 0) {
+  const store = getStore({ name: "vijuga-roles", consistency: "strong" });
+  const raw = await store.get("treasury"); let v = raw == null ? 10000 : Number(raw) || 0;
+  if (change) { if (v + change < 0) return { ok: false, value: v }; v += change; await store.set("treasury", String(v)); }
+  return { ok: true, value: v };
+}
 export async function roleOf(slug: string) { if (slug === MASTER) return "master"; const { roles } = await loadRoles(); return roles[slug] || ""; }
 export async function authed(slug: string, auth: unknown) {
   if (!SLUG.test(slug)) return null;
@@ -34,7 +41,7 @@ export default async (req: Request, context: Context) => {
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null; if (!b) return json({ error: "body missing" }, 400);
   const slug = String(b.slug ?? ""), target = String(b.target ?? "");
   if (!(await authed(slug, b.auth))) return json({ error: "auth" }, 403);
-  if (!SLUG.test(target) || target === MASTER) return json({ error: "bad target" }, 400);
+  if (context.params.action !== "treasury" && (!SLUG.test(target) || target === MASTER)) return json({ error: "bad target" }, 400);
   const mine = slug === MASTER ? "master" : roles[slug] || "";
   if (context.params.action === "set") {
     if (mine !== "master") return json({ error: "master only" }, 403);
@@ -42,6 +49,10 @@ export default async (req: Request, context: Context) => {
     if (role && !(ROLES as readonly string[]).includes(role)) return json({ error: "bad role" }, 400);
     if (role) roles[target] = role; else delete roles[target];
     await store.setJSON("roles", roles); return json({ master: MASTER, roles, mutes });
+  }
+  if (context.params.action === "treasury") {
+    if (mine !== "master") return json({ error: "master only" }, 403);
+    return json({ treasury: (await treasury()).value });
   }
   if (context.params.action === "mute") {
     if (!["master", "admin", "moderator"].includes(mine)) return json({ error: "moderators only" }, 403);
