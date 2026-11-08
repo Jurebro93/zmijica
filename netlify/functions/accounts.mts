@@ -8,11 +8,13 @@ import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 
 const STORE = "vijuga-accounts";
+// SHA-256 of the maintenance key (same key as for matches); the key itself is not in the repository.
+const ADMIN_KEY_SHA256 = "f5200fc8e8b6f62b67cebbfb4087e15b344faffeb42fe51c14c4957ce940c306";
 const SLUG = /^[a-z0-9-]{1,40}$/;
 const cors = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, PUT, POST, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type",
+  "access-control-allow-headers": "content-type, x-admin-key",
 };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
 
@@ -46,6 +48,7 @@ function clean(input: unknown, slug: string): Doc | string {
     siteMs: num(d.siteMs, 1e12),
     trollsSent: num(d.trollsSent, 1_000_000),
     trollsGot: num(d.trollsGot, 1_000_000),
+    inv: Object.fromEntries(Object.entries(d.inv && typeof d.inv === "object" ? (d.inv as Record<string, unknown>) : {}).filter(([k]) => /^[a-z]{2,12}$/.test(k)).slice(0, 30).map(([k, v]) => [k, num(v, 999)]).filter(([, v]) => (v as number) > 0)),
     eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20) },
     bonus500: !!d.bonus500,
     created: num(d.created, 9e15),
@@ -77,6 +80,17 @@ export default async (req: Request, context: Context) => {
   if (req.method === "GET") {
     if (!existing) return json({ error: "not found" }, 404);
     return json({ account: publicView(existing) });
+  }
+
+  if (req.method === "POST" && action === "reset") {
+    // Admin only: remove a forgotten PIN; the player then logs in without one and sets a new PIN.
+    const given = req.headers.get("x-admin-key") || "";
+    const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(given)))).map((b) => b.toString(16).padStart(2, "0")).join("");
+    if (!given || digest !== ADMIN_KEY_SHA256) return json({ error: "forbidden" }, 403);
+    if (!existing) return json({ error: "not found" }, 404);
+    delete existing.pinHash; existing.updatedAt = Date.now();
+    await store.setJSON(slug, existing);
+    return json({ ok: true, account: publicView(existing) });
   }
 
   if (req.method === "POST" && action === "login") {

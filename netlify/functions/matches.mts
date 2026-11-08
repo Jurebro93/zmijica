@@ -17,7 +17,7 @@ const ADMIN_KEY_SHA256 = "f5200fc8e8b6f62b67cebbfb4087e15b344faffeb42fe51c14c495
 
 type MatchPlayer = { name: string; slug: string | null; human: boolean; place: number; score: number; wins: number; kills: number };
 type Match = { mid: string; mode: "online" | "local"; rounds: number; at: number; players: MatchPlayer[] };
-type Account = { slug: string; name: string; color?: number; coins?: number; matches?: number; wins?: number; kills?: number; created?: number; updatedAt?: number; invitedBy?: string; eq?: { skin?: string; badge?: string }; owned?: string[]; spent?: number; purchases?: number; playMs?: number; siteMs?: number; trollsSent?: number; trollsGot?: number };
+type Account = { slug: string; name: string; color?: number; coins?: number; matches?: number; wins?: number; kills?: number; created?: number; updatedAt?: number; invitedBy?: string; eq?: { skin?: string; badge?: string }; owned?: string[]; inv?: Record<string, number>; spent?: number; purchases?: number; playMs?: number; siteMs?: number; trollsSent?: number; trollsGot?: number };
 
 function cleanMatch(body: unknown): Match | string {
   if (!body || typeof body !== "object") return "body missing";
@@ -41,6 +41,8 @@ function cleanMatch(body: unknown): Match | string {
   return { mid, mode, rounds, at: Date.now(), players };
 }
 
+// shop prices, to count purchases made before spending was tracked
+const PRICES: Record<string, number> = {"sk_neon": 120, "sk_dash": 90, "sk_pixel": 90, "sk_rainbow": 220, "sk_gold": 320, "sk_dildo": 150, "sk_vag": 160, "sk_boobs": 160, "sk_condom": 160, "sk_hairy": 170, "bd_bolt": 60, "bd_star": 100, "bd_skull": 140, "bd_gem": 180, "bd_crown": 300, "bd_ucross": 200, "bd_vag": 120, "bd_boobs": 120, "bd_hairy": 130, "bd_condom": 120, "fastS": 110, "slowS": 110, "thinS": 110, "ghostS": 110, "wrapS": 110, "jumpS": 110, "slowO": 170, "thickO": 170, "revO": 170, "sqO": 170};
 const dayKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 async function stats() {
@@ -81,7 +83,8 @@ async function stats() {
       winRate: played ? Math.round((100 * Math.max(Number(a.wins) || 0, r.firsts)) / played) : 0,
       podiums: r.podiums, roundsWon: r.rounds, kills: Math.max(Number(a.kills) || 0, r.kills), online: r.online,
       items: Math.max(0, (Array.isArray(a.owned) ? a.owned.filter((x) => x !== "sk_none" && x !== "bd_none").length : 0)),
-      spent: Number(a.spent) || 0, purchases: Number(a.purchases) || 0, playMs: Number(a.playMs) || 0, siteMs: Number(a.siteMs) || 0,
+      spent: Math.max(Number(a.spent) || 0, (Array.isArray(a.owned) ? a.owned : []).reduce((s, id) => s + (PRICES[id] || 0), 0)), purchases: Math.max(Number(a.purchases) || 0, (Array.isArray(a.owned) ? a.owned : []).filter((id) => PRICES[id]).length),
+      owned: Array.isArray(a.owned) ? a.owned : [], inv: a.inv || {}, eq: a.eq || {}, playMs: Number(a.playMs) || 0, siteMs: Number(a.siteMs) || 0,
       trollsSent: Number(a.trollsSent) || 0, trollsGot: Number(a.trollsGot) || 0,
       created: a.created || 0, lastSeen: Math.max(a.updatedAt || 0, r.lastPlayed), invitedBy: a.invitedBy || null, invited: invites[a.slug] || 0,
     };

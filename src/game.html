@@ -59,6 +59,7 @@ button:disabled { cursor: default; opacity: .5; }
 .onbar .lbl::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 var(--good); animation: livePulse 1.8s infinite; }
 @keyframes livePulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 70%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 .onp { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; font-weight: 600; }
+[data-player] { cursor: pointer; }
 .onp .st { color: var(--muted); font-size: 12px; font-weight: 500; }
 .meetbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 8px 10px; background: var(--ink); border: 1px solid var(--line); border-radius: 10px; }
 .meetbar .mt { flex: 1 1 220px; min-width: 0; font-size: 15px; }
@@ -222,6 +223,10 @@ button.pu:hover { border-color: var(--line); }
 #gchat .chatlog { max-height: 96px; font-size: 13px; }
 .iconbtn { position: relative; }
 .unread { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
+#trollPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 8px; width: min(340px, calc(100% - 20px)); }
+#trollPop[hidden] { display: none; }
+#trollPop .tp-t { display: flex; gap: 6px; flex-wrap: wrap; }
+#trollPop .trolls { grid-template-columns: repeat(4, 1fr); }
 #reactPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; background: color-mix(in srgb, var(--ink) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 8px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
 #reactPop[hidden] { display: none; }
 .rbtn { width: 46px; height: 46px; border-radius: 10px; border: 0; background: var(--panel); font-size: 26px; line-height: 1; display: grid; place-items: center; transition: transform .08s; }
@@ -237,6 +242,8 @@ button.pu:hover { border-color: var(--line); }
 /* register modal */
 .modal { position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 80%, transparent); display: grid; place-items: center; padding: 16px; z-index: 5; }
 .modal form { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; width: min(100%, 420px); display: grid; gap: 14px; }
+.namehint { margin: 0; font-size: 14px; background: rgba(255,181,71,.1); border: 1px solid rgba(255,181,71,.35); border-radius: 9px; padding: 8px 10px; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--amber); text-decoration: underline; font: inherit; font-size: 15px; }
 .modal h3 { font-family: var(--display); font-weight: 400; font-size: 26px; margin: 0; }
 .modal label { display: grid; gap: 6px; }
 .modal input[type=text] { background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 18px; font-weight: 600; width: 100%; min-width: 0; }
@@ -398,6 +405,7 @@ button.pu:hover { border-color: var(--line); }
         <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
+        <div><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><div class="shop" id="shopTrolls"></div></div>
       </div>
 
       <div class="tab" id="tab-board" hidden><div id="board"></div></div>
@@ -444,6 +452,7 @@ button.pu:hover { border-color: var(--line); }
       <div id="scores"></div>
       <span class="target" id="target"></span>
       <span class="chip watchers" id="watchers" hidden></span>
+      <button class="iconbtn netonly" id="trollBtn" aria-label="Zezalice" hidden>😈</button>
       <button class="iconbtn netonly" id="reactBtn" aria-label="Brze reakcije" hidden>😀</button>
       <button class="iconbtn netonly" id="chatBtn" aria-label="Chat" hidden>💬<span class="unread" id="unread" hidden></span></button>
       <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
@@ -453,6 +462,7 @@ button.pu:hover { border-color: var(--line); }
       <canvas id="cv"></canvas>
       <div class="overlay" id="overlay"></div>
       <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
+      <div id="trollPop" hidden role="dialog" aria-label="Zezalice"></div>
       <div id="igMsgs" aria-live="polite"></div>
       <div id="gchat" hidden><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
@@ -584,8 +594,16 @@ let profileStore = 'local'; // 'db' | 'local'
 let dbNs = null, userNs = null, roomNs = null, dbWritable = null;
 const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
-function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, pinHash: '', created: Date.now() }; }
-function normalize(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
+function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
+function itemPrice(id) { return (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
+function backfillSpend(P) {
+  const bought = (P.owned || []).filter(id => itemPrice(id) > 0), inv = Object.values(P.inv || {}).reduce((a, b) => a + b, 0);
+  P.purchases = Math.max(P.purchases || 0, bought.length + inv);
+  P.spent = Math.max(P.spent || 0, bought.reduce((a, id) => a + itemPrice(id), 0));
+  return P;
+}
+function normalize(d) { return backfillSpend(normalize0(d)); }
+function normalize0(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, inv: (d.inv && typeof d.inv === 'object') ? Object.fromEntries(Object.entries(d.inv).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))]).filter(([, v]) => v > 0)) : {}, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
 function applyBonus(p) { if (p && !p.bonus500) { p.coins = (Number(p.coins) || 0) + START_COINS; p.bonus500 = true; p._bonusNew = true; } return p; }
 function slugOf(name) { const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return (base || 'igrac').slice(0, 40); }
 async function pinHash(pin, slug) {
@@ -637,6 +655,41 @@ function renderMe() {
   $('#profBtn').onclick = () => showProfile();
   $('#outBtn').onclick = logout;
 }
+function fmtSeen(t) { if (!t) return '–'; const m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'upravo' : fmtAgo(t); }
+function showPlayer(slug) {
+  if (profile && slug === profile.slug) { showProfile(); return; }
+  const raw = accounts.list.find(a => a.slug === slug); if (!raw) { toast('Igrač nije pronađen.'); return; }
+  const P = normalize(raw), wr = P.matches ? Math.round(100 * P.wins / P.matches) : 0;
+  const m = $('#regModal'); m.hidden = false;
+  const stat = (k, v) => `<div class="pstat"><b>${v}</b><span>${k}</span></div>`;
+  const pe = roomState.peers.find(p => p.presence && p.presence.sl === slug && !(p.isMe && p.sameTab));
+  const online = !!pe, watchable = pe && canWatch(pe.presence);
+  const chip = (on, label, prev) => `<span class="wchip ${on ? 'on' : ''}">${prev}<span>${esc(label)}</span>${on ? '<i>✓</i>' : ''}</span>`;
+  const skins = Object.keys(SKINS).filter(k => k !== 'sk_none' && P.owned.includes(k));
+  const badges = Object.keys(BADGES).filter(k => k !== 'bd_none' && P.owned.includes(k));
+  const pus = STARTER_PU.filter(k => P.owned.includes(k));
+  const inv = Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && TROLLS[k]);
+  const none = '<span class="hint">ništa još</span>';
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
+    <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
+    <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
+    <h4>Kolekcija <small>✓ = trenutno koristi</small></h4>
+    <span class="label">Tragovi</span><div class="wrow">${skins.map(k => chip(P.eq.skin === k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('') || none}</div>
+    <span class="label">Ikone</span><div class="wrow">${badges.map(k => chip(P.eq.badge === k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('') || none}</div>
+    <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
+    <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
+    <div class="go">${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
+  </form>`;
+  m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
+  $('#pClose').onclick = () => { m.hidden = true; };
+  if ($('#pWatch')) $('#pWatch').onclick = () => { m.hidden = true; startSpectate(pe.peer); };
+  if ($('#pPing')) $('#pPing').onclick = () => { m.hidden = true; sendPing(pe.peer); };
+}
+// any element with data-player opens that player's card
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-player]'); if (!el || e.target.closest('button:not([data-player]), a')) return;
+  const slug = el.dataset.player; if (slug && /^[a-z0-9-]{1,40}$/.test(slug)) showPlayer(slug);
+});
 function showProfile() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -654,11 +707,12 @@ function showProfile() {
     <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
-    <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button></div>
+    <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
   m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); });
   $('#profClose').onclick = () => { m.hidden = true; };
+  if ($('#profRename')) $('#profRename').onclick = () => showRegister();
   $('#profShop').onclick = () => { m.hidden = true; showTab('shop'); };
 }
 function showLogin() {
@@ -685,6 +739,10 @@ async function pickAccount(a) {
   const m = $('#regModal');
   m.innerHTML = `<form id="pinForm" novalidate><h3>${esc(fresh.name)}</h3><label><span class="label">PIN (4 znamenke)</span><input type="text" id="pinIn" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"></label><div class="err" id="pinErr"></div><div class="go"><button class="btn" type="submit">Prijavi se</button><button class="btn ghost" type="button" id="pinBack">Natrag</button></div></form>`;
   $('#pinIn').focus(); $('#pinBack').onclick = showLogin;
+  const fb = document.createElement('div'); fb.className = 'forgot';
+  fb.innerHTML = `<button type="button" class="linkbtn" id="pinForgot">Zaboravio si PIN?</button><div id="forgotBox" hidden><p class="hint" style="margin:6px 0">PIN se ne može vidjeti, ali admin igre može ga obrisati. Pošalji mu poruku, a kad ti javi da je gotovo, uđi bez PIN-a i u „uredi” postavi novi. Zlatnici i statistika ostaju.</p><a class="btn sm wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Bok! Zaboravio sam PIN za Vijugu. Moj profil: ' + fresh.name + ' (' + fresh.slug + '). Možeš ga resetirati? ' + GAME_URL + 'stats.html?admin')}">📲 Javi adminu na WhatsApp</a><p class="hint" style="margin:6px 0 0">Ili napravi novi profil s drugim imenom (krećeš od 500 zlatnika).</p></div>`;
+  $('#pinForm').appendChild(fb);
+  $('#pinForgot').onclick = () => { $('#forgotBox').hidden = !$('#forgotBox').hidden; };
   $('#pinForm').onsubmit = async (e) => {
     e.preventDefault(); const h = await pinHash($('#pinIn').value.trim(), fresh.slug);
     if (fresh.pinHash) { if (h === fresh.pinHash) loginAs(fresh); else $('#pinErr').textContent = 'Krivi PIN.'; return; }
@@ -700,6 +758,7 @@ function showRegister() {
   m.innerHTML = `<form id="regForm" novalidate>
     <h3>${editing ? 'Uredi profil' : 'Novi igrač'}</h3>${!editing && INVITE ? `<p class="invite">${INVITE === 'svi' ? 'Pozvan si u Vijugu!' : 'Pozvao te igrač <b>' + esc((accounts.list.find(a => a.slug === INVITE) || { name: INVITE }).name) + '</b>.'} Odaberi ime i boju i za minutu igraš.</p>` : ''}
     <p class="hint" style="margin:0">Ime vide ostali igrači u predvorju i na ljestvici.${dbNs ? '' : ' Spremam ga na ovaj uređaj.'}</p>
+    <p class="namehint">👋 Upiši <b>pravo ime</b> ili nadimak po kojem te ekipa zna (npr. „Ivan Š.” ili „Marko Split”), da se možemo prepoznati.${editing ? ' Promjena imena čuva tvoje zlatnike, kupljene stvari, statistiku i PIN.' : ''}</p>
     <label><span class="label">Tvoje ime</span><input type="text" id="regName" maxlength="14" autocomplete="nickname" value="${esc(editing ? cur.name : '')}" placeholder="npr. Zmaj"></label>
     <div><span class="label">Boja</span><div class="colors" id="regColors"></div></div>
     <label><span class="label">PIN (neobavezno, 4 znamenke)</span><input type="text" id="regPin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="${editing && cur.pinHash ? 'ostavi prazno da ostane isti' : 'bez PIN-a svatko može kliknuti tvoje ime'}"></label>
@@ -717,12 +776,12 @@ function showRegister() {
     const pin = $('#regPin').value.trim();
     if (name.length < 2) { $('#regErr').textContent = 'Ime treba imati barem 2 znaka.'; return; }
     if (pin && !/^\d{4}$/.test(pin)) { $('#regErr').textContent = 'PIN su točno 4 znamenke.'; return; }
-    const slug = slugOf(name);
-    if (!editing || slug !== profile.slug) {
-      const taken = await accountGet(slug);
-      if (taken) { $('#regErr').textContent = 'To ime već postoji. Odaberi ga na popisu ili uzmi drugo.'; return; }
-    }
-    if (!editing) { profile = blankProfile(name, color); if (INVITE && INVITE !== 'svi' && INVITE !== slug) profile.invitedBy = INVITE; } else { profile.name = name; profile.slug = slug; profile.color = color; }
+    // a renamed profile keeps its account id (slug), so coins, stats and the PIN stay
+    const slug = editing ? profile.slug : slugOf(name);
+    const clash = accounts.list.find(a => a.slug !== (editing ? profile.slug : '') && String(a.name).toLowerCase() === name.toLowerCase());
+    if (clash) { $('#regErr').textContent = 'Netko već ima to ime. Uzmi drugo (npr. dodaj prezime ili grad).'; return; }
+    if (!editing) { const taken = await accountGet(slug); if (taken) { $('#regErr').textContent = 'To ime već postoji. Odaberi ga na popisu ili uzmi drugo.'; return; } }
+    if (!editing) { profile = blankProfile(name, color); if (INVITE && INVITE !== 'svi' && INVITE !== slug) profile.invitedBy = INVITE; } else { profile.name = name; profile.color = color; }
     if (pin) profile.pinHash = await pinHash(pin, slug);
     rememberLogin(slug);
     setup.players[0].name = name; saveSetup();
@@ -815,6 +874,21 @@ function renderShop() {
   };
   make($('#shopSkins'), Object.entries(SKINS), 'skin');
   make($('#shopBadges'), Object.entries(BADGES), 'badge');
+  const tb = $('#shopTrolls');
+  if (tb) {
+    tb.innerHTML = '';
+    Object.entries(TROLLS).forEach(([id, t]) => {
+      const have = profile ? (profile.inv[id] || 0) : 0;
+      const d = document.createElement('div'); d.className = 'item' + (have ? ' eq' : '');
+      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${t.e}</span></div><div><b>${esc(t.name)}</b><small>${esc(t.d)}${have ? ` · <b style="color:var(--amber)">imaš ${have}</b>` : ''}</small></div>`;
+      const act = document.createElement('div'); act.className = 'act';
+      const price = document.createElement('span'); price.className = 'price'; price.textContent = `● ${t.price}`;
+      const b = document.createElement('button'); b.type = 'button';
+      if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+      else { b.textContent = have ? 'Kupi još' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < t.price; b.onclick = () => { if (profile.coins < t.price) return; profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; profile.purchases = (profile.purchases || 0) + 1; profile.inv[id] = (profile.inv[id] || 0) + 1; sfx.pick(); saveProfile(); toast(`${t.e} ${t.name}: imaš ${profile.inv[id]}`); }; }
+      act.append(price, b); d.appendChild(act); tb.appendChild(d);
+    });
+  }
   make($('#shopPu'), STARTER_PU.map(k => [k, { name: 'Start: ' + POWERUPS[k].name, d: POWERUPS[k].d + (POWERUPS[k].dur ? ' · ' + POWERUPS[k].dur + ' s' : ''), price: STARTER_PRICE[POWERUPS[k].t] }]), 'pu');
 }
 
@@ -1575,6 +1649,7 @@ function enterGame() {
   if (watchingNow()) netPresence({ ig: null, pl: null }); else netPresence({ ig: 1, pl: net ? null : 1 });
   renderSpecBar();
   document.querySelectorAll('.netonly').forEach(b => { b.hidden = !net; });
+  if ($('#trollBtn')) $('#trollBtn').hidden = !net || watchingNow(); $('#trollPop').hidden = true;
   if (net) { buildReactPop(); wireChat('#gchatIn', '#gchatSend'); renderChat(); }
   setChatOpen(chatOpen); $('#reactPop').hidden = true;
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
@@ -1771,7 +1846,7 @@ function renderOnbar() {
   const host = findHost(), hostOther = host && !(host.isMe && host.sameTab);
   const inLobby = others.filter(p => p.presence.rd).length;
   bar.className = 'onhero' + (n ? '' : ' empty');
-  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
+  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
   const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
     : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
     : inLobby ? `${inLobby} ${inLobby === 1 ? 'čeka' : 'čekaju'} u predvorju. Uđi i krenite!`
@@ -1783,7 +1858,7 @@ function renderOnbar() {
     : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? 'Priključi se meču' : 'Igraj online'}</button>`;
   const second = !n ? `<button class="btn ghost" type="button" id="heroInvite">Pozovi prijatelje</button><button class="btn ghost" type="button" id="heroBots">Igraj s botovima</button>` : '';
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
-  const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
+  const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
   const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
   const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button><a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
   bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${meetHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
@@ -1929,7 +2004,7 @@ function renderSpecBar() {
   const tname = (targets.find(t => t.peer === net.trollTarget) || {}).name || '';
   const qpos = !net.spectate ? queueList().findIndex(p => p.isMe && p.sameTab) : -1;
   bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">⏳ Meč je pun (najviše ${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč. Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
-    <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || coins < t.price || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>● ${t.price}</small></button>`).join('')}</div>
+    <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => { const have = profile ? (profile.inv[id] || 0) : 0; return `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || (!have && coins < t.price) || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>${have ? `imaš ${have}` : `● ${t.price}`}</small></button>`; }).join('')}</div>
     <div class="chatrow"><input type="text" id="dmIn" maxlength="60" placeholder="${tname ? 'Poruka za ' + esc(tname) + '…' : 'Poruka…'}" aria-label="Poruka igraču"><button type="button" id="dmSend">Pošalji</button></div>
     ${!profile ? '<p class="hint" style="margin:0">Prijavi se da možeš zezati igrače zlatnicima.</p>' : cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi prije sljedeće zezancije.</p>' : ''}`;
   bar.querySelectorAll('.stg').forEach(b => b.onclick = () => { net.trollTarget = b.dataset.peer; renderSpecBar(); });
@@ -1945,12 +2020,15 @@ function sendDm(peer, text) {
 }
 function sendTroll(peer, id) {
   const t = TROLLS[id]; if (!t || !peer || !profile || !roomNs) return;
-  if (profile.coins < t.price) { toast('Nemaš dovoljno zlatnika.'); return; }
+  const stocked = (profile.inv[id] || 0) > 0;
+  if (!stocked && !watchingNow()) { toast('Nemaš tu zezalicu. Kupi je u trgovini.'); return; }
+  if (!stocked && profile.coins < t.price) { toast('Nemaš dovoljno zlatnika.'); return; }
   if (performance.now() - lastTrollSent < 5000) return;
   lastTrollSent = performance.now(); trollN++;
-  profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; profile.trollsSent = (profile.trollsSent || 0) + 1; saveProfile();
+  if (stocked) profile.inv[id]--; else { profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; }
+  profile.trollsSent = (profile.trollsSent || 0) + 1; saveProfile();
   netPresence({ tr: [peer, id, trollN, Date.now()] });
-  toast(`${t.e} ${t.name} poslano! (−${t.price})`); beep(520, .08); renderSpecBar(); setTimeout(renderSpecBar, 5100);
+  toast(`${t.e} ${t.name} poslano!${stocked ? ` (ostalo ${profile.inv[id]})` : ` (−${t.price})`}`); beep(520, .08); renderSpecBar(); renderTrollPop(); setTimeout(() => { renderSpecBar(); renderTrollPop(); }, 5100);
 }
 function receiveTroll(id, fromName) {
   const t = TROLLS[id]; if (!t) return;
@@ -2053,7 +2131,7 @@ function renderNet() {
     html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „S botovima”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
@@ -2135,7 +2213,7 @@ function renderBoard() {
   const where = dbNs ? 'Zajednička ljestvica svih igrača.' : 'Bez veze s bazom: ljestvica igrača s ovog uređaja.';
   if (!rows.length) { b.innerHTML = `<div class="statlink"><span>Detaljna statistika svih igrača.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>` + mine + `<p class="hint">${where} Još je prazna.</p>`; return; }
   const sl = `<div class="statlink"><span>Detaljna statistika svih igrača: mečevi, pobjede, postolja, rušenja, aktivnost po danima i zadnji mečevi.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>`;
-  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${esc(String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
+  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr data-player="${esc(r.slug)}"${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${esc(String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 // host
@@ -2296,28 +2374,45 @@ async function initSupabase() {
   const mkPeer = (key, pres) => ({ peer: key, by: null, isMe: key === myPeer, sameTab: key === myPeer, kind: 'viewer', guest: false, presence: pres, updatedAt: Date.now() });
   const ROOM = (() => { try { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; } catch (e) { return 'vijuga-lobby'; } })();
   window.__room = ROOM;
-  const ch = sb.channel(ROOM, { config: { presence: { key: myPeer }, broadcast: { self: false } } });
-  ch.on('presence', { event: 'sync' }, () => {
-    const st = ch.presenceState(); const seen = new Set();
+  let ch = null;
+  const onSync = () => {
+    const st = ch ? ch.presenceState() : {}; const seen = new Set();
     for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
-  });
+  };
   const onP = ({ payload }) => {
     if (!payload || typeof payload.peer !== 'string' || payload.peer === myPeer || !payload.patch) return;
     const prev = peersMap[payload.peer]; if (!prev) return;
     peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch, ('rd' in payload.patch || 'again' in payload.patch || 'ig' in payload.patch || 'pl' in payload.patch || 'watch' in payload.patch || 'hs' in payload.patch) ? { fastAt: Date.now() } : {})); fire();
   };
-  ch.on('broadcast', { event: 'p' }, onP);
   // Match snapshots and inputs travel on a per-host channel, so only the players and
   // spectators of that match receive them (every broadcast is billed once per receiver).
   const gchans = {}; let following = null;
   const gname = (peer) => ROOM + '-g-' + peer;
-  const gjoin = (peer) => { const n = gname(peer); if (gchans[n]) return gchans[n]; const g = { ch: sb.channel(n, { config: { broadcast: { self: false } } }), ok: false }; g.ch.on('broadcast', { event: 'p' }, onP); g.ch.subscribe((s) => { g.ok = s === 'SUBSCRIBED'; }); gchans[n] = g; return g; };
+  const gjoin = (peer) => { const n = gname(peer); if (gchans[n]) return gchans[n]; const g = { ch: sb.channel(n, { config: { broadcast: { self: false } } }), ok: false }; g.ch.on('broadcast', { event: 'p' }, onP); g.ch.subscribe((s) => { g.ok = s === 'SUBSCRIBED'; if ((s === 'CLOSED' || s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') && gchans[n] === g) { delete gchans[n]; try { sb.removeChannel(g.ch); } catch (e) {} } }); gchans[n] = g; return g; };
   const gleave = (peer) => { const n = gname(peer); const g = gchans[n]; if (g) { sb.removeChannel(g.ch); delete gchans[n]; } };
   const gsend = (peer, patch) => { const g = gjoin(peer); if (g.ok) g.ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch } }).catch(() => {}); };
-  const lobbyPres = {}; let trackTimer = 0;
-  ch.subscribe((status) => { const c = status === 'SUBSCRIBED'; if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } if (c) ch.track(Object.assign({}, lobbyPres)); });
+  const lobbyPres = {}; let trackTimer = 0, lastTrack = 0, rejoinTimer = 0;
+  // Supabase closes the channel of a client that updates presence too often, so updates are
+  // coalesced (at most one every 3 s; the quick flags also go out instantly by broadcast).
+  const TRACK_GAP = 3000;
+  const doTrack = () => { trackTimer = 0; if (!connected || !ch) return; lastTrack = Date.now(); ch.track(Object.assign({}, lobbyPres)).catch(() => {}); };
+  const scheduleTrack = () => { if (trackTimer) return; trackTimer = setTimeout(doTrack, Math.max(60, lastTrack + TRACK_GAP - Date.now())); };
+  const setConnected = (c) => { if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } };
+  // join the lobby, and join again by itself if the server drops us
+  const joinLobbyChannel = () => {
+    if (ch) { try { sb.removeChannel(ch); } catch (e) {} }
+    const mine = sb.channel(ROOM, { config: { presence: { key: myPeer }, broadcast: { self: false } } }); ch = mine;
+    mine.on('presence', { event: 'sync' }, () => { if (ch === mine) onSync(); });
+    mine.on('broadcast', { event: 'p' }, (m) => { if (ch === mine) onP(m); });
+    mine.subscribe((status) => {
+      if (ch !== mine) return;
+      if (status === 'SUBSCRIBED') { setConnected(true); clearTimeout(trackTimer); trackTimer = 0; lastTrack = 0; scheduleTrack(); return; }
+      if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { setConnected(false); clearTimeout(rejoinTimer); rejoinTimer = setTimeout(joinLobbyChannel, 2500); }
+    });
+  };
+  joinLobbyChannel();
   peersMap[myPeer] = mkPeer(myPeer, {});
   roomNs = {
     async presence(patch) {
@@ -2334,7 +2429,7 @@ async function initSupabase() {
       if (hasOwn && connected) gsend(myPeer, own);
       if (hasToHost && connected && following && following !== myPeer) gsend(following, toHost);
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
-      if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
+      if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) scheduleTrack(); }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
       fire();
     },
@@ -2411,6 +2506,25 @@ $('#start').onclick = startGame;
 // a long press on the touch pads must not select text or open the callout menu
 document.addEventListener('selectstart', (e) => { if (!$('#game').hidden && !(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); });
 $('#game').addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
+let trollPick = null;
+function trollTargets() {
+  if (!net || !G) return [];
+  return G.players.filter(p => p.human).map(p => ({ peer: peerOfPlayer(p), name: p.name, color: p.color })).filter(x => x.peer && x.peer !== roomState.me);
+}
+function renderTrollPop() {
+  const pop = $('#trollPop'); if (!pop || pop.hidden) return;
+  const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
+  const inv = profile ? profile.inv : {}, cool = performance.now() - lastTrollSent < 5000;
+  const owned = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0);
+  pop.innerHTML = `<b style="font-size:15px">😈 Zezni protivnika</b>
+    ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
+    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}</b><small>imaš ${inv[id]}</small></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}`;
+  pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
+  pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendTroll(trollPick, b.dataset.id); });
+}
+$('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
+document.addEventListener('pointerdown', (e) => { const p = $('#trollPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'trollBtn') p.hidden = true; });
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
 $('#chatBtn').onclick = () => setChatOpen(!chatOpen);
 document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });

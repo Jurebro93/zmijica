@@ -92,6 +92,21 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
 .invitebox .btn { margin-left: auto; }
 .btn.wa { background: #25d366; color: #062b14; margin-left: auto; padding: 6px 14px; font-size: 15px; }
 .lrow .btn.cp { padding: 6px 12px; font-size: 14px; margin-left: 0; }
+tr[data-player], .lrow[data-player] .who { cursor: pointer; }
+tr[data-player]:hover td { background: rgba(255,255,255,.03); }
+.pcard-bg { position: fixed; inset: 0; background: rgba(5,9,14,.82); display: grid; place-items: center; padding: 16px; z-index: 50; }
+.pcard-bg[hidden] { display: none; }
+.pcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; width: min(100%, 460px); max-height: calc(100vh - 32px); overflow: auto; display: grid; gap: 12px; }
+.pcard h3 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0; }
+.pcard .ps { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.pcard .ps div { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: grid; }
+.pcard .ps b { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.pcard .ps span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.pcard .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pcard .chips span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 14px; font-weight: 600; }
+.pcard .chips span.on { border-color: var(--amber); color: var(--amber); }
+.pcard .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.pcard .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
@@ -160,6 +175,7 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
     </section>
   </div>
 </div>
+<div class="pcard-bg" id="pcardBg" hidden><div class="pcard" id="pcard" role="dialog" aria-modal="true"></div></div>
 <script>
 (() => {
 'use strict';
@@ -268,12 +284,46 @@ function players() {
   rows.sort((a, b) => { const x = a[sortKey], y = b[sortKey]; return (typeof x === 'string' ? x.localeCompare(y, 'hr') : (x - y)) * sortDir; });
   $('#plCount').textContent = `${all.length} registriranih`;
   const head = '<thead><tr>' + COLS.map(([k, n, c]) => `<th class="${c || ''}" ${k === sortKey ? `aria-sort="${sortDir < 0 ? 'descending' : 'ascending'}"` : ''}><button type="button" data-k="${k}">${n}${k === sortKey ? (sortDir < 0 ? ' ↓' : ' ↑') : ''}</button></th>`).join('') + '</tr></thead>';
-  const body = rows.length ? rows.map(p => `<tr><td class="l"><span class="who"><span class="dot" style="background:${COLORS[p.color] || COLORS[0]}"></span>${esc(p.name)}</span>${p.invitedBy ? `<div class="note">pozvao ${esc(byslug[p.invitedBy] || p.invitedBy)}</div>` : ''}</td><td>${p.matches}</td><td>${p.wins}</td><td>${p.matches ? p.winRate + ' %' : '–'}</td><td>${p.podiums}</td><td>${p.roundsWon}</td><td>${p.kills}</td><td>${nf.format(p.coins)}</td><td>${p.online}</td><td>${p.invited}</td><td>${fmtDate(p.created)}</td><td>${fmtWhen(p.lastSeen)}</td></tr>`).join('')
+  const body = rows.length ? rows.map(p => `<tr data-player="${esc(p.slug)}"><td class="l"><span class="who"><span class="dot" style="background:${COLORS[p.color] || COLORS[0]}"></span>${esc(p.name)}</span>${p.invitedBy ? `<div class="note">pozvao ${esc(byslug[p.invitedBy] || p.invitedBy)}</div>` : ''}</td><td>${p.matches}</td><td>${p.wins}</td><td>${p.matches ? p.winRate + ' %' : '–'}</td><td>${p.podiums}</td><td>${p.roundsWon}</td><td>${p.kills}</td><td>${nf.format(p.coins)}</td><td>${p.online}</td><td>${p.invited}</td><td>${fmtDate(p.created)}</td><td>${fmtWhen(p.lastSeen)}</td></tr>`).join('')
     : `<tr><td class="l" colspan="${COLS.length}"><span class="empty">${all.length ? 'Nitko ne odgovara pretrazi.' : 'Još nema registriranih igrača. Podijeli pozivnicu gore.'}</span></td></tr>`;
   $('#players').innerHTML = head + '<tbody>' + body + '</tbody>';
   $('#players').querySelectorAll('th button').forEach(b => b.onclick = () => { const k = b.dataset.k; if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = k === 'name' ? 1 : -1; } players(); });
 }
 $('#q').oninput = () => data && players();
+
+// ---- public player card (click any player)
+const TROLL = { hearts: '💖 Srčeka', horn: '📯 Truba', poop: '💩 Kakice', shake: '💥 Potres', sticker: '🤡 Naljepnica', flash: '⚡ Bljesak', fog: '🌫️ Magla', dark: '🌑 Mrak', flip: '🙃 Naglavačke' };
+const ADMIN = new URLSearchParams(location.search).has('admin');
+function showCard(slug) {
+  const p = data && data.players.find(x => x.slug === slug); if (!p) return;
+  const dur = ms => fmtDur(ms || 0);
+  const st = (k, v) => `<div><b>${v}</b><span>${k}</span></div>`;
+  const eq = p.eq || {}, owned = p.owned || [];
+  const chips = (ids, names, cur) => ids.length ? `<div class="chips">${ids.map(id => `<span class="${id === cur ? 'on' : ''}">${esc(names[id] || id)}${id === cur ? ' ✓' : ''}</span>`).join('')}</div>` : '<span class="note">ništa još</span>';
+  const inv = Object.entries(p.inv || {}).filter(([k, v]) => v > 0 && TROLL[k]);
+  const on = onlineSlugs.has(p.slug);
+  $('#pcard').innerHTML = `<div style="display:flex;gap:12px;align-items:center"><span class="dot" style="width:40px;height:40px;background:${COLORS[p.color] || COLORS[0]}"></span><div><h3>${esc(p.name)}</h3><span class="note">${on ? '<b style="color:var(--good)">● online sada</b>' : 'zadnji put online ' + fmtAgo(p.lastSeen)} · registriran ${fmtDate(p.created)}${p.invitedBy ? ' · pozvao ga ' + esc((data.players.find(x => x.slug === p.invitedBy) || {}).name || p.invitedBy) : ''}</span></div></div>
+    <div class="ps">${st('zlatnika', nf.format(p.coins))}${st('mečeva', p.matches)}${st('pobjeda', p.wins + (p.matches ? ' · ' + p.winRate + '%' : ''))}${st('postolja', p.podiums)}${st('rušenja', p.kills)}${st('u igri', dur(p.playMs))}${st('potrošeno', nf.format(p.spent))}${st('kupljeno', p.purchases)}${st('zezao', p.trollsSent)}${st('zezan', p.trollsGot)}${st('pozvao', p.invited)}</div>
+    <span class="lbl">Tragovi</span>${chips(owned.filter(id => id.startsWith('sk_') && id !== 'sk_none'), SKIN, eq.skin)}
+    <span class="lbl">Ikone</span>${chips(owned.filter(id => id.startsWith('bd_') && id !== 'bd_none'), BADGE, eq.badge)}
+    <span class="lbl">Početni power-upovi</span>${chips(owned.filter(id => PU[id]), PU, eq.pu)}
+    <span class="lbl">Zezalice u džepu</span>${inv.length ? `<div class="chips">${inv.map(([k, v]) => `<span>${TROLL[k]} ×${v}</span>`).join('')}</div>` : '<span class="note">ništa još</span>'}
+    <div class="row">${on ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(p.slug)}${SOBA}">👀 Gledaj / igraj</a>` : `<a class="btn wa" style="margin-left:0" href="https://wa.me/?text=${encodeURIComponent(comeBack(p.name))}" target="_blank" rel="noopener">📲 Pozovi na WhatsApp</a>`}${ADMIN ? '<button class="btn ghost" type="button" id="pcReset">Obriši PIN (admin)</button>' : ''}<button class="btn ghost" type="button" id="pcClose">Zatvori</button></div>
+    <div class="note" id="pcMsg"></div>`;
+  $('#pcardBg').hidden = false;
+  $('#pcClose').onclick = () => { $('#pcardBg').hidden = true; };
+  if ($('#pcReset')) $('#pcReset').onclick = async () => {
+    let key = ''; try { key = sessionStorage.getItem('vijuga-admin') || ''; } catch (e) {}
+    if (!key) key = prompt('Admin ključ:') || ''; if (!key) return;
+    if (!confirm(`Obrisati PIN igrača ${p.name}? On će se zatim prijaviti bez PIN-a i postaviti novi.`)) return;
+    try { const r = await fetch(API.replace('/stats', '/accounts/') + encodeURIComponent(p.slug) + '/reset', { method: 'POST', headers: { 'x-admin-key': key } });
+      if (r.ok) { try { sessionStorage.setItem('vijuga-admin', key); } catch (e) {} $('#pcMsg').textContent = 'PIN obrisan. Javi igraču da se prijavi i u „uredi” postavi novi PIN.'; }
+      else { try { sessionStorage.removeItem('vijuga-admin'); } catch (e) {} $('#pcMsg').textContent = r.status === 403 ? 'Krivi admin ključ.' : 'Greška ' + r.status; } }
+    catch (e) { $('#pcMsg').textContent = 'Poslužitelj se ne javlja.'; }
+  };
+}
+$('#pcardBg').addEventListener('click', e => { if (e.target.id === 'pcardBg') $('#pcardBg').hidden = true; });
+document.addEventListener('click', e => { const el = e.target.closest('[data-player]'); if (!el || e.target.closest('a, button')) return; showCard(el.dataset.player); });
 
 function recent() {
   const r = data.recent;
@@ -309,7 +359,7 @@ function renderRecent() {
   if (!data) return;
   const week = Date.now() - 7 * 86400000;
   const list = data.players.filter(p => p.lastSeen > week && !onlineSlugs.has(p.slug) && (!me || p.slug !== me.sl)).sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 10);
-  $('#recentList').innerHTML = list.length ? list.map(p => `<div class="lrow"><span class="who"><span class="dot" style="background:${COLORS[p.color] || COLORS[0]}"></span>${esc(p.name)}</span><span class="st">bio online ${fmtAgo(p.lastSeen)}</span><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(comeBack(p.name))}" target="_blank" rel="noopener">📲 Pozovi na WhatsAppu</a><button class="btn ghost cp" type="button" data-n="${esc(p.name)}">Kopiraj poruku</button></div>`).join('')
+  $('#recentList').innerHTML = list.length ? list.map(p => `<div class="lrow" data-player="${esc(p.slug)}"><span class="who"><span class="dot" style="background:${COLORS[p.color] || COLORS[0]}"></span>${esc(p.name)}</span><span class="st">bio online ${fmtAgo(p.lastSeen)}</span><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(comeBack(p.name))}" target="_blank" rel="noopener">📲 Pozovi na WhatsAppu</a><button class="btn ghost cp" type="button" data-n="${esc(p.name)}">Kopiraj poruku</button></div>`).join('')
     : '<p class="empty">Nitko u zadnjih 7 dana.</p>';
   $('#recentList').querySelectorAll('.cp').forEach(b => b.onclick = async () => { const t = comeBack(b.dataset.n); try { if (navigator.share) { await navigator.share({ text: t }); return; } } catch (e) { if (e && e.name === 'AbortError') return; } try { await navigator.clipboard.writeText(t); b.textContent = 'Kopirano ✓'; } catch (e) { prompt('Kopiraj poruku:', t); } });
 }
@@ -319,7 +369,7 @@ function renderLive(ch) {
   onlineSlugs = new Set([...seen.values()].map(pr => pr.sl).filter(Boolean)); renderRecent();
   const list = [...seen.values()].sort((a, b) => (b.ig ? 1 : 0) - (a.ig ? 1 : 0) || String(a.nm).localeCompare(b.nm, 'hr'));
   $('#liveCount').textContent = list.length ? `${list.length} ${list.length === 1 ? 'igrač' : 'igrača'}` : 'nitko trenutno';
-  $('#live').innerHTML = list.length ? list.map(pr => `<div class="lrow"><span class="pulse"></span><span class="who"><span class="dot" style="background:${COLORS[pr.cl] || COLORS[0]}"></span>${esc(pr.nm)}${me && pr.sl === me.sl ? ' <span class="st">(ti)</span>' : ''}</span><span class="st">${status(pr)}</span>${pr.ig && pr.sl ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(pr.sl)}${SOBA}">👀 Gledaj</a>` : me && pr.sl === me.sl ? '' : `<a class="btn ghost" href="${GAME}">Igraj s njim</a>`}</div>`).join('')
+  $('#live').innerHTML = list.length ? list.map(pr => `<div class="lrow" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="pulse"></span><span class="who"><span class="dot" style="background:${COLORS[pr.cl] || COLORS[0]}"></span>${esc(pr.nm)}${me && pr.sl === me.sl ? ' <span class="st">(ti)</span>' : ''}</span><span class="st">${status(pr)}</span>${pr.ig && pr.sl ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(pr.sl)}${SOBA}">👀 Gledaj</a>` : me && pr.sl === me.sl ? '' : `<a class="btn ghost" href="${GAME}">Igraj s njim</a>`}</div>`).join('')
     : '<p class="empty">Trenutno nitko nije u igri. Pošalji pozivnicu gore.</p>';
 }
 const s = document.createElement('script');
