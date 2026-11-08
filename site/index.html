@@ -2600,8 +2600,17 @@ function renderOnbar() {
     const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) joinHost(h);
   };
   if ($('#heroInvite')) $('#heroInvite').onclick = () => shareInvite();
-  if ($('#heroBots')) $('#heroBots').onclick = () => { showTab('local'); };
+  if ($('#heroBots')) $('#heroBots').onclick = () => quickBots();
   renderBotNote(n);
+}
+// start a game against bots right away (leaves the online lobby so nobody waits for me)
+function quickBots() {
+  if (net) return;
+  if (roomState.ready) joinLobby(false);
+  const humans = setup.players.filter(p => p.type === 'human').length;
+  if (!humans) setup.players[0].type = 'human';
+  if (!setup.players.some(p => p.type === 'bot')) { for (let i = 1; i <= 3 && i < setup.players.length; i++) if (setup.players[i].type === 'off') setup.players[i].type = 'bot'; }
+  saveSetup(); renderPlayers(); startGame();
 }
 function renderBotNote(n) {
   const el = $('#botNote'); if (!el) return;
