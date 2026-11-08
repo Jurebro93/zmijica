@@ -303,20 +303,25 @@ $('#q').oninput = () => data && players();
 
 // ---- public player card (click any player)
 const TROLL = { shield: '🛡️ Štit', mirror: '🪞 Zrcalo', fakepu: '🎁 Lažni power-up', colors: '🎨 Lude boje', hearts: '💖 Srčeka', horn: '📯 Truba', poop: '💩 Kakice', shake: '💥 Potres', sticker: '🤡 Naljepnica', flash: '⚡ Bljesak', fog: '🌫️ Magla', dark: '🌑 Mrak', flip: '🙃 Naglavačke' };
+const EXTRA = { te_fire: '🔥 Vatreni trag', te_spark: '✨ Iskrice', te_hearts: '💖 Srčeki', te_bubble: '🫧 Mjehurići', ds_confetti: '🎊 Konfeti', ds_ghost: '👻 Duh odlazi', ds_poop: '💩 Kakica', ds_boom: '💣 Velika eksplozija', vs_fanfare: '🎺 Fanfare', vs_fart: '💨 Prdac', vs_horn: '📯 Zračna truba', vs_laugh: '😂 Smijeh' };
+const ALLN = Object.assign({}, SKIN, BADGE, PU, EXTRA);
+const KNOWN = id => /^(lx|pr|bg|sk|sz|bd|te|ds|vs)_/.test(id) || PU[id];
+const ITEM_GROUPS = [['💎 Luksuz', id => id.startsWith('lx_')], ['👑 Premium', id => id.startsWith('pr_')], ['🏟️ Arene', id => id.startsWith('bg_')], ['〰️ Tragovi', id => id.startsWith('sk_') || id.startsWith('sz_')], ['🏷️ Ikone i zastave', id => id.startsWith('bd_')],
+  ['✨ Efekti traga', id => id.startsWith('te_')], ['💥 Efekti ispadanja', id => id.startsWith('ds_')], ['🔊 Zvukovi pobjede', id => id.startsWith('vs_')], ['⚡ Početni power-upovi', id => !!PU[id]], ['📦 Ostalo', id => !KNOWN(id)]];
 const ADMIN = new URLSearchParams(location.search).has('admin');
 function showCard(slug) {
   const p = data && data.players.find(x => x.slug === slug); if (!p) return;
   const dur = ms => fmtDur(ms || 0);
   const st = (k, v) => `<div><b>${v}</b><span>${k}</span></div>`;
   const eq = p.eq || {}, owned = p.owned || [];
-  const chips = (ids, names, cur) => ids.length ? `<div class="chips">${ids.map(id => `<span class="${id === cur ? 'on' : ''}">${esc(names[id] || id)}${id === cur ? ' ✓' : ''}</span>`).join('')}</div>` : '<span class="note">ništa još</span>';
+  const eqSet = new Set(Object.values(eq).flatMap(v => String(v || '').split(',')));
+  const chips = (ids, names, cur, set) => ids.length ? `<div class="chips">${ids.map(id => { const on = id === cur || (set && set.has(id)); return `<span class="${on ? 'on' : ''}">${esc(names[id] || id)}${on ? ' ✓' : ''}</span>`; }).join('')}</div>` : '<span class="note">ništa još</span>';
   const inv = Object.entries(p.inv || {}).filter(([k, v]) => v > 0 && TROLL[k]);
   const on = onlineSlugs.has(p.slug);
   $('#pcard').innerHTML = `<button type="button" class="pcx" id="pcX" aria-label="Zatvori">×</button><div style="display:flex;gap:12px;align-items:center"><span class="dot" style="width:40px;height:40px;background:${COLORS[p.color] || COLORS[0]}"></span><div><h3>${esc(p.name)}</h3><span class="note">${on ? '<b style="color:var(--good)">● online sada</b>' : 'zadnji put online ' + fmtAgo(p.lastSeen)} · registriran ${fmtDate(p.created)}${p.invitedBy ? ' · pozvao ga ' + esc((data.players.find(x => x.slug === p.invitedBy) || {}).name || p.invitedBy) : ''}</span></div></div>
     <div class="ps">${st('zlatnika', nf.format(p.coins))}${st('mečeva', p.matches)}${st('pobjeda', p.wins + (p.matches ? ' · ' + p.winRate + '%' : ''))}${st('postolja', p.podiums)}${st('rušenja', p.kills)}${st('u igri', dur(p.playMs))}${st('potrošeno', nf.format(p.spent))}${st('kupljeno', p.purchases)}${st('zezao', p.trollsSent)}${st('zezan', p.trollsGot)}${st('pozvao', p.invited)}</div>
-    <span class="lbl">Tragovi</span>${chips(owned.filter(id => id.startsWith('sk_') && id !== 'sk_none'), SKIN, eq.skin)}
-    <span class="lbl">Ikone</span>${chips(owned.filter(id => id.startsWith('bd_') && id !== 'bd_none'), BADGE, eq.badge)}
-    <span class="lbl">Početni power-upovi</span>${chips(owned.filter(id => PU[id]), PU, eq.pu)}
+    <span class="lbl">Sve stvari u vlasništvu (${owned.filter(id => id !== 'sk_none' && id !== 'bd_none').length})</span>
+    ${ITEM_GROUPS.map(([t, f]) => { const ids = owned.filter(id => id !== 'sk_none' && id !== 'bd_none' && f(id)); return ids.length ? `<span class="lbl" style="font-size:12px;opacity:.8">${t} (${ids.length})</span>${chips(ids, ALLN, null, eqSet)}` : ''; }).join('') || '<span class="note">ništa još</span>'}
     <span class="lbl">Zezalice u džepu</span>${inv.length ? `<div class="chips">${inv.map(([k, v]) => `<span>${TROLL[k]} ×${v}</span>`).join('')}</div>` : '<span class="note">ništa još</span>'}
     <div class="row">${on ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(p.slug)}${SOBA}">👀 Gledaj / igraj</a>` : `<a class="btn wa" style="margin-left:0" href="https://wa.me/?text=${encodeURIComponent(comeBack(p.name))}" target="_blank" rel="noopener">📲 Pozovi na WhatsApp</a>`}${ADMIN ? '<button class="btn ghost" type="button" id="pcReset">Obriši PIN (admin)</button>' : ''}<button class="btn ghost" type="button" id="pcClose">Zatvori</button></div>
     <div class="note" id="pcMsg"></div>`;
