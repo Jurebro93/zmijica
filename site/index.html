@@ -247,7 +247,12 @@ button.pu:hover { border-color: var(--line); }
 #trollPop[hidden] { display: none; }
 #trollPop .tp-t { display: flex; gap: 6px; flex-wrap: wrap; }
 #trollPop .trolls { grid-template-columns: repeat(4, 1fr); }
-#gchatX { position: absolute; top: 4px; right: 6px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 18px; line-height: 1; z-index: 2; }
+.gchead { display: flex; align-items: center; gap: 6px; } .gchead b { flex: 1; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.gchead button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 17px; line-height: 1; }
+#gchat .chatlog div { white-space: normal; overflow-wrap: anywhere; }
+#gchat.big { position: fixed; left: 10px; right: 10px; bottom: 10px; top: 70px; width: auto; z-index: 30; grid-template-rows: auto 1fr auto; background: color-mix(in srgb, var(--ink) 96%, transparent); }
+#gchat.big .chatlog { max-height: none; font-size: 16px; }
+#gchat.big .chatlog small { color: var(--muted); font-size: 12px; margin-right: 4px; }
 #reactPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; background: color-mix(in srgb, var(--ink) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 8px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
 #reactPop[hidden] { display: none; }
 .rbtn { width: 46px; height: 46px; border-radius: 10px; border: 0; background: var(--panel); font-size: 26px; line-height: 1; display: grid; place-items: center; transition: transform .08s; }
@@ -490,7 +495,7 @@ button.pu:hover { border-color: var(--line); }
       <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
       <div id="trollPop" hidden role="dialog" aria-label="Zezalice"></div>
       <div id="igMsgs" aria-live="polite"></div>
-      <div id="gchat" hidden><button type="button" id="gchatX" aria-label="Zatvori chat">×</button><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
+      <div id="gchat" hidden><div class="gchead"><b>Chat</b><button type="button" id="gchatBig" aria-label="Cijela povijest">⤢</button><button type="button" id="gchatX" aria-label="Zatvori chat">×</button></div><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
     <div class="specbar" id="specBar" hidden></div>
     <div class="pads" id="padsBottom" hidden></div>
@@ -584,7 +589,7 @@ const BADGES = {
   bd_hairy: { g: '∞', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', name: 'Dlakava jaja', d: 'Ikona za odrasle', price: 130 },
   bd_condom: { g: '∩', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>', name: 'Kondom', d: 'Ikona za odrasle', price: 120 },
 };
-const STARTER_PU = ['fastS', 'slowS', 'thinS', 'ghostS', 'wrapS', 'jumpS', 'slowO', 'thickO', 'revO', 'sqO'];
+const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'revO', 'sqO'];
 const STARTER_PRICE = { s: 110, o: 170 };
 
 const PU_RATE = { rijetko: { min: 6, max: 10, cap: 3 }, normalno: { min: 2.5, max: 5, cap: 4 }, 'često': { min: 1.2, max: 2.5, cap: 6 }, ludnica: { min: 0.5, max: 1.2, cap: 8 } };
@@ -622,13 +627,18 @@ const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
 function itemPrice(id) { return (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
+const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170 };
+function refundRetired(P) {
+  for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
+  return P;
+}
 function backfillSpend(P) {
   const bought = (P.owned || []).filter(id => itemPrice(id) > 0), inv = Object.values(P.inv || {}).reduce((a, b) => a + b, 0);
   P.purchases = Math.max(P.purchases || 0, bought.length + inv);
   P.spent = Math.max(P.spent || 0, bought.reduce((a, id) => a + itemPrice(id), 0));
   return P;
 }
-function normalize(d) { return backfillSpend(normalize0(d)); }
+function normalize(d) { return backfillSpend(refundRetired(normalize0(d))); }
 function normalize0(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, inv: (d.inv && typeof d.inv === 'object') ? Object.fromEntries(Object.entries(d.inv).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))]).filter(([, v]) => v > 0)) : {}, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
 function applyBonus(p) { if (p && !p.bonus500) { p.coins = (Number(p.coins) || 0) + START_COINS; p.bonus500 = true; p._bonusNew = true; } return p; }
 function slugOf(name) { const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return (base || 'igrac').slice(0, 40); }
@@ -1136,14 +1146,10 @@ function newRound() {
 
 // ---------- effects ----------
 function has(p, k) { for (const f of p.fx) if (f.k === k && f.until > G.gt) return true; return false; }
-function speedOf(p) {
-  let m = G.speedMul; for (const f of p.fx) if (f.until > G.gt) { if (f.k === 'fast') m *= 1.6; else if (f.k === 'slow') m *= 0.62; }
-  return BASE_SPEED * m;
-}
-function radiusOf(p) {
-  let m = 1; for (const f of p.fx) if (f.until > G.gt) { if (f.k === 'thin') m *= 0.5; else if (f.k === 'thick') m *= 2.1; }
-  return Math.max(1.1, BASE_R * m);
-}
+const MAX_STACK = 2;
+function fxCount(p, k) { let n = 0; for (const f of p.fx) if (f.k === k && f.until > G.gt) n++; return Math.min(MAX_STACK, n); }
+function speedOf(p) { return BASE_SPEED * G.speedMul * Math.pow(1.6, fxCount(p, 'fast')) * Math.pow(0.62, fxCount(p, 'slow')); }
+function radiusOf(p) { return Math.max(1.1, BASE_R * Math.pow(0.5, fxCount(p, 'thin')) * Math.pow(2.1, fxCount(p, 'thick'))); }
 function wraps(p) { return setup.walls === 'prolaz' || G.wrapAllUntil > G.gt || has(p, 'wrap'); }
 function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }; }
 
@@ -1419,7 +1425,7 @@ function substep() {
     if (rev && (p.human || p.diff === 'lako')) inp = -inp;
     if (has(p, 'square')) {
       if (inp !== 0 && p.lastIn === 0 && T >= p.sqCool) { p.a += inp * Math.PI / 2; p.sqCool = T + 20; flushTrail(p, true); }
-    } else p.a += inp * TURN * SUB;
+    } else p.a += inp * TURN * SUB * (speedOf(p) / BASE_SPEED);
     p.lastIn = inp;
 
     const v = speedOf(p), r = radiusOf(p), step = v * SUB;
@@ -2212,6 +2218,7 @@ function chatAutoHide() {
   if (!G) return; const ph = G.phase; if (ph === chatPhase) return; chatPhase = ph;
   if (ph === 'run' && chatOpen && IS_TOUCH && document.activeElement && document.activeElement.id !== 'gchatIn') setChatOpen(false);
 }
+function playVoice(src) { try { const au = new Audio(src); au.play().catch(() => {}); } catch (e) {} }
 function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; } updateUnread(); }
 function updateUnread() { const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
@@ -2249,10 +2256,12 @@ function collectChat() {
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
 function renderChat() {
-  const html = chatLog.slice(-8).map(m => `<div><b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${esc(m.name)}:</b> ${esc(m.text)}</div>`).join('') || '<div class="hint">Još nema poruka.</div>';
-  const a = $('#lchatLog'), g = $('#gchatLog');
-  if (a) { a.innerHTML = html; a.scrollTop = a.scrollHeight; }
-  if (g) { g.innerHTML = html; g.scrollTop = g.scrollHeight; }
+  const line = (m, t) => `<div>${t && m.at ? `<small>${new Date(m.at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${esc(m.name)}:</b> ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</div>`;
+  const empty = '<div class="hint">Još nema poruka.</div>';
+  const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
+  if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
+  if (g) { g.innerHTML = (big ? chatLog : chatLog.slice(-4)).map(m => line(m, big)).join('') || empty; g.scrollTop = g.scrollHeight; }
+  document.querySelectorAll('.vplay').forEach(b => b.onclick = () => playVoice(b.dataset.a));
 }
 function renderBoard() {
   const b = $('#board'); if (!b) return;
@@ -2414,7 +2423,7 @@ function predictHeads() {
     let a = p.sa;
     if (p.id === net.myId && !has(p, 'square')) {
       const k = KEYS[0]; let v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0); if (has(p, 'reverse')) v = -v;
-      a = p.sa + v * TURN * dt * 0.5; p.a = p.sa + v * TURN * dt;
+      const tr = TURN * (p.v / BASE_SPEED); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
   }
@@ -2622,7 +2631,8 @@ function renderTrollPop() {
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
 document.addEventListener('pointerdown', (e) => { const p = $('#trollPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'trollBtn') p.hidden = true; });
-$('#gchatX').onclick = (e) => { e.stopPropagation(); setChatOpen(false); };
+$('#gchatX').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.remove('big'); setChatOpen(false); };
+$('#gchatBig').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.toggle('big'); renderChat(); };
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
 $('#chatBtn').onclick = () => setChatOpen(!chatOpen);
 document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });
