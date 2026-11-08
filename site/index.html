@@ -2140,6 +2140,7 @@ const DAILY_POOL = [
 function dailyList() { const out = [], h = dayHash('daily'); for (let i = 0; out.length < 3 && i < 20; i++) { const c = DAILY_POOL[(h + i * 7) % DAILY_POOL.length]; if (!out.some(o => o.k === c.k)) out.push(c); } return out; }
 function dailyState() { if (!profile) return null; const d = zDay(Date.now()); if (!profile.daily || profile.daily.d !== d) profile.daily = { d, c: {}, done: [] }; return profile.daily; }
 function dailyCount(add) {
+  return; // daily challenges are switched off
   const st = dailyState(); if (!st) return;
   for (const k in add) st.c[k] = (st.c[k] || 0) + add[k];
   for (const ch of dailyList()) if (!st.done.includes(ch.id) && (st.c[ch.k] || 0) >= ch.goal) { st.done.push(ch.id); profile.coins += ch.r; notify(`✅ Dnevni izazov: <b>${esc(ch.n)}</b> · +${ch.r} zlatnika`, { ms: 6000 }); }
@@ -2502,7 +2503,7 @@ function renderOnbar() {
   const tourHtml = TMODE && tourTable ? `<div class="weekbar">🏆 <b>${esc(tourTable.t.name)}</b> · ${TMODE.k ? 'kolo ' + TMODE.k + ', stol ' + TMODE.s : 'FINALE'} <span class="ms">Za stolom: ${tourTable.tb.players.map(s => esc(tourTable.t.players.find(p => p.slug === s)?.name || s)).join(', ')}. Meč kreće kad svi stignu (najkasnije 2 min).</span></div>` : '';
   const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
   const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button>${profile && !pushOn() ? '<button type="button" class="btn sm ghost" id="pushBtn">🔔 Podsjeti me</button>' : ''}<a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${tourHtml}${weekHtml}${meetHtml}${profile ? dailyHtml() : ''}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${tourHtml}${weekHtml}${meetHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
   $('#meetBtn').onclick = () => showMeet();
   if ($('#pushBtn')) $('#pushBtn').onclick = () => enablePush();
   $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
