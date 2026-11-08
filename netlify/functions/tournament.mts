@@ -7,11 +7,11 @@
 // POST /api/tournament/:id/:action  {slug, auth, ...}  join | leave | start (admin) | bonus (admin) | cancel (admin) | result
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { roleOf } from "./roles.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
 const SLUG = /^[a-z0-9-]{1,40}$/;
-const ADMINS = ["jure"];
 const FEE = 500, ROUNDS = 3, TABLE = 5, POINTS = [10, 6, 3, 1, 0], SPLIT = [0.6, 0.3, 0.1];
 
 type Table = { id: number; players: string[]; result: string[] | null };
@@ -58,17 +58,18 @@ export default async (req: Request, context: Context) => {
     if (id) { const t = await store.get(id, { type: "json" }); return t ? json({ tournament: t, pot: pot(t as Tour) }) : json({ error: "not found" }, 404); }
     const { blobs } = await store.list();
     const all = ((await Promise.all(blobs.map((b) => store.get(b.key, { type: "json" })))) as Tour[]).filter(Boolean).sort((a, b) => b.start - a.start).slice(0, 10);
-    return json({ tournaments: all.map((t) => ({ ...t, pot: pot(t) })), admins: ADMINS });
+    return json({ tournaments: all.map((t) => ({ ...t, pot: pot(t) })) });
   }
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null; if (!b) return json({ error: "body missing" }, 400);
   const slug = String(b.slug ?? ""); const acc = await authed(slug, b.auth); if (!acc) return json({ error: "auth" }, 403);
-  const admin = ADMINS.includes(slug);
+  // master and admins run tournaments and add to the pot; tournament leaders run them but cannot add coins
+  const role = await roleOf(slug); const admin = ["master", "admin", "turnir"].includes(role); const canBonus = role === "master" || role === "admin";
 
   if (!id) { // create
     if (!admin) return json({ error: "admin only" }, 403);
     const start = Number(b.start); if (!Number.isFinite(start) || start < Date.now() - 3600000) return json({ error: "bad start" }, 400);
-    const t: Tour = { id: Date.now().toString(36), name: String(b.name || "Turnir").slice(0, 40), start, max: Math.max(2, Math.min(40, Math.floor(Number(b.max) || 16))), fee: FEE, bonus: Math.max(0, Math.min(100000, Math.floor(Number(b.bonus) || 0))), created: Date.now(), status: "open", players: [], rounds: [], points: {}, final: null, winners: [] };
+    const t: Tour = { id: Date.now().toString(36), name: String(b.name || "Turnir").slice(0, 40), start, max: Math.max(2, Math.min(40, Math.floor(Number(b.max) || 16))), fee: FEE, bonus: canBonus ? Math.max(0, Math.min(100000, Math.floor(Number(b.bonus) || 0))) : 0, created: Date.now(), status: "open", players: [], rounds: [], points: {}, final: null, winners: [] };
     await store.setJSON(t.id, t); return json({ tournament: t, pot: pot(t) });
   }
   const t = (await store.get(id, { type: "json" })) as Tour | null; if (!t) return json({ error: "not found" }, 404);
@@ -85,7 +86,7 @@ export default async (req: Request, context: Context) => {
     if (!t.players.some((p) => p.slug === slug)) return save();
     t.players = t.players.filter((p) => p.slug !== slug); await giveCoins(slug, t.fee, "Turnir: povrat kotizacije"); return save();
   }
-  if (action === "bonus") { if (!admin) return json({ error: "admin only" }, 403); t.bonus = Math.max(0, Math.min(100000, t.bonus + Math.floor(Number(b.amount) || 0))); return save(); }
+  if (action === "bonus") { if (!canBonus) return json({ error: "admin only" }, 403); t.bonus = Math.max(0, Math.min(100000, t.bonus + Math.floor(Number(b.amount) || 0))); return save(); }
   if (action === "cancel") {
     if (!admin) return json({ error: "admin only" }, 403); if (t.status === "done" || t.status === "cancelled") return save();
     for (const p of t.players) await giveCoins(p.slug, t.fee, "Turnir otkazan: povrat kotizacije");

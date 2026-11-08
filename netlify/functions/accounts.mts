@@ -6,6 +6,7 @@
 // DELETE /api/accounts/:slug    {auth} -> remove a PIN-protected profile
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { roleOf } from "./roles.mts";
 
 const STORE = "vijuga-accounts";
 // SHA-256 of the maintenance key (same key as for matches); the key itself is not in the repository.
@@ -87,7 +88,10 @@ export default async (req: Request, context: Context) => {
     // Admin only: remove a forgotten PIN; the player then logs in without one and sets a new PIN.
     const given = req.headers.get("x-admin-key") || "";
     const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(given)))).map((b) => b.toString(16).padStart(2, "0")).join("");
-    if (!given || digest !== ADMIN_KEY_SHA256) return json({ error: "forbidden" }, 403);
+    // allowed with the maintenance key, or for the master admin / an admin signed in with their PIN
+    let ok = !!given && digest === ADMIN_KEY_SHA256;
+    if (!ok) { const body = (await req.json().catch(() => ({}))) as { by?: string; auth?: string }; const by = String(body.by ?? ""); if (SLUG.test(by) && by !== slug) { const r = await roleOf(by); const who = (await store.get(by, { type: "json" })) as Doc | null; ok = (r === "master" || r === "admin") && !!who && (!who.pinHash || who.pinHash === body.auth); } }
+    if (!ok) return json({ error: "forbidden" }, 403);
     if (!existing) return json({ error: "not found" }, 404);
     delete existing.pinHash; existing.updatedAt = Date.now();
     await store.setJSON(slug, existing);

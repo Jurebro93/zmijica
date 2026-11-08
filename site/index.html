@@ -125,6 +125,10 @@ button:disabled { cursor: default; opacity: .5; }
 .podium3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: end; } .pd { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; justify-items: center; } .pd span { font-size: 34px; } .pd.p1 { border-color: #ffd23f; padding-top: 22px; } .pd small { color: var(--amber); }
 .tadmin { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--line); padding-top: 10px; } .tadmin input, .tnew input { background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; color: var(--fg); }
 .tnew { margin-top: 14px; } .tnew label { display: grid; gap: 4px; margin: 8px 0; max-width: 320px; } .tnew summary { cursor: pointer; font-weight: 700; }
+.rtag { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .04em; padding: 1px 6px; border-radius: 999px; margin-left: 5px; vertical-align: middle; border: 1px solid; white-space: nowrap; }
+.rt-master { color: #ffd23f; border-color: #ffd23f; } .rt-admin { color: #ffb547; border-color: #ffb547; } .rt-turnir { color: #3ddc97; border-color: #3ddc97; } .rt-moderator { color: #4cc9f0; border-color: #4cc9f0; }
+.rolepick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .rolepick b { margin-right: 4px; font-size: 13px; color: var(--muted); text-transform: uppercase; }
+.rolepick button { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 4px 11px; font-size: 14px; } .rolepick button.on { border-color: var(--amber); color: var(--amber); }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
 .dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
@@ -495,6 +499,7 @@ button.pu:hover { border-color: var(--line); }
 
       <div class="tab" id="tab-help" hidden>
         <div class="cols">
+          <div id="rolesHelp"></div>
           <div>
             <h2>Kako se igra</h2>
             <ol class="rules">
@@ -737,7 +742,7 @@ function renderMe() {
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
-  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><span class="lvchip">Nv ${levelOf(profile).lv}</span><button type="button" id="profBtn">profil</button><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><span class="lvchip">Nv ${levelOf(profile).lv}</span>${roleTag(profile.slug)}<button type="button" id="profBtn">profil</button><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
   $('#invBtn').onclick = shareInvite;
   box.querySelector('.av').onclick = box.querySelector('b').onclick = () => showProfile();
   box.querySelector('.av').style.cursor = box.querySelector('b').style.cursor = 'pointer';
@@ -761,7 +766,7 @@ function showPlayer(slug) {
   const inv = Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && TROLLS[k]);
   const none = '<span class="hint">ništa još</span>';
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
-    <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
+    <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)} ${roleTag(P.slug)}</h3><span class="hint">${mutedUntil(P.slug) ? '🔇 utišan do ' + new Date(mutedUntil(P.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + ' · ' : ''}${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
     ${levelHtml(P)}
     <h4>Postignuća <small>${achOf(P).length} od ${ACH.length}</small></h4>${achHtml(P)}
@@ -771,6 +776,9 @@ function showPlayer(slug) {
     <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
     <span class="label">Efekti</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
+    ${myRole() === 'master' ? `<div class="rolepick"><b>Uloga</b>${[['', 'Igrač'], ['moderator', '🛡️ Moderator'], ['turnir', '🏆 Voditelj turnira'], ['admin', '⭐ Admin']].map(([k, n]) => `<button type="button" class="rp ${roleOfSlug(P.slug) === k ? 'on' : ''}" data-r="${k}">${n}</button>`).join('')}</div>` : ''}
+    ${canMute() && roleOfSlug(P.slug) !== 'master' ? `<div class="rolepick"><b>Chat</b>${mutedUntil(P.slug) ? '<button type="button" class="mu" data-m="0">🔊 Ukini utišavanje</button>' : [[10, '🔇 10 min'], [60, '🔇 1 h'], [1440, '🔇 1 dan']].map(([m, n]) => `<button type="button" class="mu" data-m="${m}">${n}</button>`).join('')}</div>` : ''}
+    ${['master', 'admin'].includes(myRole()) && raw.hasPin ? '<div class="rolepick"><b>Račun</b><button type="button" id="pReset">🔑 Obriši zaboravljeni PIN</button></div>' : ''}
     <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${!online && profile ? '<button class="btn ghost" type="button" id="pPush">🔔 Pozovi obaviješću</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
@@ -779,6 +787,9 @@ function showPlayer(slug) {
   if ($('#pPing')) $('#pPing').onclick = () => { m.hidden = true; sendPing(pe.peer); };
   if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
   if ($('#pPush')) $('#pPush').onclick = () => pushInvite(P);
+  m.querySelectorAll('.rp').forEach(b => b.onclick = async () => { const r = b.dataset.r; if (!confirm(r ? `Dati ulogu „${ROLE_INFO[r].n}” igraču ${P.name}?` : `Oduzeti ulogu igraču ${P.name}?`)) return; if (await roleCall('set', { target: P.slug, role: r })) { toast(r ? `${P.name} je sada ${ROLE_INFO[r].n}.` : `${P.name} više nema ulogu.`); showPlayer(P.slug); } });
+  m.querySelectorAll('.mu').forEach(b => b.onclick = async () => { const mm = Number(b.dataset.m); if (await roleCall('mute', { target: P.slug, minutes: mm })) { toast(mm ? `${P.name} je utišan.` : `${P.name} više nije utišan.`); showPlayer(P.slug); } });
+  if ($('#pReset')) $('#pReset').onclick = () => resetPinOf(P);
 }
 // any element with data-player opens that player's card
 document.addEventListener('click', (e) => {
@@ -1195,10 +1206,40 @@ let curTab = 'online'; // the game always opens on the online tab
 // ================= tournaments =================
 const TOUR_API = 'https://vijuga.netlify.app/api/tournament', TOUR_FEE = 500;
 const TMODE = (() => { try { const q = new URLSearchParams(location.search); const id = q.get('turnir'); return id && /^[a-z0-9]{4,20}$/.test(id) ? { id, k: Number(q.get('kolo')) || 0, s: Number(q.get('stol')) || 0 } : null; } catch (e) { return null; } })();
-let tours = [], tourAdmins = [], tourSel = null, tourTimer = 0;
-const isAdmin = () => !!(profile && tourAdmins.includes(profile.slug));
+let tours = [], tourSel = null, tourTimer = 0;
+// ---- roles: master admin gives roles; see ROLE_INFO for what each one can do
+const ROLES_API = 'https://vijuga.netlify.app/api/roles';
+const ROLE_INFO = {
+  master: { tag: '👑 MASTER', n: 'Master admin', d: 'Vlasnik igre. Dodjeljuje i oduzima sve uloge, raspisuje i vodi turnire, dodaje zlatnike u fond, briše zaboravljene PIN-ove i utišava chat.' },
+  admin: { tag: '⭐ ADMIN', n: 'Admin', d: 'Raspisuje, pokreće i otkazuje turnire, dodaje zlatnike u fond turnira, briše zaboravljene PIN-ove igrača i utišava chat.' },
+  turnir: { tag: '🏆 VODITELJ', n: 'Voditelj turnira', d: 'Raspisuje, pokreće i otkazuje turnire. Ne može dodavati zlatnike u fond ni dirati račune igrača.' },
+  moderator: { tag: '🛡️ MOD', n: 'Moderator', d: 'Čuva red u chatu: može utišati igrača na 10 min, 1 h ili 1 dan (njegove poruke tada nitko ne vidi) i ukinuti utišavanje. Ne može utišati admina.' },
+};
+let roleState = { master: 'jure', roles: {}, mutes: {} };
+function roleOfSlug(slug) { return !slug ? '' : slug === roleState.master ? 'master' : roleState.roles[slug] || ''; }
+const myRole = () => roleOfSlug(profile && profile.slug);
+const isAdmin = () => ['master', 'admin', 'turnir'].includes(myRole());
+const canBonus = () => ['master', 'admin'].includes(myRole());
+const canMute = () => ['master', 'admin', 'moderator'].includes(myRole());
+function mutedUntil(slug) { const t = roleState.mutes[slug] || 0; return t > Date.now() ? t : 0; }
+function roleTag(slug) { const r = roleOfSlug(slug); return r ? `<span class="rtag rt-${r}">${ROLE_INFO[r].tag}</span>` : ''; }
+async function loadRoles() { try { const r = await fetch(ROLES_API, { cache: 'no-store' }); if (r.ok) { roleState = await r.json(); renderNet(); renderBoard(); } } catch (e) {} }
+setTimeout(() => { loadRoles(); const h = $('#rolesHelp'); if (h) h.innerHTML = rolesHelpHtml(); }, 1200); setInterval(loadRoles, 60000);
+async function roleCall(action, extra) {
+  if (!profile) return null;
+  try { const r = await fetch(ROLES_API + '/' + action, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra)) }); const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'master only': 'Samo master admin dodjeljuje uloge.', 'moderators only': 'Samo moderator ili admin.', 'cannot mute an admin': 'Admina ne možeš utišati.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; } roleState = j; return j; }
+  catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
+}
+async function resetPinOf(P) {
+  if (!confirm(`Obrisati PIN igrača ${P.name}? On se tada prijavi bez PIN-a i u „uredi” postavi novi.`)) return;
+  try { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(P.slug) + '/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ by: profile.slug, auth: profile.pinHash || '' }) }); toast(r.ok ? `PIN igrača ${P.name} je obrisan. Javi mu da se prijavi i postavi novi.` : 'Nije uspjelo (' + r.status + ').'); }
+  catch (e) { toast('Nema veze s poslužiteljem.'); }
+}
+function rolesHelpHtml() {
+  return `<h2>Uloge</h2><p class="hint">Uloge dodjeljuje master admin na kartici igrača (klikni ime igrača → „Uloga”). Oznaka uloge vidi se uz ime.</p>${Object.entries(ROLE_INFO).map(([k, r]) => `<p><span class="rtag rt-${k}">${r.tag}</span> <b>${r.n}</b>: ${r.d}</p>`).join('')}<p><b>Igrač</b> (bez oznake): igra, kupuje, sudjeluje u turnirima, gleda i zeza druge.</p>`;
+}
 async function loadTours() {
-  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; tourAdmins = j.admins || []; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
+  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
   if (!tourSel || !tours.some(t => t.id === tourSel)) tourSel = (tours.find(t => t.status !== 'done' && t.status !== 'cancelled') || tours[0] || {}).id || null;
   renderTour(); clearTimeout(tourTimer); if (curTab === 'tour' && !$('#menu').hidden) tourTimer = setTimeout(loadTours, 20000);
 }
@@ -1230,10 +1271,10 @@ function renderTour() {
     }
     if (t.final) { const f = t.final, mine = f.players.includes(me); html += `<h4>🔥 Finale</h4><div class="ttable ${mine ? 'mine' : ''}">${(f.result || f.players).map((s, i) => `${f.result ? ['🥇', '🥈', '🥉'][i] || (i + 1) + '.' : ''} ${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(' · ')}${mine && !f.result ? `<a class="btn" href="${tableUrl(t, 0, f)}">▶ Uđi u finale</a>` : ''}</div>`; }
     if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>+${w.prize} 💰</small></div>`).join('')}</div>`;
-    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>Admin</b>${t.status === 'open' ? '<button class="btn sm" type="button" id="tStart">Pokreni turnir</button>' : ''}<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button><button class="btn sm ghost" type="button" id="tCancel">Otkaži (vrati kotizacije)</button></div>`;
+    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? '<button class="btn sm" type="button" id="tStart">Pokreni turnir</button>' : ''}${canBonus() ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (vrati kotizacije)</button></div>`;
     html += '</div>';
   }
-  if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (admin)</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label><label>Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label><button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
+  if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].n : 'admin'})</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label>${canBonus() ? '<label>Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label>' : ''}<button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
   box.innerHTML = html;
   box.querySelectorAll('.tpk').forEach(b => b.onclick = () => { tourSel = b.dataset.id; renderTour(); });
   const after = (j) => { if (j && j.tournament) { const i = tours.findIndex(x => x.id === j.tournament.id); const v = Object.assign({}, j.tournament, { pot: j.pot }); if (i >= 0) tours[i] = v; else tours.unshift(v); tourSel = v.id; renderTour(); } };
@@ -1244,7 +1285,7 @@ function renderTour() {
   if ($('#tBonus')) $('#tBonus').onclick = async () => { const a = Math.floor(Number($('#tBonusIn').value) || 0); if (a <= 0) return; after(await tourCall(t.id, 'bonus', { amount: a })); };
   if ($('#tCancel')) $('#tCancel').onclick = async () => { if (!confirm('Otkazati turnir i vratiti kotizacije svima?')) return; after(await tourCall(t.id, 'cancel')); };
   if ($('#tnGo')) { const d = new Date(Date.now() + 3600000); d.setMinutes(0, 0, 0); $('#tnStart').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(); after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: $('#tnBonus').value })); }; }
+    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(); after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: $('#tnBonus') ? $('#tnBonus').value : 0 })); }; }
 }
 // ---- playing a tournament table (opened from "Uđi za svoj stol")
 let tourTable = null, tourReported = false, tourArrived = 0;
@@ -2726,7 +2767,7 @@ function renderNet() {
     html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „S botovima”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
@@ -2769,12 +2810,14 @@ function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; 
 function updateUnread() { const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
   text = String(text || '').trim().slice(0, 80); if (!text || !roomNs) return;
+  if (profile && mutedUntil(profile.slug)) { toast(`🔇 Moderator te utišao do ${new Date(mutedUntil(profile.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}.`); return; }
   chatN++; netPresence({ msg: [text, chatN, Date.now()] });
   const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
 }
 let recState = null;
 async function startVoice(btn) {
   voiceWanted = true;
+  if (profile && mutedUntil(profile.slug)) { voiceWanted = false; toast('🔇 Utišan si.'); return; }
   if (recState || !navigator.mediaDevices || !window.MediaRecorder) { if (!window.MediaRecorder) toast('Ovaj preglednik ne snima zvuk.'); return; }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true } });
@@ -2810,8 +2853,9 @@ function collectChat() {
     if (!Array.isArray(m) || typeof m[0] !== 'string') continue;
     const key = p.peer; if (chatSeen[key] === m[1]) continue;
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
+    if (mutedUntil(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
     const audio = typeof m[3] === 'string' && /^data:audio\//.test(m[3]) && m[3].length < 100000 ? m[3] : null;
-    chatLog.push({ name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Date.now(), t: performance.now(), peer: key });
+    chatLog.push({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Date.now(), t: performance.now(), peer: key });
     if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio);
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
@@ -2830,7 +2874,7 @@ function collectChat() {
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
 function renderChat() {
-  const line = (m, t) => `<div>${t && m.at ? `<small>${new Date(m.at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${esc(m.name)}:</b> ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</div>`;
+  const line = (m, t) => `<div>${t && m.at ? `<small>${new Date(m.at).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${esc(m.name)}${roleTag(m.sl)}:</b> ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</div>`;
   const empty = '<div class="hint">Još nema poruka.</div>';
   const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
