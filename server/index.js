@@ -68,7 +68,7 @@ wss.on("connection", (ws) => {
       // the same account on a new connection (reload, network change): the old connection is a ghost -> drop it
       const sl = typeof m.patch.sl === "string" ? m.patch.sl : null;
       if (sl && me.presence.pg !== "stats" && !me.presence.obs) {
-        for (const [k, o] of [...room]) if (k !== peer && o.presence.sl === sl && o.presence.pg !== "stats" && !o.presence.obs) { try { o.ws.close(4001, "replaced"); } catch {} room.delete(k); for (const q of room.values()) send(q.ws, { t: "bye", peer: k }); }
+        for (const [k, o] of [...room]) if (k !== peer && o.presence.sl === sl && o.presence.pg !== "stats" && !o.presence.obs) { send(o.ws, { t: "replaced" }); setTimeout(() => { try { o.ws.close(4001, "replaced"); } catch {} }, 50); room.delete(k); for (const q of room.values()) send(q.ws, { t: "bye", peer: k }); }
       }
       const out = JSON.stringify({ t: "p", peer, patch: m.patch });
       for (const [k, o] of room) if (k !== peer && o.ws.readyState === 1) o.ws.send(out);

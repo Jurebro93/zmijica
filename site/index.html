@@ -3713,9 +3713,10 @@ async function initWsRoom() {
       if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; peersMap[m.peer] = mkPeer(m.peer, Object.assign({}, prev.presence, m.patch)); fire(); return; }
       if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
       if (m.t === 'pong') { lastPong = performance.now(); netStats.rtt = Math.round(performance.now() - m.n); return; }
+      if (m.t === 'replaced') { replaced = true; try { sock.close(); } catch (e) {} for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; setConnected(false); fire(); showReplaced(); return; }
     };
     sock.onclose = (ev) => { if (ws !== sock) return; ws = null; setConnected(false);
-      if (ev && ev.code === 4001) { replaced = true; for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; fire(); showReplaced(); return; }
+      if (replaced || (ev && ev.code === 4001)) { replaced = true; for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; fire(); showReplaced(); return; }
       setTimeout(connect, backoff); backoff = Math.min(8000, backoff * 2); };
     sock.onerror = () => { try { sock.close(); } catch (e) {} };
   };
