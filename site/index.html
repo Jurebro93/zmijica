@@ -2157,9 +2157,9 @@ function substep() {
 function update(dt) {
   if (G.phase === 'count') {
     G.phaseT += dt;
-    const n = Math.ceil(2.4 - G.phaseT);
+    const n = Math.ceil(countLen() - G.phaseT);
     if (n !== G.lastCount && n > 0) { G.lastCount = n; sfx.tick(); }
-    if (G.phaseT >= 2.4) { G.phase = 'run'; sfx.go(); }
+    if (G.phaseT >= countLen()) { G.phase = 'run'; sfx.go(); }
     return;
   }
   if (G.phase === 'end') { G.phaseT += dt; updateParts(dt); if (!G.over && !paused && G.phaseT >= ROUND_PAUSE) newRound(); return; }
@@ -2292,7 +2292,7 @@ function render() {
     ctx.fillText(G.toast.text, G.toast.x, G.toast.y - 24 - k * 24); ctx.globalAlpha = 1;
   }
   if (G.phase === 'count') {
-    const n = Math.ceil(2.4 - G.phaseT);
+    const n = Math.ceil(countLen() - G.phaseT);
     ctx.font = `400 ${Math.min(W, H) * 0.16}px Bungee, Impact, sans-serif`;
     ctx.fillStyle = 'rgba(233,239,246,0.9)'; ctx.fillText(n > 0 ? String(n) : '', W / 2, H / 2);
     ctx.font = '600 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#8396ab';
@@ -2590,7 +2590,7 @@ let myPres = {};
 function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.presence(patch).catch(() => {}); }
 function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
 // ---------- who is online, pings between real players ----------
-const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null };
+const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null, autoStart: false, accepted: [], lastAnswer: 0 };
 function onlineOthers() { const seen = new Set(); return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug)).sort((a, b) => (!!(b.presence.st || b.presence.hs) - !!(a.presence.st || a.presence.hs)) || ((b.presence.ig || 0) - (a.presence.ig || 0))).filter(p => { const k = p.presence.sl || p.peer; if (seen.has(k)) return false; seen.add(k); return true; }); }
 function peerStatus(pr) { return pr.pg === 'stats' ? 'gleda statistiku' : (pr.st || pr.hs) ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
 function canWatch(pr) { return !!(pr && (pr.st || pr.hs || (pr.ig && pr.pl))); }
@@ -2715,7 +2715,7 @@ function renderOnbar() {
   $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
-  if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (!net) hostStart(); };
+  if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (net) return; if (invitePendingList().length && !social.forceNow) { social.autoStart = true; social.forceNow = true; setTimeout(() => { social.forceNow = false; }, 8000); notify(`Čekam da odgovore na poziv: <b>${invitePendingList().map(x => esc(x)).join(', ')}</b>. Meč kreće sam čim svi odgovore (klikni opet za start bez njih).`, { ms: 7000 }); return; } social.autoStart = false; social.accepted = []; hostStart(); };
   if ($('#goOnlineBtn')) $('#goOnlineBtn').onclick = () => {
     if (!profile) { showLogin(); return; }
     goOnlineLobby();
@@ -2744,7 +2744,7 @@ function renderBotNote(n) {
 function sendPing(peer) {
   if (!roomNs || !profile || !peer) return;
   if (social.pingSent[peer] && performance.now() - social.pingSent[peer] < 15000) return;
-  social.pingSent[peer] = performance.now(); social.pingN++;
+  social.pingSent[peer] = performance.now(); social.pingN++; if (!net) { social.autoStart = true; if (!roomState.ready) joinLobby(true); }
   netPresence({ ping: [peer, social.pingN, Date.now()] });
   const pe = roomState.peers.find(p => p.peer === peer);
   notify(`Pozvao si <b>${esc(String((pe && pe.presence.nm) || 'igrača'))}</b> na online igru. Čekam odgovor…`, { ms: 6000 });
@@ -2790,7 +2790,8 @@ function collectSocial() {
     if (Array.isArray(pr.pong) && pr.pong[0] === me && !(p.isMe && p.sameTab)) {
       const key = p.peer + ':' + pr.pong[1];
       if (!social.pongSeen[key]) { social.pongSeen[key] = 1; delete social.pingSent[p.peer];
-        if (pr.pong[2]) { const n = notify(`<b>${esc(String(pr.nm || 'Igrač'))}</b> prihvaća poziv! Oboje ste u predvorju.`, { ms: 0, actions: '<button class="pingbtn" type="button" data-act="start">Pokreni meč</button>' }); goOnlineLobby(); if (n) n.querySelector('[data-act=start]').onclick = () => { n.remove(); if (!roomState.ready) joinLobby(true); setTimeout(() => { if (!net) hostStart(); }, 600); }; beep(660, .1); setTimeout(() => beep(990, .15), 110); }
+        social.lastAnswer = performance.now();
+        if (pr.pong[2]) { if (!social.accepted.includes(p.peer)) social.accepted.push(p.peer); goOnlineLobby(); notify(`<b>${esc(String(pr.nm || 'Igrač'))}</b> prihvaća poziv! ${invitePendingList().length ? 'Čekam još: ' + invitePendingList().map(x => esc(x)).join(', ') + '…' : 'Meč kreće za koju sekundu.'}`, { ms: 6000 }); beep(660, .1); setTimeout(() => beep(990, .15), 110); }
         else notify(`<b>${esc(String(pr.nm || 'Igrač'))}</b> trenutno ne može igrati.`, { warn: true, ms: 6000 });
         renderOnbar(); }
     }
@@ -3093,6 +3094,25 @@ function tryWatchSlug() {
 }
 setTimeout(() => { if (WATCH_SLUG && !tryWatchSlug.done) { tryWatchSlug.done = true; notify('Taj igrač trenutno ne igra. Pogledaj tko je online gore.', { warn: true }); } }, 9000);
 function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); renderOnbar(); }
+// ---- invites: the inviter starts the match only after everyone invited has answered (accept / decline / 60 s timeout)
+const INVITE_MS = 60000;
+function invitePending(peer) { const t = social.pingSent[peer]; return !!t && performance.now() - t < INVITE_MS && roomState.peers.some(p => p.peer === peer); }
+function invitePendingList() { return Object.keys(social.pingSent).filter(invitePending).map(peer => { const pe = roomState.peers.find(p => p.peer === peer); return String((pe && pe.presence && pe.presence.nm) || 'igrač'); }); }
+function inviteTick() {
+  if (!social.autoStart) return;
+  if (net) { social.autoStart = false; social.accepted = []; return; }
+  for (const peer of Object.keys(social.pingSent)) if (!invitePending(peer)) delete social.pingSent[peer];
+  if (Object.keys(social.pingSent).length) return; // still waiting for an answer
+  const acc = social.accepted.filter(peer => roomState.peers.some(p => p.peer === peer));
+  if (!acc.length) { social.autoStart = false; social.accepted = []; return; }
+  const arrived = acc.filter(peer => roomState.peers.some(p => p.peer === peer && p.presence && p.presence.rd && !(p.presence.st && typeof p.presence.st === 'object')));
+  if (arrived.length < acc.length && performance.now() - social.lastAnswer < 12000) return; // give them a moment to reach the lobby
+  const h = findHost(); if (h && !(h.isMe && h.sameTab)) { social.autoStart = false; social.accepted = []; return; }
+  if (!roomState.ready) { joinLobby(true); return; }
+  social.autoStart = false; social.accepted = [];
+  if (arrived.length) hostStart();
+}
+setInterval(inviteTick, 1000);
 function findHost() {
   const hosts = roomState.peers.filter(p => p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs)).sort((a, b) => a.peer < b.peer ? -1 : 1);
   return hosts[0] || null;
@@ -3242,12 +3262,13 @@ function renderBoard() {
 
 // host
 const MAX_PLAYERS = 5;
+const countLen = () => (net && G && G.round === 1 ? 5 : 2.4); // online: 5 s before the match starts
 function hostStart(rematch) {
   const lastMid = net && net.mid;
   // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
   const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
-  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd));
+  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd) && !invitePending(p.peer));
   const meP = cand.find(p => p.isMe && p.sameTab);
   const queue = cand.filter(p => p !== meP && !lastIds.has(p.peer)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
   const prev = cand.filter(p => p !== meP && lastIds.has(p.peer)).sort((a, b) => order.indexOf(a.peer) - order.indexOf(b.peer));
