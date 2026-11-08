@@ -327,6 +327,9 @@ button.pu:hover { border-color: var(--line); }
 .modal form { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; width: min(100%, 420px); display: grid; gap: 14px; }
 .namehint { margin: 0; font-size: 14px; background: rgba(255,181,71,.1); border: 1px solid rgba(255,181,71,.35); border-radius: 9px; padding: 8px 10px; }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--amber); text-decoration: underline; font: inherit; font-size: 15px; }
+.modal form { position: relative; }
+.mclose { position: sticky; top: 0; justify-self: end; margin: -8px -8px -34px 0; z-index: 3; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.mclose:hover { border-color: var(--amber); }
 .modal h3 { font-family: var(--display); font-weight: 400; font-size: 26px; margin: 0; }
 .modal label { display: grid; gap: 6px; }
 .modal input[type=text] { background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 18px; font-weight: 600; width: 100%; min-width: 0; }
@@ -882,6 +885,15 @@ async function collectGifts() {
 setTimeout(() => { if (pushOn()) navigator.serviceWorker.register('sw.js').catch(() => {}); }, 3000);
 setTimeout(collectGifts, 4000);
 setTimeout(() => { try { if (new URLSearchParams(location.search).get('tab') === 'turnir') showTab('tour'); } catch (e) {} if (TMODE) { const go = () => roomState.resolved && profile ? initTourTable() : setTimeout(go, 400); go(); } }, 600); setInterval(collectGifts, 45000);
+// every window in #regModal gets a close button on top; Esc or a tap outside also closes it
+function closeModal() { const m = $('#regModal'); if (m && !m.hidden) { m.hidden = true; m.innerHTML = ''; } }
+setTimeout(function modalClose() {
+  const m = document.getElementById('regModal'); if (!m) return;
+  const addX = () => { const f = m.querySelector('form'); if (!f || f.querySelector(':scope > .mclose')) return; const x = document.createElement('button'); x.type = 'button'; x.className = 'mclose'; x.setAttribute('aria-label', 'Zatvori'); x.textContent = '×'; x.onclick = (e) => { e.preventDefault(); closeModal(); }; f.prepend(x); };
+  new MutationObserver(addX).observe(m, { childList: true });
+  m.addEventListener('click', (e) => { if (e.target === m) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; const rp = $('#replayBox'); if (rp && !rp.hidden) { const x = $('#rpX'); if (x) x.click(); return; } if (!m.hidden) { closeModal(); return; } const tp = $('#trollPop'); if (tp && !tp.hidden) tp.hidden = true; const rq = $('#reactPop'); if (rq && !rq.hidden) rq.hidden = true; });
+}, 0);
 function showProfile() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;

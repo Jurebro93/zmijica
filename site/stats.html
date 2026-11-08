@@ -108,6 +108,7 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
 .pcard .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
 .pcard .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .weekp { background: linear-gradient(90deg, rgba(255,215,0,.14), var(--panel)); border-color: rgba(255,215,0,.45); }
+.pcard { position: relative; } .pcx { position: sticky; top: 0; justify-self: end; margin-bottom: -34px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 20px; z-index: 2; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
@@ -305,7 +306,7 @@ function showCard(slug) {
   const chips = (ids, names, cur) => ids.length ? `<div class="chips">${ids.map(id => `<span class="${id === cur ? 'on' : ''}">${esc(names[id] || id)}${id === cur ? ' ✓' : ''}</span>`).join('')}</div>` : '<span class="note">ništa još</span>';
   const inv = Object.entries(p.inv || {}).filter(([k, v]) => v > 0 && TROLL[k]);
   const on = onlineSlugs.has(p.slug);
-  $('#pcard').innerHTML = `<div style="display:flex;gap:12px;align-items:center"><span class="dot" style="width:40px;height:40px;background:${COLORS[p.color] || COLORS[0]}"></span><div><h3>${esc(p.name)}</h3><span class="note">${on ? '<b style="color:var(--good)">● online sada</b>' : 'zadnji put online ' + fmtAgo(p.lastSeen)} · registriran ${fmtDate(p.created)}${p.invitedBy ? ' · pozvao ga ' + esc((data.players.find(x => x.slug === p.invitedBy) || {}).name || p.invitedBy) : ''}</span></div></div>
+  $('#pcard').innerHTML = `<button type="button" class="pcx" id="pcX" aria-label="Zatvori">×</button><div style="display:flex;gap:12px;align-items:center"><span class="dot" style="width:40px;height:40px;background:${COLORS[p.color] || COLORS[0]}"></span><div><h3>${esc(p.name)}</h3><span class="note">${on ? '<b style="color:var(--good)">● online sada</b>' : 'zadnji put online ' + fmtAgo(p.lastSeen)} · registriran ${fmtDate(p.created)}${p.invitedBy ? ' · pozvao ga ' + esc((data.players.find(x => x.slug === p.invitedBy) || {}).name || p.invitedBy) : ''}</span></div></div>
     <div class="ps">${st('zlatnika', nf.format(p.coins))}${st('mečeva', p.matches)}${st('pobjeda', p.wins + (p.matches ? ' · ' + p.winRate + '%' : ''))}${st('postolja', p.podiums)}${st('rušenja', p.kills)}${st('u igri', dur(p.playMs))}${st('potrošeno', nf.format(p.spent))}${st('kupljeno', p.purchases)}${st('zezao', p.trollsSent)}${st('zezan', p.trollsGot)}${st('pozvao', p.invited)}</div>
     <span class="lbl">Tragovi</span>${chips(owned.filter(id => id.startsWith('sk_') && id !== 'sk_none'), SKIN, eq.skin)}
     <span class="lbl">Ikone</span>${chips(owned.filter(id => id.startsWith('bd_') && id !== 'bd_none'), BADGE, eq.badge)}
@@ -315,6 +316,7 @@ function showCard(slug) {
     <div class="note" id="pcMsg"></div>`;
   $('#pcardBg').hidden = false;
   $('#pcClose').onclick = () => { $('#pcardBg').hidden = true; };
+  $('#pcX').onclick = () => { $('#pcardBg').hidden = true; };
   if ($('#pcReset')) $('#pcReset').onclick = async () => {
     let key = ''; try { key = sessionStorage.getItem('vijuga-admin') || ''; } catch (e) {}
     if (!key) key = prompt('Admin ključ:') || ''; if (!key) return;
@@ -326,6 +328,7 @@ function showCard(slug) {
   };
 }
 $('#pcardBg').addEventListener('click', e => { if (e.target.id === 'pcardBg') $('#pcardBg').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#pcardBg').hidden = true; });
 document.addEventListener('click', e => { const el = e.target.closest('[data-player]'); if (!el || e.target.closest('a, button')) return; showCard(el.dataset.player); });
 
 function recent() {
