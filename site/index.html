@@ -1327,7 +1327,7 @@ function showResults() {
     </tbody></table></div>`;
   let actions;
   if (net) {
-    actions = `<div class="readybox" id="readyBox"></div><div class="row"><button class="btn" id="readyBtn">Spreman za novu igru</button>${net.role === 'host' ? '<button class="btn ghost" id="setBtn">Promijeni postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><p class="hint">Nova igra kreće kad svi igrači iz ovog meča stisnu „Spreman”. Tko izađe, ne čeka se.</p>`;
+    actions = `<div class="readybox" id="readyBox"></div><div class="row"><button class="btn" id="readyBtn">Spreman za novu igru</button>${net.role === 'host' ? '<button class="btn ghost" id="setBtn">Promijeni postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><p class="hint">Nova igra kreće kad svi igrači iz ovog meča stisnu „Spreman”. Tko izađe, ne čeka se.</p><p class="hint" id="readyHint"></p>`;
   } else {
     actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div>`;
   }
@@ -1358,7 +1358,9 @@ function renderReady() {
   const b = $('#readyBtn'); if (b) b.textContent = myPres.again === net.mid ? 'Odustani od nove igre' : 'Spreman za novu igru';
   if (net.role === 'host' && G.over) {
     const present = list.filter(r => r.here);
-    if (present.length && present.every(r => r.ready) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
+    const enough = present.length >= 2 || (setup.netBots && present.length >= 1);
+    const hint = $('#readyHint'); if (hint) hint.textContent = enough ? '' : 'Za novu igru trebaju barem 2 igrača (ili uključi „dopuni botovima” u predvorju).';
+    if (enough && present.every(r => r.ready) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
   }
 }
 function leaveOnline() {
@@ -1457,6 +1459,7 @@ function hostStart(rematch) {
       skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', mine: me });
   });
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'srednje', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
+  if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; return; }
   net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36) };
   netPresence({ again: null, rd: 1 }); roomState.ready = true;
   $('#menu').hidden = true; $('#game').hidden = false;
