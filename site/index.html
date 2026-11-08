@@ -67,7 +67,9 @@ button:disabled { cursor: default; opacity: .5; }
   .shop .item button, .rolepick button, .giftopt { min-height: 40px; }
 }
 #menu[hidden] #bnav { display: none; }
-  body.typing #bnav, body.typing #fabPlay { display: none !important; }
+  body.kb #bnav, body.kb #fabPlay { display: none !important; } /* only while the phone keyboard is really open */
+  #bnav button { touch-action: manipulation; position: relative; z-index: 2; -webkit-tap-highlight-color: transparent; }
+  #bnav .bplay { z-index: 1; }
 #fabPlay { position: fixed; right: 22px; bottom: 22px; z-index: 20; border: 0; border-radius: 999px; padding: 14px 22px; font-weight: 800; font-size: 17px; background: var(--good); color: #062b14; box-shadow: 0 6px 18px rgba(0,0,0,.45); cursor: pointer; }
 #coinFloat { position: fixed; top: max(8px, env(safe-area-inset-top, 0px)); right: 12px; z-index: 21; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
 #coinFloat span { color: var(--amber); font-weight: 800; margin-left: 4px; }
@@ -987,7 +989,7 @@ function quickPlay() {
   $('#menu').scrollTo({ top: 0, behavior: 'smooth' });
 }
 setTimeout(() => {
-  document.querySelectorAll('#bnav [data-go]').forEach(b => b.onclick = (e) => { const g = b.dataset.go; if (g === 'stats') return; if (g === 'play') showPlayChooser(); else if (g === 'me') showProfile(); else { showTab(g); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
+  $('#bnav').addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-go]'); if (!b) return; const g = b.dataset.go; if (g === 'stats') return; e.preventDefault(); closeModal(); const im = $('#inviteModal'); if (im && !im.hidden && !social.pendingFrom) im.hidden = true; if (g === 'play') showPlayChooser(); else if (g === 'me') showProfile(); else { showTab(g); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
   const fab = $('#fabPlay'); if (fab) fab.onclick = showPlayChooser;
   const menu = $('#menu'), cf = $('#coinFloat');
   const onScroll = () => { const y = menu.scrollTop; if (cf) { cf.hidden = !profile || y < 160; if (!cf.hidden) cf.innerHTML = `<b>${esc(profile.name)}</b> <span>● ${profile.coins}</span>`; } if (fab) fab.hidden = innerWidth < 760 || y < 420; };
@@ -3792,7 +3794,7 @@ const netStats = { rtt: 0 };
 // phone keyboard: hide the bottom bar while typing and keep the field being typed in on screen
 document.addEventListener('focusin', (e) => { const el = e.target; if (!el || !/^(INPUT|TEXTAREA)$/.test(el.tagName) || el.type === 'checkbox' || el.type === 'radio') return; document.body.classList.add('typing'); const show = () => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (er) {} }; setTimeout(show, 250); setTimeout(show, 600); });
 document.addEventListener('focusout', () => setTimeout(() => { if (!document.activeElement || !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) document.body.classList.remove('typing'); }, 50));
-if (window.visualViewport) visualViewport.addEventListener('resize', () => { const el = document.activeElement; if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !$('#menu').hidden) setTimeout(() => { try { el.scrollIntoView({ block: 'center' }); } catch (er) {} }, 50); });
+if (window.visualViewport) visualViewport.addEventListener('resize', () => { document.body.classList.toggle('kb', visualViewport.height < innerHeight * 0.72); const el = document.activeElement; if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !$('#menu').hidden) setTimeout(() => { try { el.scrollIntoView({ block: 'center' }); } catch (er) {} }, 50); });
 // ?debug=1 : small live panel with connection and input facts (for reports from phones)
 const DEBUG = (() => { try { return new URLSearchParams(location.search).get('debug') === '1'; } catch (e) { return false; } })();
 let dbgEl = null, dbgAt = 0, dbgFrames = 0, dbgFps = 0, dbgFpsAt = 0;
