@@ -71,7 +71,8 @@ wss.on("connection", (ws) => {
     }
     if (m.t === "own" && m.patch && typeof m.patch === "object") {
       const out = JSON.stringify({ t: "p", peer, patch: m.patch });
-      for (const [k, o] of room) if (k !== peer && o.following === peer && o.ws.readyState === 1) o.ws.send(out);
+      // a follower whose connection is backed up gets the next snapshot instead of a growing queue
+      for (const [k, o] of room) if (k !== peer && o.following === peer && o.ws.readyState === 1 && o.ws.bufferedAmount < 65536) o.ws.send(out);
       return;
     }
     if (m.t === "to" && typeof m.peer === "string" && m.patch && typeof m.patch === "object") {

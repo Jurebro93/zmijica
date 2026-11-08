@@ -2474,7 +2474,7 @@ function frame(ts) {
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return; }
   else { if (net && net.role === 'host') hostReadInputs(); const away = net && net.role === 'host' && hostAwayPause(); if (!paused && !away) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
   if (ts - (G.fitChk || 0) > 500 && !$('#game').hidden) { G.fitChk = ts; const r = $('#stage').getBoundingClientRect(); if (Math.round(r.width) + 'x' + Math.round(r.height) !== lastFit) fitCanvas(); }
-  recordFrame(ts); render(); renderHud(); updatePads(); tickCountdown(); chatAutoHide();
+  recordFrame(ts); render(); renderHud(); updatePads(); tickCountdown(); chatAutoHide(); if (DEBUG) drawDebug(ts);
   if (G && G.phase === 'end' && lastReplay && (frameN & 15) === 0) addReplayButton();
   raf = requestAnimationFrame(frame);
 }
@@ -2521,20 +2521,28 @@ function buildPads() {
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), j, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
     // the whole bar is one touch surface: left third turns left, right third turns right, middle jumps.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
-    const ptr = box._ptr = new Map(); const pid = p.id;
-    const flip = box.classList.contains('top'); const MARGIN = 26;
-    const nearPad = (e) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) - r.width / 2; if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
-    const zone = (e, down) => { const r = box.getBoundingClientRect();
-      if (down) return nearPad(e); // a press has to start on a button (or just next to it)
-      if (r.width < 10) return e.clientX < innerWidth / 2 ? 'L' : 'R'; // side layout (landscape): slide between sides
-      let f = (e.clientX - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.38 ? 'L' : f > 0.62 ? 'R' : 'J'; };
+    // Touch input is read from the browser's own list of fingers (e.touches) on every event, so a lost
+    // "finger up" can never leave a turn stuck; a press must start on a button, then the finger may slide.
+    const ptr = box._ptr = new Map(); const pid = p.id; const flip = box.classList.contains('top'); const MARGIN = 28;
+    const padAt = (x, y) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) - r.width / 2; if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
+    const sideOf = (x) => { const r = box.getBoundingClientRect(); if (r.width < 10) return x < innerWidth / 2 ? 'L' : 'R'; let f = (x - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.5 ? 'L' : 'R'; };
     const sync = () => { const h = (touchHeld[pid] = { L: 0, R: 0 }); for (const z of ptr.values()) if (z !== 'J') h[z]++;
       box.querySelectorAll('.pad').forEach(btn => btn.classList.toggle('on', btn.dataset.k === 'J' ? [...ptr.values()].includes('J') : h[btn.dataset.k] > 0)); clientInput(); };
-    box.onpointerdown = (e) => { e.preventDefault(); const z = zone(e, true); if (!z) return; const cap = box.getBoundingClientRect().width < 10 ? (e.target.closest && e.target.closest('.pad')) : box; try { cap && cap.setPointerCapture(e.pointerId); } catch (er) {} ptr.set(e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
-    box.onpointermove = (e) => { if (!ptr.has(e.pointerId)) return; const z = zone(e); if (z && z !== ptr.get(e.pointerId) && z !== 'J') { ptr.set(e.pointerId, z); sync(); } };
     box._sync = sync;
-    const up = (e) => { if (ptr.delete(e.pointerId)) sync(); };
-    box.onpointerup = up; box.onpointercancel = up; box.onlostpointercapture = up;
+    const onTouch = (e) => {
+      if (e.type === 'touchstart') { for (const t of e.changedTouches) { const z = padAt(t.clientX, t.clientY); if (z) { ptr.set(t.identifier, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); } } }
+      else if (e.type === 'touchmove') { for (const t of e.changedTouches) { const z = ptr.get(t.identifier); if (z && z !== 'J') { const sd = sideOf(t.clientX); if (sd !== z) ptr.set(t.identifier, sd); } } }
+      else { for (const t of e.changedTouches) ptr.delete(t.identifier); }
+      const live = new Set(); for (const t of e.touches) live.add(t.identifier); for (const id of [...ptr.keys()]) if (!live.has(id) && typeof id === 'number') ptr.delete(id);
+      if (e.cancelable && (ptr.size || e.type !== 'touchstart')) e.preventDefault();
+      sync();
+    };
+    for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.addEventListener(ev, onTouch, { passive: false });
+    // mouse / pen (desktop): one button at a time
+    box.onpointerdown = (e) => { if (e.pointerType === 'touch') return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
+    box.onpointermove = (e) => { if (e.pointerType === 'touch') return; const k = 'm' + e.pointerId; const z = ptr.get(k); if (z && z !== 'J') { const sd = sideOf(e.clientX); if (sd !== z) { ptr.set(k, sd); sync(); } } };
+    const upM = (e) => { if (e.pointerType === 'touch') return; if (ptr.delete('m' + e.pointerId)) sync(); };
+    box.onpointerup = upM; box.onpointercancel = upM; box.onlostpointercapture = upM;
     box.oncontextmenu = (e) => e.preventDefault();
   };
   mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
@@ -3361,14 +3369,14 @@ function seatQueuedHumans() {
       const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
       const c = used.has(want) ? bot.id : want;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
-      G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1;
+      G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1; G.plDirty = true;
       G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
     } else if (G.players.length < MAX_PLAYERS) { // free seat: join the running match from the next round
       const used = new Set(G.players.map(p => p.id));
       let c = want; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
-      G.players.push(np); G.joinRound = G.round + 1;
+      G.players.push(np); G.joinRound = G.round + 1; G.plDirty = true;
       G.toast = { text: `${np.name} ulazi u meč`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč od ove runde`);
     } else break;
@@ -3402,8 +3410,10 @@ function hostStart(rematch) {
   newMatch(players); buildPads(); enterGame(); hostSend(true);
 }
 function hostSend(force) {
-  const now = performance.now(); const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count') ? 50 : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
-  netPresence({ st: buildSnap() });
+  const now = performance.now(); const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count') ? 66 : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return;
+  if (!force && roomNs && roomNs.busy && roomNs.busy()) { net.skipped = (net.skipped || 0) + 1; if (net.skipped < 8) return; } // the connection is backed up: hold this frame (but never for long)
+  net.skipped = 0; net.lastSend = now; net.sendN = (net.sendN || 0) + 1;
+  netPresence({ st: buildSnap(force || net.sendN % 8 === 1 || !!G.plDirty) }); G.plDirty = false;
 }
 function hostReadInputs() {
   for (const p of G.players) if (p.remote) {
@@ -3416,7 +3426,7 @@ function hostReadInputs() {
     }
     if (pr && pr.presence) {
       const is = Number(pr.presence.is) || 0, now = performance.now();
-      if (!is || is >= (p.lastIs || 0)) { // ignore an old packet that arrived late
+      if (!is || is >= (p.lastIs || 0) || now - (p.inAt || 0) > 800) { // ignore an old packet that arrived late (unless the player reconnected and counts from 1 again)
         if (is !== (p.lastIs || 0) || !p.inAt) { p.lastIs = is; p.inAt = now; }
         p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0));
         const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); }
@@ -3441,9 +3451,9 @@ function hostAwayPause() {
   }
   G.pz = null; return false; // the match never pauses for one absent player
 }
-function buildSnap() {
+function buildSnap(full = true) {
   return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => ({ i: p.id, co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -3486,7 +3496,8 @@ function applyState(st, first) {
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
     if (q.co != null && COLORS[q.co] && p.color !== COLORS[q.co]) { p.color = COLORS[q.co]; hudDirty = true; }
-    Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
+    if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none' }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
+    Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.rm === mePeer) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) setTimeout(() => { buildPads(); renderSpecBar(); if (G.round > 1) showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
@@ -3714,12 +3725,28 @@ async function initWsRoom() {
     peers: toPeers,
     follow(peer) { if (following === peer) return; following = peer; sendRaw({ t: 'follow', peer: peer && peer !== myPeer ? peer : null }); },
     rejoin() { if (ws) { try { ws.close(); } catch (e) {} } },
+    busy() { return !ws || ws.readyState !== 1 || ws.bufferedAmount > 6000; },
     onPeers(h) { peerHandlers.push(h); setTimeout(() => h({ peers: toPeers(), joined: toPeers(), left: [], updated: [] }), 0); return () => {}; },
     connected: () => connected,
     onConnection(h) { connHandlers.push(h); setTimeout(() => h(connected), 0); return () => {}; },
   };
 }
 const netStats = { rtt: 0 };
+// ?debug=1 : small live panel with connection and input facts (for reports from phones)
+const DEBUG = (() => { try { return new URLSearchParams(location.search).get('debug') === '1'; } catch (e) { return false; } })();
+let dbgEl = null, dbgAt = 0, dbgFrames = 0, dbgFps = 0, dbgFpsAt = 0;
+function drawDebug(ts) {
+  dbgFrames++; if (ts - dbgFpsAt > 1000) { dbgFps = dbgFrames; dbgFrames = 0; dbgFpsAt = ts; }
+  if (ts - dbgAt < 250) return; dbgAt = ts;
+  if (!dbgEl) { dbgEl = document.createElement('pre'); dbgEl.id = 'dbg'; dbgEl.style.cssText = 'position:fixed;left:4px;top:60px;z-index:50;margin:0;padding:4px 6px;font:11px/1.3 monospace;color:#9fe;background:rgba(0,0,0,.6);border-radius:6px;pointer-events:none;white-space:pre'; document.body.appendChild(dbgEl); }
+  const me = G && G.players.find(p => p.mine || (net && p.id === net.myId));
+  const inV = me ? humanIn(me) : '-';
+  const rows = [`fps ${dbgFps}  ping ${netStats.rtt}ms  ${net ? net.role : 'local'}${window.__srvMode ? ' srv' : ' supa'}  ${roomState.connected ? 'ON' : 'OFF'}`];
+  if (net && net.role === 'client') rows.push(`snap age ${Math.round(performance.now() - net.lastSeen)}ms  myId ${net.myId}  in ${inV}  seq ${net.inSeq || 0}`);
+  if (net && net.role === 'host') { rows.push(`sends ${net.sendN || 0} skipped ${net.skipped || 0}  in ${inV}`); for (const p of G.players) if (p.remote) rows.push(`${p.name.slice(0, 8).padEnd(8)} in ${p.remoteIn} seq ${p.lastIs || 0} age ${Math.round(performance.now() - (p.inAt || 0))}ms${p.away ? ' AWAY' : ''}`); }
+  if (G) rows.push(`arena ${W}x${H} phase ${G.phase} r${G.round} players ${G.players.length}`);
+  dbgEl.textContent = rows.join('\n');
+}
 async function initCapabilities() {
   if (window.claude && window.claude.use) {
     try {
