@@ -129,6 +129,7 @@ button:disabled { cursor: default; opacity: .5; }
 .vipmsg { color: #ffd23f; }
 .premiumbox { border: 1px solid rgba(255,210,63,.45); background: linear-gradient(180deg, rgba(255,210,63,.08), transparent); border-radius: 14px; padding: 12px; }
 .roomlink { color: var(--amber); font-size: 14px; } .treasury { border: 1px dashed #ffd23f; border-radius: 10px; padding: 8px 12px; } .treasury b { color: #ffd23f; }
+.localbox { border: 1px solid rgba(76,201,240,.45); background: linear-gradient(180deg, rgba(29,79,156,.18), transparent); border-radius: 14px; padding: 12px; }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
 .dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
@@ -495,6 +496,7 @@ button.pu:hover { border-color: var(--line); }
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="premiumbox"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
+        <div class="localbox"><h2>⚓ Šibenik <small>lokalne ikone, svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div></div>
         <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
@@ -658,6 +660,11 @@ const BADGES = {
   bd_skull: { g: '☠', name: 'Lubanja', d: 'Za one koji ruše', price: 140 },
   bd_gem:   { g: '◆', name: 'Dragulj', d: 'Rijetko', price: 180 },
   bd_crown: { g: '♛', name: 'Kruna', d: 'Samo za prvake', price: 300 },
+  bd_hr:      { g: '🇭🇷', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="22" height="16" rx="1.5" fill="#fff"/><rect x="1" y="2" width="22" height="5.4" rx="1.5" fill="#d4202a"/><rect x="1" y="12.6" width="22" height="5.4" rx="1.5" fill="#171796"/><rect x="8.5" y="5" width="7" height="8.5" rx="1" fill="#fff" stroke="#171796" stroke-width=".6"/><path d="M8.5 5h2.33v2.1H8.5zM13.17 5h2.33v2.1h-2.33zM10.83 7.1h2.34v2.1h-2.34zM8.5 9.2h2.33v2.1H8.5zM13.17 9.2h2.33v2.1h-2.33zM10.83 11.3h2.34v2.2h-2.34z" fill="#d4202a"/></svg>', name: 'Hrvatska zastava', d: 'LOKALNO: samo 2 igrača je mogu imati', price: 1000 },
+  bd_sibenik: { g: 'ŠI', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="22" height="16" rx="1.5" fill="#1d4f9c"/><path d="M6 15V9h2V7h2v2h4V7h2v2h2v6z" fill="#fff"/><path d="M11 15v-3a1 1 0 0 1 2 0v3z" fill="#1d4f9c"/><path d="M12 3.5l.6 1.4 1.5.1-1.2.9.4 1.5-1.3-.8-1.3.8.4-1.5-1.2-.9 1.5-.1z" fill="#ffd23f"/></svg>', name: 'Šibenska zastava', d: 'LOKALNO: samo 2 igrača je mogu imati', price: 1000 },
+  bd_funcut:  { g: 'F', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="12" cy="10" r="8.6" fill="#8e1b1b" stroke="#ffd23f" stroke-width="1.4"/><text x="12" y="14.2" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="11" fill="#ffd23f">F</text></svg>', name: 'Funcut', d: 'LOKALNO: za prave Funcute. Samo 2 komada', price: 1000 },
+  bd_mihovil: { g: '⚔', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><path d="M12 2l1.4 2v10.5h-2.8V4z" fill="#e9eff6"/><path d="M8.3 14.5h7.4v1.6H8.3z" fill="#ffd23f"/><path d="M11.2 16.1h1.6v3h-1.6z" fill="#b07a4f"/><path d="M10.4 7C7.5 5.5 4 6 2 8.5c2.8-.5 5.5 0 8.4 2zM13.6 7c2.9-1.5 6.4-1 8.4 1.5-2.8-.5-5.5 0-8.4 2z" fill="#ffd23f"/></svg>', name: 'Sveti Mihovil', d: 'LOKALNO: mač i krila zaštitnika grada. Samo 2 komada', price: 1000 },
+  bd_katedrala: { g: '⛪', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><path d="M3 18V10h18v8z" fill="#d9d4c7"/><path d="M3 10a4.5 4.5 0 0 1 9 0z" fill="#e9e4d7"/><path d="M12 10a4.5 4.5 0 0 1 9 0z" fill="#e9e4d7"/><path d="M8.5 6.2a3.5 3.5 0 0 1 7 0z" fill="#f1ede2"/><path d="M11.5 1.5h1v3.2h-1z" fill="#8396ab"/><path d="M10.5 18v-4a1.5 1.5 0 0 1 3 0v4z" fill="#5b6b7c"/><circle cx="12" cy="11.3" r="1.2" fill="#5b6b7c"/></svg>', name: 'Katedrala sv. Jakova', d: 'LOKALNO: pročelje šibenske katedrale. Samo 2 komada', price: 1000 },
   bd_boat:  { g: '⛵', name: 'Brodić', d: 'Za mornare', price: 120 },
   bd_dog:   { g: '🐶', name: 'Psić', d: 'Najbolji prijatelj', price: 120 },
   bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
@@ -1168,7 +1175,8 @@ function renderShop() {
   };
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local), 'badge');
+  make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local), 'badge');
   const prb = $('#shopPremium');
   if (prb) {
     prb.innerHTML = '';
