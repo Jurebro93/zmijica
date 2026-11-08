@@ -152,6 +152,10 @@ button:disabled { cursor: default; opacity: .5; }
 .vipmsg { color: #ffd23f; }
 .premiumbox { border: 1px solid rgba(255,210,63,.45); background: linear-gradient(180deg, rgba(255,210,63,.08), transparent); border-radius: 14px; padding: 12px; }
 .roomlink { color: var(--amber); font-size: 14px; } .treasury { border: 1px dashed #ffd23f; border-radius: 10px; padding: 8px 12px; } .treasury b { color: #ffd23f; }
+.uniquebox { border: 1px solid rgba(180,140,255,.5); background: linear-gradient(180deg, rgba(180,140,255,.12), transparent); border-radius: 14px; padding: 12px; }
+.lots { display: grid; gap: 8px; } .lot { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; } .lot.mine { border-color: var(--amber); } .lot.done { opacity: .85; }
+.lotitem { display: flex; gap: 10px; align-items: center; } .lotitem .ic { font-size: 28px; } .lotitem small { display: block; color: var(--muted); }
+.lotact { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; } .lotact input, .tnew select { width: 110px; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 8px; color: var(--fg); }
 .localbox { border: 1px solid rgba(76,201,240,.45); background: linear-gradient(180deg, rgba(29,79,156,.18), transparent); border-radius: 14px; padding: 12px; }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
@@ -482,6 +486,7 @@ button.pu:hover { border-color: var(--line); }
         <button role="tab" data-tab="local" aria-selected="false">S botovima</button>
         <button role="tab" data-tab="shop" aria-selected="false">Trgovina</button>
         <button role="tab" data-tab="tour" aria-selected="false">Turnir 🏆</button>
+        <button role="tab" data-tab="auct" aria-selected="false">Aukcija 🔨</button>
         <button role="tab" data-tab="board" aria-selected="false">Ljestvica</button>
         <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
         <a class="tablink" href="stats.html">Statistika</a>
@@ -519,6 +524,7 @@ button.pu:hover { border-color: var(--line); }
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="premiumbox"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
+        <div class="uniquebox"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone, svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div></div>
         <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
@@ -528,6 +534,7 @@ button.pu:hover { border-color: var(--line); }
       </div>
 
       <div class="tab" id="tab-tour" hidden><div id="tour"></div></div>
+      <div class="tab" id="tab-auct" hidden><div id="auct"></div></div>
       <div class="tab" id="tab-board" hidden><div id="board"></div></div>
 
       <div class="tab" id="tab-help" hidden>
@@ -690,6 +697,19 @@ const BADGES = {
   bd_hajduk:  { g: 'H', local: true, limit: 2, svg: '<svg width="1.1em" height="1.1em" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-0.18em"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#1d3f8f" stroke-width="2"/><g clip-path="url(#hc)"><clipPath id="hc"><path d="M7 6h10v7a5 5 0 0 1-10 0z"/></clipPath><rect x="7" y="6" width="10" height="12" fill="#fff"/><path d="M7 6h2.5v2.5H7zM12 6h2.5v2.5H12zM9.5 8.5H12V11H9.5zM14.5 8.5H17V11h-2.5zM7 11h2.5v2.5H7zM12 11h2.5v2.5H12zM9.5 13.5H12V16H9.5zM14.5 13.5H17V16h-2.5z" fill="#d1232a"/></g><path d="M7 6h10v7a5 5 0 0 1-10 0z" fill="none" stroke="#1d3f8f" stroke-width=".8"/></svg>', name: 'Hajduk Split', d: 'NAVIJAČI: bijeli znak s crveno-bijelom šahovnicom. Samo 2 komada', price: 1000 },
   bd_mihovil: { g: '⚔', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><path d="M12 2l1.4 2v10.5h-2.8V4z" fill="#e9eff6"/><path d="M8.3 14.5h7.4v1.6H8.3z" fill="#ffd23f"/><path d="M11.2 16.1h1.6v3h-1.6z" fill="#b07a4f"/><path d="M10.4 7C7.5 5.5 4 6 2 8.5c2.8-.5 5.5 0 8.4 2zM13.6 7c2.9-1.5 6.4-1 8.4 1.5-2.8-.5-5.5 0-8.4 2z" fill="#ffd23f"/></svg>', name: 'Sveti Mihovil', d: 'LOKALNO: mač i krila zaštitnika grada. Samo 2 komada', price: 1000 },
   bd_katedrala: { g: '⛪', local: true, limit: 2, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><path d="M3 18V10h18v8z" fill="#d9d4c7"/><path d="M3 10a4.5 4.5 0 0 1 9 0z" fill="#e9e4d7"/><path d="M12 10a4.5 4.5 0 0 1 9 0z" fill="#e9e4d7"/><path d="M8.5 6.2a3.5 3.5 0 0 1 7 0z" fill="#f1ede2"/><path d="M11.5 1.5h1v3.2h-1z" fill="#8396ab"/><path d="M10.5 18v-4a1.5 1.5 0 0 1 3 0v4z" fill="#5b6b7c"/><circle cx="12" cy="11.3" r="1.2" fill="#5b6b7c"/></svg>', name: 'Katedrala sv. Jakova', d: 'LOKALNO: pročelje šibenske katedrale. Samo 2 komada', price: 1000 },
+  bd_p_hdz: { g: 'HDZ', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#fff"/><rect x="1" y="2" width="26" height="16" rx="3" fill="none" stroke="#0d3c8c" stroke-width="1"/><path d="M20.5 4h1.5v1.5h-1.5zM22 5.5h1.5V7H22zM20.5 7h1.5v1.5h-1.5z" fill="#d4202a"/><path d="M22 4h1.5v1.5H22zM20.5 5.5H22V7h-1.5zM22 7h1.5v1.5H22z" fill="#fff"/><text x="14" y="12.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="7" fill="#0d3c8c">HDZ</text></svg>', name: 'HDZ', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_sdp: { g: 'SDP', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#e2001a"/><text x="14" y="12.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="7" fill="#fff">SDP</text></svg>', name: 'SDP', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_mozemo: { g: 'Mož', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#3aa655"/><text x="14" y="11.9" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="5.2" fill="#fff">MOŽEMO!</text></svg>', name: 'Možemo!', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_most: { g: 'Mos', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#20364f"/><text x="14" y="12.3" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="6.5" fill="#fff">MOST</text></svg>', name: 'Most', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_dp: { g: 'Dom', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#0a2a66"/><text x="14" y="12.9" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="8" fill="#fff">DP</text></svg>', name: 'Domovinski pokret', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_hss: { g: 'HSS', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#009b48"/><text x="14" y="12.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="7" fill="#fff">HSS</text></svg>', name: 'HSS', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_ids: { g: 'IDS', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#1c8c3c"/><text x="14" y="12.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="7" fill="#ffd23f">IDS</text></svg>', name: 'IDS', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_p_rf: { g: 'Rad', unique: true, limit: 1, svg: '<svg width="1.4em" height="1em" viewBox="0 0 28 20" aria-hidden="true" style="vertical-align:-0.12em"><rect x="1" y="2" width="26" height="16" rx="3" fill="#c1121f"/><path d="M5.5 6.5l.7 1.5 1.6.2-1.2 1.1.3 1.6-1.4-.8-1.4.8.3-1.6-1.2-1.1 1.6-.2z" fill="#ffd23f"/><text x="14" y="12.9" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="8" fill="#fff">RF</text></svg>', name: 'Radnička fronta', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_lgbt: { g: 'Dug', unique: true, limit: 1, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><clipPath id="fc"><rect x="1" y="2" width="22" height="16" rx="1.5"/></clipPath><g clip-path="url(#fc)"><rect x="1" y="2.00" width="22" height="2.72" fill="#e40303"/><rect x="1" y="4.67" width="22" height="2.72" fill="#ff8c00"/><rect x="1" y="7.33" width="22" height="2.72" fill="#ffed00"/><rect x="1" y="10.00" width="22" height="2.72" fill="#008026"/><rect x="1" y="12.67" width="22" height="2.72" fill="#004dff"/><rect x="1" y="15.33" width="22" height="2.72" fill="#750787"/></g></svg>', name: 'Duga (LGBT)', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_qplus: { g: 'Pro', unique: true, limit: 1, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><clipPath id="fc"><rect x="1" y="2" width="22" height="16" rx="1.5"/></clipPath><g clip-path="url(#fc)"><rect x="1" y="2.00" width="22" height="2.72" fill="#e40303"/><rect x="1" y="4.67" width="22" height="2.72" fill="#ff8c00"/><rect x="1" y="7.33" width="22" height="2.72" fill="#ffed00"/><rect x="1" y="10.00" width="22" height="2.72" fill="#008026"/><rect x="1" y="12.67" width="22" height="2.72" fill="#004dff"/><rect x="1" y="15.33" width="22" height="2.72" fill="#750787"/><path d="M1 2l9 8-9 8z" fill="#000"/><path d="M1 2l7 8-7 8z" fill="#784f17"/><path d="M1 2l5 8-5 8z" fill="#5bcefa"/><path d="M1 2l3 8-3 8z" fill="#f5a9b8"/><path d="M1 3.5l1.6 6.5L1 16.5z" fill="#fff"/></g></svg>', name: 'Progress Pride (LGBTQ+)', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_trans: { g: 'Tra', unique: true, limit: 1, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><clipPath id="fc"><rect x="1" y="2" width="22" height="16" rx="1.5"/></clipPath><g clip-path="url(#fc)"><rect x="1" y="2.00" width="22" height="3.25" fill="#5bcefa"/><rect x="1" y="5.20" width="22" height="3.25" fill="#f5a9b8"/><rect x="1" y="8.40" width="22" height="3.25" fill="#ffffff"/><rect x="1" y="11.60" width="22" height="3.25" fill="#f5a9b8"/><rect x="1" y="14.80" width="22" height="3.25" fill="#5bcefa"/></g></svg>', name: 'Trans zastava', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_bi: { g: 'Bi ', unique: true, limit: 1, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><clipPath id="fc"><rect x="1" y="2" width="22" height="16" rx="1.5"/></clipPath><g clip-path="url(#fc)"><rect x="1" y="2.00" width="22" height="3.25" fill="#d60270"/><rect x="1" y="5.20" width="22" height="3.25" fill="#d60270"/><rect x="1" y="8.40" width="22" height="3.25" fill="#9b4f96"/><rect x="1" y="11.60" width="22" height="3.25" fill="#0038a8"/><rect x="1" y="14.80" width="22" height="3.25" fill="#0038a8"/></g></svg>', name: 'Bi zastava', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
+  bd_nb: { g: 'Neb', unique: true, limit: 1, svg: '<svg width="1.2em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><clipPath id="fc"><rect x="1" y="2" width="22" height="16" rx="1.5"/></clipPath><g clip-path="url(#fc)"><rect x="1" y="2.00" width="22" height="4.05" fill="#fcf434"/><rect x="1" y="6.00" width="22" height="4.05" fill="#ffffff"/><rect x="1" y="10.00" width="22" height="4.05" fill="#9c59d1"/><rect x="1" y="14.00" width="22" height="4.05" fill="#2c2c2c"/></g></svg>', name: 'Nebinarna zastava', d: 'UNIKAT: postoji samo 1. Kad ga netko kupi, može se dobiti samo na aukciji', price: 1500 },
   bd_boat:  { g: '⛵', name: 'Brodić', d: 'Za mornare', price: 120 },
   bd_dog:   { g: '🐶', name: 'Psić', d: 'Najbolji prijatelj', price: 120 },
   bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
@@ -1155,7 +1175,7 @@ function renderDailyShop() {
 }
 function seasonNow() { return Math.floor((Date.now() / 86400000 + 3) / 7) % 4; }
 function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
-function limitLeft(id) { const it = SKINS[id] || BADGES[id]; if (!it || !it.limit) return Infinity; return Math.max(0, it.limit - ownersOf(id)); }
+function limitLeft(id) { const it = SKINS[id] || BADGES[id]; if (!it || !it.limit) return Infinity; return Math.max(0, it.limit - ownersOf(id) - ((auct && auct.active) || []).filter(l => l.item === id).length); }
 function buyUndo(id, cost, kind, prevEq) {
   const name = itemName(id);
   const n = notify(`✅ Kupljeno: <b>${esc(name)}</b> (−${cost})`, { ms: 8000, actions: '<button class="pingbtn" type="button" data-undo="1">Poništi</button>' });
@@ -1200,7 +1220,8 @@ function renderShop() {
   };
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique), 'badge');
+  make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local), 'badge');
   const prb = $('#shopPremium');
   if (prb) {
@@ -1444,11 +1465,62 @@ async function reportTour(sorted) {
   const j = await tourCall(TMODE.id, 'result', { round: TMODE.k, table: TMODE.s, ranking });
   if (j) toast('🏆 Rezultat stola je upisan u turnir.');
 }
+// ================= auction house =================
+const AUCT_API = 'https://vijuga.netlify.app/api/auction';
+var auct = { active: [], done: [], stats: {} }, auctTimer = 0; // var: read by limitLeft() before this line runs
+const listable = id => !!((SKINS[id] && SKINS[id].limit) || (BADGES[id] && BADGES[id].limit));
+async function loadAuct() {
+  try { const r = await fetch(AUCT_API, { cache: 'no-store' }); if (r.ok) auct = await r.json(); } catch (e) {}
+  renderAuct(); clearTimeout(auctTimer); if (curTab === 'auct' && !$('#menu').hidden) auctTimer = setTimeout(loadAuct, 20000);
+}
+setTimeout(loadAuct, 2000);
+async function auctCall(path, extra) {
+  if (!profile) { showLogin(); return null; }
+  try { const r = await fetch(AUCT_API + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) }); const j = await r.json().catch(() => ({}));
+    if (!r.ok) { toast({ 'too low': `Premalo. Najmanja ponuda je ${j.min}.`, 'not owned': 'Poslužitelj još ne vidi da imaš tu stvar. Pričekaj minutu.', 'already listed': 'Tu stvar već prodaješ.', 'own lot': 'Ne možeš licitirati na svoje.', 'has bids': 'Već ima ponuda, ne možeš povući. Prihvati ili pričekaj kraj.', closed: 'Aukcija je već završila.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; }
+    return j; } catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
+}
+function itemIcon(id) { const b = BADGES[id]; if (b) return `<span class="ic">${b.svg || b.g}</span>`; if (SKINS[id]) return '<span class="ic">〰️</span>'; return ''; }
+function fmtLeft(ms) { if (ms <= 0) return 'završava'; const h = Math.floor(ms / 3600000), d = Math.floor(h / 24); return d ? `${d} d ${h % 24} h` : h ? `${h} h ${Math.floor(ms / 60000) % 60} min` : `${Math.max(1, Math.floor(ms / 60000))} min`; }
+function renderAuct() {
+  const box = $('#auct'); if (!box) return;
+  const me = profile && profile.slug;
+  const mine = profile ? profile.owned.filter(listable) : [];
+  const lot = l => { const t = l.bids[l.bids.length - 1], min = t ? Math.ceil(t.amount * 1.05 + 1) : l.start, st = auct.stats[l.item];
+    return `<div class="lot ${l.seller === me ? 'mine' : ''}"><div class="lotitem">${itemIcon(l.item)}<div><b>${esc(itemName(l.item))}</b><small>prodaje ${esc(l.sellerName)} · još ${fmtLeft(l.ends - Date.now())}${st ? ` · prosjek ${st.avg}` : ''}</small></div></div>
+      <div class="lotbid">${t ? `Najviša: <b>● ${t.amount}</b> (${esc(t.name)})` : `Početna: <b>● ${l.start}</b>`}${l.buyNow ? ` · Kupi odmah: <b>● ${l.buyNow}</b>` : ''}</div>
+      ${l.seller === me ? `<div class="lotact">${t ? `<button class="btn sm" type="button" data-acc="${l.id}">Prihvati ● ${t.amount}</button>` : `<button class="btn sm ghost" type="button" data-can="${l.id}">Povuci</button>`}</div>`
+      : profile ? `<div class="lotact"><input type="number" min="${min}" value="${min}" data-in="${l.id}"><button class="btn sm" type="button" data-bid="${l.id}">Ponudi</button>${l.buyNow ? `<button class="btn sm ghost" type="button" data-bn="${l.id}" data-v="${l.buyNow}">Kupi odmah</button>` : ''}${t && t.slug === me ? '<span class="hint">✓ ti vodiš</span>' : ''}</div>` : ''}</div>`; };
+  box.innerHTML = `<div class="thead"><span class="tcup">🔨</span><div><h2 style="margin:0">Aukcija</h2><p class="hint" style="margin:0">Ovdje se prodaju <b>unikati i limitirane stvari</b> (stranke, zastave, Šibenik, navijači, Dijamant, Komet). Ponuda ti odmah zaključa zlatnike, a ako te netko nadmaši, vraćaju ti se. Prodaja završava kad prodavatelj prihvati, kad netko plati „kupi odmah” ili nakon 5 dana. Provizija je 5 %.</p></div></div>
+    ${profile ? `<details class="tnew" ${mine.length ? '' : 'open'}><summary>➕ Stavi stvar na aukciju</summary>${mine.length ? `<label>Stvar <select id="auItem">${mine.map(id => `<option value="${id}">${esc(itemName(id))}</option>`).join('')}</select></label><label>Početna cijena <input type="number" id="auStart" value="1000" min="10"></label><label>Kupi odmah (neobavezno) <input type="number" id="auBn" placeholder="npr. 3000" min="0"></label><button class="btn" type="button" id="auGo">Stavi na aukciju</button>` : '<p class="hint">Nemaš limitiranih ni unikatnih stvari za prodaju. Kupi ih u Trgovini (🗳️ Unikati, ⚓ Šibenik i navijači).</p>'}</details>` : ''}
+    <h3>Aktivno (${auct.active.length})</h3><div class="lots">${auct.active.map(lot).join('') || '<p class="hint">Trenutno nitko ništa ne prodaje.</p>'}</div>
+    <h3>Zadnje prodaje</h3><div class="lots">${auct.done.filter(l => l.status === 'sold').slice(0, 10).map(l => `<div class="lot done"><div class="lotitem">${itemIcon(l.item)}<div><b>${esc(itemName(l.item))}</b><small>${esc(l.sellerName)} → ${esc(l.buyerName || '')} za ● ${l.price}</small></div></div></div>`).join('') || '<p class="hint">Još nema prodaja.</p>'}</div>`;
+  if ($('#auGo')) $('#auGo').onclick = async () => {
+    const item = $('#auItem').value, start = Math.floor(Number($('#auStart').value) || 0), bn = Math.floor(Number($('#auBn').value) || 0);
+    if (!confirm(`Staviti ${itemName(item)} na aukciju od ${start}? Stvar odmah izlazi iz tvoje kolekcije (vraća se ako je nitko ne kupi).`)) return;
+    const j = await auctCall('', { item, start, buyNow: bn }); if (!j) return;
+    profile.owned = profile.owned.filter(x => x !== item); for (const k of ['skin', 'badge']) if (profile.eq[k] === item) profile.eq[k] = k === 'skin' ? 'sk_none' : 'bd_none';
+    saveProfile(); toast('🔨 Stvar je na aukciji.'); loadAuct();
+  };
+  const bid = async (id, amount) => { if (!profile || profile.coins < amount) { toast('Nemaš dovoljno zlatnika.'); return; } if (!confirm(`Ponuditi ${amount} zlatnika? Zlatnici se odmah zaključaju.`)) return; const j = await auctCall('/' + id + '/bid', { amount }); if (!j) return; profile.coins -= j.paid; profile.spent = (profile.spent || 0) + j.paid; saveProfile(); toast(j.lot.status === 'sold' ? '🎉 Kupljeno! Stvar stiže za par sekundi.' : '🔨 Ponuda je tvoja.'); if (j.lot.status === 'sold') setTimeout(collectGifts, 1500); loadAuct(); };
+  box.querySelectorAll('[data-bid]').forEach(b => b.onclick = () => bid(b.dataset.bid, Math.floor(Number(box.querySelector(`[data-in="${b.dataset.bid}"]`).value) || 0)));
+  box.querySelectorAll('[data-bn]').forEach(b => b.onclick = () => bid(b.dataset.bn, Number(b.dataset.v)));
+  box.querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => { if (!confirm('Prihvatiti najvišu ponudu i prodati?')) return; if (await auctCall('/' + b.dataset.acc + '/accept')) { toast('💰 Prodano! Zlatnici stižu za par sekundi.'); setTimeout(collectGifts, 1500); loadAuct(); } });
+  box.querySelectorAll('[data-can]').forEach(b => b.onclick = async () => { if (await auctCall('/' + b.dataset.can + '/cancel')) { toast('Povučeno. Stvar ti se vraća.'); setTimeout(collectGifts, 1500); loadAuct(); } });
+}
+// one-time announcement about unique items and the auction house
+function announceUnique() {
+  try { if (localStorage.getItem('vijuga-ann-unique')) return; localStorage.setItem('vijuga-ann-unique', '1'); } catch (e) { return; }
+  const n = notify('🆕 <b>Unikati u trgovini!</b> Stranke (HDZ, SDP, Možemo…) i zastave (LGBT, Q+, trans…): od svake postoji <b>samo 1</b>. Tko prvi kupi, jedini ga ima, a ostali ga mogu dobiti samo na novoj <b>Aukciji 🔨</b>.', { ms: 20000, actions: '<button class="pingbtn" type="button" data-go-shop="1">Pogledaj</button>' });
+  if (n) n.querySelector('[data-go-shop]').onclick = () => { n.remove(); showTab('shop'); const u = $('.uniquebox'); if (u) u.scrollIntoView({ behavior: 'smooth' }); };
+}
+setTimeout(announceUnique, 5000);
 function showTab(t) {
   curTab = t; try { localStorage.setItem('vijuga-tab', t); } catch (e) {}
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  ['local', 'online', 'shop', 'tour', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
+  ['local', 'online', 'shop', 'tour', 'auct', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
   if (t === 'tour') loadTours();
+  if (t === 'auct') loadAuct();
   if (t === 'online') renderNet();
   if (t === 'board') renderBoard();
 }
