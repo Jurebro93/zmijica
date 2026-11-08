@@ -389,6 +389,7 @@ const SKINS = {
   sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
   sk_boobs:   { name: 'Dojke', d: 'Trag boje kože s parovima dojki. Za odrasle.', price: 160 },
   sk_condom:  { name: 'Kondom', d: 'Prozirni trag s rezervoarom na vrhu. Za odrasle.', price: 160 },
+  sk_hairy:   { name: 'Dlakava jaja', d: 'Koža s dlakama, na glavi dvije dlakave kugle. Za odrasle.', price: 170 },
 };
 const BADGES = {
   bd_none:  { g: '', name: 'Bez ikone', d: '', price: 0 },
@@ -400,6 +401,7 @@ const BADGES = {
   bd_ucross: { g: '⁺U', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M4 9v7a6 6 0 0 0 12 0V9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 1v6M7 4h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', name: 'U s križem', d: 'Veliko U, križić na vrhu', price: 200 },
   bd_vag:   { g: '◊', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>', name: 'Vagina', d: 'Ikona za odrasle', price: 120 },
   bd_boobs: { g: '(.)(.)', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="11" r="1.5" fill="currentColor"/><circle cx="17" cy="11" r="1.5" fill="currentColor"/></svg>', name: 'Dojke', d: 'Ikona za odrasle', price: 120 },
+  bd_hairy: { g: '∞', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', name: 'Dlakava jaja', d: 'Ikona za odrasle', price: 130 },
   bd_condom: { g: '∩', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>', name: 'Kondom', d: 'Ikona za odrasle', price: 120 },
 };
 const STARTER_PU = ['fastS', 'slowS', 'thinS', 'ghostS', 'wrapS', 'jumpS', 'slowO', 'thickO', 'revO', 'sqO'];
@@ -585,11 +587,11 @@ function skinPreview(cv, skinId, color) {
   c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round';
   applySkin(c, skinId, color, 3, 0);
   if (skinId === 'sk_dildo') { c.fillStyle = '#e98aa6'; c.beginPath(); c.arc(12, h / 2 - 6, 6, 0, 6.283); c.arc(12, h / 2 + 6, 6, 0, 6.283); c.fill(); }
-  const xe = ['sk_dildo', 'sk_vag', 'sk_boobs', 'sk_condom'].includes(skinId) ? w - 26 : w - 10;
+  const xe = ['sk_dildo', 'sk_vag', 'sk_boobs', 'sk_condom', 'sk_hairy'].includes(skinId) ? w - 26 : w - 10;
   c.beginPath(); for (let x = 10; x <= xe; x += 4) { const y = h / 2 + Math.sin(x / 22) * 12; if (x === 10) c.moveTo(x, y); else c.lineTo(x, y); }
   c.stroke();
   if (skinId === 'sk_dildo') { const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawDildoHead(c, xe, y, a, 3.6); }
-  if (skinId === 'sk_vag' || skinId === 'sk_boobs' || skinId === 'sk_condom') { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { ornAcc: 20 }); const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawSkinHead(c, skinId, xe, y, a, 3.4); }
+  if (skinId === 'sk_vag' || skinId === 'sk_boobs' || skinId === 'sk_condom' || skinId === 'sk_hairy') { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { ornAcc: 20 }); const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawSkinHead(c, skinId, xe, y, a, 3.4); }
 }
 function drawDildoHead(c, x, y, a, r) {
   c.save(); c.translate(x, y); c.rotate(a);
@@ -614,6 +616,7 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
     case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
     case 'sk_condom': c.strokeStyle = 'rgba(205,228,255,0.6)'; c.lineWidth = r * 2 * 1.35; return true;
+    case 'sk_hairy': c.strokeStyle = '#cf9580'; c.lineWidth = r * 2 * 1.45; return true;
   }
 }
 function renderShop() {
@@ -897,6 +900,23 @@ function blockedBy(x, y, p, grace) {
 function skinAfter(c, skin, pts, r, p) {
   if (skin === 'sk_vag') { c.strokeStyle = '#c2496f'; c.lineWidth = Math.max(1, r * 0.7); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
   if (skin === 'sk_condom') { c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.5); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
+  if (skin === 'sk_hairy' && p) {
+    p.hairAcc = p.hairAcc || 0;
+    c.strokeStyle = '#a8704c'; c.lineWidth = Math.max(1.1, r * 0.42); c.lineCap = 'round'; c.setLineDash([]);
+    c.beginPath();
+    for (let i = 2; i < pts.length; i += 2) {
+      const dx = pts[i] - pts[i - 2], dy = pts[i + 1] - pts[i - 1], len = Math.hypot(dx, dy); p.hairAcc += len;
+      while (p.hairAcc >= 3.6) {
+        p.hairAcc -= 3.6; p.hairSide = -(p.hairSide || 1);
+        const a = Math.atan2(dy, dx), side = p.hairSide, seed = Math.sin(pts[i] * 12.9898 + pts[i + 1] * 78.233) * 43758.5453, jit = seed - Math.floor(seed);
+        const bx = pts[i] + Math.cos(a + Math.PI / 2) * r * 1.2 * side, by = pts[i + 1] + Math.sin(a + Math.PI / 2) * r * 1.2 * side;
+        const ha = a + side * (Math.PI / 2 - .5 + jit * 1.0), hl = r * (1.6 + jit * 1.6);
+        c.moveTo(bx, by); c.quadraticCurveTo(bx + Math.cos(ha) * hl * .6 + Math.cos(a) * r * .5 * jit, by + Math.sin(ha) * hl * .6 + Math.sin(a) * r * .5 * jit, bx + Math.cos(ha) * hl, by + Math.sin(ha) * hl);
+      }
+    }
+    c.stroke();
+    c.strokeStyle = 'rgba(120,60,45,0.35)'; c.lineWidth = Math.max(0.6, r * 0.22); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke();
+  }
   if (skin === 'sk_boobs' && p) {
     p.ornAcc = p.ornAcc || 0;
     for (let i = 2; i < pts.length; i += 2) {
@@ -908,6 +928,7 @@ function skinAfter(c, skin, pts, r, p) {
     }
   }
 }
+const cx0 = (r) => r * 0.4 - r * 1.2;
 function drawSkinHead(c, skin, x, y, a, r) {
   c.save(); c.translate(x, y); c.rotate(a); c.shadowBlur = 0; c.setLineDash([]);
   if (skin === 'sk_vag') {
@@ -916,6 +937,16 @@ function drawSkinHead(c, skin, x, y, a, r) {
     c.fillStyle = '#e46f93'; c.beginPath(); c.arc(r * 3.0, 0, r * 0.55, 0, 6.283); c.fill();
   } else if (skin === 'sk_boobs') {
     for (const sgn of [-1, 1]) { c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(r * 0.6, r * 1.6 * sgn, r * 1.8, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke(); c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(r * 1.1, r * 1.6 * sgn, r * 0.55, 0, 6.283); c.fill(); }
+  } else if (skin === 'sk_hairy') {
+    for (const sgn of [-1, 1]) {
+      const cx = r * 0.4, cy = r * 1.55 * sgn, br = r * 1.8;
+      c.fillStyle = '#d99e88'; c.beginPath(); c.arc(cx, cy, br, 0, 6.283); c.fill();
+      c.strokeStyle = '#b0705c'; c.lineWidth = Math.max(0.7, r * 0.22); c.beginPath(); c.arc(cx - br * .15, cy, br * .55, -1.2, 1.2); c.stroke();
+      c.strokeStyle = '#a8704c'; c.lineWidth = Math.max(0.9, r * 0.32); c.lineCap = 'round'; c.beginPath();
+      for (let k = 0; k < 13; k++) { const t = (k / 13) * 6.283 + sgn * .3, hx = cx + Math.cos(t) * br, hy = cy + Math.sin(t) * br, hl = r * (1.0 + (k % 3) * 0.45); c.moveTo(hx, hy); c.quadraticCurveTo(hx + Math.cos(t + .5) * hl * .7, hy + Math.sin(t + .5) * hl * .7, hx + Math.cos(t + .2) * hl, hy + Math.sin(t + .2) * hl); }
+      c.stroke();
+    }
+    c.strokeStyle = '#b0705c'; c.lineWidth = Math.max(0.7, r * 0.25); c.beginPath(); c.moveTo(cx0(r), -r * 0.6); c.lineTo(cx0(r), r * 0.6); c.stroke();
   } else if (skin === 'sk_condom') {
     c.strokeStyle = 'rgba(205,228,255,0.75)'; c.lineWidth = r * 2.7; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 2.5, 0); c.lineTo(r * 1.4, 0); c.stroke();
     c.fillStyle = 'rgba(205,228,255,0.9)'; c.beginPath(); c.arc(r * 2.9, 0, r * 0.6, 0, 6.283); c.fill();
@@ -1222,7 +1253,7 @@ function render() {
     ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
-    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9));
+    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 1.35 : 1));
     // winner's badge blinks above the head between rounds
     if (G.phase === 'end' && p.id === G.winner && p.alive && BADGES[p.badge] && BADGES[p.badge].g) { const k = 0.55 + 0.45 * Math.sin(G.phaseT * 9); ctx.globalAlpha = k; drawBadge(ctx, p.badge, p.x, p.y - hr - 16 - 3 * Math.sin(G.phaseT * 4), 22, '#ffb547'); ctx.globalAlpha = 1; }
     ctx.globalAlpha = 1;
@@ -1327,6 +1358,7 @@ const PAD_ICONS = {
   sk_boobs: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="${side === 'L' ? 13 : 11}" cy="13" r="2.2" fill="currentColor"/></svg>`,
   sk_vag: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>`,
   sk_dildo: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:scaleX(${side === 'L' ? -1 : 1})"><path d="M3 15h11" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><ellipse cx="16" cy="15" rx="5" ry="4" fill="currentColor"/><circle cx="4" cy="20" r="2.4" fill="currentColor"/><circle cx="4" cy="10" r="2.4" fill="currentColor"/></svg>`,
+  sk_hairy: () => `<svg viewBox="0 0 24 20" aria-hidden="true"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
   sk_condom: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>`,
 };
 function padIcon(p, side) {
