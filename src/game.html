@@ -3379,7 +3379,7 @@ function hostStart(rematch) {
   newMatch(players); buildPads(); enterGame(); hostSend(true);
 }
 function hostSend(force) {
-  const now = performance.now(); const gap = !net.supa ? 40 : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
+  const now = performance.now(); const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count') ? 50 : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
   netPresence({ st: buildSnap() });
 }
 function hostReadInputs() {
@@ -3641,6 +3641,62 @@ async function initSupabase() {
     onConnection(h) { connHandlers.push(h); setTimeout(() => h(connected), 0); return () => {}; },
   };
 }
+// ---- Vijuga realtime server (WebSocket): same interface as the Supabase layer, no rate limits, no dropped channels
+const SRV_URL = (() => { try { const q = new URLSearchParams(location.search); const u = q.get('srvurl'); if (u && /^wss?:\/\//.test(u)) return u; } catch (e) {} return 'wss://vijuga-server.onrender.com'; })();
+const SRV_ON = (() => { try { const q = new URLSearchParams(location.search); if (q.get('srv') === '0') { localStorage.removeItem('vijuga-srv'); return false; } if (q.get('srv') === '1') { localStorage.setItem('vijuga-srv', '1'); return true; } return localStorage.getItem('vijuga-srv') === '1'; } catch (e) { return false; } })();
+async function initWsRoom() {
+  const myPeer = Math.random().toString(36).slice(2, 10);
+  const peersMap = {}; let connected = false; const peerHandlers = [], connHandlers = [];
+  const toPeers = () => Object.values(peersMap);
+  const fire = () => { const peers = toPeers(); peerHandlers.forEach(h => h({ peers, joined: [], left: [], updated: [] })); };
+  const mkPeer = (key, pres) => ({ peer: key, by: null, isMe: key === myPeer, sameTab: key === myPeer, kind: 'viewer', guest: false, presence: pres, updatedAt: Date.now() });
+  const ROOM = (() => { try { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; } catch (e) { return 'vijuga-lobby'; } })();
+  window.__room = ROOM; window.__supaMode = true; window.__srvMode = true;
+  const lobbyPres = {}; let following = null, ws = null, backoff = 500, pingT = 0, lastPong = 0;
+  const sendRaw = (o) => { if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(o)); } catch (e) {} } };
+  const setConnected = (c) => { if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } };
+  const connect = () => {
+    let sock; try { sock = new WebSocket(SRV_URL); } catch (e) { setTimeout(connect, backoff); backoff = Math.min(8000, backoff * 2); return; }
+    ws = sock;
+    sock.onopen = () => { backoff = 500; sendRaw({ t: 'hi', room: ROOM, peer: myPeer }); };
+    sock.onmessage = (ev) => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.t === 'hello') { setConnected(true); if (Object.keys(lobbyPres).length) sendRaw({ t: 'pres', patch: lobbyPres }); if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); lastPong = performance.now(); return; }
+      if (m.t === 'peers') { const seen = new Set([myPeer]); for (const q of m.peers || []) { if (q.peer === myPeer) continue; seen.add(q.peer); const prev = peersMap[q.peer]; const keep = prev ? { st: prev.presence.st, sp: prev.presence.sp, in: prev.presence.in, j: prev.presence.j, is: prev.presence.is, vis: prev.presence.vis } : {}; peersMap[q.peer] = mkPeer(q.peer, Object.assign({}, keep, q.presence || {})); } for (const k in peersMap) if (!seen.has(k)) delete peersMap[k]; fire(); return; }
+      if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; peersMap[m.peer] = mkPeer(m.peer, Object.assign({}, prev.presence, m.patch)); fire(); return; }
+      if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
+      if (m.t === 'pong') { lastPong = performance.now(); netStats.rtt = Math.round(performance.now() - m.n); return; }
+    };
+    sock.onclose = () => { if (ws !== sock) return; ws = null; setConnected(false); setTimeout(connect, backoff); backoff = Math.min(8000, backoff * 2); };
+    sock.onerror = () => { try { sock.close(); } catch (e) {} };
+  };
+  connect();
+  clearInterval(pingT); pingT = setInterval(() => { if (ws && ws.readyState === 1) { sendRaw({ t: 'ping', n: performance.now() }); if (lastPong && performance.now() - lastPong > 30000) { try { ws.close(); } catch (e) {} } } }, 5000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && (!ws || ws.readyState > 1)) { backoff = 500; connect(); } });
+  peersMap[myPeer] = mkPeer(myPeer, {});
+  roomNs = {
+    async presence(patch) {
+      const pres = {}, own = {}, toHost = {}; let hasPres = false, hasOwn = false, hasToHost = false;
+      for (const k in patch) {
+        if (k === 'st' || k === 'sp') { own[k] = patch[k]; hasOwn = true; if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { pres.hs = on; hasPres = true; } } }
+        else if (k === 'in' || k === 'j' || k === 'is' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
+        else { pres[k] = patch[k]; hasPres = true; }
+      }
+      if (hasOwn) sendRaw({ t: 'own', patch: own });
+      if (hasToHost) { const to = following && following !== myPeer ? following : null; if (to) sendRaw({ t: 'to', peer: to, patch: toHost }); }
+      if (hasPres) { for (const k in pres) { if (pres[k] === null) delete lobbyPres[k]; else lobbyPres[k] = pres[k]; } sendRaw({ t: 'pres', patch: pres }); }
+      const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
+      fire();
+    },
+    peers: toPeers,
+    follow(peer) { if (following === peer) return; following = peer; sendRaw({ t: 'follow', peer: peer && peer !== myPeer ? peer : null }); },
+    rejoin() { if (ws) { try { ws.close(); } catch (e) {} } },
+    onPeers(h) { peerHandlers.push(h); setTimeout(() => h({ peers: toPeers(), joined: toPeers(), left: [], updated: [] }), 0); return () => {}; },
+    connected: () => connected,
+    onConnection(h) { connHandlers.push(h); setTimeout(() => h(connected), 0); return () => {}; },
+  };
+}
+const netStats = { rtt: 0 };
 async function initCapabilities() {
   if (window.claude && window.claude.use) {
     try {
@@ -3650,7 +3706,8 @@ async function initCapabilities() {
     if (userNs) { try { dbWritable = await userNs.can('data.write'); } catch (e) { dbWritable = null; } }
   } else {
     dbNs = makeApiAccounts();
-    if (SUPA.url && SUPA.key) { try { await initSupabase(); } catch (e) { roomNs = null; } }
+    if (SRV_ON) { try { await initWsRoom(); } catch (e) { roomNs = null; } }
+    else if (SUPA.url && SUPA.key) { try { await initSupabase(); } catch (e) { roomNs = null; } }
   }
   roomState.resolved = true; renderOnbar(); loadChatHistory();
   if (dbNs) {
