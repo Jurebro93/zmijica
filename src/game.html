@@ -40,6 +40,26 @@ button:disabled { cursor: default; opacity: .5; }
 .me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #0b121b; }
 .me b { font-weight: 700; }
 .me .coins { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
+.onbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: color-mix(in srgb, var(--good) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--good) 40%, var(--line)); border-radius: 12px; padding: 8px 12px; }
+.onbar .lbl { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--good); font-size: 14px; text-transform: uppercase; letter-spacing: .06em; }
+.onbar .lbl::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 var(--good); animation: livePulse 1.8s infinite; }
+@keyframes livePulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 70%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.onp { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; font-weight: 600; }
+.onp .st { color: var(--muted); font-size: 12px; font-weight: 500; }
+.pingbtn { border: 0; border-radius: 999px; background: var(--amber); color: #1a1205; font-weight: 700; font-size: 13px; padding: 4px 10px; }
+.pingbtn:disabled { background: var(--line); color: var(--muted); }
+#notes { position: fixed; z-index: 30; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: min(420px, calc(100% - 20px)); display: grid; gap: 8px; pointer-events: none; }
+.note-card { pointer-events: auto; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--good); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; box-shadow: 0 10px 30px rgba(0,0,0,.45); animation: noteIn .25s ease-out; }
+.note-card.warn { border-left-color: var(--amber); }
+.note-card .txt { flex: 1 1 180px; min-width: 0; font-size: 15px; }
+.note-card .x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 0 4px; }
+@keyframes noteIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+.invite-modal { position: fixed; inset: 0; z-index: 40; background: color-mix(in srgb, var(--ink) 75%, transparent); display: grid; place-items: center; padding: 16px; }
+.invite-modal[hidden] { display: none; }
+.invite-card { background: var(--panel); border: 2px solid var(--amber); border-radius: 16px; padding: 22px; width: min(100%, 380px); display: grid; gap: 12px; text-align: center; animation: ring .6s ease-in-out 3; }
+.invite-card h3 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0; }
+.invite-card .big { font-size: 46px; line-height: 1; }
+@keyframes ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-3deg); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); } }
 #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; transition: .25s; background: var(--fg); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); z-index: 20; pointer-events: none; word-break: break-all; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 .invite { margin: 0; background: color-mix(in srgb, var(--amber) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
@@ -264,6 +284,7 @@ button.pu:hover { border-color: var(--line); }
         <p>Do šest zmija na jednoj ploči. Skreći, preskači tragove i ostani zadnji živ.</p>
         <div class="me" id="me"></div>
       </header>
+      <div class="onbar" id="onbar" hidden></div>
       <canvas id="preview" aria-hidden="true"></canvas>
 
       <div class="tabs" role="tablist" id="tabs">
@@ -342,6 +363,8 @@ button.pu:hover { border-color: var(--line); }
     </div>
     <div class="modal" id="regModal" hidden></div>
   </section>
+  <div id="notes" aria-live="polite"></div>
+  <div class="invite-modal" id="inviteModal" hidden role="dialog" aria-modal="true" aria-labelledby="invTitle"></div>
 
   <!-- GAME -->
   <section id="game" hidden>
@@ -528,6 +551,7 @@ function loginAs(doc) {
 }
 function logout() { profile = null; rememberLogin(null); renderMe(); renderShop(); renderBoard(); renderPlayers(); if (roomNs) { roomState.ready = false; netPresence(Object.assign(myLobbyPres(), { rd: 0 })); } renderNet(); showLogin(); }
 function renderMe() {
+  setTimeout(() => { try { renderOnbar(); } catch (e) {} }, 0);
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
@@ -1531,6 +1555,96 @@ let roomState = { connected: false, peers: [], me: null, ready: false, hostPeer:
 let myPres = {};
 function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.presence(patch).catch(() => {}); }
 function myLobbyPres() { return { sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
+// ---------- who is online, pings between real players ----------
+const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null };
+function onlineOthers() { return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug || !p.isMe)); }
+function peerStatus(pr) { return pr.st ? 'u igri (domaćin)' : pr.rd ? 'u predvorju' : 'na stranici'; }
+function notify(html, opts = {}) {
+  const box = $('#notes'); if (!box) return null;
+  const n = document.createElement('div'); n.className = 'note-card' + (opts.warn ? ' warn' : ''); n.innerHTML = `<div class="txt">${html}</div>` + (opts.actions || '') + '<button class="x" type="button" aria-label="Zatvori">×</button>';
+  n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > 3) box.firstChild.remove();
+  if (opts.ms !== 0) setTimeout(() => n.remove(), opts.ms || 9000);
+  return n;
+}
+function renderOnbar() {
+  const bar = $('#onbar'); if (!bar) return;
+  const others = onlineOthers();
+  if (!roomNs || !others.length) { bar.hidden = true; return; }
+  bar.hidden = false;
+  bar.innerHTML = `<span class="lbl">Online sada</span>` + others.slice(0, 6).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span><button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button></span>`; }).join('') + (others.length > 6 ? `<span class="st">+${others.length - 6}</span>` : '');
+  bar.querySelectorAll('.pingbtn').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
+}
+function sendPing(peer) {
+  if (!roomNs || !profile || !peer) return;
+  if (social.pingSent[peer] && performance.now() - social.pingSent[peer] < 15000) return;
+  social.pingSent[peer] = performance.now(); social.pingN++;
+  netPresence({ ping: [peer, social.pingN, Date.now()] });
+  const pe = roomState.peers.find(p => p.peer === peer);
+  notify(`Pozvao si <b>${esc(String((pe && pe.presence.nm) || 'igrača'))}</b> na online igru. Čekam odgovor…`, { ms: 6000 });
+  renderOnbar(); setTimeout(renderOnbar, 15100); renderNetPeersSoon();
+}
+function answerPing(fromPeer, n, yes) {
+  netPresence({ pong: [fromPeer, n, yes ? 1 : 0, Date.now()] });
+  $('#inviteModal').hidden = true; social.pendingFrom = null; stopTitleFlash();
+  if (yes) goOnlineLobby();
+}
+function goOnlineLobby() {
+  if (!$('#game').hidden && !net) toMenu();
+  if ($('#game').hidden) { showTab('online'); if (!roomState.ready) joinLobby(true); $('#menu').scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+let titleTimer = 0; const baseTitle = document.title;
+function flashTitle(msg) { stopTitleFlash(); let on = false; titleTimer = setInterval(() => { document.title = (on = !on) ? msg : baseTitle; }, 900); }
+function stopTitleFlash() { clearInterval(titleTimer); titleTimer = 0; document.title = baseTitle; }
+addEventListener('focus', () => { if (!social.pendingFrom) stopTitleFlash(); });
+function showInvite(from, n) {
+  const pr = from.presence || {};
+  const m = $('#inviteModal'); social.pendingFrom = from.peer;
+  m.innerHTML = `<div class="invite-card"><div class="big">🐍🔔</div><h3 id="invTitle">${esc(String(pr.nm || 'Netko'))} te zove na igru!</h3><p class="hint" style="margin:0">Uđi u online predvorje i igrajte zajedno${pr.st ? ' (već je u meču, priključit ćeš se na sljedeći)' : ''}.</p><div class="go" style="justify-content:center"><button class="btn" id="invYes" type="button">Prihvati</button><button class="btn ghost" id="invNo" type="button">Ne sada</button></div></div>`;
+  m.hidden = false;
+  $('#invYes').onclick = () => answerPing(from.peer, n, true);
+  $('#invNo').onclick = () => answerPing(from.peer, n, false);
+  try { navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 300]); } catch (e) {}
+  beep(880, .15, 'square', .06); setTimeout(() => beep(1175, .2, 'square', .06), 170); setTimeout(() => beep(880, .15, 'square', .06), 420);
+  flashTitle('🔔 ' + String(pr.nm || 'Poziv') + ' te zove!');
+}
+function collectSocial() {
+  const me = roomState.me;
+  for (const p of roomState.peers) {
+    const pr = p.presence || {};
+    // incoming ping aimed at me
+    if (Array.isArray(pr.ping) && pr.ping[0] === me && !(p.isMe && p.sameTab)) {
+      const key = p.peer + ':' + pr.ping[1];
+      if (!social.pingSeen[key]) { social.pingSeen[key] = 1; if (Date.now() - (Number(pr.ping[2]) || 0) < 60000) showInvite(p, pr.ping[1]); }
+    }
+    // answer to my ping
+    if (Array.isArray(pr.pong) && pr.pong[0] === me && !(p.isMe && p.sameTab)) {
+      const key = p.peer + ':' + pr.pong[1];
+      if (!social.pongSeen[key]) { social.pongSeen[key] = 1; delete social.pingSent[p.peer];
+        if (pr.pong[2]) { const n = notify(`<b>${esc(String(pr.nm || 'Igrač'))}</b> prihvaća poziv! Oboje ste u predvorju.`, { ms: 0, actions: '<button class="pingbtn" type="button" data-act="start">Pokreni meč</button>' }); goOnlineLobby(); if (n) n.querySelector('[data-act=start]').onclick = () => { n.remove(); if (!roomState.ready) joinLobby(true); setTimeout(() => { if (!net) hostStart(); }, 600); }; beep(660, .1); setTimeout(() => beep(990, .15), 110); }
+        else notify(`<b>${esc(String(pr.nm || 'Igrač'))}</b> trenutno ne može igrati.`, { warn: true, ms: 6000 });
+        renderOnbar(); }
+    }
+  }
+  // someone new came online
+  const others = onlineOthers();
+  const fresh = [];
+  for (const p of others) {
+    if (social.seen[p.peer]) continue; social.seen[p.peer] = 1;
+    const who = String(p.presence.sl || p.presence.nm);
+    if (social.lastNotice[who] && Date.now() - social.lastNotice[who] < 120000) continue;
+    social.lastNotice[who] = Date.now(); fresh.push(p);
+  }
+  if (fresh.length && social.settled && profile && $('#game').hidden) {
+    const p = fresh[0], names = fresh.map(q => esc(String(q.presence.nm).slice(0, 14)));
+    const n = notify(`🟢 <b>${names.join(', ')}</b> ${fresh.length > 1 ? 'su' : 'je'} online.${fresh.length > 1 ? '' : ' Igrajte zajedno!'}`, { actions: fresh.length === 1 ? `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}">Pozovi na igru</button>` : '' });
+    if (n && fresh.length === 1) n.querySelector('.pingbtn').onclick = (e) => { sendPing(p.peer); n.remove(); };
+  } else if (fresh.length && social.settled && profile && !$('#game').hidden && !net) {
+    // playing locally: a quiet note only
+    notify(`🟢 <b>${esc(String(fresh[0].presence.nm))}</b> je online. Možeš ga pozvati u izborniku.`, { ms: 5000 });
+  }
+  renderOnbar();
+}
+setTimeout(() => { social.settled = true; if (profile) { const o = onlineOthers(); if (o.length) { const names = o.slice(0, 3).map(q => esc(String(q.presence.nm).slice(0, 14))); const n = notify(`🟢 Online sada: <b>${names.join(', ')}</b>${o.length > 3 ? ' i još ' + (o.length - 3) : ''}.`, { actions: o.length === 1 ? `<button class="pingbtn" type="button">Pozovi na igru</button>` : '' }); if (n && o.length === 1) n.querySelector('.pingbtn').onclick = () => { sendPing(o[0].peer); n.remove(); }; } } }, 3500);
 function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); }
 function findHost() {
   const hosts = roomState.peers.filter(p => p.presence && p.presence.st && typeof p.presence.st === 'object').sort((a, b) => a.peer < b.peer ? -1 : 1);
@@ -1552,11 +1666,12 @@ function renderNet() {
     html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span></div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „Lokalna igra”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
   wireChat('#lchatIn', '#lchatSend'); renderChat();
+  document.querySelectorAll('#net [data-ping]').forEach(b => b.onclick = () => sendPing(b.dataset.ping));
   document.querySelectorAll('#lreact .rbtn').forEach(b => b.onclick = () => sendReaction(b.dataset.e));
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
@@ -1772,10 +1887,12 @@ async function initSupabase() {
   const toPeers = () => Object.values(peersMap);
   const fire = () => { const peers = toPeers(); peerHandlers.forEach(h => h({ peers, joined: [], left: [], updated: [] })); };
   const mkPeer = (key, pres) => ({ peer: key, by: null, isMe: key === myPeer, sameTab: key === myPeer, kind: 'viewer', guest: false, presence: pres, updatedAt: Date.now() });
-  const ch = sb.channel('vijuga-lobby', { config: { presence: { key: myPeer }, broadcast: { self: false } } });
+  const ROOM = (() => { try { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; } catch (e) { return 'vijuga-lobby'; } })();
+  window.__room = ROOM;
+  const ch = sb.channel(ROOM, { config: { presence: { key: myPeer }, broadcast: { self: false } } });
   ch.on('presence', { event: 'sync' }, () => {
     const st = ch.presenceState(); const seen = new Set();
-    for (const key in st) { const pr = st[key][0] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg } : {}; peersMap[key] = mkPeer(key, Object.assign({}, fast, pr)); }
+    for (const key in st) { const pr = st[key][0] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong } : {}; peersMap[key] = mkPeer(key, Object.assign({}, fast, pr)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   });
@@ -1790,7 +1907,7 @@ async function initSupabase() {
   roomNs = {
     async presence(patch) {
       const fast = {}, slow = {}; let hasFast = false, hasSlow = false;
-      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; } }
+      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg' || k === 'ping' || k === 'pong') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
@@ -1830,8 +1947,9 @@ async function initCapabilities() {
   if (roomNs) {
     roomNs.onConnection(c => { roomState.connected = c; if (curTab === 'online' && $('#menu').hidden === false) renderNet(); }, () => { roomNs = null; roomState.connected = false; renderNet(); });
     roomNs.onPeers(ch => {
-      roomState.peers = ch.peers; collectChat();
+      roomState.peers = ch.peers;
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
+      collectChat(); collectSocial();
       if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { netPresence({ st: null }); toMenu(); } }
       if (!net && roomState.ready && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) clientBegin(h); }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();

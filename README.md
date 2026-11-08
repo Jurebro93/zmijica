@@ -8,7 +8,7 @@ Igra zmija u areni za do 6 igrača (ljudi i botovi), u pregledniku i na mobitelu
 
 ## Online dio
 
-- Predvorje, chat i meč: Supabase Realtime (javni kanal `vijuga-lobby`).
+- Predvorje, chat, pozivi i meč: Supabase Realtime (javni kanal `vijuga-lobby`). Zasebna soba: dodaj `?soba=ime` na adresu (npr. za testiranje ili privatnu igru).
 - Zajednički profili: tablica `vijuga_accounts` (SQL u `supabase.sql`). Bez nje se profili pamte u pregledniku.
 
 ## Lokalno
