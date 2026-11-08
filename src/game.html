@@ -2254,6 +2254,14 @@ function render() {
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
   drawBounties(ctx);
   if (luxFx.length) drawLux(ctx);
+  // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
+  // snake never seems to float ahead of its own trail
+  if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
+    if (!p.alive || !p.drawing || p.sx == null || (p.jumpUntil && p.jumpUntil > G.gt)) continue;
+    const d = Math.hypot(p.x - p.sx, p.y - p.sy); if (d < 0.3 || d > 40) continue;
+    const rr = radiusOf(p); const custom = applySkin(ctx, p.skin, p.color, rr, G.gt); if (!custom) ctx.lineWidth = rr * 2;
+    ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.sx, p.sy); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.shadowBlur = 0; ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
   if (innerWidth < 760 || (net && G.players.length > 4)) drawBoard(ctx);
   if (G.tombs) for (const t of G.tombs) { ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🪦', t.x, t.y); ctx.font = '700 11px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText('R.I.P. ' + t.name, t.x, t.y + 18); ctx.restore(); }
   if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
