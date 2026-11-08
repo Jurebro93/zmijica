@@ -99,6 +99,10 @@ button:disabled { cursor: default; opacity: .5; }
 .mwho { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
 .mwho small { color: var(--muted); font-weight: 500; }
 .meetbest { font-size: 15px; } .meetbest b { color: var(--amber); }
+.betrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.betrow button { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 4px 12px; font-weight: 700; }
+.betrow button.bntb { border-color: #ff5d73; background: rgba(255,93,115,.12); }
+.betrow button:disabled { opacity: .4; } .betrow .sep { width: 10px; }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
 .dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
@@ -459,6 +463,7 @@ button.pu:hover { border-color: var(--line); }
         <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
+        <div><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
         <div><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><div class="shop" id="shopTrolls"></div></div>
       </div>
 
@@ -631,7 +636,7 @@ let setup = {
     type: IS_TOUCH ? (i === 0 ? 'human' : i < 4 ? 'bot' : 'off') : (i < 2 ? 'human' : i < 5 ? 'bot' : 'off'),
     diff: 'srednje',
   })),
-  walls: 'smrt', shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto', rounds: '5',
+  walls: 'smrt', arena: 'klasicna', shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto', rounds: '5',
   puEnabled: Object.fromEntries(PU_KEYS.map(k => [k, true])),
   puRate: 'normalno',
   netBots: true,
@@ -651,7 +656,7 @@ let dbNs = null, userNs = null, roomNs = null, dbWritable = null;
 const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
-function itemPrice(id) { return (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
+function itemPrice(id) { return (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
 const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170 };
 function refundRetired(P) {
   for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
@@ -740,6 +745,7 @@ function showPlayer(slug) {
     <span class="label">Tragovi</span><div class="wrow">${skins.map(k => chip(P.eq.skin === k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('') || none}</div>
     <span class="label">Ikone</span><div class="wrow">${badges.map(k => chip(P.eq.badge === k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('') || none}</div>
     <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
+    <span class="label">Efekti</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
     <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
   </form>`;
@@ -816,6 +822,7 @@ function showProfile() {
     <h4>Garderoba <small>dodirni da promijeniš</small></h4>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
+    ${['te', 'ds', 'vs'].map(kind => { const own = Object.keys(EFFECTS).filter(k => EFFECTS[k].kind === kind && P.owned.includes(k)); return own.length ? `<span class="label">${{ te: 'Efekt traga', ds: 'Kad ispadneš', vs: 'Zvuk pobjede' }[kind]}</span><div class="wrow">${chip(kind, '', 'Bez', '<em>—</em>')}${own.map(k => chip(kind, k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('')}</div>` : ''; }).join('')}
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
@@ -981,7 +988,7 @@ function openBox() {
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><div style="font-size:64px" class="boxpop">🎁</div><h3>Iz kutije si dobio</h3><p style="font-size:20px;margin:0">${msg}</p><div class="go" style="justify-content:center"><button class="btn" type="button" id="boxOk">Super!</button>${profile.coins >= BOX_PRICE ? '<button class="btn ghost" type="button" id="boxAgain">Otvori još jednu (● ' + BOX_PRICE + ')</button>' : ''}</div></form>`;
   $('#boxOk').onclick = () => { m.hidden = true; }; if ($('#boxAgain')) $('#boxAgain').onclick = openBox;
 }
-function itemName(k) { return (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
+function itemName(k) { return (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
 function renderDailyShop() {
   const box = $('#shopDaily'); if (!box) return;
   const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
@@ -1019,6 +1026,22 @@ function renderShop() {
   };
   make($('#shopSkins'), Object.entries(SKINS), 'skin');
   make($('#shopBadges'), Object.entries(BADGES), 'badge');
+  const fxb = $('#shopFx');
+  if (fxb) {
+    fxb.innerHTML = '';
+    Object.entries(EFFECTS).forEach(([id, it]) => {
+      const owned = profile && profile.owned.includes(id), on = profile && profile.eq[it.kind] === id;
+      const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : '');
+      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${it.e}</span></div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
+      const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${it.price}`;
+      const b = document.createElement('button'); b.type = 'button';
+      if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+      else if (on) { b.textContent = 'Isključi'; b.className = 'on'; b.onclick = () => { profile.eq[it.kind] = ''; saveProfile(); }; }
+      else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[it.kind] = id; saveProfile(); if (it.kind === 'vs') playVictory(id); }; }
+      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; profile.coins -= it.price; profile.spent = (profile.spent || 0) + it.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[it.kind] = id; sfx.pick(); if (it.kind === 'vs') playVictory(id); saveProfile(); }; }
+      act.append(pr, b); d.appendChild(act); fxb.appendChild(d);
+    });
+  }
   const tb = $('#shopTrolls');
   if (tb) {
     tb.innerHTML = '';
@@ -1089,6 +1112,7 @@ function renderSettings() {
   const add = (label, node, note) => { const d = document.createElement('div'); d.className = 'setting'; const l = document.createElement('span'); l.className = 'label'; l.textContent = label; d.append(l, node); if (note) { const n = document.createElement('span'); n.className = 'note'; n.textContent = note; d.appendChild(n); } box.appendChild(d); };
   const upd = (k) => (v) => { setup[k] = v; saveSetup(); renderSettings(); renderPlayers(); renderLegend(); };
   add('Zidovi', seg([['smrt', 'Ubijaju'], ['prolaz', 'Propuštaju']], setup.walls, upd('walls')), 'Ubijaju: udarac u rub arene znači ispadanje. Propuštaju: izlaziš na suprotnoj strani.');
+  add('Arena', seg([['klasicna', 'Klasična'], ['zidovi', 'Zidovi'], ['portali', 'Portali'], ['krug', 'Krug']], setup.arena || 'klasicna', upd('arena')), 'Zidovi: prepreke u areni (mijenjaju se po rundi). Portali: uđeš u jedan, izađeš na drugom. Krug: okrugla arena.');
   add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
@@ -1164,6 +1188,57 @@ function beep(freq, dur, type = 'square', vol = 0.06, slide = 0) {
     o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
   } catch (e) {}
 }
+const EFFECTS = {
+  te_fire:   { kind: 'te', e: '🔥', name: 'Vatreni trag', d: 'Iza tebe lete plamičci', price: 220 },
+  te_spark:  { kind: 'te', e: '✨', name: 'Iskrice', d: 'Iza tebe frcaju iskre', price: 180 },
+  te_hearts: { kind: 'te', e: '💖', name: 'Srčeki', d: 'Ostavljaš srčeka za sobom', price: 160 },
+  te_bubble: { kind: 'te', e: '🫧', name: 'Mjehurići', d: 'Mjehurići iza zmije', price: 140 },
+  ds_confetti: { kind: 'ds', e: '🎊', name: 'Konfeti', d: 'Kad ispadneš, pršte konfeti', price: 150 },
+  ds_ghost:  { kind: 'ds', e: '👻', name: 'Duh odlazi', d: 'Kad ispadneš, duh se diže prema nebu', price: 170 },
+  ds_poop:   { kind: 'ds', e: '💩', name: 'Kakica', d: 'Kad ispadneš, ostane kakica', price: 150 },
+  ds_boom:   { kind: 'ds', e: '💣', name: 'Velika eksplozija', d: 'Kad ispadneš, sve zatrese', price: 200 },
+  vs_fanfare:{ kind: 'vs', e: '🎺', name: 'Fanfare', d: 'Zvuk kad pobijediš rundu', price: 140 },
+  vs_fart:   { kind: 'vs', e: '💨', name: 'Prdac', d: 'Zvuk kad pobijediš rundu', price: 120 },
+  vs_horn:   { kind: 'vs', e: '📯', name: 'Zračna truba', d: 'Zvuk kad pobijediš rundu', price: 160 },
+  vs_laugh:  { kind: 'vs', e: '😂', name: 'Smijeh', d: 'Zvuk kad pobijediš rundu', price: 140 },
+};
+function playVictory(vs) {
+  if (vs === 'vs_fanfare') [523, 659, 784, 1047, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, i > 3 ? .3 : .12, 'square', .06), i * 120));
+  else if (vs === 'vs_fart') { beep(110, .55, 'sawtooth', .09, -60); setTimeout(() => beep(85, .35, 'sawtooth', .08, -40), 300); }
+  else if (vs === 'vs_horn') [0, 260, 520].forEach(t => setTimeout(() => beep(370, .22, 'square', .09, 30), t));
+  else if (vs === 'vs_laugh') [0, 160, 320, 480, 640].forEach((t, i) => setTimeout(() => beep(i % 2 ? 520 : 600, .1, 'triangle', .07, -120), t));
+}
+const tparts = [];
+function trailFx(p, now) {
+  if (!p.te || !p.alive || !p.drawing || Math.random() > 0.55) return;
+  const back = p.a + Math.PI, jx = (Math.random() - .5) * 6, jy = (Math.random() - .5) * 6, x = p.x + Math.cos(back) * 6 + jx, y = p.y + Math.sin(back) * 6 + jy;
+  if (p.te === 'te_fire') tparts.push({ t: 'c', x, y, vx: (Math.random() - .5) * 20, vy: -20 - Math.random() * 25, life: .6, born: now, c: Math.random() < .5 ? '#ffb547' : '#ff5d2e', r: 3 + Math.random() * 2 });
+  else if (p.te === 'te_spark') tparts.push({ t: 'c', x, y, vx: (Math.random() - .5) * 90, vy: (Math.random() - .5) * 90, life: .4, born: now, c: Math.random() < .5 ? '#fff6b0' : '#ffffff', r: 1.6 });
+  else if (p.te === 'te_hearts' && Math.random() < .35) tparts.push({ t: 'e', e: '💖', x, y, vx: 0, vy: -18, life: 1.1, born: now, r: 11 });
+  else if (p.te === 'te_bubble' && Math.random() < .4) tparts.push({ t: 'b', x, y, vx: (Math.random() - .5) * 10, vy: -14, life: 1.2, born: now, r: 3 + Math.random() * 4 });
+}
+function deathFx(p) {
+  const now = performance.now();
+  if (p.ds === 'ds_confetti') { const cs = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff']; for (let i = 0; i < 60; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 160; tparts.push({ t: 'r', x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, g: 120, life: 1.4, born: now, c: cs[i % cs.length], r: 3 }); } }
+  else if (p.ds === 'ds_ghost') tparts.push({ t: 'e', e: '👻', x: p.x, y: p.y, vx: 0, vy: -45, life: 1.8, born: now, r: 28 });
+  else if (p.ds === 'ds_poop') tparts.push({ t: 'e', e: '💩', x: p.x, y: p.y, vx: 0, vy: 0, life: 2.5, born: now, r: 30 });
+  else if (p.ds === 'ds_boom') { for (let i = 0; i < 3; i++) burst(p.x, p.y, ['#ffb547', '#ff5d2e', '#fff'][i]); tparts.push({ t: 'ring', x: p.x, y: p.y, life: .6, born: now, r: 10 }); }
+  else burst(p.x, p.y, p.color);
+}
+function drawTparts(c) {
+  const now = performance.now();
+  for (let i = tparts.length - 1; i >= 0; i--) {
+    const q = tparts[i], age = (now - q.born) / 1000; if (age > q.life) { tparts.splice(i, 1); continue; }
+    const k = age / q.life, x = q.x + q.vx * age, y = q.y + q.vy * age + (q.g ? q.g * age * age / 2 : 0);
+    c.globalAlpha = 1 - k;
+    if (q.t === 'c' || q.t === 'r') { c.fillStyle = q.c; if (q.t === 'r') c.fillRect(x - 2, y - 2, 4, 4); else { c.beginPath(); c.arc(x, y, q.r * (1 - k * .6), 0, 6.283); c.fill(); } }
+    else if (q.t === 'b') { c.strokeStyle = 'rgba(180,230,255,.9)'; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, q.r, 0, 6.283); c.stroke(); }
+    else if (q.t === 'e') { c.font = `${q.r}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(q.e, x, y); }
+    else if (q.t === 'ring') { c.strokeStyle = '#ffb547'; c.lineWidth = 4 * (1 - k); c.beginPath(); c.arc(x, y, 10 + k * 90, 0, 6.283); c.stroke(); }
+  }
+  if (tparts.length > 600) tparts.splice(0, tparts.length - 600);
+  c.globalAlpha = 1;
+}
 const sfx = {
   pick: () => { beep(660, .08, 'square', .05); setTimeout(() => beep(990, .1, 'square', .05), 60); },
   die: () => beep(220, .35, 'sawtooth', .07, -170),
@@ -1192,7 +1267,7 @@ function newMatch(netPlayers) {
       if (cfg.type === 'off') return;
       const mine = cfg.type === 'human' && firstHuman && profile; if (cfg.type === 'human') firstHuman = false;
       ps.push({ id: i, name: cfg.name, color: COLORS[i], human: cfg.type === 'human', diff: cfg.diff,
-        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', starter: mine ? profile.eq.pu : '', mine: !!mine,
+        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', starter: mine ? profile.eq.pu : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
         score: 0, kills: 0, wins: 0, picks: 0, jumps: 0, touchL: false, touchR: false });
     });
   }
@@ -1243,13 +1318,13 @@ function rand(a, b) { return a + Math.random() * (b - a); }
 function newRound() {
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
-  owner.fill(0); stampT.fill(0); T = 0;
+  owner.fill(0); stampT.fill(0); T = 0; G.arena = null; stampArena();
   tctx.clearRect(0, 0, W, H);
   const placed = [];
   G.players.forEach(p => {
     let x, y, tries = 0;
     do { x = rand(W * .14, W * .86); y = rand(H * .14, H * .86); tries++; }
-    while (tries < 200 && placed.some(q => Math.hypot(q.x - x, q.y - y) < Math.min(W, H) * .22));
+    while (tries < 200 && (placed.some(q => Math.hypot(q.x - x, q.y - y) < Math.min(W, H) * .22) || inArenaWall(x, y, 45) || (G.arena && G.arena.portals.some(pt => Math.hypot(pt.x - x, pt.y - y) < 50))));
     placed.push({ x, y });
     const toC = Math.atan2(H / 2 - y, W / 2 - x);
     p.roundStart = p.score || 0;
@@ -1265,6 +1340,42 @@ const MAX_STACK = 2;
 function fxCount(p, k) { let n = 0; for (const f of p.fx) if (f.k === k && f.until > G.gt) n++; return Math.min(MAX_STACK, n); }
 function speedOf(p) { return BASE_SPEED * G.speedMul * Math.pow(1.6, fxCount(p, 'fast')) * Math.pow(0.62, fxCount(p, 'slow')); }
 function radiusOf(p) { return Math.max(1.1, BASE_R * Math.pow(0.5, fxCount(p, 'thin')) * Math.pow(2.1, fxCount(p, 'thick'))); }
+const OBST = 254;
+function arenaShapes() {
+  const ar = (setup.arena || 'klasicna'); const out = { rects: [], circle: null, portals: [] };
+  if (ar === 'zidovi') {
+    const v = ((G.round || 1) - 1) % 3, t = 14;
+    if (v === 0) for (const [fx, fy] of [[.3, .3], [.7, .3], [.3, .7], [.7, .7]]) out.rects.push({ x: W * fx - 22, y: H * fy - 22, w: 44, h: 44 });
+    else if (v === 1) { out.rects.push({ x: W * .2, y: H * .5 - t / 2, w: W * .22, h: t }, { x: W * .58, y: H * .5 - t / 2, w: W * .22, h: t }); }
+    else { out.rects.push({ x: W * .5 - t / 2, y: H * .18, w: t, h: H * .2 }, { x: W * .5 - t / 2, y: H * .62, w: t, h: H * .2 }, { x: W * .18, y: H * .5 - t / 2, w: W * .2, h: t }, { x: W * .62, y: H * .5 - t / 2, w: W * .2, h: t }); }
+  } else if (ar === 'portali') {
+    out.portals = [{ x: W * .2, y: H * .25, to: 1, c: '#4cc9f0' }, { x: W * .8, y: H * .75, to: 0, c: '#4cc9f0' }, { x: W * .8, y: H * .25, to: 3, c: '#b48cff' }, { x: W * .2, y: H * .75, to: 2, c: '#b48cff' }];
+  } else if (ar === 'krug') out.circle = { x: W / 2, y: H / 2, r: Math.min(W, H) * .48 };
+  return out;
+}
+function inArenaWall(x, y, m = 0) {
+  const A = G.arena || (G.arena = arenaShapes());
+  for (const r of A.rects) if (x > r.x - m && x < r.x + r.w + m && y > r.y - m && y < r.y + r.h + m) return true;
+  if (A.circle && Math.hypot(x - A.circle.x, y - A.circle.y) > A.circle.r - m) return true;
+  return false;
+}
+function stampArena() {
+  G.arena = arenaShapes(); const A = G.arena; if (!A.rects.length && !A.circle) return;
+  for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) { const x = (gx + .5) * CELL, y = (gy + .5) * CELL; if (inArenaWall(x, y)) owner[gy * GW + gx] = OBST; }
+}
+function drawArena(c) {
+  const A = G.arena || (G.arena = arenaShapes());
+  c.save();
+  for (const r of A.rects) { c.fillStyle = '#2c4158'; c.strokeStyle = '#4d6a88'; c.lineWidth = 2; c.fillRect(r.x, r.y, r.w, r.h); c.strokeRect(r.x, r.y, r.w, r.h); }
+  if (A.circle) { c.beginPath(); c.rect(0, 0, W, H); c.arc(A.circle.x, A.circle.y, A.circle.r, 0, 6.283, true); c.fillStyle = 'rgba(28,42,58,0.92)'; c.fill('evenodd'); c.beginPath(); c.arc(A.circle.x, A.circle.y, A.circle.r, 0, 6.283); c.strokeStyle = '#4d6a88'; c.lineWidth = 3; c.stroke(); }
+  const t = performance.now() / 300;
+  for (const pt of A.portals) { for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(pt.x, pt.y, 10 + i * 5 + Math.sin(t + i) * 2, 0, 6.283); c.strokeStyle = pt.c; c.globalAlpha = 0.9 - i * .25; c.lineWidth = 2.5; c.stroke(); } c.globalAlpha = 1; }
+  c.restore();
+}
+function portalStep(p) {
+  const A = G.arena; if (!A || !A.portals.length || (p.portalCool || 0) > G.gt) return;
+  for (const pt of A.portals) if (Math.hypot(p.x - pt.x, p.y - pt.y) < 14) { const to = A.portals[pt.to]; flushTrail(p, false); p.x = to.x + Math.cos(p.a) * 22; p.y = to.y + Math.sin(p.a) * 22; p.gapLeft = Math.max(p.gapLeft, radiusOf(p) * 2 + 6); p.portalCool = G.gt + 0.8; beep(700, .1, 'sine', .05, 400); return; }
+}
 function wraps(p) { return setup.walls === 'prolaz' || G.wrapAllUntil > G.gt || has(p, 'wrap'); }
 function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }; }
 
@@ -1474,7 +1585,7 @@ function applyPu(p, k, silent) {
     case 'sqO': others.forEach(q => add(q, 'square', P.dur)); break;
     case 'clearA':
       G.players.forEach(q => flushTrail(q, false));
-      owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; break;
+      owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; stampArena(); break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
   }
   G.toast = { text: P.name, color: PU_COLOR[P.t], x: p.x, y: p.y, t: G.gt };
@@ -1483,10 +1594,10 @@ function applyPu(p, k, silent) {
 // ---------- death ----------
 function kill(p, by) {
   if (!p.alive || G.phase !== 'run') return;
-  p.alive = false; flushTrail(p, false); sfx.die();
+  p.alive = false; flushTrail(p, false); sfx.die(); p.killer = by || null;
   if (by && by !== p) by.kills++;
   G.players.forEach(q => { if (q.alive) q.score++; });
-  burst(p.x, p.y, p.color);
+  deathFx(p); onDeath(p, by ? by.id : -1);
   hudDirty = true;
   const alive = G.players.filter(q => q.alive);
   if (G.players.some(q => q.human) && !alive.some(q => q.human) && alive.length > 1) G.ff = true;
@@ -1497,10 +1608,10 @@ function ranking() { return [...G.players].sort((a, b) => b.score - a.score || b
 function endRound(winner) {
   G.phase = 'end'; G.phaseT = 0; G.players.forEach(p => flushTrail(p, false));
   if (winner) winner.wins++;
-  sfx.round();
+  sfx.round(); if (winner && winner.vs) setTimeout(() => playVictory(winner.vs), 350);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
+  if (G.round >= G.target) { setTimeout(refundBounties, 800); G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -1556,6 +1667,7 @@ function substep() {
         if (moved) { flushTrail(p, false); p.gapLeft = Math.max(p.gapLeft, r * 2 + 2); }
       } else { kill(p, null); continue; }
     }
+    portalStep(p);
     if (!jumping && !has(p, 'ghost')) {
       const grace = Math.ceil((2 * r + 4) / step) + 2;
       let hit = 0;
@@ -1563,7 +1675,7 @@ function substep() {
         hit = blockedBy(p.x + Math.cos(p.a + o) * r, p.y + Math.sin(p.a + o) * r, p, grace);
         if (hit) break;
       }
-      if (hit) { kill(p, G.players.find(q => q.id === hit - 1)); continue; }
+      if (hit) { kill(p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)); continue; }
     }
     if (p.gapLeft > 0) p.gapLeft -= step;
     else if (G.gt > p.nextGap) { p.gapLeft = rand(14, 22) + r * 2; p.nextGap = G.gt + rand(1.5, 3.4); }
@@ -1617,6 +1729,7 @@ function render() {
     ctx.fillStyle = 'rgba(11,18,27,0.72)';
     ctx.fillRect(0, 0, W, bd.t); ctx.fillRect(0, bd.b, W, H - bd.b); ctx.fillRect(0, bd.t, bd.l, bd.b - bd.t); ctx.fillRect(bd.r, bd.t, W - bd.r, bd.b - bd.t);
   }
+  drawArena(ctx);
   const open = setup.walls === 'prolaz' || G.wrapAllUntil > G.gt;
   ctx.lineWidth = 2.5;
   ctx.strokeStyle = open ? 'rgba(87,183,255,0.55)' : (G.inset > 0.5 ? '#ffb547' : 'rgba(131,150,171,0.35)');
@@ -1639,6 +1752,8 @@ function render() {
     drawPuIcon(ctx, u.k, u.x, u.y, R);
     ctx.globalAlpha = 1;
   }
+  if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
+  drawBounties(ctx);
   if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
     ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
@@ -2214,10 +2329,13 @@ function renderSpecBar() {
   const qpos = !net.spectate ? queueList().findIndex(p => p.isMe && p.sameTab) : -1;
   bar.innerHTML = (qpos >= 0 ? `<div class="queueNote">⏳ Meč je pun (najviše ${MAX_PLAYERS} igrača). U redu si <b>${qpos + 1}.</b> i ulaziš u sljedeći meč. Dotad gledaj i zezaj!</div>` : '') + `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
     <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => { const have = profile ? (profile.inv[id] || 0) : 0; return `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || (!have && coins < t.price) || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>${have ? `imaš ${have}` : `● ${t.price}`}</small></button>`; }).join('')}</div>
+    <div class="betrow">${(() => { const t = G && G.players.find(x => peerOfPlayer(x) === net.trollTarget) || null; if (!t) return ''; const open = G.phase === 'count' || (G.phase === 'run' && G.gt < 4), has = myBet && myBet.mid === curMid() && myBet.round === G.round; return `<span>💰 ${has ? `Oklada: <b>${myBet.amount}</b> na ${esc(myBet.name)} (×${myBet.mult})` : open ? `Okladi se da <b>${esc(t.name)}</b> pobjeđuje rundu:` : 'Oklade: na početku sljedeće runde'}</span>${!has && open ? [50, 100, 200].map(a => `<button type="button" class="betb" data-a="${a}" data-p="${t.id}" ${coins < a ? 'disabled' : ''}>${a}</button>`).join('') : ''}<span class="sep"></span><span>🎯 Ucjena:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" data-p="${t.id}" ${coins < a || !t.alive ? 'disabled' : ''}>${a}</button>`).join('')}`; })()}</div>
     <div class="chatrow"><input type="text" id="dmIn" maxlength="60" placeholder="${tname ? 'Poruka za ' + esc(tname) + '…' : 'Poruka…'}" aria-label="Poruka igraču"><button type="button" id="dmSend">Pošalji</button></div>
     ${!profile ? '<p class="hint" style="margin:0">Prijavi se da možeš zezati igrače zlatnicima.</p>' : cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi prije sljedeće zezancije.</p>' : ''}`;
   bar.querySelectorAll('.stg').forEach(b => b.onclick = () => { net.trollTarget = b.dataset.peer; renderSpecBar(); });
   bar.querySelectorAll('.troll').forEach(b => b.onclick = () => sendTroll(net.trollTarget, b.dataset.id));
+  bar.querySelectorAll('.betb').forEach(b => b.onclick = () => placeBet(Number(b.dataset.p), Number(b.dataset.a)));
+  bar.querySelectorAll('.bntb').forEach(b => b.onclick = () => { placeBounty(Number(b.dataset.p), Number(b.dataset.a)); renderSpecBar(); });
   $('#specExit').onclick = () => { toMenu(); showTab('online'); };
   const i = $('#dmIn'), go = () => { sendDm(net.trollTarget, i.value); i.value = ''; };
   if (wasHidden && G) fitCanvas();
@@ -2229,6 +2347,54 @@ function sendDm(peer, text) {
 }
 const SHIELD_PRICE = 120;
 let mirrorUntil = 0;
+// bets (spectators) and bounties (anyone in the room) for the running match
+let myBet = null; const bounties = {}; const myBounties = []; let bountyN = 0; const seenBt = {};
+function curMid() { return net && net.mid; }
+function placeBet(pid, amount) {
+  if (!profile || !G || !net) return; if (profile.coins < amount) { toast('Nemaš dovoljno zlatnika.'); return; }
+  if (myBet && myBet.mid === curMid() && myBet.round === G.round) { toast('Već imaš okladu u ovoj rundi.'); return; }
+  if (!(G.phase === 'count' || (G.phase === 'run' && G.gt < 4))) { toast('Oklade se primaju samo na početku runde.'); return; }
+  const pl = G.players.find(x => x.id === pid); if (!pl) return;
+  profile.coins -= amount; profile.spent = (profile.spent || 0) + amount; saveProfile();
+  const humans = G.players.filter(x => x.alive || G.phase === 'count').length;
+  myBet = { mid: curMid(), round: G.round, pid, amount, mult: humans >= 4 ? 3 : 2, name: pl.name };
+  toast(`💰 Oklada: ${amount} na ${pl.name} (dobitak ×${myBet.mult})`); renderSpecBar();
+}
+function settleBet() {
+  if (!myBet || !G || myBet.mid !== curMid() || myBet.round !== G.round) return;
+  const b = myBet; myBet = null;
+  if (G.winner === b.pid) { const won = b.amount * b.mult; profile.coins += won; saveProfile(); notify(`💰 Oklada dobivena! ${esc(b.name)} je pobijedio rundu: +${won} zlatnika`, { ms: 6000 }); beep(988, .12, 'square', .06); }
+  else notify(`💸 Oklada izgubljena (${esc(b.name)} nije pobijedio rundu).`, { warn: true, ms: 4000 });
+}
+function placeBounty(pid, amount) {
+  if (!profile || !G || !net) return; if (profile.coins < amount) { toast('Nemaš dovoljno zlatnika.'); return; }
+  const pl = G.players.find(x => x.id === pid); if (!pl || !pl.alive) { toast('Taj igrač nije u igri.'); return; }
+  profile.coins -= amount; profile.spent = (profile.spent || 0) + amount; saveProfile();
+  bountyN++; const key = curMid() + ':' + pid;
+  addBounty(key, amount, profile.name); myBounties.push({ key, amount, mid: curMid() });
+  netPresence({ bt: [curMid(), pid, amount, bountyN, Date.now(), pl.name] });
+  toast(`🎯 Ucjena ${amount} na ${pl.name}. Dobit će je tko ga sruši.`);
+}
+function addBounty(key, amount, from) { const b = (bounties[key] ||= { amount: 0, from: [] }); b.amount += amount; if (!b.from.includes(from)) b.from.push(from); }
+function onDeath(p, killerId) {
+  const key = curMid() + ':' + p.id, b = bounties[key]; if (!b) return;
+  if (killerId == null || killerId < 0) return; // a wall or own trail: the bounty stays
+  delete bounties[key];
+  const mine = G.players.find(x => x.mine || (net && net.myId === x.id));
+  const mb = myBounties.find(x => x.key === key); if (mb) mb.claimed = true;
+  if (mine && mine.id === killerId && mine.id !== p.id && profile) { profile.coins += b.amount; saveProfile(); notify(`🎯 Naplatio si ucjenu: srušio si ${esc(p.name)} · +${b.amount} zlatnika`, { ms: 6000 }); beep(1046, .15, 'square', .06); }
+  else { const k = G.players.find(x => x.id === killerId); if (k) showIgMsg(`🎯 ${esc(k.name)} je naplatio ucjenu na ${esc(p.name)} (${b.amount})`); }
+}
+function refundBounties() {
+  for (const mb of myBounties) if (!mb.claimed && !mb.refunded && mb.mid !== curMid() || (!mb.claimed && !mb.refunded && G && G.over)) { mb.refunded = true; if (profile) { profile.coins += mb.amount; notify(`↩️ Ucjena nije naplaćena, vraćeno ti je ${mb.amount} zlatnika.`, { ms: 5000 }); } delete bounties[mb.key]; }
+  for (let i = myBounties.length - 1; i >= 0; i--) if (myBounties[i].claimed || myBounties[i].refunded) myBounties.splice(i, 1);
+  if (profile) profileDirty = true;
+}
+function drawBounties(c) {
+  if (!net || !G) return; const mid = curMid();
+  for (const p of G.players) { const b = bounties[mid + ':' + p.id]; if (!b || !p.alive) continue;
+    c.save(); c.font = '700 14px "Barlow Semi Condensed", sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ff5d73'; c.fillText(`🎯 ${b.amount}`, p.x, p.y - 22); c.restore(); }
+}
 function mirrorOn() { return performance.now() < mirrorUntil; }
 function sendTroll(peer, id) {
   const t = TROLLS[id]; if (!t || !peer || !profile || !roomNs) return;
@@ -2323,6 +2489,7 @@ function collectDirect() {
     const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
     if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
     if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000) receiveTroll(pr.tr[1], from, p.peer); } }
+    if (Array.isArray(pr.bt)) { const key = p.peer + ':' + pr.bt[3]; if (!seenBt[key]) { seenBt[key] = 1; if (Date.now() - (Number(pr.bt[4]) || 0) < 600000 && pr.bt[0] === curMid()) { const amt = Math.max(0, Math.min(5000, Number(pr.bt[2]) || 0)); addBounty(pr.bt[0] + ':' + pr.bt[1], amt, from); if (!$('#game').hidden) showIgMsg(`🎯 ${esc(from)} je stavio ucjenu ${amt} na ${esc(String(pr.bt[5] || '').slice(0, 14))}!`, true); } } }
     if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
   }
   // spectator count in my HUD
@@ -2473,7 +2640,7 @@ function hostStart(rematch) {
     let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
     const me = pr.isMe && pr.sameTab;
     players.push({ id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
-      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null });
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '' }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null });
   });
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'srednje', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; return; }
@@ -2517,10 +2684,10 @@ function hostAwayPause() {
 }
 function buildSnap() {
   return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, pz: G.pz || null, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
-    s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump } };
+    s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
 }
 
 // client
@@ -2544,7 +2711,8 @@ function clientBegin(host, key = 'st', spectate = false) {
 }
 function applyState(st, first) {
   const mePeer = roomState.me;
-  if (st.r !== net.round || first) { net.round = st.r; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
+  if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
+  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; }
   const prevPhase = G.phase;
   G.pz = st.pz || null;
@@ -2557,11 +2725,11 @@ function applyState(st, first) {
     let p = byId[q.i];
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
-    Object.assign(p, { name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
+    Object.assign(p, { te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
-    if (wasAlive === true && !p.alive) { burst(p.x, p.y, p.color); sfx.die(); }
+    if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); onDeath(p, q.kb); }
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
     // trail segment
     const pv = net.prev[q.i];
@@ -2577,9 +2745,10 @@ function applyState(st, first) {
   if (newPlayers.length !== G.players.length) hudDirty = true;
   G.players = newPlayers;
   if (prevPhase !== G.phase) {
-    hudDirty = true;
+    hudDirty = true; if (watchingNow()) setTimeout(renderSpecBar, 0);
     if (G.phase === 'run') sfx.go();
-    if (G.phase === 'end') { sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
+    if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
+    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && wnr.vs) setTimeout(() => playVictory(wnr.vs), 350); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
     if (G.phase === 'count') showOverlay(null);
   }
   if (first && G.phase === 'end' && !G.over) showRoundBanner();
@@ -2656,7 +2825,7 @@ async function initSupabase() {
   let ch = null;
   const onSync = () => {
     const st = ch ? ch.presenceState() : {}; const seen = new Set();
-    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr, tb: prev.presence.tb, fol: prev.presence.fol, vis: prev.presence.vis } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
+    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr, tb: prev.presence.tb, bt: prev.presence.bt, fol: prev.presence.fol, vis: prev.presence.vis } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   };
@@ -2702,7 +2871,7 @@ async function initSupabase() {
           // the lobby only learns that a match is running (hs), not every frame of it
           if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { slow.hs = on; fast.hs = on; hasSlow = hasFast = true; } }
         } else if (k === 'in' || k === 'j' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
-        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'tb' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
+        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'tb' || k === 'bt' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
         else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } }
       }
       if (hasOwn && connected) gsend(myPeer, own);
@@ -2807,9 +2976,11 @@ function renderTrollPop() {
   pop.innerHTML = `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
     ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}</b><small>imaš ${inv[id]}</small></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
     ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}`;
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
   pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendTroll(trollPick, b.dataset.id); });
+  pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
 document.addEventListener('pointerdown', (e) => { const p = $('#trollPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'trollBtn') p.hidden = true; });

@@ -50,7 +50,7 @@ function clean(input: unknown, slug: string): Doc | string {
     trollsGot: num(d.trollsGot, 1_000_000),
     daily: d.daily && typeof d.daily === "object" && typeof (d.daily as Record<string, unknown>).d === "string" ? { d: String((d.daily as Record<string, unknown>).d).slice(0, 10), c: Object.fromEntries(Object.entries(((d.daily as Record<string, unknown>).c as Record<string, unknown>) || {}).slice(0, 10).map(([k, v]) => [k.slice(0, 6), num(v, 10000)])), done: strArr((d.daily as Record<string, unknown>).done).slice(0, 10) } : undefined,
     inv: Object.fromEntries(Object.entries(d.inv && typeof d.inv === "object" ? (d.inv as Record<string, unknown>) : {}).filter(([k]) => /^[a-z]{2,12}$/.test(k)).slice(0, 30).map(([k, v]) => [k, num(v, 999)]).filter(([, v]) => (v as number) > 0)),
-    eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20) },
+    eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20), te: String(eq.te ?? "").slice(0, 20), ds: String(eq.ds ?? "").slice(0, 20), vs: String(eq.vs ?? "").slice(0, 20) },
     bonus500: !!d.bonus500,
     created: num(d.created, 9e15),
     invitedBy: typeof d.invitedBy === "string" && /^[a-z0-9-]{1,40}$/.test(d.invitedBy) ? d.invitedBy : undefined,
