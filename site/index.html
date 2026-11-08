@@ -1700,6 +1700,7 @@ function keysOf(p) { return KEYS[net && p.mine ? 0 : p.id] || KEYS[0]; }
 // leaving the window or app must release every key and pad, or the snake keeps turning
 function releaseAll() { for (const k in held) held[k] = false; for (const k in touchHeld) delete touchHeld[k]; document.querySelectorAll('.pads').forEach(b => b._ptr && b._ptr.clear()); if (G && G.players) G.players.forEach(p => { p.touchL = p.touchR = false; }); document.querySelectorAll('.pad.on').forEach(b => b.classList.remove('on')); if (net && net.role === 'client') clientInput(); }
 addEventListener('blur', releaseAll);
+for (const ev of ['touchend', 'touchcancel']) document.addEventListener(ev, (e) => { if (e.touches && e.touches.length === 0) { let had = false; document.querySelectorAll('.pads').forEach(b => { if (b._ptr && b._ptr.size) { had = true; b._ptr.clear(); if (b._sync) b._sync(); } }); if (had) clientInput(); } }, { passive: true });
 document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
 let net = null; // null | {role:'host'|'client', ...}
 
@@ -2506,13 +2507,17 @@ function buildPads() {
     // the whole bar is one touch surface: left third turns left, right third turns right, middle jumps.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
     const ptr = box._ptr = new Map(); const pid = p.id;
-    const flip = box.classList.contains('top'); const zone = (e, down) => { const r = box.getBoundingClientRect();
-      if (r.width < 10) { const t = down && e.target.closest && e.target.closest('.pad'); if (t) return t.dataset.k; return e.clientX < innerWidth / 2 ? 'L' : 'R'; } // side layout (landscape)
+    const flip = box.classList.contains('top'); const MARGIN = 26;
+    const nearPad = (e) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) - r.width / 2; if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
+    const zone = (e, down) => { const r = box.getBoundingClientRect();
+      if (down) return nearPad(e); // a press has to start on a button (or just next to it)
+      if (r.width < 10) return e.clientX < innerWidth / 2 ? 'L' : 'R'; // side layout (landscape): slide between sides
       let f = (e.clientX - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.38 ? 'L' : f > 0.62 ? 'R' : 'J'; };
     const sync = () => { const h = (touchHeld[pid] = { L: 0, R: 0 }); for (const z of ptr.values()) if (z !== 'J') h[z]++;
       box.querySelectorAll('.pad').forEach(btn => btn.classList.toggle('on', btn.dataset.k === 'J' ? [...ptr.values()].includes('J') : h[btn.dataset.k] > 0)); clientInput(); };
-    box.onpointerdown = (e) => { e.preventDefault(); const cap = box.getBoundingClientRect().width < 10 ? (e.target.closest && e.target.closest('.pad')) : box; try { cap && cap.setPointerCapture(e.pointerId); } catch (er) {} const z = zone(e, true); ptr.set(e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
-    box.onpointermove = (e) => { if (!ptr.has(e.pointerId)) return; const z = zone(e); if (z !== ptr.get(e.pointerId) && z !== 'J') { ptr.set(e.pointerId, z); sync(); } };
+    box.onpointerdown = (e) => { e.preventDefault(); const z = zone(e, true); if (!z) return; const cap = box.getBoundingClientRect().width < 10 ? (e.target.closest && e.target.closest('.pad')) : box; try { cap && cap.setPointerCapture(e.pointerId); } catch (er) {} ptr.set(e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
+    box.onpointermove = (e) => { if (!ptr.has(e.pointerId)) return; const z = zone(e); if (z && z !== ptr.get(e.pointerId) && z !== 'J') { ptr.set(e.pointerId, z); sync(); } };
+    box._sync = sync;
     const up = (e) => { if (ptr.delete(e.pointerId)) sync(); };
     box.onpointerup = up; box.onpointercancel = up; box.onlostpointercapture = up;
     box.oncontextmenu = (e) => e.preventDefault();
