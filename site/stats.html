@@ -401,23 +401,27 @@ function renderLive(ch) {
   $('#live').innerHTML = list.length ? list.map(pr => `<div class="lrow" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="pulse"></span><span class="who"><span class="dot" style="background:${COLORS[pr.cl] || COLORS[0]}"></span>${esc(pr.nm)}${me && pr.sl === me.sl ? ' <span class="st">(ti)</span>' : ''}</span><span class="st">${status(pr)}</span>${pr.ig && pr.sl ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(pr.sl)}${SOBA}">👀 Gledaj</a>` : me && pr.sl === me.sl ? '' : `<a class="btn ghost" href="${GAME}">Igraj s njim</a>`}</div>`).join('')
     : '<p class="empty">Trenutno nitko nije u igri. Pošalji pozivnicu gore.</p>';
 }
-const s = document.createElement('script');
-s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js';
-s.onload = () => {
-  const myKey = 'stats-' + Math.random().toString(36).slice(2);
-  const ch = window.supabase.createClient(SUPA.url, SUPA.key).channel(ROOM, { config: { presence: { key: myKey }, broadcast: { self: false } } });
-  // a logged-in player is online here too (status: on the stats page); anyone else is an invisible observer
-  ch.on('presence', { event: 'sync' }, () => renderLive(ch));
-  // a player in the game invited me
-  ch.on('broadcast', { event: 'p' }, ({ payload }) => {
-    const pg = payload && payload.patch && payload.patch.ping; if (!Array.isArray(pg) || pg[0] !== myKey) return;
-    const m = ch.presenceState()[payload.peer] || []; const from = (m[m.length - 1] || {}).nm || 'Netko';
-    $('#inviteBox').hidden = false; $('#inviteBox').innerHTML = `🔔 <b>${esc(from)}</b> te zove na igru! <a class="btn" href="${GAME}${SOBA ? '?' + SOBA.slice(1) : ''}">Igraj odmah</a>`;
-  });
-  ch.subscribe(st => { if (st === 'SUBSCRIBED') ch.track(me ? { nm: me.nm, sl: me.sl, cl: me.cl, pg: 'stats' } : { obs: 1 }); });
-};
-s.onerror = () => { $('#liveCount').textContent = 'ne mogu se spojiti'; };
-document.head.appendChild(s);
+// the game's own realtime server: join the lobby as a (visible or invisible) peer and keep a live peer map
+const SRV_WS = 'wss://vijuga-server.onrender.com';
+(() => {
+  const myKey = 'st' + Math.random().toString(36).slice(2, 10); const peers = {}; let ws = null, backoff = 1000;
+  const view = { presenceState: () => Object.fromEntries(Object.entries(peers).map(([k, pr]) => [k, [pr]])) };
+  const connect = () => {
+    try { ws = new WebSocket(SRV_WS); } catch (e) { setTimeout(connect, backoff); backoff = Math.min(10000, backoff * 2); return; }
+    ws.onopen = () => { backoff = 1000; ws.send(JSON.stringify({ t: 'hi', room: ROOM, peer: myKey })); };
+    ws.onmessage = (ev) => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.t === 'hello') { ws.send(JSON.stringify({ t: 'pres', patch: me ? { nm: me.nm, sl: me.sl, cl: me.cl, pg: 'stats' } : { obs: 1 } })); return; }
+      if (m.t === 'peers') { for (const k in peers) delete peers[k]; for (const q of m.peers || []) if (q.peer !== myKey) peers[q.peer] = q.presence || {}; renderLive(view); return; }
+      if (m.t === 'p') { if (m.peer === myKey) return; peers[m.peer] = Object.assign({}, peers[m.peer] || {}, m.patch || {}); renderLive(view);
+        const pg = m.patch && m.patch.ping; if (Array.isArray(pg) && pg[0] === myKey) { const from = (peers[m.peer] || {}).nm || 'Netko'; $('#inviteBox').hidden = false; $('#inviteBox').innerHTML = `🔔 <b>${esc(from)}</b> te zove na igru! <a class="btn" href="${GAME}${SOBA ? '?' + SOBA.slice(1) : ''}">Igraj odmah</a>`; } return; }
+      if (m.t === 'bye') { delete peers[m.peer]; renderLive(view); }
+    };
+    ws.onclose = () => { setTimeout(connect, backoff); backoff = Math.min(10000, backoff * 2); };
+    ws.onerror = () => { try { ws.close(); } catch (e) {} };
+  };
+  connect(); setInterval(() => { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'ping', n: 1 })); }, 20000);
+})();
 })();
 </script>
 </body>

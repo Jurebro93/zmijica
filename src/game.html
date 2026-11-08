@@ -3643,7 +3643,7 @@ async function initSupabase() {
 }
 // ---- Vijuga realtime server (WebSocket): same interface as the Supabase layer, no rate limits, no dropped channels
 const SRV_URL = (() => { try { const q = new URLSearchParams(location.search); const u = q.get('srvurl'); if (u && /^wss?:\/\//.test(u)) return u; } catch (e) {} return 'wss://vijuga-server.onrender.com'; })();
-const SRV_ON = (() => { try { const q = new URLSearchParams(location.search); if (q.get('srv') === '0') { localStorage.removeItem('vijuga-srv'); return false; } if (q.get('srv') === '1') { localStorage.setItem('vijuga-srv', '1'); return true; } return localStorage.getItem('vijuga-srv') === '1'; } catch (e) { return false; } })();
+const SRV_ON = (() => { try { const q = new URLSearchParams(location.search); if (q.get('srv') === '0') { localStorage.setItem('vijuga-srv', '0'); return false; } if (q.get('srv') === '1') { localStorage.removeItem('vijuga-srv'); return true; } return localStorage.getItem('vijuga-srv') !== '0'; } catch (e) { return true; } })(); // the game server is the default; ?srv=0 goes back to Supabase
 async function initWsRoom() {
   const myPeer = Math.random().toString(36).slice(2, 10);
   const peersMap = {}; let connected = false; const peerHandlers = [], connHandlers = [];
@@ -3662,7 +3662,7 @@ async function initWsRoom() {
     sock.onmessage = (ev) => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.t === 'hello') { setConnected(true); if (Object.keys(lobbyPres).length) sendRaw({ t: 'pres', patch: lobbyPres }); if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); lastPong = performance.now(); return; }
-      if (m.t === 'peers') { const seen = new Set([myPeer]); for (const q of m.peers || []) { if (q.peer === myPeer) continue; seen.add(q.peer); const prev = peersMap[q.peer]; const keep = prev ? { st: prev.presence.st, sp: prev.presence.sp, in: prev.presence.in, j: prev.presence.j, is: prev.presence.is, vis: prev.presence.vis } : {}; peersMap[q.peer] = mkPeer(q.peer, Object.assign({}, keep, q.presence || {})); } for (const k in peersMap) if (!seen.has(k)) delete peersMap[k]; fire(); return; }
+      if (m.t === 'peers') { const seen = new Set([myPeer]); for (const q of m.peers || []) { if (q.peer === myPeer || (q.presence && q.presence.obs)) continue; seen.add(q.peer); const prev = peersMap[q.peer]; const keep = prev ? { st: prev.presence.st, sp: prev.presence.sp, in: prev.presence.in, j: prev.presence.j, is: prev.presence.is, vis: prev.presence.vis } : {}; peersMap[q.peer] = mkPeer(q.peer, Object.assign({}, keep, q.presence || {})); } for (const k in peersMap) if (!seen.has(k)) delete peersMap[k]; fire(); return; }
       if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; peersMap[m.peer] = mkPeer(m.peer, Object.assign({}, prev.presence, m.patch)); fire(); return; }
       if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
       if (m.t === 'pong') { lastPong = performance.now(); netStats.rtt = Math.round(performance.now() - m.n); return; }

@@ -23,6 +23,14 @@ const rooms = new Map();
 let msgCount = 0;
 
 const server = http.createServer((req, res) => {
+  const url = new URL(req.url, "http://x");
+  if (url.pathname === "/peers") { // who is in a room (for the stats page); only lobby fields
+    const room = rooms.get(String(url.searchParams.get("room") || ""));
+    const keep = ["nm", "sl", "cl", "rd", "hs", "ig", "pl", "watch", "pg", "obs"];
+    const peers = room ? [...room.entries()].map(([peer, m]) => ({ peer, presence: Object.fromEntries(keep.filter((k) => k in m.presence).map((k) => [k, m.presence[k]])) })) : [];
+    res.writeHead(200, { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "no-store" });
+    res.end(JSON.stringify({ peers })); return;
+  }
   const stats = { ok: true, rooms: rooms.size, peers: [...rooms.values()].reduce((s, r) => s + r.size, 0), msgs: msgCount, up: Math.round(process.uptime()) };
   res.writeHead(200, { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "no-store" });
   res.end(JSON.stringify(stats));
