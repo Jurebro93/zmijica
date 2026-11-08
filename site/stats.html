@@ -76,6 +76,18 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
 .empty { color: var(--muted); padding: 10px 0; }
 .note { color: var(--muted); font-size: 13px; line-height: 1.45; }
 .err { color: #ff5d73; }
+.live { display: grid; gap: 8px; }
+.lrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); }
+.lrow:first-child { border-top: 0; }
+.lrow .st { color: var(--muted); font-size: 14px; }
+.lrow .btn { margin-left: auto; padding: 6px 14px; font-size: 15px; }
+.pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 rgba(61,220,151,.6); animation: pu 1.6s infinite; flex: none; }
+@keyframes pu { 70% { box-shadow: 0 0 0 8px rgba(61,220,151,0); } 100% { box-shadow: 0 0 0 0 rgba(61,220,151,0); } }
+.leaders { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.lead { background: var(--slate); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.lead h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+.lead ol { margin: 0; padding-left: 20px; display: grid; gap: 3px; }
+.lead li span { float: right; font-variant-numeric: tabular-nums; color: var(--amber); font-weight: 600; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
@@ -91,6 +103,12 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
     <div class="link"><input id="invUrl" readonly aria-label="Pozivni link"><button class="btn" id="copyBtn" type="button">Kopiraj link</button><button class="btn ghost" id="shareBtn" type="button" hidden>Podijeli…</button></div>
     <div class="share" id="shareLinks"></div>
     <div class="msg" id="invMsg">Tko otvori link, odmah dobije prozor za registraciju (ime, boja, PIN) i 500 zlatnika za trgovinu.</div>
+  </section>
+
+  <section class="panel" aria-labelledby="liveH">
+    <h2 id="liveH">Online sada <small id="liveCount">spajam se…</small></h2>
+    <div class="live" id="live"></div>
+    <p class="note">Klikni „Gledaj” da uđeš u njegovu igru kao gledatelj: možeš mu slati poruke i za zlatnike ga zezati (bljesak, potres, mrak, naglavačke…).</p>
   </section>
 
   <section aria-labelledby="sumH">
@@ -110,6 +128,11 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
     <p class="note">Mečevi i pobjede uključuju i mečeve odigrane prije uvođenja statistike (iz profila igrača). Postolje = 1.–3. mjesto. Runde = osvojene runde. Rušenja = koliko je puta netko udario u igračev trag.</p>
   </section>
 
+  <section class="panel" aria-labelledby="ldH">
+    <h2 id="ldH">Rekorderi</h2>
+    <div class="leaders" id="leaders"></div>
+  </section>
+
   <div class="cols">
     <section class="panel" aria-labelledby="recH">
       <h2 id="recH">Zadnji mečevi</h2>
@@ -120,6 +143,10 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
       <div class="bars" id="skins"></div>
       <div style="height:14px"></div>
       <div class="bars" id="badges"></div>
+    </section>
+    <section class="panel" aria-labelledby="buyH">
+      <h2 id="buyH">Najkupovanije u trgovini <small>koliko igrača ima stvar</small></h2>
+      <div class="bars" id="bought"></div>
     </section>
   </div>
 </div>
@@ -135,6 +162,8 @@ const BADGE = { bd_none: 'Bez ikone', bd_bolt: '⚡ Munja', bd_star: '★ Zvijez
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = new Intl.NumberFormat('hr-HR');
+const fmtDur = ms => { const m = Math.round((ms || 0) / 60000); if (m < 1) return '0 min'; if (m < 60) return m + ' min'; const h = Math.floor(m / 60); return h < 48 ? `${h} h ${m % 60} min` : `${nf.format(Math.round(h))} h`; };
+const PU = { fastS: 'Start: brzina', slowS: 'Start: usporenje', thinS: 'Start: tanki trag', ghostS: 'Start: duh', wrapS: 'Start: bez zidova', jumpS: 'Start: puni skok', slowO: 'Start: uspori druge', thickO: 'Start: debeli trag', revO: 'Start: obrnuto', sqO: 'Start: kutovi' };
 const fmtDate = t => t ? new Date(t).toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric', year: '2-digit' }) : '–';
 const fmtWhen = t => { if (!t) return '–'; const d = (Date.now() - t) / 60000; if (d < 2) return 'upravo'; if (d < 60) return `prije ${Math.round(d)} min`; if (d < 1440) return `prije ${Math.round(d / 60)} h`; return fmtDate(t); };
 
@@ -178,6 +207,11 @@ function tiles() {
     ['Rušenja', nf.format(t.kills), 'udarci u tuđi trag'],
     ['Zlatnici kod igrača', nf.format(t.coinsHeld), 'nakon kupovina'],
     ['Došli preko pozivnice', nf.format(t.invitedPlayers), 'igrači s pozivnim linkom igrača'],
+    ['Vrijeme u igri', fmtDur(t.playMs || 0), 'svi igrači zajedno, dok traje runda', true],
+    ['Vrijeme na stranici', fmtDur(t.siteMs || 0), 'izbornik, trgovina, predvorje…'],
+    ['Potrošeni zlatnici', nf.format(t.coinsSpent || 0), 'trgovina i zezancije'],
+    ['Kupljene stvari', nf.format(t.itemsOwned || 0), `${nf.format(t.purchases || 0)} kupnji ukupno`],
+    ['Zezancije', nf.format(t.trolls || 0), 'bljeskovi, potresi, kakice…'],
   ];
   $('#tiles').innerHTML = items.map(([k, v, s, hero]) => `<div class="tile${hero ? ' hero' : ''}"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${s}</span></div>`).join('');
 }
@@ -214,7 +248,7 @@ function chart() {
 
 const COLS = [
   ['name', 'Igrač', 'l'], ['matches', 'Mečevi'], ['wins', 'Pobjede'], ['winRate', '% pobjeda'], ['podiums', 'Postolje'], ['roundsWon', 'Runde'],
-  ['kills', 'Rušenja'], ['coins', 'Zlatnici'], ['online', 'Online'], ['invited', 'Pozvao'], ['created', 'Registriran'], ['lastSeen', 'Zadnje igrao'],
+  ['kills', 'Rušenja'], ['coins', 'Zlatnici'], ['spent', 'Potrošio'], ['items', 'Stvari'], ['playMs', 'U igri'], ['trollsSent', 'Zezao'], ['trollsGot', 'Zezan'], ['online', 'Online'], ['invited', 'Pozvao'], ['created', 'Registriran'], ['lastSeen', 'Zadnje igrao'],
 ];
 function players() {
   const q = $('#q').value.trim().toLowerCase();
@@ -241,9 +275,38 @@ function popularity(id, map, names) {
   const max = Math.max(1, ...e.map(x => x[1]));
   $(id).innerHTML = e.length ? e.map(([k, v]) => `<div class="bar"><span>${esc(names[k] || k)}</span><span class="track"><i style="width:${Math.round(100 * v / max)}%"></i></span><span>${v}</span></div>`).join('') : `<p class="empty">${id === '#skins' ? 'Nitko još nema kupljen skin.' : 'Nitko još nema kupljenu ikonu.'}</p>`;
 }
-function render() { tiles(); chart(); players(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); }
+function leaders() {
+  const L = data.leaders || {};
+  const box = [['playMs', 'Najviše vremena u igri', fmtDur], ['spent', 'Najveći potrošač', v => nf.format(v) + ' 🪙'], ['items', 'Najveći kolekcionar', v => v + ' stvari'],
+    ['trollsSent', 'Glavni zezator', v => v + '×'], ['trollsGot', 'Najzezaniji', v => v + '×'], ['kills', 'Najviše rušenja', v => nf.format(v)], ['invited', 'Najviše pozvanih', v => v]];
+  $('#leaders').innerHTML = box.map(([k, t, f]) => `<div class="lead"><h3>${t}</h3>${(L[k] || []).length ? '<ol>' + L[k].map(x => `<li>${esc(x.name)}<span>${f(x.value)}</span></li>`).join('') + '</ol>' : '<p class="empty">Još nitko.</p>'}</div>`).join('');
+}
+function render() { tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
 addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
+
+// ---- who is online right now (listens to the game's lobby without appearing in it)
+const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa' };
+const ROOM = (() => { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; })();
+const SOBA = ROOM === 'vijuga-lobby' ? '' : '&soba=' + ROOM.slice(13);
+const status = pr => pr.st ? 'igra online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'igra online meč' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'čeka u predvorju' : 'na stranici';
+function renderLive(ch) {
+  const st = ch.presenceState(), seen = new Map();
+  for (const k in st) { const m = st[k] || []; const pr = m[m.length - 1] || {}; if (!pr.nm) continue; const id = pr.sl || pr.nm; const prev = seen.get(id); if (!prev || (pr.ig && !prev.ig)) seen.set(id, pr); }
+  const list = [...seen.values()].sort((a, b) => (b.ig ? 1 : 0) - (a.ig ? 1 : 0) || String(a.nm).localeCompare(b.nm, 'hr'));
+  $('#liveCount').textContent = list.length ? `${list.length} ${list.length === 1 ? 'igrač' : 'igrača'}` : 'nitko trenutno';
+  $('#live').innerHTML = list.length ? list.map(pr => `<div class="lrow"><span class="pulse"></span><span class="who"><span class="dot" style="background:${COLORS[pr.cl] || COLORS[0]}"></span>${esc(pr.nm)}</span><span class="st">${status(pr)}</span>${pr.ig && pr.sl ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(pr.sl)}${SOBA}">👀 Gledaj</a>` : `<a class="btn ghost" href="${GAME}">Igraj s njim</a>`}</div>`).join('')
+    : '<p class="empty">Trenutno nitko nije u igri. Pošalji pozivnicu gore.</p>';
+}
+const s = document.createElement('script');
+s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js';
+s.onload = () => {
+  const ch = window.supabase.createClient(SUPA.url, SUPA.key).channel(ROOM, { config: { presence: { key: 'stats-' + Math.random().toString(36).slice(2) } } });
+  // the server only shares who is here after we track; obs:1 tells the game to ignore this observer
+  ch.on('presence', { event: 'sync' }, () => renderLive(ch)).subscribe(st => { if (st === 'SUBSCRIBED') ch.track({ obs: 1 }); });
+};
+s.onerror = () => { $('#liveCount').textContent = 'ne mogu se spojiti'; };
+document.head.appendChild(s);
 })();
 </script>
 </body>

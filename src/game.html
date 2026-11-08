@@ -74,6 +74,39 @@ button:disabled { cursor: default; opacity: .5; }
 .invite-card h3 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0; }
 .invite-card .big { font-size: 46px; line-height: 1; }
 @keyframes ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-3deg); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(2deg); } }
+.specbar { display: grid; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 8px; background: var(--ink); border-top: 1px solid var(--line); }
+.specbar[hidden] { display: none; }
+.specTop { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; }
+.specTop .coinsmall { margin-left: auto; color: var(--amber); font-weight: 700; }
+.specTargets { display: flex; gap: 4px; flex-wrap: wrap; }
+.stg { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 9px; font-size: 13px; font-weight: 600; }
+.stg i { width: 9px; height: 9px; border-radius: 50%; }
+.stg.on { border-color: var(--amber); color: var(--amber); }
+.trolls { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+.troll { display: grid; justify-items: center; gap: 1px; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 6px 4px; }
+.troll span { font-size: 24px; line-height: 1.1; } .troll b { font-size: 12px; } .troll small { color: var(--amber); font-weight: 700; font-size: 12px; }
+.troll:disabled { opacity: .4; }
+.troll:not(:disabled):active { transform: scale(.93); }
+.chip.watchers { background: color-mix(in srgb, var(--amber) 20%, var(--panel)); color: var(--amber); }
+#igMsgs { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: min(92%, 420px); display: grid; gap: 6px; pointer-events: none; z-index: 3; }
+.igmsg { background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid var(--line); border-left: 4px solid var(--all); border-radius: 10px; padding: 7px 10px; font-size: 15px; animation: noteIn .2s ease-out; }
+.igmsg.warn { border-left-color: var(--amber); }
+.profile { width: min(100%, 520px) !important; max-height: calc(100dvh - 40px); overflow-y: auto; }
+.phead { display: flex; align-items: center; gap: 12px; }
+.phead h3 { margin: 0; }
+.av.big { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 24px; color: #0b121b; flex: none; }
+.pstats { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+.pstat { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: grid; }
+.pstat b { font-family: var(--display); font-weight: 400; font-size: 18px; font-variant-numeric: tabular-nums; }
+.pstat span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+.profile h4 { margin: 4px 0 0; font-family: var(--display); font-weight: 400; font-size: 16px; }
+.profile h4 small { font-family: var(--body); color: var(--muted); font-size: 13px; }
+.wrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.wchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--ink); border-radius: 10px; padding: 5px 9px; font-weight: 600; font-size: 14px; }
+.wchip.on { border-color: var(--amber); color: var(--amber); }
+.wchip em { font-style: normal; font-size: 18px; } .wchip i { font-style: normal; }
+.wchip canvas.wprev { width: 56px; height: 16px; border-radius: 4px; }
+.me button#profBtn { color: var(--fg); }
 #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; transition: .25s; background: var(--fg); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); z-index: 20; pointer-events: none; word-break: break-all; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 .invite { margin: 0; background: color-mix(in srgb, var(--amber) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
@@ -387,6 +420,7 @@ button.pu:hover { border-color: var(--line); }
     <div class="hud">
       <div id="scores"></div>
       <span class="target" id="target"></span>
+      <span class="chip watchers" id="watchers" hidden></span>
       <button class="iconbtn netonly" id="reactBtn" aria-label="Brze reakcije" hidden>😀</button>
       <button class="iconbtn netonly" id="chatBtn" aria-label="Chat" hidden>💬<span class="unread" id="unread" hidden></span></button>
       <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
@@ -396,8 +430,10 @@ button.pu:hover { border-color: var(--line); }
       <canvas id="cv"></canvas>
       <div class="overlay" id="overlay"></div>
       <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
+      <div id="igMsgs" aria-live="polite"></div>
       <div id="gchat" hidden><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
+    <div class="specbar" id="specBar" hidden></div>
     <div class="pads" id="padsBottom" hidden></div>
   </section>
 </div>
@@ -525,8 +561,8 @@ let profileStore = 'local'; // 'db' | 'local'
 let dbNs = null, userNs = null, roomNs = null, dbWritable = null;
 const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
-function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, pinHash: '', created: Date.now() }; }
-function normalize(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
+function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, pinHash: '', created: Date.now() }; }
+function normalize(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
 function applyBonus(p) { if (p && !p.bonus500) { p.coins = (Number(p.coins) || 0) + START_COINS; p.bonus500 = true; p._bonusNew = true; } return p; }
 function slugOf(name) { const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return (base || 'igrac').slice(0, 40); }
 async function pinHash(pin, slug) {
@@ -570,10 +606,37 @@ function renderMe() {
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
-  box.innerHTML = `<span class="av" style="background:${c}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>${esc(profile.name)}${badgeOf(profile)}</b><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  box.innerHTML = `<span class="av" style="background:${c}" title="Moj profil">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b title="Moj profil">${esc(profile.name)}${badgeOf(profile)}</b><button type="button" id="profBtn">profil</button><span class="coins">● ${profile.coins}</span><button type="button" id="invBtn" class="inv">pozovi prijatelje</button><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
   $('#invBtn').onclick = shareInvite;
+  box.querySelector('.av').onclick = box.querySelector('b').onclick = () => showProfile();
+  box.querySelector('.av').style.cursor = box.querySelector('b').style.cursor = 'pointer';
   $('#editBtn').onclick = () => showRegister();
+  $('#profBtn').onclick = () => showProfile();
   $('#outBtn').onclick = logout;
+}
+function showProfile() {
+  if (!profile) { showLogin(); return; }
+  const m = $('#regModal'); m.hidden = false;
+  const P = profile, wr = P.matches ? Math.round(100 * P.wins / P.matches) : 0;
+  const stat = (k, v) => `<div class="pstat"><b>${v}</b><span>${k}</span></div>`;
+  const ownedSkins = Object.keys(SKINS).filter(k => P.owned.includes(k));
+  const ownedBadges = Object.keys(BADGES).filter(k => P.owned.includes(k));
+  const ownedPu = STARTER_PU.filter(k => P.owned.includes(k));
+  const chip = (kind, id, label, prev) => `<button type="button" class="wchip ${P.eq[kind] === id ? 'on' : ''}" data-kind="${kind}" data-id="${id}">${prev}<span>${esc(label)}</span>${P.eq[kind] === id ? '<i>✓</i>' : ''}</button>`;
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
+    <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
+    <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
+    <h4>Garderoba <small>dodirni da promijeniš</small></h4>
+    <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
+    <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
+    <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
+    <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
+    <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button></div>
+  </form>`;
+  m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
+  m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); });
+  $('#profClose').onclick = () => { m.hidden = true; };
+  $('#profShop').onclick = () => { m.hidden = true; showTab('shop'); };
 }
 function showLogin() {
   const m = $('#regModal'); m.hidden = false;
@@ -723,7 +786,7 @@ function renderShop() {
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
       else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } }; }
       else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[kind] = id; saveProfile(); }; }
-      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; profile.coins -= it.price; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); }; }
+      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; profile.coins -= it.price; profile.spent = (profile.spent || 0) + it.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); }; }
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
   };
@@ -1384,6 +1447,8 @@ function render() {
   }
   for (const q of G.parts) { ctx.globalAlpha = Math.max(0, q.life); ctx.fillStyle = q.c; ctx.fillRect(q.x - 1.6, q.y - 1.6, 3.2, 3.2); }
   ctx.globalAlpha = 1;
+  if (trollFx.length || ($('#cv').style.transform)) drawTrolls(ctx);
+  ctx.globalAlpha = 1;
   if (G.toast && G.gt - G.toast.t < 1.2 && G.gt >= G.toast.t) {
     const k = (G.gt - G.toast.t) / 1.2;
     ctx.globalAlpha = 1 - k; ctx.fillStyle = G.toast.color; ctx.font = '600 18px "Barlow Semi Condensed", sans-serif';
@@ -1423,11 +1488,17 @@ function updatePads() {
 
 // ---------- loop ----------
 let frameN = 0;
+let profileDirty = false;
+setInterval(() => { if (profile && document.visibilityState === 'visible') { profile.siteMs = (profile.siteMs || 0) + 15000; profileDirty = true; } }, 15000);
+setInterval(() => { if (profile && profileDirty) { profileDirty = false; saveProfile(); } }, 120000);
+addEventListener('pagehide', () => { if (profile && profileDirty) { profileDirty = false; try { localSave(profile); fetch(ACCOUNTS_API + '/' + encodeURIComponent(profile.slug), { method: 'PUT', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc: profile, auth: profile.pinHash || '' }) }); } catch (e) {} } });
+function fmtDur(ms) { const m = Math.round((ms || 0) / 60000); if (m < 60) return m + ' min'; const h = Math.floor(m / 60); return h + ' h ' + (m % 60) + ' min'; }
 function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
   if (!G) return;
+  if (profile && G.phase === 'run' && !(net && net.spectate)) { profile.playMs = (profile.playMs || 0) + dt * 1000; profileDirty = true; }
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return; }
-  else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } }
+  else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > 110) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
   render(); renderHud(); updatePads(); tickCountdown();
   raf = requestAnimationFrame(frame);
 }
@@ -1478,6 +1549,8 @@ function buildPads() {
 }
 function localJump(p) { if (net && net.role === 'client') { net.jumpN++; clientInput(); } else tryJump(p); }
 function enterGame() {
+  if (net && net.spectate) netPresence({ ig: null, pl: null }); else netPresence({ ig: 1, pl: net ? null : 1 });
+  renderSpecBar();
   document.querySelectorAll('.netonly').forEach(b => { b.hidden = !net; });
   if (net) { buildReactPop(); wireChat('#gchatIn', '#gchatSend'); renderChat(); }
   setChatOpen(chatOpen); $('#reactPop').hidden = true;
@@ -1496,6 +1569,8 @@ function startGame() {
 }
 function toMenu() {
   cancelAnimationFrame(raf); paused = false; G = null;
+  netPresence({ ig: null, pl: null, sp: null, watch: null }); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
+  if (profile && profileDirty) { profileDirty = false; saveProfile(); }
   if (net) { if (net.role === 'host') netPresence({ st: null }); net = null; }
   $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true; $('#reactPop').hidden = true;
   renderPlayers(); renderMe(); renderShop(); pvStart(); if (curTab === 'online') renderNet();
@@ -1510,6 +1585,12 @@ function togglePause(force) {
   } else { showOverlay(null); lastTs = performance.now(); if (G.phase === 'end') showRoundBanner(); }
 }
 function showResults() {
+  if (net && net.spectate) {
+    const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking(); const w = rows[0];
+    showOverlay(`<div class="banner"><span class="label">Kraj meča koji gledaš</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}</h3><p>${rows.map((p, i) => `${i + 1}. ${esc(p.name)} (${p.score})`).join(' · ')}</p><div class="row"><button class="btn" id="specStay">Gledaj dalje</button><button class="btn ghost" id="specLeave">Izađi</button></div></div>`);
+    $('#specStay').onclick = () => showOverlay(null); $('#specLeave').onclick = () => { toMenu(); showTab('online'); };
+    return;
+  }
   const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking();
   const w = rows[0]; sfx.round();
   let earn = '';
@@ -1572,7 +1653,8 @@ function myLobbyPres() { return { sl: profile ? profile.slug : '', nm: profile ?
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null };
 function onlineOthers() { return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug || !p.isMe)); }
-function peerStatus(pr) { return pr.st ? 'u igri (domaćin)' : pr.rd ? 'u predvorju' : 'na stranici'; }
+function peerStatus(pr) { return pr.st ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
+function canWatch(pr) { return !!(pr && (pr.st || (pr.ig && pr.pl))); }
 function notify(html, opts = {}) {
   const box = $('#notes'); if (!box) return null;
   const n = document.createElement('div'); n.className = 'note-card' + (opts.warn ? ' warn' : ''); n.innerHTML = `<div class="txt">${html}</div>` + (opts.actions || '') + '<button class="x" type="button" aria-label="Zatvori">×</button>';
@@ -1587,7 +1669,7 @@ function renderOnbar() {
   const host = findHost(), hostOther = host && !(host.isMe && host.sameTab);
   const inLobby = others.filter(p => p.presence.rd).length;
   bar.className = 'onhero' + (n ? '' : ' empty');
-  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${pr.rd || pr.st ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
+  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
   const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
     : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
     : inLobby ? `${inLobby} ${inLobby === 1 ? 'čeka' : 'čekaju'} u predvorju. Uđi i krenite!`
@@ -1599,7 +1681,8 @@ function renderOnbar() {
     : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? 'Priključi se meču' : 'Igraj online'}</button>`;
   const second = !n ? `<button class="btn ghost" type="button" id="heroInvite">Pozovi prijatelje</button><button class="btn ghost" type="button" id="heroBots">Igraj s botovima</button>` : '';
   bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${n ? `<div class="people">${people}</div>` : ''}`;
-  bar.querySelectorAll('.pingbtn').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
+  bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
+  bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
   if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (!net) hostStart(); };
   if ($('#goOnlineBtn')) $('#goOnlineBtn').onclick = () => {
     if (!profile) { showLogin(); return; }
@@ -1688,6 +1771,142 @@ function collectSocial() {
   renderOnbar();
 }
 setTimeout(() => { social.settled = true; if (profile) { const o = onlineOthers(); if (o.length) { const names = o.slice(0, 3).map(q => esc(String(q.presence.nm).slice(0, 14))); const n = notify(`🟢 Online sada: <b>${names.join(', ')}</b>${o.length > 3 ? ' i još ' + (o.length - 3) : ''}.`, { actions: o.length === 1 ? `<button class="pingbtn" type="button">Pozovi na igru</button>` : '' }); if (n && o.length === 1) n.querySelector('.pingbtn').onclick = () => { sendPing(o[0].peer); n.remove(); }; } } }, 3500);
+// ---------- spectating and teasing ----------
+const TROLLS = {
+  hearts: { e: '💖', name: 'Srčeka', price: 40, ms: 2500, d: 'Kiša srčeka (lijepa gesta)' },
+  horn:   { e: '📯', name: 'Truba', price: 60, ms: 1500, d: 'Glasna truba i natpis preko ekrana' },
+  poop:   { e: '💩', name: 'Kakice', price: 80, ms: 4000, d: 'Kakice padaju preko arene' },
+  shake:  { e: '💥', name: 'Potres', price: 120, ms: 2500, d: 'Ekran se trese' },
+  flash:  { e: '⚡', name: 'Bljesak', price: 150, ms: 1300, d: 'Ekran zabljesne bijelo' },
+  dark:   { e: '🌑', name: 'Mrak', price: 250, ms: 4000, d: 'Mrak, vidi se samo oko glave' },
+  flip:   { e: '🙃', name: 'Naglavačke', price: 300, ms: 3500, d: 'Arena se okrene naglavačke' },
+};
+const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0;
+const seenDm = {}, seenTr = {};
+function watcherCount() { const me = roomState.me; return me ? roomState.peers.filter(p => !(p.isMe && p.sameTab) && p.presence && p.presence.watch === me).length : 0; }
+function startSpectate(peer) {
+  const pe = roomState.peers.find(p => p.peer === peer); if (!pe) { notify('Igrač više nije online.', { warn: true }); return; }
+  if (!canWatch(pe.presence)) { notify(`<b>${esc(String(pe.presence.nm || 'Igrač'))}</b> trenutno ne igra.`, { warn: true, ms: 5000 }); return; }
+  if (net) return;
+  const key = pe.presence.st ? 'st' : 'sp';
+  netPresence({ watch: peer });
+  notify(`Spajam se na igru igrača <b>${esc(String(pe.presence.nm))}</b>…`, { ms: 3000 });
+  const t0 = performance.now();
+  const wait = () => { const p2 = roomState.peers.find(p => p.peer === peer); if (p2 && p2.presence && p2.presence[key]) { clientBegin(p2, key, true); return; } if (performance.now() - t0 > 6000) { netPresence({ watch: null }); notify('Igra se nije uspjela učitati. Pokušaj ponovno.', { warn: true }); return; } setTimeout(wait, 200); };
+  wait();
+}
+function specTargets() {
+  if (!net || !net.spectate || !G) return [];
+  const list = G.players.filter(p => p.human).map(p => ({ peer: peerOfPlayer(p), name: p.name, color: p.color })).filter(x => x.peer && x.peer !== roomState.me);
+  if (!list.length && net.target) { const pe = roomState.peers.find(p => p.peer === net.target); if (pe) list.push({ peer: net.target, name: String(pe.presence.nm || 'Igrač'), color: COLORS[Number(pe.presence.cl)] || COLORS[0] }); }
+  return list;
+}
+let specBarTimer = 0;
+function renderSpecBarSoon() { if (specBarTimer) return; specBarTimer = setTimeout(() => { specBarTimer = 0; if (!document.activeElement || document.activeElement.id !== 'dmIn') renderSpecBar(); }, 1500); }
+function renderSpecBar() {
+  const bar = $('#specBar'); if (!bar) return;
+  if (!net || !net.spectate) { if (!bar.hidden) { bar.hidden = true; if (G) fitCanvas(); } return; }
+  const wasHidden = bar.hidden; bar.hidden = false;
+  const targets = specTargets(); if (!net.trollTarget || !targets.some(t => t.peer === net.trollTarget)) net.trollTarget = (targets.find(t => t.peer === net.target) || targets[0] || {}).peer;
+  const coins = profile ? profile.coins : 0, cool = performance.now() - lastTrollSent < 5000;
+  const tname = (targets.find(t => t.peer === net.trollTarget) || {}).name || '';
+  bar.innerHTML = `<div class="specTop"><span>👀 Gledaš${tname ? ': <b>' + esc(tname) + '</b>' : ''}</span>${targets.length > 1 ? `<span class="specTargets">${targets.map(t => `<button type="button" class="stg ${t.peer === net.trollTarget ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</span>` : ''}<span class="coinsmall">● ${coins}</span><button type="button" class="btn ghost sm" id="specExit">Izađi</button></div>
+    <div class="trolls">${Object.entries(TROLLS).map(([id, t]) => `<button type="button" class="troll" data-id="${id}" title="${esc(t.d)}" ${!profile || coins < t.price || cool || !net.trollTarget ? 'disabled' : ''}><span>${t.e}</span><b>${t.name}</b><small>● ${t.price}</small></button>`).join('')}</div>
+    <div class="chatrow"><input type="text" id="dmIn" maxlength="60" placeholder="${tname ? 'Poruka za ' + esc(tname) + '…' : 'Poruka…'}" aria-label="Poruka igraču"><button type="button" id="dmSend">Pošalji</button></div>
+    ${!profile ? '<p class="hint" style="margin:0">Prijavi se da možeš zezati igrače zlatnicima.</p>' : cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi prije sljedeće zezancije.</p>' : ''}`;
+  bar.querySelectorAll('.stg').forEach(b => b.onclick = () => { net.trollTarget = b.dataset.peer; renderSpecBar(); });
+  bar.querySelectorAll('.troll').forEach(b => b.onclick = () => sendTroll(net.trollTarget, b.dataset.id));
+  $('#specExit').onclick = () => { toMenu(); showTab('online'); };
+  const i = $('#dmIn'), go = () => { sendDm(net.trollTarget, i.value); i.value = ''; };
+  if (wasHidden && G) fitCanvas();
+  $('#dmSend').onclick = go; i.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } e.stopPropagation(); };
+}
+function sendDm(peer, text) {
+  text = String(text || '').trim().slice(0, 60); if (!text || !peer || !roomNs) return;
+  dmN++; netPresence({ dm: [peer, text, dmN, Date.now()] }); toast('Poruka poslana.');
+}
+function sendTroll(peer, id) {
+  const t = TROLLS[id]; if (!t || !peer || !profile || !roomNs) return;
+  if (profile.coins < t.price) { toast('Nemaš dovoljno zlatnika.'); return; }
+  if (performance.now() - lastTrollSent < 5000) return;
+  lastTrollSent = performance.now(); trollN++;
+  profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; profile.trollsSent = (profile.trollsSent || 0) + 1; saveProfile();
+  netPresence({ tr: [peer, id, trollN, Date.now()] });
+  toast(`${t.e} ${t.name} poslano! (−${t.price})`); beep(520, .08); renderSpecBar(); setTimeout(renderSpecBar, 5100);
+}
+function receiveTroll(id, fromName) {
+  const t = TROLLS[id]; if (!t) return;
+  if (profile) { profile.trollsGot = (profile.trollsGot || 0) + 1; profileDirty = true; }
+  const now = performance.now();
+  if ($('#game').hidden || !G) { notify(`${t.e} <b>${esc(fromName)}</b> te pokušao zezati (${t.name}), ali nisi bio u igri.`, { warn: true, ms: 6000 }); return; }
+  const fx = { id, start: now, until: now + t.ms, from: fromName, seed: Math.random() * 1000 };
+  trollFx.push(fx); if (trollFx.length > 4) trollFx.shift();
+  if (id === 'horn') { beep(220, .5, 'sawtooth', .09, 120); setTimeout(() => beep(330, .6, 'sawtooth', .09, 160), 250); }
+  else if (id === 'flash') beep(1400, .15, 'square', .05);
+  else beep(300, .2, 'triangle', .06, -120);
+  try { navigator.vibrate && navigator.vibrate(id === 'shake' ? [80, 40, 80, 40, 120] : 60); } catch (e) {}
+  showIgMsg(`${t.e} ${esc(fromName)} ti šalje: ${t.name}`, true);
+}
+function showIgMsg(html, warn) {
+  const box = $('#igMsgs'); if (!box) { notify(html, { ms: 5000 }); return; }
+  const el = document.createElement('div'); el.className = 'igmsg' + (warn ? ' warn' : ''); el.innerHTML = html; box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.remove(), 5000);
+}
+function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; c.style.transition = ''; } }
+function drawTrolls(c) {
+  const now = performance.now();
+  for (let i = trollFx.length - 1; i >= 0; i--) if (trollFx[i].until < now) trollFx.splice(i, 1);
+  let tf = '';
+  for (const f of trollFx) {
+    const k = (now - f.start) / (f.until - f.start);
+    const me = G.players.find(p => p.mine) || (net && net.myId != null ? G.players.find(p => p.id === net.myId) : null);
+    c.save(); c.textAlign = 'center'; c.textBaseline = 'middle';
+    if (f.id === 'flash') { c.globalAlpha = Math.max(0, 1 - k) * 0.95; c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); }
+    else if (f.id === 'dark') {
+      const fade = k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1; c.globalAlpha = 0.96 * fade;
+      const g = me ? c.createRadialGradient(me.x, me.y, 30, me.x, me.y, 120) : null;
+      if (g) { g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,1)'); c.fillStyle = g; } else c.fillStyle = '#000';
+      c.fillRect(0, 0, W, H);
+    }
+    else if (f.id === 'poop' || f.id === 'hearts') {
+      const n = 22, e = f.id === 'poop' ? '💩' : '💖';
+      c.font = `${Math.round(Math.min(W, H) * 0.06)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      c.globalAlpha = k > .85 ? (1 - k) / .15 : 1;
+      for (let i = 0; i < n; i++) { const r1 = Math.sin(f.seed + i * 12.9898) * 43758.5453, rx = r1 - Math.floor(r1), r2 = Math.sin(f.seed + i * 78.233) * 12345.678, ry = r2 - Math.floor(r2); const y = f.id === 'poop' ? ((ry + k * 1.3) % 1.2 - .1) * H : H - ((ry + k * 1.2) % 1.2 - .1) * H; c.fillText(e, rx * W, y); }
+    }
+    else if (f.id === 'horn') { const s = 1 + 0.15 * Math.sin(k * 40); c.globalAlpha = k > .8 ? (1 - k) / .2 : 1; c.font = `400 ${Math.round(Math.min(W, H) * 0.12 * s)}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('TUUUUT! 📯', W / 2, H / 2); }
+    else if (f.id === 'shake') { const a = 14 * (1 - k); tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * 0.15}deg)`; }
+    else if (f.id === 'flip') { tf = 'rotate(180deg)'; }
+    // who did it
+    c.globalAlpha = 1; c.font = '700 16px "Barlow Semi Condensed", sans-serif'; c.fillStyle = '#ffb547';
+    c.fillText(`${TROLLS[f.id].e} od ${f.from}`, W / 2, 20);
+    c.restore();
+  }
+  const cvs = $('#cv');
+  if (cvs) { if (tf) { cvs.style.transition = tf.startsWith('rotate(180') ? 'transform .35s' : ''; cvs.style.transform = tf; } else if (cvs.style.transform) { cvs.style.transition = 'transform .35s'; cvs.style.transform = ''; } }
+}
+function collectDirect() {
+  const me = roomState.me; if (!me) return;
+  for (const p of roomState.peers) {
+    if (p.isMe && p.sameTab) continue;
+    const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
+    if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
+    if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000) receiveTroll(pr.tr[1], from); } }
+  }
+  // spectator count in my HUD
+  const w = $('#watchers'); if (w) { const n = watcherCount(); w.hidden = !n || !!(net && net.spectate); w.textContent = '👀 ' + n; w.title = n + (n === 1 ? ' osoba te gleda' : ' osoba te gleda'); }
+}
+// open ?gledaj=<player> from the stats page
+const WATCH_SLUG = (() => { try { const v = new URLSearchParams(location.search).get('gledaj'); return v && /^[a-z0-9-]{1,40}$/.test(v) ? v : null; } catch (e) { return null; } })();
+function tryWatchSlug() {
+  if (!WATCH_SLUG || tryWatchSlug.done) return;
+  const pe = roomState.peers.find(p => p.presence && p.presence.sl === WATCH_SLUG && !(p.isMe && p.sameTab));
+  if (pe && canWatch(pe.presence)) { tryWatchSlug.done = true; startSpectate(pe.peer); return; }
+  // a guest in an online match: watch that match through its host
+  if (pe && pe.presence.ig) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { tryWatchSlug.done = true; startSpectate(h.peer); } }
+}
+setTimeout(() => { if (WATCH_SLUG && !tryWatchSlug.done) { tryWatchSlug.done = true; notify('Taj igrač trenutno ne igra. Pogledaj tko je online gore.', { warn: true }); } }, 9000);
 function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); renderOnbar(); }
 function findHost() {
   const hosts = roomState.peers.filter(p => p.presence && p.presence.st && typeof p.presence.st === 'object').sort((a, b) => a.peer < b.peer ? -1 : 1);
@@ -1822,20 +2041,22 @@ function hostSend(force) {
     if (pr && pr.presence) { p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0)); const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); } }
     else p.remoteIn = 0;
   }
-  const st = { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: net.mid,
+  netPresence({ st: buildSnap() });
+}
+function buildSnap() {
+  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump } };
-  netPresence({ st });
 }
 
 // client
-function clientBegin(host) {
+function clientBegin(host, key = 'st', spectate = false) {
   if (net && net.role === 'client') return;
-  const st = host.presence.st;
-  net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid };
-  netPresence({ again: null });
+  const st = host.presence[key]; if (!st) return;
+  net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid, key, spectate, target: spectate ? host.peer : null };
+  if (!spectate) netPresence({ again: null });
   Object.assign(setup, st.s || {});
   G = { players: [], target: st.tg, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, pus: [], inset: 0, wrapAllUntil: 0, parts: [], over: false, ff: false, speedMul: 1, clr: st.clr, rank: null };
   $('#menu').hidden = true; $('#game').hidden = false;
@@ -1882,10 +2103,11 @@ function applyState(st, first) {
 }
 function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
-  const st = host && host.presence && host.presence.st;
-  if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h); return 'restarted'; }
+  const st = host && host.presence && host.presence[net.key || 'st'];
+  if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) net.target = tg || net.target; return 'restarted'; }
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); applyState(st); } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
-  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
+  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
+  else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   updateParts(1 / 60);
   clientInput();
 }
@@ -1935,14 +2157,14 @@ async function initSupabase() {
   const ch = sb.channel(ROOM, { config: { presence: { key: myPeer }, broadcast: { self: false } } });
   ch.on('presence', { event: 'sync' }, () => {
     const st = ch.presenceState(); const seen = new Set();
-    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { if ('rd' in prev.presence) fast.rd = prev.presence.rd; if ('again' in prev.presence) fast.again = prev.presence.again; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
+    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   });
   ch.on('broadcast', { event: 'p' }, ({ payload }) => {
     if (!payload || typeof payload.peer !== 'string' || payload.peer === myPeer || !payload.patch) return;
     const prev = peersMap[payload.peer]; if (!prev) return;
-    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch, ('rd' in payload.patch || 'again' in payload.patch) ? { fastAt: Date.now() } : {})); fire();
+    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch, ('rd' in payload.patch || 'again' in payload.patch || 'ig' in payload.patch || 'pl' in payload.patch || 'watch' in payload.patch) ? { fastAt: Date.now() } : {})); fire();
   });
   const lobbyPres = {}; let trackTimer = 0;
   ch.subscribe((status) => { const c = status === 'SUBSCRIBED'; if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } if (c) ch.track(Object.assign({}, lobbyPres)); });
@@ -1950,7 +2172,7 @@ async function initSupabase() {
   roomNs = {
     async presence(patch) {
       const fast = {}, slow = {}; let hasFast = false, hasSlow = false;
-      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg' || k === 'ping' || k === 'pong') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again') { fast[k] = patch[k]; hasFast = true; } } }
+      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'sp' || k === 'dm' || k === 'tr') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
@@ -1992,7 +2214,7 @@ async function initCapabilities() {
     roomNs.onPeers(ch => {
       roomState.peers = ch.peers;
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
-      collectChat(); collectSocial();
+      collectChat(); collectSocial(); collectDirect(); tryWatchSlug(); if (net && net.spectate && frameN % 1 === 0) renderSpecBarSoon();
       if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { netPresence({ st: null }); toMenu(); } }
       if (!net && roomState.ready && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) clientBegin(h); }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();

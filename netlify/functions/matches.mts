@@ -17,7 +17,7 @@ const ADMIN_KEY_SHA256 = "f5200fc8e8b6f62b67cebbfb4087e15b344faffeb42fe51c14c495
 
 type MatchPlayer = { name: string; slug: string | null; human: boolean; place: number; score: number; wins: number; kills: number };
 type Match = { mid: string; mode: "online" | "local"; rounds: number; at: number; players: MatchPlayer[] };
-type Account = { slug: string; name: string; color?: number; coins?: number; matches?: number; wins?: number; kills?: number; created?: number; updatedAt?: number; invitedBy?: string; eq?: { skin?: string; badge?: string } };
+type Account = { slug: string; name: string; color?: number; coins?: number; matches?: number; wins?: number; kills?: number; created?: number; updatedAt?: number; invitedBy?: string; eq?: { skin?: string; badge?: string }; owned?: string[]; spent?: number; purchases?: number; playMs?: number; siteMs?: number; trollsSent?: number; trollsGot?: number };
 
 function cleanMatch(body: unknown): Match | string {
   if (!body || typeof body !== "object") return "body missing";
@@ -80,12 +80,20 @@ async function stats() {
       coins: Number(a.coins) || 0, matches: played, wins: Math.max(Number(a.wins) || 0, r.firsts),
       winRate: played ? Math.round((100 * Math.max(Number(a.wins) || 0, r.firsts)) / played) : 0,
       podiums: r.podiums, roundsWon: r.rounds, kills: Math.max(Number(a.kills) || 0, r.kills), online: r.online,
+      items: Math.max(0, (Array.isArray(a.owned) ? a.owned.filter((x) => x !== "sk_none" && x !== "bd_none").length : 0)),
+      spent: Number(a.spent) || 0, purchases: Number(a.purchases) || 0, playMs: Number(a.playMs) || 0, siteMs: Number(a.siteMs) || 0,
+      trollsSent: Number(a.trollsSent) || 0, trollsGot: Number(a.trollsGot) || 0,
       created: a.created || 0, lastSeen: Math.max(a.updatedAt || 0, r.lastPlayed), invitedBy: a.invitedBy || null, invited: invites[a.slug] || 0,
     };
   }).sort((x, y) => y.matches - x.matches || y.wins - x.wins);
 
   const skins: Record<string, number> = {}, badges: Record<string, number> = {};
   for (const p of players) { skins[p.skin] = (skins[p.skin] || 0) + 1; badges[p.badge] = (badges[p.badge] || 0) + 1; }
+  // how many players own each item (bought at least once)
+  const owned: Record<string, number> = {};
+  for (const a of accounts) for (const id of new Set(Array.isArray(a.owned) ? a.owned : [])) if (id !== "sk_none" && id !== "bd_none") owned[id] = (owned[id] || 0) + 1;
+  const top = (key: keyof (typeof players)[number]) => [...players].filter((p) => Number(p[key]) > 0).sort((x, y) => Number(y[key]) - Number(x[key])).slice(0, 5).map((p) => ({ name: p.name, slug: p.slug, value: Number(p[key]) }));
+  const leaders = { playMs: top("playMs"), spent: top("spent"), items: top("items"), trollsSent: top("trollsSent"), trollsGot: top("trollsGot"), invited: top("invited"), kills: top("kills") };
 
   return {
     generatedAt: now,
@@ -102,11 +110,17 @@ async function stats() {
       coinsHeld: players.reduce((s, p) => s + p.coins, 0),
       kills: players.reduce((s, p) => s + p.kills, 0),
       invitedPlayers: accounts.filter((a) => a.invitedBy).length,
+      coinsSpent: players.reduce((s, p) => s + p.spent, 0),
+      purchases: players.reduce((s, p) => s + Math.max(p.purchases, p.items), 0),
+      itemsOwned: players.reduce((s, p) => s + p.items, 0),
+      playMs: players.reduce((s, p) => s + p.playMs, 0),
+      siteMs: players.reduce((s, p) => s + p.siteMs, 0),
+      trolls: players.reduce((s, p) => s + p.trollsSent, 0),
     },
     days,
     players,
     recent: matches.slice(0, 25).map((m) => ({ mid: m.mid, at: m.at, mode: m.mode, rounds: m.rounds, players: [...m.players].sort((a, b) => a.place - b.place).map((p) => ({ name: p.name, human: p.human, place: p.place, score: p.score, kills: p.kills })) })),
-    skins, badges,
+    skins, badges, owned, leaders,
   };
 }
 
