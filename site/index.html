@@ -392,7 +392,7 @@ button.pu:hover { border-color: var(--line); }
 .hud { display: flex; align-items: center; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 6px; border-bottom: 1px solid var(--line); background: var(--ink); }
 #scores { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .chip { display: flex; align-items: center; gap: 6px; padding: 3px 9px 3px 6px; border-radius: 999px; background: var(--panel); white-space: nowrap; font-weight: 600; font-size: 15px; transition: opacity .2s; }
-.chip.dead { opacity: .38; }
+.chip.dead { opacity: .85; } .chip.dead > span:not(.dot) { opacity: .4; text-decoration: line-through; } .chip.dead .dot { box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
 .chip .dot { width: 10px; height: 10px; border-radius: 50%; }
 .chip .sc { font-variant-numeric: tabular-nums; font-weight: 700; }
 .target { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -3321,7 +3321,7 @@ function seatQueuedHumans() {
   const bots = G.players.filter(p => !p.human); if (!bots.length) return;
   const q = queueList().filter(pr => !(pr.isMe && pr.sameTab) && pr.presence.nm);
   for (const pr of q) {
-    const bot = bots.shift(); if (!bot) break;
+    if (!bots.length) break; const want = Number(pr.presence.cl) || 0; const bi = bots.findIndex(x => x.id === want); const bot = bots.splice(bi >= 0 ? bi : 0, 1)[0];
     const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
     let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = bot.id;
     const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
@@ -3347,6 +3347,7 @@ function hostStart(rematch) {
     let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
     players.push(netPlayerFrom(pr, c));
   });
+  { const meP2 = players.find(p => p.mine); if (meP2 && profile && COLORS[profile.color] && meP2.color !== COLORS[profile.color]) setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${meP2.color}">${(DEFAULT_NAMES[COLORS.indexOf(meP2.color)] || '').toLowerCase()}</b>`), 1500); }
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'teško', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; return; }
   { const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 1).filter(r => r > 0.3 && r < 3); netRatio = Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / Math.max(1, rs.length)))); }
@@ -3369,8 +3370,16 @@ function hostReadInputs() {
       const back = roomState.peers.find(q => q.peer !== p.remote && !taken.has(q.peer) && !(q.isMe && q.sameTab) && q.presence && q.presence.sl === p.slug && q.presence.pg !== 'stats' && q.presence.vis !== 0 && q.presence.fol === roomState.me);
       if (back) { p.remote = back.peer; p.peerId = back.peer; p.lastJ = Number(back.presence.j) || 0; p.awayAt = 0; pr = back; hudDirty = true; }
     }
-    if (pr && pr.presence) { p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0)); const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); } p.away = pr.presence.vis === 0; }
-    else { p.remoteIn = 0; p.away = true; }
+    if (pr && pr.presence) {
+      const is = Number(pr.presence.is) || 0, now = performance.now();
+      if (!is || is >= (p.lastIs || 0)) { // ignore an old packet that arrived late
+        if (is !== (p.lastIs || 0) || !p.inAt) { p.lastIs = is; p.inAt = now; }
+        p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0));
+        const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); }
+      }
+      if (is && now - p.inAt > 1200) p.remoteIn = 0; // no word from the player for a while: stop turning
+      p.away = pr.presence.vis === 0;
+    } else { p.remoteIn = 0; p.away = true; }
   }
 }
 // A guest who left the app pauses the round for up to AWAY_MS; after that they are out of the round.
@@ -3381,6 +3390,7 @@ function hostAwayPause() {
   for (const p of G.players) {
     if (!p.remote || !p.alive || !p.away) { p.awayAt = 0; continue; }
     if (!p.awayAt) p.awayAt = now;
+    if (now - p.awayAt < 2000) continue; // a short presence hiccup is not leaving
     const left = AWAY_MS - (now - p.awayAt);
     if (left <= 0) { kill(p, null); p.awayAt = 0; G.toast = { text: p.name + ' je eliminiran (izašao)', color: '#ff5d73', x: W / 2, y: H / 2, t: G.gt }; continue; }
     if (!wait || left < wait.left) wait = { name: p.name, left };
@@ -3390,7 +3400,7 @@ function hostAwayPause() {
 }
 function buildSnap() {
   return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+    pl: G.players.map(p => ({ i: p.id, co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -3431,9 +3441,11 @@ function applyState(st, first) {
     let p = byId[q.i];
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
+    if (q.co != null && COLORS[q.co] && p.color !== COLORS[q.co]) { p.color = COLORS[q.co]; hudDirty = true; }
     Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
-    if (q.rm === mePeer) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (wasOut) setTimeout(() => { buildPads(); renderSpecBar(); showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); }
+    if (q.rm === mePeer) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) setTimeout(() => { buildPads(); renderSpecBar(); if (G.round > 1) showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
+    if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
     p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
     if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); onDeath(p, q.kb); }
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
@@ -3464,6 +3476,8 @@ function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
   const st = host && host.presence && host.presence[net.key || 'st'];
   if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) net.target = tg || net.target; return 'restarted'; }
+  if (net.myId != null && G && G.phase === 'run' && performance.now() - (net.inSentAt || 0) > 300) clientInput(true);
+  if (roomNs && roomNs.rejoin && performance.now() - net.lastSeen > 3500 && performance.now() - (net.rejoinAt || 0) > 5000) { net.rejoinAt = performance.now(); roomNs.rejoin(); }
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); const back = net.staleShown; if (back) { net.staleShown = false; showOverlay(null); } applyState(st); if (back && G.phase === 'end' && !G.over) showRoundBanner(); }
     else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
   else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
@@ -3475,7 +3489,8 @@ function clientTick() {
 // draw heads slightly ahead of the last snapshot (and turn my own head at once) so 10 snapshots/s look smooth
 function predictHeads() {
   if (!net || net.role !== 'client' || !G || G.phase !== 'run') return;
-  const dt = Math.min(0.16, (performance.now() - net.lastSeen) / 1000);
+  const nowP = performance.now(), dt = Math.min(0.3, (nowP - net.lastSeen) / 1000);
+  const fdt = Math.min(0.1, (nowP - (net._pf || nowP)) / 1000); net._pf = nowP; const decay = Math.exp(-fdt / 0.09);
   for (const p of G.players) {
     if (!p.alive || p.sx == null || !p.v) continue;
     let a = p.sa;
@@ -3484,15 +3499,19 @@ function predictHeads() {
       const tr = TURN * (p.v / BASE_SPEED); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
+    if (p.ex || p.ey || p.ea) { p.ex *= decay; p.ey *= decay; p.ea *= decay; p.x += p.ex; p.y += p.ey; if (p.id === net.myId) p.a += p.ea; if (Math.abs(p.ex) + Math.abs(p.ey) < 0.05) p.ex = p.ey = 0; if (Math.abs(p.ea) < 0.002) p.ea = 0; }
+    p._vx = p.x; p._vy = p.y; p._va = p.a;
   }
 }
-function clientInput() {
+function clientInput(force) {
   if (!net || net.role !== 'client' || net.myId == null) return;
   const me = G.players.find(p => p.id === net.myId); if (!me) return;
   const k = KEYS[0];
   let v = ((held[k.r] || tH(me, 'R')) ? 1 : 0) - ((held[k.l] || tH(me, 'L')) ? 1 : 0); if (mirrorOn()) v = -v;
   const key = v + ':' + net.jumpN;
-  if (key !== net.lastIn) { net.lastIn = key; netPresence({ in: v, j: net.jumpN }); }
+  // every change goes out at once; the current state is also repeated every 300 ms, so one lost packet
+  // can never leave the snake turning (or not turning) on the host
+  if (key !== net.lastIn || force) { net.lastIn = key; net.inSeq = (net.inSeq || 0) + 1; net.inSentAt = performance.now(); netPresence({ in: v, j: net.jumpN, is: net.inSeq }); }
 }
 
 // Backend outside claude.ai: Supabase Realtime (lobby + match state) and a small accounts table.
@@ -3545,10 +3564,11 @@ async function initSupabase() {
   // spectators of that match receive them (every broadcast is billed once per receiver).
   const gchans = {}; let following = null, resendT = 0;
   const gname = (peer) => ROOM + '-g-' + peer;
-  const gjoin = (peer) => { const n = gname(peer); if (gchans[n]) return gchans[n]; const g = { ch: sb.channel(n, { config: { broadcast: { self: false } } }), ok: false }; g.ch.on('broadcast', { event: 'p' }, onP); g.ch.subscribe((s) => { g.ok = s === 'SUBSCRIBED'; if ((s === 'CLOSED' || s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') && gchans[n] === g) { delete gchans[n]; try { sb.removeChannel(g.ch); } catch (e) {} } }); gchans[n] = g; return g; };
+  const gjoin = (peer) => { const n = gname(peer); if (gchans[n]) return gchans[n]; const g = { ch: sb.channel(n, { config: { broadcast: { self: false } } }), ok: false, since: performance.now() }; g.ch.on('broadcast', { event: 'p' }, onP); g.ch.subscribe((s) => { g.ok = s === 'SUBSCRIBED'; if ((s === 'CLOSED' || s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') && gchans[n] === g) { delete gchans[n]; try { sb.removeChannel(g.ch); } catch (e) {} } }); gchans[n] = g; return g; };
   const gleave = (peer) => { const n = gname(peer); const g = gchans[n]; if (g) { sb.removeChannel(g.ch); delete gchans[n]; } };
   const gsend = (peer, patch) => { const g = gjoin(peer); if (g.ok) g.ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch } }).catch(() => {}); };
   const lobbyPres = {}; let trackTimer = 0, lastTrack = 0, rejoinTimer = 0;
+  setInterval(() => { if (!connected || !following || following === myPeer) return; const g = gchans[gname(following)]; if (!g) gjoin(following); else if (!g.ok && performance.now() - g.since > 6000) { gleave(following); gjoin(following); } }, 1000);
   // Supabase closes the channel of a client that updates presence too often, so updates are
   // coalesced (at most one every 3 s; the quick flags also go out instantly by broadcast).
   const TRACK_GAP = 3000;
@@ -3577,7 +3597,7 @@ async function initSupabase() {
           own[k] = patch[k]; hasOwn = true;
           // the lobby only learns that a match is running (hs), not every frame of it
           if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { slow.hs = on; fast.hs = on; hasSlow = hasFast = true; } }
-        } else if (k === 'in' || k === 'j' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
+        } else if (k === 'in' || k === 'j' || k === 'is' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
         else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'tb' || k === 'bt' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
         else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } }
       }
@@ -3585,12 +3605,13 @@ async function initSupabase() {
       if (hasToHost && connected) { const to = following && following !== myPeer ? following : ('vis' in toHost && lobbyPres.hs ? myPeer : null); if (to) { gsend(to, toHost); if ('in' in toHost || 'j' in toHost) { const again = Object.assign({}, toHost); clearTimeout(resendT); resendT = setTimeout(() => { gsend(to, again); resendT = setTimeout(() => gsend(to, again), 250); }, 120); } } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) scheduleTrack(); }
-      if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
+      if (hasFast && connected) { for (const k of ['sl', 'nm', 'cl', 'sk', 'bd', 'pu', 'ar', 'rq']) if (lobbyPres[k] != null && !(k in fast)) fast[k] = lobbyPres[k]; ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {}); }
       fire();
     },
     peers: toPeers,
     // receive one host's match channel (null = none); my own channel stays open while I host
     follow(peer) { if (following === peer) return; if (following && following !== myPeer) gleave(following); following = peer; if (peer) gjoin(peer); },
+    rejoin() { if (following && following !== myPeer) { gleave(following); gjoin(following); } },
     onPeers(h) { peerHandlers.push(h); setTimeout(() => h({ peers: toPeers(), joined: toPeers(), left: [], updated: [] }), 0); return () => {}; },
     connected: () => connected,
     onConnection(h) { connHandlers.push(h); setTimeout(() => h(connected), 0); return () => {}; },
@@ -3702,7 +3723,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get W() { return W; }, get H() { return H; } };
 })();
 </script>
 
