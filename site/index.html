@@ -80,6 +80,10 @@ button:disabled { cursor: default; opacity: .5; }
 @keyframes livePulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 70%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 .onp { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; font-weight: 600; }
 .onp .st { color: var(--muted); font-size: 12px; font-weight: 500; }
+.onhero .recent { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.onhero .recent .rl { color: var(--muted); font-size: 13px; font-weight: 600; margin-right: 2px; }
+.onp.rec { opacity: .92; }
+.onp .wa { background: #25d366; color: #062b14; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; text-decoration: none; }
 .pingbtn { border: 0; border-radius: 999px; background: var(--amber); color: #1a1205; font-weight: 700; font-size: 13px; padding: 4px 10px; }
 .pingbtn:disabled { background: var(--line); color: var(--muted); }
 #notes { position: fixed; z-index: 30; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: min(420px, calc(100% - 20px)); display: grid; gap: 8px; pointer-events: none; }
@@ -1511,7 +1515,7 @@ function updatePads() {
 let frameN = 0;
 let profileDirty = false;
 setInterval(() => { if (profile && document.visibilityState === 'visible') { profile.siteMs = (profile.siteMs || 0) + 15000; profileDirty = true; } }, 15000);
-setInterval(() => { if (profile && profileDirty) { profileDirty = false; saveProfile(); } }, 120000);
+setInterval(() => { if (profile && profileDirty) { profileDirty = false; saveProfile(); } }, 60000);
 addEventListener('pagehide', () => { if (profile && profileDirty) { profileDirty = false; try { localSave(profile); fetch(ACCOUNTS_API + '/' + encodeURIComponent(profile.slug), { method: 'PUT', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc: profile, auth: profile.pinHash || '' }) }); } catch (e) {} } });
 function fmtDur(ms) { const m = Math.round((ms || 0) / 60000); if (m < 60) return m + ' min'; const h = Math.floor(m / 60); return h + ' h ' + (m % 60) + ' min'; }
 function frame(ts) {
@@ -1674,8 +1678,8 @@ function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.p
 function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null };
-function onlineOthers() { return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug || !p.isMe)); }
-function peerStatus(pr) { return (pr.st || pr.hs) ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
+function onlineOthers() { return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug || (!p.isMe && p.presence.pg !== 'stats'))); }
+function peerStatus(pr) { return pr.pg === 'stats' ? 'gleda statistiku' : (pr.st || pr.hs) ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
 function canWatch(pr) { return !!(pr && (pr.st || pr.hs || (pr.ig && pr.pl))); }
 function notify(html, opts = {}) {
   const box = $('#notes'); if (!box) return null;
@@ -1683,6 +1687,12 @@ function notify(html, opts = {}) {
   n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > 3) box.firstChild.remove();
   if (opts.ms !== 0) setTimeout(() => n.remove(), opts.ms || 9000);
   return n;
+}
+function fmtAgo(t) { const m = Math.round((Date.now() - t) / 60000); if (m < 1) return 'upravo'; if (m < 60) return `prije ${m} min`; const h = Math.round(m / 60); if (h < 24) return `prije ${h} h`; const d = Math.round(h / 24); return `prije ${d} ${d === 1 ? 'dan' : 'dana'}`; }
+function comeBackLink(name) { return 'https://wa.me/?text=' + encodeURIComponent(`${name}, vrati se na Vijugu! 🐍 Online sam i čekam meč: ${GAME_URL}`); }
+function recentPlayers(onlineSlugs) {
+  const me = profile ? profile.slug : '', week = Date.now() - 7 * 86400000;
+  return accounts.list.filter(a => a.slug && a.slug !== me && !onlineSlugs.has(a.slug) && Number(a.updatedAt) > week).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
 }
 function renderOnbar() {
   const bar = $('#onbar'); if (!bar) return;
@@ -1702,7 +1712,9 @@ function renderOnbar() {
     : roomState.ready && !hostOther ? `<button class="btn go-online" type="button" id="goOnlineBtn">U predvorju si ✓</button>`
     : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? 'Priključi se meču' : 'Igraj online'}</button>`;
   const second = !n ? `<button class="btn ghost" type="button" id="heroInvite">Pozovi prijatelje</button><button class="btn ghost" type="button" id="heroBots">Igraj s botovima</button>` : '';
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${n ? `<div class="people">${people}</div>` : ''}`;
+  const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
+  const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
   if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (!net) hostStart(); };

@@ -88,6 +88,10 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
 .lead h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
 .lead ol { margin: 0; padding-left: 20px; display: grid; gap: 3px; }
 .lead li span { float: right; font-variant-numeric: tabular-nums; color: var(--amber); font-weight: 600; }
+.invitebox { background: rgba(255,181,71,.14); border: 1px solid var(--amber); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 16px; }
+.invitebox .btn { margin-left: auto; }
+.btn.wa { background: #25d366; color: #062b14; margin-left: auto; padding: 6px 14px; font-size: 15px; }
+.lrow .btn.cp { padding: 6px 12px; font-size: 14px; margin-left: 0; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
@@ -98,17 +102,23 @@ th:first-child, td:first-child, th.l, td.l { text-align: left; }
     <div class="upd"><span id="upd">Učitavam…</span><button class="btn ghost" id="refresh" type="button">Osvježi</button><a class="btn" href="./">Natrag u igru</a></div>
   </header>
 
+  <section class="panel" aria-labelledby="liveH">
+    <div id="inviteBox" class="invitebox" hidden></div>
+    <h2 id="liveH">Online sada <small id="liveCount">spajam se…</small></h2>
+    <div class="live" id="live"></div>
+    <p class="note">Klikni „Gledaj” da uđeš u njegovu igru kao gledatelj: možeš mu slati poruke i za zlatnike ga zezati (bljesak, potres, mrak, naglavačke…).</p>
+  </section>
+
+  <section class="panel" aria-labelledby="recentH">
+    <h2 id="recentH">Nedavno online <small>pošalji im poruku da se vrate</small></h2>
+    <div class="live" id="recentList"></div>
+  </section>
+
   <section class="panel invite" aria-labelledby="invH">
     <h2 id="invH">Pozivnica za nove igrače <small>podijeli na društvenim mrežama</small></h2>
     <div class="link"><input id="invUrl" readonly aria-label="Pozivni link"><button class="btn" id="copyBtn" type="button">Kopiraj link</button><button class="btn ghost" id="shareBtn" type="button" hidden>Podijeli…</button></div>
     <div class="share" id="shareLinks"></div>
     <div class="msg" id="invMsg">Tko otvori link, odmah dobije prozor za registraciju (ime, boja, PIN) i 500 zlatnika za trgovinu.</div>
-  </section>
-
-  <section class="panel" aria-labelledby="liveH">
-    <h2 id="liveH">Online sada <small id="liveCount">spajam se…</small></h2>
-    <div class="live" id="live"></div>
-    <p class="note">Klikni „Gledaj” da uđeš u njegovu igru kao gledatelj: možeš mu slati poruke i za zlatnike ga zezati (bljesak, potres, mrak, naglavačke…).</p>
   </section>
 
   <section aria-labelledby="sumH">
@@ -281,7 +291,7 @@ function leaders() {
     ['trollsSent', 'Glavni zezator', v => v + '×'], ['trollsGot', 'Najzezaniji', v => v + '×'], ['kills', 'Najviše rušenja', v => nf.format(v)], ['invited', 'Najviše pozvanih', v => v]];
   $('#leaders').innerHTML = box.map(([k, t, f]) => `<div class="lead"><h3>${t}</h3>${(L[k] || []).length ? '<ol>' + L[k].map(x => `<li>${esc(x.name)}<span>${f(x.value)}</span></li>`).join('') + '</ol>' : '<p class="empty">Još nitko.</p>'}</div>`).join('');
 }
-function render() { tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
+function render() { renderRecent(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
 addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
 
@@ -289,21 +299,43 @@ load(); setInterval(load, 60000);
 const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa' };
 const ROOM = (() => { const v = (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); return v ? 'vijuga-lobby-' + v : 'vijuga-lobby'; })();
 const SOBA = ROOM === 'vijuga-lobby' ? '' : '&soba=' + ROOM.slice(13);
-const status = pr => (pr.st || pr.hs) ? 'igra online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'igra online meč' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'čeka u predvorju' : 'na stranici';
+const status = pr => pr.pg === 'stats' ? 'gleda statistiku' : (pr.st || pr.hs) ? 'igra online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'igra online meč' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'čeka u predvorju' : 'na stranici';
+let me = null;
+try { const login = localStorage.getItem('vijuga-login'); const acc = JSON.parse(localStorage.getItem('vijuga-accounts') || '{}')[login]; if (login && acc && acc.name) me = { sl: login, nm: String(acc.name).slice(0, 14), cl: Number(acc.color) || 0 }; } catch (e) {}
+let onlineSlugs = new Set();
+const fmtAgo = t => { const m = Math.round((Date.now() - t) / 60000); if (m < 1) return 'upravo'; if (m < 60) return `prije ${m} min`; const h = Math.round(m / 60); if (h < 24) return `prije ${h} h`; const d = Math.round(h / 24); return `prije ${d} ${d === 1 ? 'dan' : 'dana'}`; };
+const comeBack = name => `${name}, vrati se na Vijugu! 🐍 Online sam i čekam meč: ${GAME}`;
+function renderRecent() {
+  if (!data) return;
+  const week = Date.now() - 7 * 86400000;
+  const list = data.players.filter(p => p.lastSeen > week && !onlineSlugs.has(p.slug) && (!me || p.slug !== me.sl)).sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 10);
+  $('#recentList').innerHTML = list.length ? list.map(p => `<div class="lrow"><span class="who"><span class="dot" style="background:${COLORS[p.color] || COLORS[0]}"></span>${esc(p.name)}</span><span class="st">bio online ${fmtAgo(p.lastSeen)}</span><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(comeBack(p.name))}" target="_blank" rel="noopener">📲 Pozovi na WhatsAppu</a><button class="btn ghost cp" type="button" data-n="${esc(p.name)}">Kopiraj poruku</button></div>`).join('')
+    : '<p class="empty">Nitko u zadnjih 7 dana.</p>';
+  $('#recentList').querySelectorAll('.cp').forEach(b => b.onclick = async () => { const t = comeBack(b.dataset.n); try { if (navigator.share) { await navigator.share({ text: t }); return; } } catch (e) { if (e && e.name === 'AbortError') return; } try { await navigator.clipboard.writeText(t); b.textContent = 'Kopirano ✓'; } catch (e) { prompt('Kopiraj poruku:', t); } });
+}
 function renderLive(ch) {
   const st = ch.presenceState(), seen = new Map();
   for (const k in st) { const m = st[k] || []; const pr = m[m.length - 1] || {}; if (!pr.nm) continue; const id = pr.sl || pr.nm; const prev = seen.get(id); if (!prev || (pr.ig && !prev.ig)) seen.set(id, pr); }
+  onlineSlugs = new Set([...seen.values()].map(pr => pr.sl).filter(Boolean)); renderRecent();
   const list = [...seen.values()].sort((a, b) => (b.ig ? 1 : 0) - (a.ig ? 1 : 0) || String(a.nm).localeCompare(b.nm, 'hr'));
   $('#liveCount').textContent = list.length ? `${list.length} ${list.length === 1 ? 'igrač' : 'igrača'}` : 'nitko trenutno';
-  $('#live').innerHTML = list.length ? list.map(pr => `<div class="lrow"><span class="pulse"></span><span class="who"><span class="dot" style="background:${COLORS[pr.cl] || COLORS[0]}"></span>${esc(pr.nm)}</span><span class="st">${status(pr)}</span>${pr.ig && pr.sl ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(pr.sl)}${SOBA}">👀 Gledaj</a>` : `<a class="btn ghost" href="${GAME}">Igraj s njim</a>`}</div>`).join('')
+  $('#live').innerHTML = list.length ? list.map(pr => `<div class="lrow"><span class="pulse"></span><span class="who"><span class="dot" style="background:${COLORS[pr.cl] || COLORS[0]}"></span>${esc(pr.nm)}${me && pr.sl === me.sl ? ' <span class="st">(ti)</span>' : ''}</span><span class="st">${status(pr)}</span>${pr.ig && pr.sl ? `<a class="btn" href="${GAME}?gledaj=${encodeURIComponent(pr.sl)}${SOBA}">👀 Gledaj</a>` : me && pr.sl === me.sl ? '' : `<a class="btn ghost" href="${GAME}">Igraj s njim</a>`}</div>`).join('')
     : '<p class="empty">Trenutno nitko nije u igri. Pošalji pozivnicu gore.</p>';
 }
 const s = document.createElement('script');
 s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js';
 s.onload = () => {
-  const ch = window.supabase.createClient(SUPA.url, SUPA.key).channel(ROOM, { config: { presence: { key: 'stats-' + Math.random().toString(36).slice(2) } } });
-  // the server only shares who is here after we track; obs:1 tells the game to ignore this observer
-  ch.on('presence', { event: 'sync' }, () => renderLive(ch)).subscribe(st => { if (st === 'SUBSCRIBED') ch.track({ obs: 1 }); });
+  const myKey = 'stats-' + Math.random().toString(36).slice(2);
+  const ch = window.supabase.createClient(SUPA.url, SUPA.key).channel(ROOM, { config: { presence: { key: myKey }, broadcast: { self: false } } });
+  // a logged-in player is online here too (status: on the stats page); anyone else is an invisible observer
+  ch.on('presence', { event: 'sync' }, () => renderLive(ch));
+  // a player in the game invited me
+  ch.on('broadcast', { event: 'p' }, ({ payload }) => {
+    const pg = payload && payload.patch && payload.patch.ping; if (!Array.isArray(pg) || pg[0] !== myKey) return;
+    const m = ch.presenceState()[payload.peer] || []; const from = (m[m.length - 1] || {}).nm || 'Netko';
+    $('#inviteBox').hidden = false; $('#inviteBox').innerHTML = `🔔 <b>${esc(from)}</b> te zove na igru! <a class="btn" href="${GAME}${SOBA ? '?' + SOBA.slice(1) : ''}">Igraj odmah</a>`;
+  });
+  ch.subscribe(st => { if (st === 'SUBSCRIBED') ch.track(me ? { nm: me.nm, sl: me.sl, cl: me.cl, pg: 'stats' } : { obs: 1 }); });
 };
 s.onerror = () => { $('#liveCount').textContent = 'ne mogu se spojiti'; };
 document.head.appendChild(s);
