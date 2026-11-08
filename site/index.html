@@ -197,6 +197,7 @@ button.pu:hover { border-color: var(--line); }
 .podium td { text-align: right; padding: 6px; border-top: 1px solid var(--line); font-weight: 600; }
 .podium tr.win td { color: var(--amber); }
 .tablewrap { width: 100%; overflow-x: auto; }
+@media (max-width: 640px) { #gchat { width: calc(100% - 20px); } .stage:has(#gchat:not([hidden])) .banner { margin-bottom: 150px; max-height: calc(100% - 160px); overflow-y: auto; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
