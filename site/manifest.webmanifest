@@ -1,0 +1,10 @@
+{
+  "name": "Vijuga",
+  "short_name": "Vijuga",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b121b",
+  "theme_color": "#0b121b",
+  "icons": [{ "src": "og.png", "sizes": "1200x630", "type": "image/png" }]
+}

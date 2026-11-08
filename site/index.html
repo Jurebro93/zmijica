@@ -15,6 +15,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://zmijica.onrender.com/og.png">
 <meta name="theme-color" content="#0b121b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="og.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>:root{color-scheme:dark}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -103,6 +106,15 @@ button:disabled { cursor: default; opacity: .5; }
 .betrow button { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 4px 12px; font-weight: 700; }
 .betrow button.bntb { border-color: #ff5d73; background: rgba(255,93,115,.12); }
 .betrow button:disabled { opacity: .4; } .betrow .sep { width: 10px; }
+.micbtn { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 9px; padding: 0 10px; font-size: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.micbtn.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; } @keyframes recp { 50% { opacity: .6; } }
+.vplay { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
+#replayBox { position: fixed; inset: 0; z-index: 60; background: rgba(5,9,14,.9); display: grid; place-items: center; padding: 12px; }
+#replayBox[hidden] { display: none; }
+#replayBox .rp { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 10px; max-width: 100%; }
+#replayBox .rphead { display: flex; align-items: center; } #replayBox .rphead b { flex: 1; }
+#replayBox .rphead button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 18px; }
+#replayBox canvas { border-radius: 8px; max-width: 100%; } #replayBox .rprow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .weekbar { margin-top: 8px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,215,0,.16), transparent); border: 1px solid rgba(255,215,0,.35); font-size: 15px; cursor: pointer; }
 .weekbar .ms { color: var(--muted); font-size: 13px; }
 .dailych { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
@@ -636,7 +648,7 @@ let setup = {
     type: IS_TOUCH ? (i === 0 ? 'human' : i < 4 ? 'bot' : 'off') : (i < 2 ? 'human' : i < 5 ? 'bot' : 'off'),
     diff: 'srednje',
   })),
-  walls: 'smrt', arena: 'klasicna', shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto', rounds: '5',
+  walls: 'smrt', arena: 'klasicna', teams: false, shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto', rounds: '5',
   puEnabled: Object.fromEntries(PU_KEYS.map(k => [k, true])),
   puRate: 'normalno',
   netBots: true,
@@ -747,13 +759,14 @@ function showPlayer(slug) {
     <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
     <span class="label">Efekti</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
-    <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
+    <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${!online && profile ? '<button class="btn ghost" type="button" id="pPush">🔔 Pozovi obaviješću</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
   $('#pClose').onclick = () => { m.hidden = true; };
   if ($('#pWatch')) $('#pWatch').onclick = () => { m.hidden = true; startSpectate(pe.peer); };
   if ($('#pPing')) $('#pPing').onclick = () => { m.hidden = true; sendPing(pe.peer); };
   if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
+  if ($('#pPush')) $('#pPush').onclick = () => pushInvite(P);
 }
 // any element with data-player opens that player's card
 document.addEventListener('click', (e) => {
@@ -761,6 +774,31 @@ document.addEventListener('click', (e) => {
   const slug = el.dataset.player; if (slug && /^[a-z0-9-]{1,40}$/.test(slug)) showPlayer(slug);
 });
 const GIFTS_API = 'https://vijuga.netlify.app/api/gifts';
+const PUSH_API = 'https://vijuga.netlify.app/api/push';
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function pushOn() { try { return pushSupported() && Notification.permission === 'granted' && localStorage.getItem('vijuga-push-on') === (profile ? profile.slug : ''); } catch (e) { return false; } }
+function b64ToBytes(b) { const pad = '='.repeat((4 - b.length % 4) % 4), raw = atob((b + pad).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(raw, c => c.charCodeAt(0)); }
+async function enablePush() {
+  if (!profile) { showLogin(); return false; }
+  if (!pushSupported()) { toast(IS_IOS ? 'Na iPhoneu: Podijeli → Dodaj na početni zaslon, pa otvori Vijugu odande i uključi obavijesti.' : 'Ovaj preglednik ne podržava obavijesti.'); return false; }
+  try {
+    const perm = await Notification.requestPermission(); if (perm !== 'granted') { toast('Obavijesti nisu dopuštene.'); return false; }
+    const reg = await navigator.serviceWorker.register('sw.js'); await navigator.serviceWorker.ready;
+    const { key } = await (await fetch(PUSH_API + '/key')).json();
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+    const r = await fetch(PUSH_API + '/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', sub: sub.toJSON() }) });
+    if (!r.ok) { toast('Obavijesti nisu spremljene (' + r.status + ').'); return false; }
+    try { localStorage.setItem('vijuga-push-on', profile.slug); } catch (e) {}
+    toast('🔔 Obavijesti uključene: pozivi i podsjetnik 15 min prije termina.'); renderOnbar(); return true;
+  } catch (e) { toast('Obavijesti nisu uspjele: ' + (e && e.message || e)); return false; }
+}
+async function pushInvite(P) {
+  if (!profile) { showLogin(); return; }
+  try { const r = await fetch(PUSH_API + '/invite', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, to: P.slug, auth: profile.pinHash || '' }) });
+    if (r.ok) toast(`🔔 Obavijest poslana igraču ${P.name}.`); else if (r.status === 404) toast(`${P.name} nema uključene obavijesti. Pošalji mu WhatsApp.`); else if (r.status === 429) toast('Pričekaj minutu prije ponovnog poziva.'); else toast('Nije poslano (' + r.status + ').');
+  } catch (e) { toast('Nema veze s poslužiteljem.'); }
+}
 function giftOptions(P) {
   const out = [];
   for (const [id, it] of Object.entries(SKINS)) if (it.price > 0 && !it.limit && !P.owned.includes(id)) out.push({ id, name: it.name, price: it.price, kind: 'Trag' });
@@ -804,6 +842,7 @@ async function collectGifts() {
     saveProfile(); renderShop(); checkAchievements();
   } catch (e) {}
 }
+setTimeout(() => { if (pushOn()) navigator.serviceWorker.register('sw.js').catch(() => {}); }, 3000);
 setTimeout(collectGifts, 4000); setInterval(collectGifts, 45000);
 function showProfile() {
   if (!profile) { showLogin(); return; }
@@ -825,12 +864,14 @@ function showProfile() {
     ${['te', 'ds', 'vs'].map(kind => { const own = Object.keys(EFFECTS).filter(k => EFFECTS[k].kind === kind && P.owned.includes(k)); return own.length ? `<span class="label">${{ te: 'Efekt traga', ds: 'Kad ispadneš', vs: 'Zvuk pobjede' }[kind]}</span><div class="wrow">${chip(kind, '', 'Bez', '<em>—</em>')}${own.map(k => chip(kind, k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('')}</div>` : ''; }).join('')}
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
+    <p style="margin:0">${pushOn() ? '🔔 Obavijesti su uključene na ovom uređaju.' : '<button class="btn ghost sm" type="button" id="profPush">🔔 Uključi obavijesti (pozivi i podsjetnici)</button>'}</p>
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
   m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); });
   $('#profClose').onclick = () => { m.hidden = true; };
   if ($('#profRename')) $('#profRename').onclick = () => showRegister();
+  if ($('#profPush')) $('#profPush').onclick = async () => { if (await enablePush()) showProfile(); };
   $('#profShop').onclick = () => { m.hidden = true; showTab('shop'); };
 }
 function showLogin() {
@@ -1113,6 +1154,7 @@ function renderSettings() {
   const upd = (k) => (v) => { setup[k] = v; saveSetup(); renderSettings(); renderPlayers(); renderLegend(); };
   add('Zidovi', seg([['smrt', 'Ubijaju'], ['prolaz', 'Propuštaju']], setup.walls, upd('walls')), 'Ubijaju: udarac u rub arene znači ispadanje. Propuštaju: izlaziš na suprotnoj strani.');
   add('Arena', seg([['klasicna', 'Klasična'], ['zidovi', 'Zidovi'], ['portali', 'Portali'], ['krug', 'Krug']], setup.arena || 'klasicna', upd('arena')), 'Zidovi: prepreke u areni (mijenjaju se po rundi). Portali: uđeš u jedan, izađeš na drugom. Krug: okrugla arena.');
+  add('Timovi 2 na 2', seg([[false, 'Svatko za sebe'], [true, 'Timovi']], !!setup.teams, upd('teams')), 'S 4 zmije: dva tima (crveni i plavi). Runda je gotova kad preživi samo jedan tim; svaki član pobjedničkog tima dobiva bod.');
   add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
@@ -1318,7 +1360,7 @@ function rand(a, b) { return a + Math.random() * (b - a); }
 function newRound() {
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
-  owner.fill(0); stampT.fill(0); T = 0; G.arena = null; stampArena();
+  owner.fill(0); stampT.fill(0); T = 0; G.arena = null; stampArena(); assignTeams(); G.winTeam = null;
   tctx.clearRect(0, 0, W, H);
   const placed = [];
   G.players.forEach(p => {
@@ -1376,6 +1418,9 @@ function portalStep(p) {
   const A = G.arena; if (!A || !A.portals.length || (p.portalCool || 0) > G.gt) return;
   for (const pt of A.portals) if (Math.hypot(p.x - pt.x, p.y - pt.y) < 14) { const to = A.portals[pt.to]; flushTrail(p, false); p.x = to.x + Math.cos(p.a) * 22; p.y = to.y + Math.sin(p.a) * 22; p.gapLeft = Math.max(p.gapLeft, radiusOf(p) * 2 + 6); p.portalCool = G.gt + 0.8; beep(700, .1, 'sine', .05, 400); return; }
 }
+const TEAM_C = ['#ff5d73', '#4cc9f0'], TEAM_N = ['Crveni', 'Plavi'];
+function teamsOn() { return !!setup.teams && G && G.players.length >= 4 && G.players.length % 2 === 0; }
+function assignTeams() { if (!G) return; G.players.forEach((p, i) => { p.team = teamsOn() ? i % 2 : null; }); }
 function wraps(p) { return setup.walls === 'prolaz' || G.wrapAllUntil > G.gt || has(p, 'wrap'); }
 function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }; }
 
@@ -1601,6 +1646,7 @@ function kill(p, by) {
   hudDirty = true;
   const alive = G.players.filter(q => q.alive);
   if (G.players.some(q => q.human) && !alive.some(q => q.human) && alive.length > 1) G.ff = true;
+  if (teamsOn()) { const teams = new Set(alive.map(q => q.team)); if (teams.size <= 1) { G.winTeam = alive.length ? alive[0].team : null; alive.forEach(q => { if (q !== alive[0]) q.wins++; }); endRound(alive[0] || null); } return; }
   if (alive.length <= 1) endRound(alive[0] || null);
 }
 function burst(x, y, c) { for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, v = rand(20, 120); G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(.4, .9), c }); } }
@@ -1629,7 +1675,8 @@ function showRoundBanner() {
   const lead = G.round === G.target - 1 ? '<p>Sljedeća runda je zadnja.</p>' : '';
   const hostOnly = net && net.role === 'client';
   const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, top.score))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
-  showOverlay(`<div class="banner"><h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Chat i reakcije: gumbi 💬 i 😀 gore desno.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
+  const teamWin = G.winTeam != null ? `<h3 style="color:${TEAM_C[G.winTeam]}">Tim ${TEAM_N[G.winTeam]} pobjeđuje!</h3><p>${G.players.filter(p => p.team === G.winTeam).map(p => esc(p.name)).join(' & ')}</p>` : '';
+  showOverlay(`<div class="banner">${teamWin || `<h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>`}${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Chat i reakcije: gumbi 💬 i 😀 gore desno.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
   if (!hostOnly) $('#nextBtn').onclick = () => nextRound();
 }
 function tickCountdown() {
@@ -1767,6 +1814,7 @@ function render() {
     const hr = Math.max(3.2, r + 1.2) * (jumping ? 1.7 : 1);
     ctx.globalAlpha = ghost ? (0.4 + 0.3 * Math.sin(G.gt * 25)) : 1;
     ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
+    if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
     else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
@@ -1904,13 +1952,61 @@ function checkAchievements() {
   try { localStorage.setItem('vijuga-ach-' + profile.slug, JSON.stringify(now)); } catch (e) {}
 }
 function fmtDur(ms) { const m = Math.round((ms || 0) / 60000); if (m < 60) return m + ' min'; const h = Math.floor(m / 60); return h + ' h ' + (m % 60) + ' min'; }
+let recRound = null, lastReplay = null;
+function recordFrame(ts) {
+  if (!G || !G.players) return;
+  if (G.phase === 'run') {
+    if (!recRound || recRound.round !== G.round || recRound.mid !== ((net && net.mid) || G.mid)) recRound = { round: G.round, mid: (net && net.mid) || G.mid, W, H, players: G.players.map(p => ({ id: p.id, name: p.name, color: p.color })), frames: [], last: 0, arena: setup.arena };
+    if (ts - recRound.last >= 50 && recRound.frames.length < 3600) { recRound.last = ts; recRound.frames.push(G.players.map(p => [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10, p.alive ? 1 : 0, p.drawing && p.alive ? 1 : 0, +(radiusOf(p) || BASE_R).toFixed(1)])); }
+  } else if (G.phase === 'end' && recRound && recRound.frames.length > 10) { lastReplay = recRound; recRound = null; }
+}
+function showReplay() {
+  const R = lastReplay; if (!R) { toast('Još nema snimke.'); return; }
+  let box = $('#replayBox'); if (!box) { box = document.createElement('div'); box.id = 'replayBox'; document.body.appendChild(box); }
+  box.hidden = false;
+  box.innerHTML = `<div class="rp"><div class="rphead"><b>🎬 Snimka runde ${R.round}</b><button type="button" id="rpX" aria-label="Zatvori">×</button></div><canvas id="rpCv"></canvas><div class="rprow"><button class="btn sm" type="button" id="rpPlay">▶ Ponovno</button><button class="btn sm ghost" type="button" id="rpShare">📤 Spremi / podijeli video</button><span class="hint" id="rpMsg"></span></div></div>`;
+  const cv = $('#rpCv'), c = cv.getContext('2d'); const sc = Math.min(1, (innerWidth - 40) / R.W, (innerHeight - 160) / R.H); cv.width = Math.round(R.W * sc); cv.height = Math.round(R.H * sc);
+  let raf2 = 0;
+  const play = (onDone) => {
+    cancelAnimationFrame(raf2); const t0 = performance.now(), speed = 2, n = R.frames.length;
+    const step = () => {
+      const k = Math.min(n - 1, Math.floor((performance.now() - t0) / 50 * speed));
+      c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, cv.width, cv.height); c.setTransform(sc, 0, 0, sc, 0, 0);
+      c.lineCap = 'round';
+      R.players.forEach((pl, j) => { c.strokeStyle = pl.color; for (let f = 1; f <= k; f++) { const a = R.frames[f - 1][j], b = R.frames[f][j]; if (!a || !b || !a[3] || !b[3] || Math.hypot(a[0] - b[0], a[1] - b[1]) > 40) continue; c.lineWidth = b[4] * 2; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); } });
+      R.players.forEach((pl, j) => { const q = R.frames[k][j]; if (!q) return; c.fillStyle = q[2] ? pl.color : '#555'; c.beginPath(); c.arc(q[0], q[1], 6, 0, 6.283); c.fill(); c.font = '700 13px "Barlow Semi Condensed", sans-serif'; c.fillStyle = '#e9eff6'; c.textAlign = 'center'; c.fillText(pl.name, q[0], q[1] - 12); });
+      c.setTransform(1, 0, 0, 1, 0, 0); c.font = '700 14px "Barlow Semi Condensed", sans-serif'; c.fillStyle = '#ffb547'; c.textAlign = 'left'; c.fillText(`Vijuga · runda ${R.round} · ×${speed}`, 10, 20);
+      if (k < n - 1) raf2 = requestAnimationFrame(step); else if (onDone) onDone();
+    };
+    step();
+  };
+  play();
+  $('#rpPlay').onclick = () => play();
+  $('#rpX').onclick = () => { cancelAnimationFrame(raf2); box.hidden = true; };
+  $('#rpShare').onclick = () => {
+    if (!cv.captureStream || !window.MediaRecorder) { $('#rpMsg').textContent = 'Ovaj preglednik ne može snimiti video.'; return; }
+    const type = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+    const mr = new MediaRecorder(cv.captureStream(30), type ? { mimeType: type } : undefined), chunks = [];
+    mr.ondataavailable = e => e.data.size && chunks.push(e.data);
+    mr.onstop = async () => { const ext = (mr.mimeType || '').includes('mp4') ? 'mp4' : 'webm'; const file = new File(chunks, `vijuga-runda-${R.round}.${ext}`, { type: mr.mimeType || 'video/webm' });
+      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Vijuga', text: 'Pogledaj ovu rundu! ' + GAME_URL }); $('#rpMsg').textContent = ''; return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click(); $('#rpMsg').textContent = 'Video je spremljen u preuzimanja.'; };
+    $('#rpMsg').textContent = 'Snimam video…'; mr.start(); play(() => setTimeout(() => mr.stop(), 600));
+  };
+}
+function addReplayButton() {
+  const b = $('#overlay .banner'); if (!b || !lastReplay || b.querySelector('.rpbtn')) return;
+  b.insertAdjacentHTML('beforeend', '<p style="margin:6px 0 0"><button class="btn sm ghost rpbtn" type="button">🎬 Snimka runde</button></p>');
+  b.querySelector('.rpbtn').onclick = () => showReplay();
+}
 function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
   if (!G) return;
   if (profile && G.phase === 'run' && !watchingNow()) { profile.playMs = (profile.playMs || 0) + dt * 1000; profileDirty = true; }
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return; }
   else { if (net && net.role === 'host') hostReadInputs(); const away = net && net.role === 'host' && hostAwayPause(); if (!paused && !away) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
-  render(); renderHud(); updatePads(); tickCountdown(); chatAutoHide();
+  recordFrame(ts); render(); renderHud(); updatePads(); tickCountdown(); chatAutoHide();
+  if (G && G.phase === 'end' && lastReplay && (frameN & 15) === 0) addReplayButton();
   raf = requestAnimationFrame(frame);
 }
 
@@ -2152,11 +2248,13 @@ function showMeet() {
     <h3>Kad ćemo se naći?</h3>
     <p class="hint" style="margin:0">Dodirni sate u kojima si slobodan (možeš više). Svi vide glasove, pa se lakše dogovorite.</p>
     ${dayBlock(today, 'Danas')}${dayBlock(tomorrow, 'Sutra')}
+    ${pushOn() ? '<p class="hint" style="margin:0">🔔 Dobit ćeš obavijest 15 minuta prije termina koje si označio.</p>' : '<button class="btn ghost" type="button" id="meetPush">🔔 Podsjeti me 15 min prije (obavijest na mobitel)</button>'}
     <div class="meetbest">${best ? `Najviše glasova: <b>${best.label} u ${best.h}:00</b> (${best.n}: ${esc(best.who.map(v => v.name).join(', '))})` : 'Još nitko nije glasao. Budi prvi!'}</div>
     <div class="row"><a class="btn wa" id="meetWa" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Šaljiva pozivnica na WhatsApp</a><button class="btn ghost" type="button" id="meetClose">Zatvori</button></div>
   </form>`;
   m.querySelectorAll('.mchip').forEach(b => b.onclick = () => toggleMeet(b.dataset.day, Number(b.dataset.h)));
   $('#meetClose').onclick = () => { m.hidden = true; };
+  if ($('#meetPush')) $('#meetPush').onclick = async () => { if (await enablePush()) showMeet(); };
   $('#meetWa').onclick = () => { setTimeout(() => { const a = $('#meetWa'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
 }
 function renderOnbar() {
@@ -2181,9 +2279,10 @@ function renderOnbar() {
   const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
   const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
   const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
-  const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button><a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
+  const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button>${profile && !pushOn() ? '<button type="button" class="btn sm ghost" id="pushBtn">🔔 Podsjeti me</button>' : ''}<a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
   bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${weekHtml}${meetHtml}${profile ? dailyHtml() : ''}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
   $('#meetBtn').onclick = () => showMeet();
+  if ($('#pushBtn')) $('#pushBtn').onclick = () => enablePush();
   $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
@@ -2575,8 +2674,34 @@ function sendChat(text) {
   chatN++; netPresence({ msg: [text, chatN, Date.now()] });
   const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
 }
+let recState = null;
+async function startVoice(btn) {
+  voiceWanted = true;
+  if (recState || !navigator.mediaDevices || !window.MediaRecorder) { if (!window.MediaRecorder) toast('Ovaj preglednik ne snima zvuk.'); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true } });
+    const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+    const mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 16000 } : { audioBitsPerSecond: 16000 });
+    const chunks = []; mr.ondataavailable = e => e.data.size && chunks.push(e.data);
+    mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' }); const ms = performance.now() - recState.t0; recState = null; btn.classList.remove('rec');
+      if (ms < 400) { toast('Drži 🎤 dok govoriš.'); return; }
+      const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 90000) { toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); const me = roomState.peers.find(p => p.isMe && p.sameTab); collectChat(); toast('🎤 Poslano'); }; fr.readAsDataURL(blob); };
+    recState = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), 5000) }; mr.start(); btn.classList.add('rec'); beep(880, .06, 'sine', .04);
+    if (!voiceWanted) setTimeout(() => stopVoice(), 50);
+  } catch (e) { toast('Mikrofon nije dopušten.'); recState = null; }
+}
+let voiceWanted = false;
+function stopVoice() { voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } }
+// the lobby redraws its chat often, so a release anywhere ends the recording
+document.addEventListener('pointerup', () => { if (voiceWanted || recState) stopVoice(); });
+document.addEventListener('pointercancel', () => { if (voiceWanted || recState) stopVoice(); });
 function wireChat(inSel, btnSel) {
   const i = $(inSel), b = $(btnSel); if (!i) return;
+  if (b && !b.parentNode.querySelector('.micbtn')) {
+    const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'micbtn'; mic.textContent = '🎤'; mic.title = 'Drži i govori (do 5 s)'; mic.setAttribute('aria-label', 'Glasovna poruka');
+    mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(mic); }); mic.addEventListener('contextmenu', e => e.preventDefault());
+    b.parentNode.insertBefore(mic, b);
+  }
   const go = () => { sendChat(i.value); i.value = ''; };
   b.onclick = go; i.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } e.stopPropagation(); };
 }
@@ -2587,7 +2712,9 @@ function collectChat() {
     if (!Array.isArray(m) || typeof m[0] !== 'string') continue;
     const key = p.peer; if (chatSeen[key] === m[1]) continue;
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
-    chatLog.push({ name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), me: p.isMe && p.sameTab, at: Date.now(), t: performance.now(), peer: key });
+    const audio = typeof m[3] === 'string' && /^data:audio\//.test(m[3]) && m[3].length < 100000 ? m[3] : null;
+    chatLog.push({ name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Date.now(), t: performance.now(), peer: key });
+    if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio);
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
   for (const p of roomState.peers) {
@@ -2683,8 +2810,8 @@ function hostAwayPause() {
   return !!wait;
 }
 function buildSnap() {
-  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, pz: G.pz || null, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -2715,7 +2842,7 @@ function applyState(st, first) {
   if (st.r !== net.round || first) { net.round = st.r; G.arena = null; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; }
   const prevPhase = G.phase;
-  G.pz = st.pz || null;
+  G.pz = st.pz || null; G.winTeam = st.wt >= 0 ? st.wt : null;
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
@@ -2725,7 +2852,7 @@ function applyState(st, first) {
     let p = byId[q.i];
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
-    Object.assign(p, { te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
+    Object.assign(p, { team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
