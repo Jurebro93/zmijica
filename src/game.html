@@ -11,7 +11,7 @@
   --panel: #152232;
   --line: #24364a;
   --fg: #e9eff6;
-  --muted: #8396ab;
+  --muted: #a3b3c5;
   --amber: #ffb547;
   --good: #3ddc97;
   --bad: #ff5d73;
@@ -29,6 +29,24 @@ button:disabled { cursor: default; opacity: .5; }
 #app { height: 100%; height: 100dvh; position: relative; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
 
 /* ---------- MENU ---------- */
+#bnav { display: none; }
+@media (max-width: 760px) {
+  #bnav { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: color-mix(in srgb, var(--ink) 96%, transparent); border-top: 1px solid var(--line); padding: 4px max(6px, env(safe-area-inset-left, 0px)) max(6px, env(safe-area-inset-bottom, 0px)); backdrop-filter: blur(6px); }
+  #bnav button { background: none; border: 0; color: var(--muted); display: grid; justify-items: center; gap: 1px; font-size: 11px; font-weight: 700; padding: 4px 0; }
+  #bnav button span { font-size: 20px; line-height: 1.1; }
+  #bnav .bplay { color: #1a1205; background: var(--good); border-radius: 14px; margin: -14px 4px 0; box-shadow: 0 4px 14px rgba(0,0,0,.45); font-size: 12px; }
+  #bnav .bplay span { font-size: 22px; }
+  #menu { padding-bottom: 86px !important; }
+  .btn.sm { padding: 10px 14px; font-size: 15px; }
+  .shop .item button, .rolepick button, .giftopt { min-height: 40px; }
+}
+#menu[hidden] #bnav { display: none; }
+#fabPlay { position: fixed; right: 22px; bottom: 22px; z-index: 20; border: 0; border-radius: 999px; padding: 14px 22px; font-weight: 800; font-size: 17px; background: var(--good); color: #062b14; box-shadow: 0 6px 18px rgba(0,0,0,.45); cursor: pointer; }
+#coinFloat { position: fixed; top: max(8px, env(safe-area-inset-top, 0px)); right: 12px; z-index: 21; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
+#coinFloat span { color: var(--amber); font-weight: 800; margin-left: 4px; }
+.shopfind { display: grid; gap: 8px; margin-bottom: 12px; position: sticky; top: 0; z-index: 4; background: var(--ink); padding: 6px 0; }
+.shopfind input { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--fg); font-size: 16px; }
+.sfilt { display: flex; gap: 6px; flex-wrap: wrap; } .sfilt button { border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 999px; padding: 6px 14px; font-weight: 700; } .sfilt button.on { border-color: var(--amber); color: var(--amber); }
 #menu { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; box-sizing: border-box; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 80px; }
 .wrap { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
 .wrap > *, .tab > * { min-width: 0; }
@@ -423,6 +441,9 @@ button.pu:hover { border-color: var(--line); }
 <div id="app">
   <!-- MENU -->
   <section id="menu">
+    <div id="coinFloat" hidden></div>
+    <nav id="bnav" aria-label="Brzi izbornik"><button type="button" data-go="online"><span>🌐</span>Online</button><button type="button" data-go="shop"><span>🛒</span>Trgovina</button><button type="button" data-go="play" class="bplay"><span>▶</span>IGRAJ</button><button type="button" data-go="tour"><span>🏆</span>Turnir</button><button type="button" data-go="me"><span>👤</span>Profil</button></nav>
+    <button type="button" id="fabPlay" hidden>▶ Igraj</button>
     <div class="wrap">
       <header class="brand">
         <h1 aria-label="Vijuga"><span>V</span><span>I</span><span>J</span><span>U</span><span>G</span><span>A</span></h1>
@@ -470,6 +491,7 @@ button.pu:hover { border-color: var(--line); }
       </div>
 
       <div class="tab" id="tab-shop" hidden>
+        <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="premiumbox"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
@@ -861,6 +883,23 @@ async function collectGifts() {
 }
 setTimeout(() => { if (pushOn()) navigator.serviceWorker.register('sw.js').catch(() => {}); }, 3000);
 setTimeout(collectGifts, 4000);
+function quickPlay() {
+  if (!profile) { showLogin(); return; }
+  showTab('online'); goOnlineLobby();
+  const h = findHost(); if (h && !(h.isMe && h.sameTab) && !net) joinHost(h);
+  $('#menu').scrollTo({ top: 0, behavior: 'smooth' });
+}
+setTimeout(() => {
+  document.querySelectorAll('#bnav [data-go]').forEach(b => b.onclick = () => { const g = b.dataset.go; if (g === 'play') quickPlay(); else if (g === 'me') showProfile(); else { showTab(g); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
+  const fab = $('#fabPlay'); if (fab) fab.onclick = quickPlay;
+  const menu = $('#menu'), cf = $('#coinFloat');
+  const onScroll = () => { const y = menu.scrollTop; if (cf) { cf.hidden = !profile || y < 160; if (!cf.hidden) cf.innerHTML = `<b>${esc(profile.name)}</b> <span>● ${profile.coins}</span>`; } if (fab) fab.hidden = innerWidth < 760 || y < 420; };
+  menu.addEventListener('scroll', onScroll, { passive: true }); setInterval(onScroll, 2000);
+}, 600);
+setTimeout(() => {
+  const q = $('#shopQ'); if (q) q.oninput = applyShopFilter;
+  document.querySelectorAll('.sfilt button').forEach(b => b.onclick = () => { shopFilter = b.dataset.f; document.querySelectorAll('.sfilt button').forEach(x => x.classList.toggle('on', x === b)); applyShopFilter(); });
+}, 500);
 setTimeout(() => { try { if (new URLSearchParams(location.search).get('tab') === 'turnir') showTab('tour'); } catch (e) {} if (TMODE) { const go = () => roomState.resolved && profile ? initTourTable() : setTimeout(go, 400); go(); } }, 600); setInterval(collectGifts, 45000);
 // every window in #regModal gets a close button on top; Esc or a tap outside also closes it
 function closeModal() { const m = $('#regModal'); if (m && !m.hidden) { m.hidden = true; m.innerHTML = ''; } }
@@ -868,6 +907,10 @@ setTimeout(function modalClose() {
   const m = document.getElementById('regModal'); if (!m) return;
   const addX = () => { const f = m.querySelector('form'); if (!f || f.querySelector(':scope > .mclose')) return; const x = document.createElement('button'); x.type = 'button'; x.className = 'mclose'; x.setAttribute('aria-label', 'Zatvori'); x.textContent = '×'; x.onclick = (e) => { e.preventDefault(); closeModal(); }; f.prepend(x); };
   new MutationObserver(addX).observe(m, { childList: true });
+  // the phone's back button closes the window instead of leaving the game
+  let pushed = false;
+  new MutationObserver(() => { if (!m.hidden && !pushed) { pushed = true; try { history.pushState({ vijugaModal: 1 }, ''); } catch (e) {} } else if (m.hidden && pushed) { pushed = false; try { history.back(); } catch (e) {} } }).observe(m, { attributes: true, attributeFilter: ['hidden'] });
+  addEventListener('popstate', () => { if (pushed) { pushed = false; m.hidden = true; } });
   m.addEventListener('click', (e) => { if (e.target === m) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; const rp = $('#replayBox'); if (rp && !rp.hidden) { const x = $('#rpX'); if (x) x.click(); return; } if (!m.hidden) { closeModal(); return; } const tp = $('#trollPop'); if (tp && !tp.hidden) tp.hidden = true; const rq = $('#reactPop'); if (rq && !rq.hidden) rq.hidden = true; });
 }, 0);
@@ -1075,13 +1118,30 @@ function renderDailyShop() {
 function seasonNow() { return Math.floor((Date.now() / 86400000 + 3) / 7) % 4; }
 function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
 function limitLeft(id) { const it = SKINS[id] || BADGES[id]; if (!it || !it.limit) return Infinity; return Math.max(0, it.limit - ownersOf(id)); }
+function buyUndo(id, cost, kind, prevEq) {
+  const name = itemName(id);
+  const n = notify(`✅ Kupljeno: <b>${esc(name)}</b> (−${cost})`, { ms: 8000, actions: '<button class="pingbtn" type="button" data-undo="1">Poništi</button>' });
+  if (n) n.querySelector('[data-undo]').onclick = () => {
+    if (!profile || !profile.owned.includes(id)) return;
+    profile.owned = profile.owned.filter(x => x !== id); profile.coins += cost; profile.spent = Math.max(0, (profile.spent || 0) - cost); profile.purchases = Math.max(0, (profile.purchases || 0) - 1);
+    if (kind && profile.eq[kind] === id) profile.eq[kind] = prevEq || (kind === 'skin' ? 'sk_none' : kind === 'badge' ? 'bd_none' : '');
+    saveProfile(); renderShop(); n.remove(); toast('↩️ Kupnja poništena, zlatnici vraćeni.');
+  };
+}
+function okToSpend(cost, name) { return cost < 1000 || confirm(`Kupiti ${name} za ${cost} zlatnika?`); }
+let shopFilter = 'all';
+function applyShopFilter() {
+  const q = (($('#shopQ') || {}).value || '').trim().toLowerCase();
+  document.querySelectorAll('#tab-shop .item').forEach(it => { const t = it.textContent.toLowerCase(); const okQ = !q || t.includes(q); const okF = shopFilter === 'all' || (shopFilter === 'have' && it.dataset.owned === '1') || (shopFilter === 'not' && it.dataset.owned !== '1') || (shopFilter === 'premium' && it.dataset.premium === '1'); it.style.display = okQ && okF ? '' : 'none'; });
+  document.querySelectorAll('#tab-shop .shop').forEach(sh => { const any = [...sh.children].some(c => c.style.display !== 'none'); const sec = sh.closest('div:not(.shop)'); if (sec && sec !== sh) sec.style.display = any || !sh.children.length ? '' : 'none'; });
+}
 function renderShop() {
-  renderDailyShop();
+  renderDailyShop(); setTimeout(applyShopFilter, 0);
   const make = (box, items, kind) => {
     box.innerHTML = '';
     items.forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), eq = profile && profile.eq[kind] === id;
-      const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : '');
+      const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
       const prev = document.createElement('div'); prev.className = 'prev';
       if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
       else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${it.svg || it.g || '—'}</span>`; }
@@ -1096,7 +1156,7 @@ function renderShop() {
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
       else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } }; }
       else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[kind] = id; saveProfile(); }; }
-      else { b.textContent = it.limit && limitLeft(id) <= 0 ? 'Rasprodano' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost || (it.limit && limitLeft(id) <= 0); b.onclick = () => { if (profile.coins < cost || (it.limit && limitLeft(id) <= 0)) return; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); }; }
+      else { b.textContent = it.limit && limitLeft(id) <= 0 ? 'Rasprodano' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost || (it.limit && limitLeft(id) <= 0); b.onclick = () => { if (profile.coins < cost || (it.limit && limitLeft(id) <= 0)) return; if (!okToSpend(cost, it.name)) return; const prevEq = profile.eq[kind]; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); buyUndo(id, cost, kind, prevEq); }; }
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
   };
@@ -1108,7 +1168,7 @@ function renderShop() {
     prb.innerHTML = '';
     Object.entries(PREMIUM).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = it.bg && profile && profile.eq.bg === id, cost = vipCost(it.price);
-      const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : '');
+      const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; d.dataset.premium = '1';
       d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${it.e}</span></div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${cost}`;
       const b = document.createElement('button'); b.type = 'button';
@@ -1118,7 +1178,7 @@ function renderShop() {
         else if (id === 'pr_title') { b.textContent = 'Uredi titulu'; b.onclick = () => { const t = prompt('Tvoja titula (do 24 znaka):', profile.title || 'Kralj Vijuge'); if (t != null) { profile.title = t.trim().slice(0, 24); saveProfile(); toast('🏷️ Titula spremljena.'); } }; }
         else if (id === 'pr_room') { b.textContent = 'Pozovi u sobu'; b.onclick = () => { const url = myRoomLink(); window.open('https://wa.me/?text=' + encodeURIComponent('🔒 Dođi u moju privatnu Vijuga sobu: ' + url), '_blank'); }; }
         else { b.textContent = 'Aktivno ✓'; b.className = 'on'; b.disabled = true; }
-      } else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost; b.onclick = () => { if (profile.coins < cost) return; if (!confirm(`Kupiti ${it.name} za ${cost} zlatnika?`)) return; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); if (it.bg) profile.eq.bg = id; if (id === 'pr_title') profile.title = 'Kralj Vijuge'; sfx.pick(); saveProfile(); checkAchievements(); toast(`${it.e} ${it.name} je tvoj!`); }; }
+      } else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost; b.onclick = () => { if (profile.coins < cost) return; if (!confirm(`Kupiti ${it.name} za ${cost} zlatnika?`)) return; const prevEq = profile.eq.bg; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); if (it.bg) profile.eq.bg = id; if (id === 'pr_title') profile.title = 'Kralj Vijuge'; sfx.pick(); saveProfile(); checkAchievements(); buyUndo(id, cost, it.bg ? 'bg' : null, prevEq); }; }
       act.append(pr, b); d.appendChild(act); prb.appendChild(d);
     });
   }
@@ -1127,14 +1187,14 @@ function renderShop() {
     fxb.innerHTML = '';
     Object.entries(EFFECTS).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = profile && profile.eq[it.kind] === id;
-      const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : '');
+      const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0';
       d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${it.e}</span></div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${it.price}`;
       const b = document.createElement('button'); b.type = 'button';
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
       else if (on) { b.textContent = 'Isključi'; b.className = 'on'; b.onclick = () => { profile.eq[it.kind] = ''; saveProfile(); }; }
       else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[it.kind] = id; saveProfile(); if (it.kind === 'vs') playVictory(id); }; }
-      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; profile.coins -= it.price; profile.spent = (profile.spent || 0) + it.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[it.kind] = id; sfx.pick(); if (it.kind === 'vs') playVictory(id); saveProfile(); }; }
+      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; const prevEq = profile.eq[it.kind]; profile.coins -= it.price; profile.spent = (profile.spent || 0) + it.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[it.kind] = id; sfx.pick(); if (it.kind === 'vs') playVictory(id); saveProfile(); buyUndo(id, it.price, it.kind, prevEq); }; }
       act.append(pr, b); d.appendChild(act); fxb.appendChild(d);
     });
   }
@@ -2380,8 +2440,9 @@ function peerStatus(pr) { return pr.pg === 'stats' ? 'gleda statistiku' : (pr.st
 function canWatch(pr) { return !!(pr && (pr.st || pr.hs || (pr.ig && pr.pl))); }
 function notify(html, opts = {}) {
   const box = $('#notes'); if (!box) return null;
+  for (const old of box.querySelectorAll('.note-card')) if (old.querySelector('.txt') && old.querySelector('.txt').innerHTML === html) old.remove();
   const n = document.createElement('div'); n.className = 'note-card' + (opts.warn ? ' warn' : ''); n.innerHTML = `<div class="txt">${html}</div>` + (opts.actions || '') + '<button class="x" type="button" aria-label="Zatvori">×</button>';
-  n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > 3) box.firstChild.remove();
+  n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > (innerWidth < 700 ? 2 : 3)) box.firstChild.remove();
   if (opts.ms !== 0) setTimeout(() => n.remove(), opts.ms || 9000);
   return n;
 }
