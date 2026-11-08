@@ -61,7 +61,7 @@ button:disabled { cursor: default; opacity: .5; }
   #bnav .bplay { color: #062b14; background: var(--good); border-radius: 18px; margin: -26px 0 0; padding: 10px 0 8px; box-shadow: 0 0 0 0 rgba(61,220,151,.7), 0 6px 18px rgba(0,0,0,.5); font-size: 15px; font-weight: 900; animation: playpulse 1.6s infinite; }
   @keyframes playpulse { 0% { box-shadow: 0 0 0 0 rgba(61,220,151,.7), 0 6px 18px rgba(0,0,0,.5); transform: scale(1); } 60% { box-shadow: 0 0 0 16px rgba(61,220,151,0), 0 6px 18px rgba(0,0,0,.5); transform: scale(1.06); } 100% { box-shadow: 0 0 0 0 rgba(61,220,151,0), 0 6px 18px rgba(0,0,0,.5); transform: scale(1); } }
   #bnav .bplay span { font-size: 30px; }
-  #menu { padding-bottom: 86px !important; }
+  #menu { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important; }
   .btn.sm { padding: 10px 14px; font-size: 15px; }
   .shop .item button, .rolepick button, .giftopt { min-height: 40px; }
 }
@@ -373,8 +373,21 @@ button.pu:hover { border-color: var(--line); }
 .err { color: var(--bad); font-size: 14px; min-height: 1em; }
 
 /* ---------- GAME ---------- */
+@media (orientation: landscape) and (max-height: 560px) {
+  #game:not([hidden]) { display: grid !important; grid-template-columns: 124px minmax(0, 1fr) 124px; grid-template-rows: auto minmax(0, 1fr) auto; }
+  #game > .hud { grid-column: 1 / -1; grid-row: 1; }
+  #game > .stage { grid-column: 2; grid-row: 2; min-height: 0; }
+  #game > .specbar { grid-column: 1 / -1; grid-row: 3; }
+  #padsBottom:not([hidden]) { display: contents; }
+  #padsBottom .pad.big { grid-row: 2; align-self: end; justify-self: center; margin-bottom: max(12px, env(safe-area-inset-bottom, 0px)); width: 100px; height: 100px; }
+  #padsBottom .pad[data-k=L] { grid-column: 1; margin-left: env(safe-area-inset-left, 0px); }
+  #padsBottom .pad[data-k=R] { grid-column: 3; margin-right: env(safe-area-inset-right, 0px); }
+  #padsBottom .pad.jump { grid-column: 3; grid-row: 2; align-self: start; justify-self: center; margin-top: 12px; }
+  #bnav button, #bnav a { font-size: 10px !important; padding: 2px 0 !important; } #bnav span { font-size: 16px !important; }
+}
 #game { height: 100%; display: flex; flex-direction: column; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 #game input { -webkit-user-select: text; user-select: text; }
+.pads { touch-action: none; }
 .pad, .pad * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .hud { display: flex; align-items: center; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 6px; border-bottom: 1px solid var(--line); background: var(--ink); }
 #scores { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
@@ -972,7 +985,11 @@ setTimeout(() => {
   const q = $('#shopQ'); if (q) q.oninput = applyShopFilter;
   document.querySelectorAll('.sfilt button').forEach(b => b.onclick = () => { shopFilter = b.dataset.f; document.querySelectorAll('.sfilt button').forEach(x => x.classList.toggle('on', x === b)); applyShopFilter(); });
 }, 500);
-setTimeout(() => { try { if (new URLSearchParams(location.search).get('tab') === 'turnir') showTab('tour'); } catch (e) {} if (TMODE) { const go = () => roomState.resolved && profile ? initTourTable() : setTimeout(go, 400); go(); } }, 600); setInterval(collectGifts, 45000);
+// deep links: ?tab=trgovina or #trgovina (also aukcija, turnir, ljestvica, pomoc, online, botovi)
+const TAB_LINKS = { trgovina: 'shop', shop: 'shop', aukcija: 'auct', turnir: 'tour', ljestvica: 'board', pomoc: 'help', online: 'online', botovi: 'local' };
+function openLinkedTab() { try { const k = (new URLSearchParams(location.search).get('tab') || location.hash.slice(1) || '').toLowerCase(); const t = TAB_LINKS[k]; if (!t) return; showTab(t); setTimeout(() => { const el = $('#tabs'); if (el) el.scrollIntoView({ block: 'start' }); }, 50); } catch (e) {} }
+addEventListener('hashchange', openLinkedTab);
+setTimeout(() => { openLinkedTab(); if (TMODE) { const go = () => roomState.resolved && profile ? initTourTable() : setTimeout(go, 400); go(); } }, 600); setInterval(collectGifts, 45000);
 // every window in #regModal gets a close button on top; Esc or a tap outside also closes it
 function closeModal() { const m = $('#regModal'); if (m && !m.hidden) { m.hidden = true; m.innerHTML = ''; } }
 setTimeout(function modalClose() {
@@ -1680,7 +1697,7 @@ const held = {};
 // online, my own snake always uses the first key set (arrows), whatever its colour slot
 function keysOf(p) { return KEYS[net && p.mine ? 0 : p.id] || KEYS[0]; }
 // leaving the window or app must release every key and pad, or the snake keeps turning
-function releaseAll() { for (const k in held) held[k] = false; if (G && G.players) G.players.forEach(p => { p.touchL = p.touchR = false; }); document.querySelectorAll('.pad.on').forEach(b => b.classList.remove('on')); if (net && net.role === 'client') clientInput(); }
+function releaseAll() { for (const k in held) held[k] = false; for (const k in touchHeld) delete touchHeld[k]; document.querySelectorAll('.pads').forEach(b => b._ptr && b._ptr.clear()); if (G && G.players) G.players.forEach(p => { p.touchL = p.touchR = false; }); document.querySelectorAll('.pad.on').forEach(b => b.classList.remove('on')); if (net && net.role === 'client') clientInput(); }
 addEventListener('blur', releaseAll);
 document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
 let net = null; // null | {role:'host'|'client', ...}
@@ -1708,6 +1725,7 @@ function sizeArena() {
   const st = $('#stage').getBoundingClientRect();
   const aw = Math.max(200, st.width - 16), ah = Math.max(200, st.height - 16);
   let ratio = Math.min(2.1, Math.max(0.55, aw / ah));
+  if (net && net.role === 'host' && netRatio) ratio = netRatio;
   if (net && net.role === 'client' && net.W) ratio = net.W / net.H;
   const AREA = 1000 * 640;
   W = Math.round(Math.sqrt(AREA * ratio) / CELL) * CELL; H = Math.round(AREA / W / CELL) * CELL;
@@ -1750,6 +1768,7 @@ function drawBg() {
 
 function rand(a, b) { return a + Math.random() * (b - a); }
 function newRound() {
+  if (G.round >= 1) seatQueuedHumans();
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
   owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
@@ -1943,10 +1962,12 @@ function flushTrail(p, keepLast) {
 }
 
 // ---------- input ----------
+const touchHeld = {}; // player id -> { L: pointers, R: pointers }
+const tH = (p, k) => !!(p && touchHeld[p.id] && touchHeld[p.id][k] > 0);
 function humanIn(p) {
   if (p.remote) return p.remoteIn || 0;
   const k = keysOf(p);
-  const v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0);
+  const v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0);
   return mirrorOn() ? -v : v;
 }
 function tryJump(p) {
@@ -2460,6 +2481,7 @@ function padIcon(p, side) {
 }
 function refreshPadIcons() { document.querySelectorAll('.pad[data-k=L], .pad[data-k=R]').forEach(b => { const p = G && G.players.find(x => String(x.id) === b.dataset.pid); if (!p) return; const cap = b.querySelector('.cap'); b.innerHTML = padIcon(p, b.dataset.k) + (cap ? cap.outerHTML : ''); }); }
 function buildPads() {
+  for (const k in touchHeld) delete touchHeld[k];
   const humans = net ? G.players.filter(p => p.human && (net.role === 'host' ? !p.remote : p.id === net.myId)) : G.players.filter(p => p.human);
   const mk = (box, p) => {
     box.innerHTML = ''; box.hidden = !p || !IS_TOUCH; if (box.hidden) return;
@@ -2468,15 +2490,25 @@ function buildPads() {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'pad ' + (extra || ''); b.dataset.k = k;
       b.innerHTML = inner + (cap ? `<span class="cap">${cap}</span>` : '');
       b.style.setProperty('--pc', p.color); b.dataset.pid = p.id;
-      const on = (e) => { e.preventDefault(); b.classList.add('on'); if (k === 'L') p.touchL = true; else if (k === 'R') p.touchR = true; else localJump(p); clientInput(); };
-      const off = (e) => { e.preventDefault(); b.classList.remove('on'); if (k === 'L') p.touchL = false; else if (k === 'R') p.touchR = false; clientInput(); };
-      b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
       b.addEventListener('contextmenu', e => e.preventDefault());
       return b;
     };
     const j = mkBtn('J', '<span style="font-family:var(--display);font-size:15px">SKOK</span>', '', 'jump');
     if (!setup.jump) j.style.visibility = 'hidden';
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), j, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
+    // the whole bar is one touch surface: left third turns left, right third turns right, middle jumps.
+    // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
+    const ptr = box._ptr = new Map(); const pid = p.id;
+    const flip = box.classList.contains('top'); const zone = (e, down) => { const r = box.getBoundingClientRect();
+      if (r.width < 10) { const t = down && e.target.closest && e.target.closest('.pad'); if (t) return t.dataset.k; return e.clientX < innerWidth / 2 ? 'L' : 'R'; } // side layout (landscape)
+      let f = (e.clientX - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.38 ? 'L' : f > 0.62 ? 'R' : 'J'; };
+    const sync = () => { const h = (touchHeld[pid] = { L: 0, R: 0 }); for (const z of ptr.values()) if (z !== 'J') h[z]++;
+      box.querySelectorAll('.pad').forEach(btn => btn.classList.toggle('on', btn.dataset.k === 'J' ? [...ptr.values()].includes('J') : h[btn.dataset.k] > 0)); clientInput(); };
+    box.onpointerdown = (e) => { e.preventDefault(); const cap = box.getBoundingClientRect().width < 10 ? (e.target.closest && e.target.closest('.pad')) : box; try { cap && cap.setPointerCapture(e.pointerId); } catch (er) {} const z = zone(e, true); ptr.set(e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
+    box.onpointermove = (e) => { if (!ptr.has(e.pointerId)) return; const z = zone(e); if (z !== ptr.get(e.pointerId) && z !== 'J') { ptr.set(e.pointerId, z); sync(); } };
+    const up = (e) => { if (ptr.delete(e.pointerId)) sync(); };
+    box.onpointerup = up; box.onpointercancel = up; box.onlostpointercapture = up;
+    box.oncontextmenu = (e) => e.preventDefault();
   };
   mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
 }
@@ -2588,7 +2620,11 @@ function leaveOnline() {
 let roomState = { connected: false, peers: [], me: null, ready: false, hostPeer: null, watching: false, lastSt: null };
 let myPres = {};
 function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.presence(patch).catch(() => {}); }
-function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
+// shape of the arena this screen would like (width / height), so the host can pick one that suits everybody
+function myArenaRatio() { const st = $('#stage'); const r = st && st.getBoundingClientRect(); if (r && r.width > 100 && r.height > 100) return +(Math.min(2.1, Math.max(0.55, (r.width - 16) / (r.height - 16)))).toFixed(2); const land = innerWidth > innerHeight && innerHeight < 560; return +(Math.min(2.1, Math.max(0.55, (innerWidth - (land ? 200 : 16)) / Math.max(100, innerHeight - (land ? 60 : 200))))).toFixed(2); }
+let netRatio = 0;
+function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0, ar: myArenaRatio() }; }
+{ let arT = 0; addEventListener('resize', () => { clearTimeout(arT); arT = setTimeout(() => { if (roomNs && $('#game').hidden) netPresence({ ar: myArenaRatio() }); }, 1500); }); }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null, autoStart: false, accepted: [], lastAnswer: 0 };
 function onlineOthers() { const seen = new Set(); return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug)).sort((a, b) => (!!(b.presence.st || b.presence.hs) - !!(a.presence.st || a.presence.hs)) || ((b.presence.ig || 0) - (a.presence.ig || 0))).filter(p => { const k = p.presence.sl || p.peer; if (seen.has(k)) return false; seen.add(k); return true; }); }
@@ -3262,7 +3298,28 @@ function renderBoard() {
 
 // host
 const MAX_PLAYERS = 5;
-const countLen = () => (net && G && G.round === 1 ? 5 : 2.4); // online: 5 s before the match starts
+const countLen = () => (net && G && (G.round === 1 || G.joinRound === G.round) ? 5 : 2.4); // online: 5 s before the match starts
+function netPlayerFrom(pr, c) {
+  const me = pr.isMe && pr.sameTab;
+  return { id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => ownsSlug(pr.presence.sl, x)).map(x => x.slice(3)).join(',') }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null };
+}
+// a real player who is waiting (accepted an invite, sat down in the lobby) takes a bot's seat at the start of the next round
+function seatQueuedHumans() {
+  if (!net || net.role !== 'host' || TMODE || !G || G.over) return;
+  const bots = G.players.filter(p => !p.human); if (!bots.length) return;
+  const q = queueList().filter(pr => !(pr.isMe && pr.sameTab) && pr.presence.nm);
+  for (const pr of q) {
+    const bot = bots.shift(); if (!bot) break;
+    const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
+    let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = bot.id;
+    const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 });
+    G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round;
+    G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
+    showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
+  }
+  hudDirty = true;
+}
 function hostStart(rematch) {
   const lastMid = net && net.mid;
   // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
@@ -3277,12 +3334,11 @@ function hostStart(rematch) {
   const used = new Set(); const players = [];
   peers.forEach((pr, i) => {
     let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
-    const me = pr.isMe && pr.sameTab;
-    players.push({ id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
-      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => ownsSlug(pr.presence.sl, x)).map(x => x.slice(3)).join(',') }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null });
+    players.push(netPlayerFrom(pr, c));
   });
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'teško', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; return; }
+  { const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 1).filter(r => r > 0.3 && r < 3); netRatio = Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / Math.max(1, rs.length)))); }
   net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36) };
   netPresence({ again: null, rd: 1 }); roomState.ready = true;
   $('#menu').hidden = true; $('#game').hidden = false;
@@ -3365,7 +3421,7 @@ function applyState(st, first) {
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
     Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', drawing: !!q.d, name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
-    if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
+    if (q.rm === mePeer) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (wasOut) setTimeout(() => { buildPads(); renderSpecBar(); showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
     if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); onDeath(p, q.kb); }
@@ -3413,7 +3469,7 @@ function predictHeads() {
     if (!p.alive || p.sx == null || !p.v) continue;
     let a = p.sa;
     if (p.id === net.myId && !has(p, 'square')) {
-      const k = KEYS[0]; let v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
+      const k = KEYS[0]; let v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
       const tr = TURN * (p.v / BASE_SPEED); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
@@ -3423,7 +3479,7 @@ function clientInput() {
   if (!net || net.role !== 'client' || net.myId == null) return;
   const me = G.players.find(p => p.id === net.myId); if (!me) return;
   const k = KEYS[0];
-  let v = ((held[k.r] || me.touchR) ? 1 : 0) - ((held[k.l] || me.touchL) ? 1 : 0); if (mirrorOn()) v = -v;
+  let v = ((held[k.r] || tH(me, 'R')) ? 1 : 0) - ((held[k.l] || tH(me, 'L')) ? 1 : 0); if (mirrorOn()) v = -v;
   const key = v + ':' + net.jumpN;
   if (key !== net.lastIn) { net.lastIn = key; netPresence({ in: v, j: net.jumpN }); }
 }
@@ -3635,7 +3691,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get W() { return W; }, get H() { return H; } };
 })();
 </script>
 
