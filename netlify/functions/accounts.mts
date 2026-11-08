@@ -1,0 +1,107 @@
+// Player profiles and leaderboard for Vijuga, kept in Netlify Blobs (one key per player).
+// GET  /api/accounts            -> all public profiles (no PIN hashes)
+// GET  /api/accounts/:slug      -> one public profile
+// POST /api/accounts/:slug/login {pinHash} -> full profile when the PIN matches
+// PUT  /api/accounts/:slug      {doc, auth} -> create, or update when auth matches the stored PIN hash
+// DELETE /api/accounts/:slug    {auth} -> remove a PIN-protected profile
+import type { Config, Context } from "@netlify/functions";
+import { getStore } from "@netlify/blobs";
+
+const STORE = "vijuga-accounts";
+const SLUG = /^[a-z0-9-]{1,40}$/;
+const cors = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, PUT, POST, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type",
+};
+const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
+
+type Doc = Record<string, unknown> & { slug: string; name: string; pinHash?: string };
+
+function publicView(d: Doc) {
+  const { pinHash, ...rest } = d;
+  return { ...rest, hasPin: !!pinHash };
+}
+
+function clean(input: unknown, slug: string): Doc | string {
+  if (!input || typeof input !== "object") return "doc missing";
+  const d = input as Record<string, unknown>;
+  const name = String(d.name ?? "").trim();
+  if (name.length < 1 || name.length > 14) return "name must be 1-14 characters";
+  const num = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
+  const strArr = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length <= 20).slice(0, 60) : []);
+  const eq = (d.eq && typeof d.eq === "object" ? d.eq : {}) as Record<string, unknown>;
+  const doc: Doc = {
+    slug,
+    name,
+    color: num(d.color, 5),
+    coins: num(d.coins, 10_000_000),
+    matches: num(d.matches, 1_000_000),
+    wins: num(d.wins, 1_000_000),
+    kills: num(d.kills, 10_000_000),
+    owned: strArr(d.owned),
+    eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20) },
+    bonus500: !!d.bonus500,
+    created: num(d.created, 9e15),
+    updatedAt: Date.now(),
+  };
+  if (typeof d.pinHash === "string" && /^[0-9a-f]{64}$/.test(d.pinHash)) doc.pinHash = d.pinHash;
+  return doc;
+}
+
+export default async (req: Request, context: Context) => {
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  const store = getStore({ name: STORE, consistency: "strong" });
+  const slug = context.params.slug;
+  const action = context.params.action;
+
+  if (!slug) {
+    if (req.method !== "GET") return json({ error: "method not allowed" }, 405);
+    const { blobs } = await store.list();
+    const docs = await Promise.all(blobs.map((b) => store.get(b.key, { type: "json" }) as Promise<Doc | null>));
+    const list = docs.filter((d): d is Doc => !!d).map(publicView);
+    list.sort((a, b) => Number(b.coins) - Number(a.coins));
+    return json({ accounts: list });
+  }
+
+  if (!SLUG.test(slug)) return json({ error: "bad slug" }, 400);
+  const existing = (await store.get(slug, { type: "json" })) as Doc | null;
+
+  if (req.method === "GET") {
+    if (!existing) return json({ error: "not found" }, 404);
+    return json({ account: publicView(existing) });
+  }
+
+  if (req.method === "POST" && action === "login") {
+    if (!existing) return json({ error: "not found" }, 404);
+    const body = (await req.json().catch(() => ({}))) as { pinHash?: string };
+    if (existing.pinHash && body.pinHash !== existing.pinHash) return json({ error: "wrong pin" }, 403);
+    return json({ account: existing });
+  }
+
+  if (req.method === "PUT") {
+    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string } | null;
+    const doc = clean(body?.doc, slug);
+    if (typeof doc === "string") return json({ error: doc }, 400);
+    if (existing && existing.pinHash && body?.auth !== existing.pinHash) return json({ error: "wrong pin" }, 403);
+    if (existing && existing.pinHash && !doc.pinHash) doc.pinHash = existing.pinHash;
+    if (existing && existing.created) doc.created = existing.created as number;
+    await store.setJSON(slug, doc);
+    return json({ account: publicView(doc) });
+  }
+
+  if (req.method === "DELETE") {
+    // Only a PIN-protected profile can be removed, and only with its PIN.
+    if (!existing) return json({ ok: true });
+    const body = (await req.json().catch(() => ({}))) as { auth?: string };
+    if (!existing.pinHash || body.auth !== existing.pinHash) return json({ error: "wrong pin" }, 403);
+    await store.delete(slug);
+    return json({ ok: true });
+  }
+
+  return json({ error: "method not allowed" }, 405);
+};
+
+export const config: Config = {
+  path: ["/api/accounts", "/api/accounts/:slug", "/api/accounts/:slug/:action"],
+};

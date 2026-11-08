@@ -175,6 +175,11 @@ button.pu:hover { border-color: var(--line); }
 .rrow .bar i { display: block; height: 100%; border-radius: 3px; transition: width .6s ease; }
 .rrow .sc { font-variant-numeric: tabular-nums; } .rrow .gain { color: var(--good); font-size: 13px; margin-left: 6px; }
 .rrow.dead .nm { opacity: .55; }
+.readybox { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.rchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; font-size: 14px; }
+.rchip .dot { width: 10px; height: 10px; border-radius: 50%; }
+.rchip.ok { border-color: var(--good); color: var(--good); }
+.rchip.gone { opacity: .5; }
 
 /* ---------- RESULTS ---------- */
 .podium { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
@@ -370,7 +375,7 @@ let setup = {
     type: IS_TOUCH ? (i === 0 ? 'human' : i < 4 ? 'bot' : 'off') : (i < 2 ? 'human' : i < 5 ? 'bot' : 'off'),
     diff: 'srednje',
   })),
-  walls: 'smrt', shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto',
+  walls: 'smrt', shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto', rounds: '5',
   puEnabled: Object.fromEntries(PU_KEYS.map(k => [k, true])),
   puRate: 'normalno',
   netBots: true,
@@ -413,7 +418,7 @@ async function saveProfile() {
   localSave(profile);
   if (dbNs && dbWritable !== false) {
     try { await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; }
-    catch (e) { profileStore = 'local'; dbWritable = false; }
+    catch (e) { profileStore = 'local'; if (e && e.status === 403) dbWritable = false; }
   }
   if (!dbNs) refreshLocalList();
   renderMe(); renderShop(); renderBoard();
@@ -421,7 +426,9 @@ async function saveProfile() {
 }
 function rememberLogin(slug) { try { if (slug) localStorage.setItem('vijuga-login', slug); else localStorage.removeItem('vijuga-login'); } catch (e) {} }
 function loginAs(doc) {
-  profile = applyBonus(normalize(doc)); rememberLogin(profile.slug);
+  const local = localAccounts()[doc.slug];
+  if (!doc.pinHash && local && local.pinHash) doc = Object.assign({}, doc, { pinHash: local.pinHash });
+  profile = applyBonus(normalize(doc)); delete profile.hasPin; rememberLogin(profile.slug);
   setup.players[0].name = profile.name; saveSetup();
   if (profile._bonusNew) saveProfile(); else { renderMe(); renderShop(); renderBoard(); if (roomNs) netPresence(myLobbyPres()); }
   renderPlayers(); renderNet(); $('#regModal').hidden = true;
@@ -447,7 +454,7 @@ function showLogin() {
   const who = $('#who');
   list.forEach(a => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'whobtn';
-    b.innerHTML = `<span class="av" style="background:${COLORS[a.color] || COLORS[0]}">${esc(a.name.slice(0, 1).toUpperCase())}</span><span><b>${esc(a.name)}</b>${badgeGlyph(a.eq.badge) ? '<span class="badge">' + badgeGlyph(a.eq.badge) + '</span>' : ''}<small>● ${a.coins} · ${a.wins} pobj.${a.pinHash ? ' · PIN' : ''}</small></span>`;
+    b.innerHTML = `<span class="av" style="background:${COLORS[a.color] || COLORS[0]}">${esc(a.name.slice(0, 1).toUpperCase())}</span><span><b>${esc(a.name)}</b>${badgeGlyph(a.eq.badge) ? '<span class="badge">' + badgeGlyph(a.eq.badge) + '</span>' : ''}<small>● ${a.coins} · ${a.wins} pobj.${a.pinHash || a.hasPin ? ' · PIN' : ''}</small></span>`;
     b.onclick = () => pickAccount(a);
     who.appendChild(b);
   });
@@ -455,11 +462,16 @@ function showLogin() {
 }
 async function pickAccount(a) {
   const fresh = (await accountGet(a.slug)) || a;
-  if (!fresh.pinHash) { loginAs(fresh); return; }
+  if (!fresh.pinHash && !fresh.hasPin) { loginAs(fresh); return; }
   const m = $('#regModal');
   m.innerHTML = `<form id="pinForm" novalidate><h3>${esc(fresh.name)}</h3><label><span class="label">PIN (4 znamenke)</span><input type="text" id="pinIn" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"></label><div class="err" id="pinErr"></div><div class="go"><button class="btn" type="submit">Prijavi se</button><button class="btn ghost" type="button" id="pinBack">Natrag</button></div></form>`;
   $('#pinIn').focus(); $('#pinBack').onclick = showLogin;
-  $('#pinForm').onsubmit = async (e) => { e.preventDefault(); const h = await pinHash($('#pinIn').value.trim(), fresh.slug); if (h === fresh.pinHash) loginAs(fresh); else $('#pinErr').textContent = 'Krivi PIN.'; };
+  $('#pinForm').onsubmit = async (e) => {
+    e.preventDefault(); const h = await pinHash($('#pinIn').value.trim(), fresh.slug);
+    if (fresh.pinHash) { if (h === fresh.pinHash) loginAs(fresh); else $('#pinErr').textContent = 'Krivi PIN.'; return; }
+    try { const full = dbNs && dbNs.doc('accounts/' + fresh.slug).login ? await dbNs.doc('accounts/' + fresh.slug).login(h) : null; if (full) loginAs(full); else $('#pinErr').textContent = 'Krivi PIN.'; }
+    catch (err) { $('#pinErr').textContent = 'Poslužitelj se ne javlja. Pokušaj ponovno.'; }
+  };
 }
 function showRegister() {
   const m = $('#regModal'); m.hidden = false;
@@ -612,10 +624,11 @@ function renderPlayers() {
   });
   const active = setup.players.filter(p => p.type !== 'off').length;
   const first = setup.players.find(p => p.type === 'human');
-  $('#startHint').textContent = active < 2 ? 'Uključi barem dva igrača.' : `${active} igrača · cilj ${targetFor(active)} bodova` + (profile && first ? ` · zlatnike dobiva ${first.name}` : '');
+  $('#startHint').textContent = active < 2 ? 'Uključi barem dva igrača.' : `${active} igrača · ${roundsFor()} rundi` + (profile && first ? ` · zlatnike dobiva ${first.name}` : '');
   $('#start').disabled = active < 2;
 }
-function targetFor(n) { return setup.target === 'auto' ? Math.max(5, (n - 1) * 10) : Number(setup.target); }
+function roundsFor() { const n = Number(setup.rounds); return n >= 1 && n <= 20 ? n : 5; }
+function targetFor(n) { return roundsFor(); }
 function renderSettings() {
   const box = $('#settings'); box.innerHTML = '';
   const add = (label, node, note) => { const d = document.createElement('div'); d.className = 'setting'; const l = document.createElement('span'); l.className = 'label'; l.textContent = label; d.append(l, node); if (note) { const n = document.createElement('span'); n.className = 'note'; n.textContent = note; d.appendChild(n); } box.appendChild(d); };
@@ -626,7 +639,7 @@ function renderSettings() {
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
   add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑ ili SKOK: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
-  add('Cilj bodova', seg([['auto', 'Auto'], ['10', '10'], ['20', '20'], ['40', '40']], setup.target, upd('target')), 'Meč završava kad netko dosegne cilj s barem 2 boda prednosti. Auto = 10 × (broj igrača − 1).');
+  add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima točno toliko rundi. Na kraju pobjeđuje tko ima najviše bodova (kod istog broja odlučuju rušenja), svi dobiju zlatnike po plasmanu i biraju novu igru.');
 }
 function renderLegend() {
   const box = $('#legend'); box.innerHTML = '';
@@ -1008,7 +1021,7 @@ function endRound(winner) {
   sfx.round();
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (top.score >= G.target && top.score - second.score >= 2) { G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; setTimeout(() => showResults(), 900); return; }
+  if (G.round >= G.target) { G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; setTimeout(() => showResults(), 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -1016,10 +1029,10 @@ const ROUND_PAUSE = 10;
 function showRoundBanner() {
   const winner = G.players.find(p => p.id === G.winner) || null;
   const top = ranking()[0];
-  const lead = top.score >= G.target ? `<p>Cilj dostignut, ali treba 2 boda prednosti.</p>` : '';
+  const lead = G.round === G.target - 1 ? '<p>Sljedeća runda je zadnja.</p>' : '';
   const hostOnly = net && net.role === 'client';
-  const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, G.target))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
-  showOverlay(`<div class="banner"><h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>${lead}<div class="rres">${rows}</div><p>Runda ${G.round} · cilj ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Napiši poruku u chat dolje lijevo.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
+  const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, top.score))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
+  showOverlay(`<div class="banner"><h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Napiši poruku u chat dolje lijevo.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
   if (!hostOnly) $('#nextBtn').onclick = () => nextRound();
 }
 function tickCountdown() {
@@ -1183,7 +1196,7 @@ function render() {
     ctx.font = `400 ${Math.min(W, H) * 0.16}px Bungee, Impact, sans-serif`;
     ctx.fillStyle = 'rgba(233,239,246,0.9)'; ctx.fillText(n > 0 ? String(n) : '', W / 2, H / 2);
     ctx.font = '600 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#8396ab';
-    ctx.fillText(`Runda ${G.round}`, W / 2, H / 2 + Math.min(W, H) * 0.12);
+    ctx.fillText(G.round === G.target ? `Zadnja runda (${G.round}/${G.target})` : `Runda ${G.round} od ${G.target}`, W / 2, H / 2 + Math.min(W, H) * 0.12);
   }
   if (G.ff && G.phase === 'run') { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.textAlign = 'right'; ctx.fillText('ubrzano ▶▶', W - 14, 18); ctx.textAlign = 'center'; }
   if (setup.shrink && G.phase === 'run' && G.gt > 16 && G.gt < 20) { ctx.font = '700 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.fillText(`Arena se steže za ${Math.ceil(20 - G.gt)}`, W / 2, 22); }
@@ -1200,7 +1213,7 @@ function renderHud() {
     c.innerHTML = `<span class="dot" style="background:${p.color}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}</span>`;
     box.appendChild(c);
   });
-  $('#target').textContent = `cilj ${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
+  $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
 }
 function updatePads() {
   document.querySelectorAll('.pad.jump').forEach(b => {
@@ -1210,10 +1223,11 @@ function updatePads() {
 }
 
 // ---------- loop ----------
+let frameN = 0;
 function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
   if (net && net.role === 'client') { clientTick(); }
-  else { if (!paused) update(dt); if (net && net.role === 'host') hostSend(); }
+  else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } }
   render(); renderHud(); updatePads(); tickCountdown();
   raf = requestAnimationFrame(frame);
 }
@@ -1293,20 +1307,55 @@ function togglePause(force) {
   } else { showOverlay(null); lastTs = performance.now(); if (G.phase === 'end') showRoundBanner(); }
 }
 function showResults() {
-  const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)) : ranking();
+  const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking();
   const w = rows[0]; sfx.round();
   let earn = '';
   const mine = net ? (net.role === 'client' ? rows.find(p => p.id === net.myId) : rows.find(p => p.mine)) : rows.find(p => p.mine);
-  if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); earn = `<p class="earn">${place + 1}. mjesto · +${n} novčića (ukupno ${profile.coins})</p>`; }
-  else if (!profile) earn = `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>`;
-  const isClient = net && net.role === 'client';
-  showOverlay(`<div class="banner"><span class="label">Pobjednik meča</span><h3 style="color:${w.color}">${esc(w.name)}${badgeGlyph(w.badge) ? ' ' + badgeGlyph(w.badge) : ''}</h3>${earn}
-    <div class="tablewrap"><table class="podium"><thead><tr><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Skokovi</th><th>Power-up</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td><span style="color:${p.color}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.jumps}</td><td>${p.picks}</td></tr>`).join('')}
-    </tbody></table></div>
-    <div class="row">${isClient ? '' : '<button class="btn" id="againBtn">Revanš</button>'}<button class="btn ghost" id="menuBtn">Izbornik</button></div></div>`);
-  if (!isClient) $('#againBtn').onclick = () => { showOverlay(null); if (net && net.role === 'host') hostStart(); else { newMatch(); buildPads(); } };
-  $('#menuBtn').onclick = toMenu;
+  if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
+  earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
+  const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
+    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${p.color}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human ? '+' + ((PLACE_COINS[i] || 12) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  let actions;
+  if (net) {
+    actions = `<div class="readybox" id="readyBox"></div><div class="row"><button class="btn" id="readyBtn">Spreman za novu igru</button>${net.role === 'host' ? '<button class="btn ghost" id="setBtn">Promijeni postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><p class="hint">Nova igra kreće kad svi igrači iz ovog meča stisnu „Spreman”. Tko izađe, ne čeka se.</p>`;
+  } else {
+    actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div>`;
+  }
+  showOverlay(`<div class="banner"><span class="label">Kraj meča · ${G.target} rundi</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgeGlyph(w.badge) ? ' ' + badgeGlyph(w.badge) : ''}</h3>${earn}${table}${actions}</div>`);
+  if (net) {
+    $('#readyBtn').onclick = () => { const on = myPres.again !== net.mid; netPresence({ again: on ? net.mid : null }); renderReady(); };
+    $('#leaveBtn').onclick = () => leaveOnline();
+    if ($('#setBtn')) $('#setBtn').onclick = () => { leaveOnline(true); showTab('local'); };
+    renderReady();
+  } else {
+    $('#againBtn').onclick = () => { showOverlay(null); newMatch(); buildPads(); };
+    $('#menuBtn').onclick = toMenu;
+  }
+}
+// who is in the finished match and still here, and who pressed ready
+function rematchState() {
+  return G.players.filter(p => p.human).map(p => {
+    const peer = p.remote || (p.mine && net.role === 'host' ? roomState.me : null) || p.peerId;
+    const pe = peer && roomState.peers.find(q => q.peer === peer);
+    const here = !!pe; const ready = here && !!pe.presence && pe.presence.again === net.mid;
+    return { name: p.name, color: p.color, here, ready };
+  });
+}
+function renderReady() {
+  const box = $('#readyBox'); if (!box || !G || !net) return;
+  const list = rematchState();
+  box.innerHTML = list.map(r => `<span class="rchip ${r.ready ? 'ok' : ''} ${r.here ? '' : 'gone'}"><span class="dot" style="background:${r.color}"></span>${esc(r.name)} ${r.here ? (r.ready ? '✓ spreman' : '… čeka') : '· izašao'}</span>`).join('');
+  const b = $('#readyBtn'); if (b) b.textContent = myPres.again === net.mid ? 'Odustani od nove igre' : 'Spreman za novu igru';
+  if (net.role === 'host' && G.over) {
+    const present = list.filter(r => r.here);
+    if (present.length && present.every(r => r.ready) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
+  }
+}
+function leaveOnline() {
+  roomState.ready = false;
+  netPresence({ again: null, rd: 0 });
+  toMenu(); showTab('online');
 }
 
 // ================= ONLINE (room capability) =================
@@ -1387,8 +1436,9 @@ function renderBoard() {
 }
 
 // host
-function hostStart() {
-  const peers = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.rd).sort((a, b) => a.peer < b.peer ? -1 : 1).slice(0, 6);
+function hostStart(rematch) {
+  const lastMid = net && net.mid;
+  const peers = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd)).sort((a, b) => a.peer < b.peer ? -1 : 1).slice(0, 6);
   if (!peers.length) return;
   const used = new Set(); const players = [];
   peers.forEach((pr, i) => {
@@ -1398,7 +1448,8 @@ function hostStart() {
       skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', mine: me });
   });
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'srednje', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
-  net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode };
+  net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36) };
+  netPresence({ again: null, rd: 1 }); roomState.ready = true;
   $('#menu').hidden = true; $('#game').hidden = false;
   G = { players: players.filter(p => p.mine) }; buildPads();
   newMatch(players); buildPads(); enterGame(); hostSend(true);
@@ -1411,8 +1462,8 @@ function hostSend(force) {
     if (pr && pr.presence) { p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0)); const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); } }
     else p.remoteIn = 0;
   }
-  const st = { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0,
-    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, rm: p.remote || null })),
+  const st = { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: net.mid,
+    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump } };
@@ -1423,7 +1474,8 @@ function hostSend(force) {
 function clientBegin(host) {
   if (net && net.role === 'client') return;
   const st = host.presence.st;
-  net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now() };
+  net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid };
+  netPresence({ again: null });
   Object.assign(setup, st.s || {});
   G = { players: [], target: st.tg, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, pus: [], inset: 0, wrapAllUntil: 0, parts: [], over: false, ff: false, speedMul: 1, clr: st.clr, rank: null };
   $('#menu').hidden = true; $('#game').hidden = false;
@@ -1443,7 +1495,7 @@ function applyState(st, first) {
     let p = byId[q.i];
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
-    Object.assign(p, { name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm });
+    Object.assign(p, { name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
     if (wasAlive === true && !p.alive) { burst(p.x, p.y, p.color); sfx.die(); }
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
@@ -1471,8 +1523,9 @@ function applyState(st, first) {
 function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
   const st = host && host.presence && host.presence.st;
-  if (st) { if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); applyState(st); } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; }
-  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !G.over) { showOverlay(`<div class="banner"><h3>Domaćin je otišao</h3><div class="row"><button class="btn" id="menuBtn">Izbornik</button></div></div>`); $('#menuBtn').onclick = toMenu; } }
+  if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h); return; }
+  if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); applyState(st); } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
+  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   updateParts(1 / 60);
   clientInput();
 }
@@ -1487,28 +1540,30 @@ function clientInput() {
 
 // Backend outside claude.ai: Supabase Realtime (lobby + match state) and a small accounts table.
 // Realtime (lobby, match) runs on one project; shared accounts live in a table on another.
-const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa', dbUrl: 'https://umpvnepxsqfkxjpclkxc.supabase.co', dbKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtcHZuZXB4c3Fma3hqcGNsa3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NzMyMDAsImV4cCI6MjA2ODI0OTIwMH0.iZhnC1FpAMzXujBvAwqTGhXBnNknMk_96TRNsNv77uQ', table: 'vijuga_accounts' };
+const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa' };
+// Shared player profiles: a small Netlify function backed by Netlify Blobs.
+const ACCOUNTS_API = 'https://vijuga.netlify.app/api/accounts';
+function makeApiAccounts() {
+  let cb = null, errCb = null;
+  async function poll() {
+    if (!cb) return;
+    try { const r = await fetch(ACCOUNTS_API, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); cb({ docs: (j.accounts || []).map(d => ({ data: () => d })) }); }
+    catch (e) { if (errCb) errCb(e); }
+  }
+  return {
+    doc(path) { const slug = path.split('/').pop(); return {
+      async get() { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { cache: 'no-store' }); if (r.status === 404) return { exists: false, data: () => undefined }; if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); return { exists: true, data: () => j.account }; },
+      async set(doc) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc, auth: doc.pinHash || '' }) }); if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; } poll(); },
+      async login(pinHashValue) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug) + '/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pinHash: pinHashValue }) }); if (r.status === 403) return null; if (!r.ok) throw new Error('HTTP ' + r.status); return (await r.json()).account; },
+    }; },
+    collection() { return { onSnapshot(c, e) { cb = c; errCb = e; poll(); const t = setInterval(poll, 15000); return () => clearInterval(t); } }; },
+  };
+}
 function loadScript(src) { return new Promise((res, rej) => { const t = document.createElement('script'); t.src = src; t.onload = res; t.onerror = rej; document.head.appendChild(t); }); }
 async function initSupabase() {
   await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js');
   const sb = window.supabase.createClient(SUPA.url, SUPA.key, { realtime: { params: { eventsPerSecond: 40 } } });
-  const sdb = window.supabase.createClient(SUPA.dbUrl, SUPA.dbKey, { auth: { persistSession: false } });
   window.__supaMode = true;
-  // ---- accounts table as a tiny document store
-  let accountsCb = null, accountsErr = null;
-  async function pollAccounts() {
-    if (!accountsCb) return;
-    const { data, error } = await sdb.from(SUPA.table).select('data').order('coins', { ascending: false }).limit(200);
-    if (error) { if (accountsErr) accountsErr(error); return; }
-    accountsCb({ docs: (data || []).map(r => ({ data: () => r.data })) });
-  }
-  dbNs = {
-    doc(path) { const slug = path.split('/').pop(); return {
-      async get() { const { data, error } = await sdb.from(SUPA.table).select('data').eq('slug', slug).maybeSingle(); if (error) throw error; return { exists: !!data, data: () => data ? data.data : undefined }; },
-      async set(doc) { const { error } = await sdb.from(SUPA.table).upsert({ slug, name: doc.name, coins: doc.coins, data: doc, updated_at: new Date().toISOString() }); if (error) throw error; pollAccounts(); },
-    }; },
-    collection() { return { onSnapshot(cb, err) { accountsCb = cb; accountsErr = err; pollAccounts(); const t = setInterval(pollAccounts, 20000); return () => clearInterval(t); } }; },
-  };
   // ---- realtime channel as a room: presence for lobby info, broadcast for fast match state
   const myPeer = Math.random().toString(36).slice(2, 10);
   const peersMap = {}; let connected = false; const peerHandlers = [], connHandlers = [];
@@ -1552,8 +1607,9 @@ async function initCapabilities() {
       userNs = u; dbNs = d; roomNs = r;
     } catch (e) {}
     if (userNs) { try { dbWritable = await userNs.can('data.write'); } catch (e) { dbWritable = null; } }
-  } else if (SUPA.url && SUPA.key) {
-    try { await initSupabase(); } catch (e) { roomNs = null; dbNs = null; }
+  } else {
+    dbNs = makeApiAccounts();
+    if (SUPA.url && SUPA.key) { try { await initSupabase(); } catch (e) { roomNs = null; } }
   }
   roomState.resolved = true;
   if (dbNs) {
@@ -1605,7 +1661,7 @@ addEventListener('blur', () => { for (const k in held) held[k] = false; if (G &&
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run' && !paused && !net) togglePause(true); });
 addEventListener('resize', () => { if (!$('#game').hidden && G) fitCanvas(); else if (!$('#menu').hidden) pvStart(); });
 $('#start').onclick = startGame;
-$('#pauseBtn').onclick = () => { if (net && net.role === 'client') { showOverlay(`<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div></div>`); $('#resumeBtn').onclick = () => showOverlay(null); $('#quitBtn').onclick = toMenu; } else togglePause(); };
+$('#pauseBtn').onclick = () => { if (net && net.role === 'client') { showOverlay(`<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div></div>`); $('#resumeBtn').onclick = () => showOverlay(null); $('#quitBtn').onclick = () => leaveOnline(); } else togglePause(); };
 $('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').style.opacity = soundOn ? 1 : .4; try { localStorage.setItem('vijuga-sound', soundOn ? '1' : '0'); } catch (e) {} };
 $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
