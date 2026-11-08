@@ -1,0 +1,1630 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Vijuga: igra zmija za do 6 igrača. Skreći, preskači tragove, ostani zadnji živ.">
+<style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Vijuga</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: arcade cabinet — slate-ink arena in the middle, scoreboard strip above, thumb pads below. Single dark look by choice. */
+:root {
+  --ink: #0b121b;
+  --slate: #101b27;
+  --panel: #152232;
+  --line: #24364a;
+  --fg: #e9eff6;
+  --muted: #8396ab;
+  --amber: #ffb547;
+  --good: #3ddc97;
+  --bad: #ff5d73;
+  --all: #57b7ff;
+  --display: "Bungee", "Impact", "Arial Black", sans-serif;
+  --body: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--ink); color: var(--fg); font-family: var(--body); font-size: 16px; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .5; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+#app { height: 100%; position: relative; }
+
+/* ---------- MENU ---------- */
+#menu { height: 100%; overflow-y: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 22px; }
+.brand { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.brand h1 { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 9vw, 84px); line-height: .9; margin: 0; letter-spacing: .01em; }
+.brand h1 span:nth-child(1){color:#ff5d73}.brand h1 span:nth-child(2){color:#ffd23f}.brand h1 span:nth-child(3){color:#3ddc97}.brand h1 span:nth-child(4){color:#4cc9f0}.brand h1 span:nth-child(5){color:#b48cff}.brand h1 span:nth-child(6){color:#ff8c42}
+.brand p { margin: 0; color: var(--muted); max-width: 40ch; line-height: 1.35; }
+.me { margin-left: auto; display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px 6px 8px; }
+.me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #0b121b; }
+.me b { font-weight: 700; }
+.me .coins { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
+.me button { background: transparent; border: 0; color: var(--muted); padding: 0 2px; text-decoration: underline; }
+#preview { width: 100%; height: 120px; display: block; border-radius: 10px; background: var(--slate); border: 1px solid var(--line); }
+.tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-family: var(--display); font-size: 15px; letter-spacing: .04em; color: var(--muted); white-space: nowrap; margin-bottom: -1px; }
+.tabs button[aria-selected=true] { color: var(--fg); border-bottom-color: var(--amber); }
+.tab { display: grid; gap: 22px; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 18px; letter-spacing: .04em; margin: 0 0 10px; color: var(--fg); }
+h2 small { font-family: var(--body); font-size: 14px; letter-spacing: 0; color: var(--muted); font-weight: 500; margin-left: 8px; }
+.label { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--muted); font-weight: 600; }
+.players { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px; }
+.pcard { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 14px 1fr; gap: 6px 12px; align-items: center; }
+.pcard.off { opacity: .55; }
+.swatch { width: 14px; height: 40px; border-radius: 7px; grid-row: span 2; }
+.pcard input[type=text] { background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 2px 0; font-weight: 600; font-size: 18px; min-width: 0; width: 100%; }
+.prow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 5px 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed=true] { background: var(--fg); color: var(--ink); }
+.keys { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.keys kbd { font-family: var(--body); font-weight: 700; color: var(--fg); background: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px 20px; }
+.setting { display: grid; gap: 6px; justify-items: start; align-content: start; }
+.note { color: var(--muted); font-size: 13px; line-height: 1.3; max-width: 36ch; }
+.secnote { color: var(--muted); font-size: 14px; margin: -4px 0 10px; line-height: 1.35; }
+.go { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.btn { font-family: var(--display); font-weight: 400; font-size: 20px; letter-spacing: .04em; border: 0; border-radius: 10px; padding: 12px 26px; background: var(--amber); color: #1a1205; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); font-size: 16px; padding: 10px 18px; }
+.btn.sm { font-size: 14px; padding: 8px 14px; }
+.hint { color: var(--muted); font-size: 14px; }
+.legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px 16px; }
+.pu { display: flex; gap: 10px; align-items: center; font-size: 15px; line-height: 1.2; background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 6px; text-align: left; }
+button.pu:hover { border-color: var(--line); }
+.pu i { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; font-size: 16px; border: 2px solid currentColor; }
+.pu i.s { color: var(--good); } .pu i.o { color: var(--bad); } .pu i.a { color: var(--all); }
+.pu b { font-weight: 600; } .pu small { color: var(--muted); display: block; font-size: 13px; }
+.pu.off { opacity: .4; } .pu.off i { border-style: dashed; }
+.pu .chk { margin-left: auto; width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--line); display: grid; place-items: center; font-size: 13px; flex: none; }
+.pu:not(.off) .chk { background: var(--good); border-color: var(--good); color: #0b121b; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 22px; }
+.rules { margin: 0; padding-left: 18px; line-height: 1.45; color: var(--fg); }
+.rules li::marker { color: var(--amber); }
+.new { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--amber); border: 1px solid var(--amber); border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+.badge { display: inline-block; font-size: .95em; margin-left: 3px; }
+
+/* shop */
+.shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; }
+.item { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.item.eq { border-color: var(--amber); }
+.item .prev { height: 44px; border-radius: 6px; background: var(--slate); display: grid; place-items: center; overflow: hidden; }
+.item .prev canvas { width: 100%; height: 44px; display: block; }
+.item .prev .ic { font-size: 28px; }
+.item b { font-size: 17px; } .item small { color: var(--muted); display: block; }
+.item .price { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
+.item .act { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+.item .act button { font-size: 14px; font-weight: 700; border-radius: 7px; padding: 6px 12px; border: 1px solid var(--line); background: transparent; }
+.item .act button.buy { background: var(--amber); color: #1a1205; border-color: var(--amber); }
+.item .act button.on { background: var(--fg); color: var(--ink); }
+.coinnote { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.coinnote b { color: var(--amber); }
+
+/* online */
+.net { display: grid; gap: 14px; }
+.status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+.status .led { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.status .led.on { background: var(--good); }
+.peers { display: grid; gap: 6px; }
+.peer { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+.peer .dot { width: 12px; height: 12px; border-radius: 50%; }
+.peer .st { margin-left: auto; font-size: 13px; color: var(--muted); }
+.peer .st.r { color: var(--good); }
+.board { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.board td, .board th { padding: 6px; border-top: 1px solid var(--line); text-align: right; }
+.board th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; border-top: 0; }
+.board td:first-child, .board th:first-child { text-align: left; }
+.chat { display: grid; gap: 6px; }
+.chatlog { display: grid; gap: 3px; max-height: 150px; overflow-y: auto; font-size: 14px; line-height: 1.3; }
+.chatlog div { color: var(--fg); } .chatlog b { font-weight: 700; } .chatlog .hint { font-size: 13px; }
+.chatrow { display: flex; gap: 6px; }
+.chatrow input { flex: 1; min-width: 0; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
+.chatrow button { border: 0; border-radius: 8px; background: var(--amber); color: #1a1205; font-weight: 700; padding: 0 14px; }
+#gchat { position: absolute; left: max(10px, env(safe-area-inset-left, 0px)); bottom: 10px; width: min(320px, 60%); pointer-events: auto; display: grid; gap: 4px; background: color-mix(in srgb, var(--ink) 75%, transparent); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+#gchat .chatlog { max-height: 96px; font-size: 13px; }
+#gchat .chatrow input { padding: 6px 8px; font-size: 14px; }
+.notice { background: color-mix(in srgb, var(--all) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--all) 40%, var(--line)); border-radius: 8px; padding: 10px 12px; font-size: 14px; line-height: 1.4; }
+
+/* register modal */
+.modal { position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 80%, transparent); display: grid; place-items: center; padding: 16px; z-index: 5; }
+.modal form { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; width: min(100%, 420px); display: grid; gap: 14px; }
+.modal h3 { font-family: var(--display); font-weight: 400; font-size: 26px; margin: 0; }
+.modal label { display: grid; gap: 6px; }
+.modal input[type=text] { background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 18px; font-weight: 600; width: 100%; min-width: 0; }
+.who { display: grid; gap: 6px; max-height: 40vh; overflow-y: auto; }
+.whobtn { display: flex; align-items: center; gap: 10px; background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; text-align: left; }
+.whobtn .av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #0b121b; flex: none; }
+.whobtn small { display: block; color: var(--muted); font-size: 13px; }
+.colors { display: flex; gap: 8px; flex-wrap: wrap; }
+.colors button { width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent; }
+.colors button[aria-pressed=true] { border-color: var(--fg); }
+.err { color: var(--bad); font-size: 14px; min-height: 1em; }
+
+/* ---------- GAME ---------- */
+#game { height: 100%; display: flex; flex-direction: column; }
+.hud { display: flex; align-items: center; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 6px; border-bottom: 1px solid var(--line); background: var(--ink); }
+#scores { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.chip { display: flex; align-items: center; gap: 6px; padding: 3px 9px 3px 6px; border-radius: 999px; background: var(--panel); white-space: nowrap; font-weight: 600; font-size: 15px; transition: opacity .2s; }
+.chip.dead { opacity: .38; }
+.chip .dot { width: 10px; height: 10px; border-radius: 50%; }
+.chip .sc { font-variant-numeric: tabular-nums; font-weight: 700; }
+.target { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.iconbtn { flex: none; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+.stage { flex: 1; min-height: 0; position: relative; display: grid; place-items: center; padding: 8px; }
+#cv { display: block; border-radius: 6px; touch-action: none; box-shadow: 0 0 0 1px var(--line); }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.banner { text-align: center; pointer-events: auto; background: color-mix(in srgb, var(--ink) 85%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 18px 26px; max-width: min(92%, 560px); display: grid; gap: 10px; justify-items: center; }
+.banner h3 { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 5vw, 34px); margin: 0; line-height: 1.05; text-wrap: balance; }
+.banner p { margin: 0; color: var(--muted); }
+.banner .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.banner .earn { color: var(--amber); font-weight: 700; font-size: 18px; }
+.pads { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); padding-block: 10px; background: var(--ink); border-top: 1px solid var(--line); user-select: none; -webkit-user-select: none; }
+.pads.top { transform: rotate(180deg); border-top: 0; border-bottom: 1px solid var(--line); }
+.padgrp { display: flex; gap: 12px; }
+.pad { width: 74px; height: 74px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--pc, var(--line)) 70%, transparent); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc, var(--panel)) 28%, var(--panel)), var(--panel) 75%); color: var(--fg); touch-action: none; display: grid; place-items: center; grid-template-rows: 1fr auto; padding: 6px 0 8px; box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); transition: transform .08s, background .08s; }
+.pad svg { width: 34px; height: 34px; color: var(--pc, var(--fg)); }
+.pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
+.pad.big { width: 86px; height: 86px; }
+.pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
+.pad.on { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc) 65%, var(--panel)), color-mix(in srgb, var(--pc) 30%, var(--panel)) 75%); transform: scale(.94); }
+.pad.cool { opacity: .45; }
+.rres { width: 100%; display: grid; gap: 6px; text-align: left; }
+.rrow { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-weight: 600; }
+.rrow .nm { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rrow .nm span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rrow .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.rrow .bar i { display: block; height: 100%; border-radius: 3px; transition: width .6s ease; }
+.rrow .sc { font-variant-numeric: tabular-nums; } .rrow .gain { color: var(--good); font-size: 13px; margin-left: 6px; }
+.rrow.dead .nm { opacity: .55; }
+
+/* ---------- RESULTS ---------- */
+.podium { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.podium th { text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 4px 6px; }
+.podium th:first-child, .podium td:first-child { text-align: left; }
+.podium td { text-align: right; padding: 6px; border-top: 1px solid var(--line); font-weight: 600; }
+.podium tr.win td { color: var(--amber); }
+.tablewrap { width: 100%; overflow-x: auto; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div id="app">
+  <!-- MENU -->
+  <section id="menu">
+    <div class="wrap">
+      <header class="brand">
+        <h1 aria-label="Vijuga"><span>V</span><span>I</span><span>J</span><span>U</span><span>G</span><span>A</span></h1>
+        <p>Do šest zmija na jednoj ploči. Skreći, preskači tragove i ostani zadnji živ.</p>
+        <div class="me" id="me"></div>
+      </header>
+      <canvas id="preview" aria-hidden="true"></canvas>
+
+      <div class="tabs" role="tablist" id="tabs">
+        <button role="tab" data-tab="local" aria-selected="true">Lokalna igra</button>
+        <button role="tab" data-tab="online" aria-selected="false">Online</button>
+        <button role="tab" data-tab="shop" aria-selected="false">Trgovina</button>
+        <button role="tab" data-tab="board" aria-selected="false">Ljestvica</button>
+        <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
+      </div>
+
+      <div class="tab" id="tab-local">
+        <div>
+          <h2>Igrači <small>na ovom uređaju</small></h2>
+          <p class="secnote">Igrač = osoba za ovom tipkovnicom ili ekranom, Bot = računalo (Lako / Srednje / Teško). Prvi ljudski igrač igra s tvojim profilom: skin, ikona i zlatnici. Za igru preko interneta idi na karticu Online.</p>
+          <div class="players" id="players"></div>
+        </div>
+        <div>
+          <h2>Pravila meča</h2>
+          <div class="settings" id="settings"></div>
+        </div>
+        <div>
+          <h2>Dozvoljeni power-upovi <small id="puCount"></small></h2>
+          <p class="secnote">Zeleni djeluju na onoga tko ih pokupi, crveni na sve protivnike, plavi na sve igrače. Dodirni za uključiti ili isključiti.</p>
+          <div class="legend" id="legend"></div>
+          <div class="go" style="margin-top:8px"><button class="btn ghost sm" id="puAll">Svi</button><button class="btn ghost sm" id="puNone">Nijedan</button><button class="btn ghost sm" id="puSelf">Samo zeleni</button></div>
+        </div>
+        <div class="go">
+          <button class="btn" id="start">Kreni</button>
+          <span class="hint" id="startHint"></span>
+        </div>
+      </div>
+
+      <div class="tab" id="tab-online" hidden>
+        <div class="net" id="net"></div>
+      </div>
+
+      <div class="tab" id="tab-shop" hidden>
+        <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
+        <div><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
+        <div><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
+        <div><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
+      </div>
+
+      <div class="tab" id="tab-board" hidden><div id="board"></div></div>
+
+      <div class="tab" id="tab-help" hidden>
+        <div class="cols">
+          <div>
+            <h2>Kako se igra</h2>
+            <ol class="rules">
+              <li>Zmija ide sama, ti samo skrećeš lijevo i desno.</li>
+              <li>Iza sebe ostavljaš trag. Udariš li u bilo čiji trag ili u zid, ispadaš.</li>
+              <li>U tragu se povremeno otvori rupa kroz koju se može provući.</li>
+              <li>Kad netko ispadne, svi koji su još živi dobiju 1 bod.</li>
+              <li>Pobjeđuje tko prvi dođe do cilja s barem 2 boda prednosti.</li>
+              <li><b>Skok</b><span class="new">NOVO</span> preleti preko tragova, puni se 5 sekundi.</li>
+              <li><b>Sužavanje</b><span class="new">NOVO</span> nakon 20 s arena se počne stezati.</li>
+              <li><b>Zlatnici</b><span class="new">NOVO</span> dobivaš po plasmanu na kraju meča i trošiš ih u trgovini.</li>
+              <li><b>Profil</b> biraš na ulazu klikom na svoje ime; bodovi i kupljeno ostaju i sutra. PIN je neobavezan.</li>
+              <li>Kad ispadnu svi ljudi, runda se ubrzava da ne čekaš botove.</li>
+            </ol>
+          </div>
+          <div>
+            <h2>Online igra</h2>
+            <ol class="rules">
+              <li>Podijeli ovu stranicu s prijateljima (gumb Share, pozivnica e-poštom).</li>
+              <li>Svatko otvori karticu Online i pritisne „Uđi u predvorje”.</li>
+              <li>Jedan igrač pritisne „Pokreni meč” i postaje domaćin. Njegov uređaj vodi igru, ostali šalju svoje poteze.</li>
+              <li>Tko uđe kasnije, gleda do kraja meča.</li>
+              <li>Između rundi ima 10 sekundi za poruke u chatu, zatim nova runda kreće sama.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="regModal" hidden></div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" hidden>
+    <div class="pads top" id="padsTop" hidden></div>
+    <div class="hud">
+      <div id="scores"></div>
+      <span class="target" id="target"></span>
+      <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
+      <button class="iconbtn" id="pauseBtn" aria-label="Pauza">II</button>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div class="overlay" id="overlay"></div>
+      <div id="gchat" hidden><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
+    </div>
+    <div class="pads" id="padsBottom" hidden></div>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+// ================= CONFIG =================
+const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42'];
+const DEFAULT_NAMES = ['Crvena', 'Žuta', 'Zelena', 'Plava', 'Ljubičasta', 'Narančasta'];
+const KEYS = [
+  { l: 'ArrowLeft', r: 'ArrowRight', j: 'ArrowUp', txt: ['←', '→', '↑'] },
+  { l: 'KeyA', r: 'KeyD', j: 'KeyW', txt: ['A', 'D', 'W'] },
+  { l: 'KeyJ', r: 'KeyL', j: 'KeyI', txt: ['J', 'L', 'I'] },
+  { l: 'Numpad4', r: 'Numpad6', j: 'Numpad8', txt: ['Num4', 'Num6', 'Num8'] },
+  { l: 'KeyZ', r: 'KeyC', j: 'KeyX', txt: ['Z', 'C', 'X'] },
+  { l: 'KeyB', r: 'KeyM', j: 'KeyN', txt: ['B', 'M', 'N'] },
+];
+const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+
+const BASE_SPEED = 82, TURN = 3.1, BASE_R = 2.5, CELL = 2, SUB = 1 / 240;
+const JUMP_TIME = 0.4, JUMP_CD = 5;
+const PLACE_COINS = [60, 35, 20, 12, 12, 12], KILL_COINS = 3;
+
+const POWERUPS = {
+  fastS:  { t: 's', g: '»', name: 'Brzina', d: 'Ti ubrzavaš', dur: 5 },
+  slowS:  { t: 's', g: '«', name: 'Usporenje', d: 'Ti usporavaš, lakše skrećeš', dur: 6 },
+  thinS:  { t: 's', g: '·', name: 'Tanki trag', d: 'Tvoj trag je upola tanji', dur: 7 },
+  ghostS: { t: 's', g: '○', name: 'Duh', d: 'Prolaziš kroz tragove', dur: 3.5 },
+  wrapS:  { t: 's', g: '□', name: 'Bez zidova', d: 'Izlaziš na suprotnoj strani', dur: 7 },
+  jumpS:  { t: 's', g: '↑', name: 'Puni skok', d: 'Skok je odmah spreman', dur: 0 },
+  fastO:  { t: 'o', g: '»', name: 'Ubrzaj druge', d: 'Svi ostali ubrzavaju', dur: 5 },
+  slowO:  { t: 'o', g: '«', name: 'Uspori druge', d: 'Svi ostali usporavaju', dur: 5 },
+  thickO: { t: 'o', g: '●', name: 'Debeli trag', d: 'Ostali ostavljaju dvostruki trag', dur: 6 },
+  revO:   { t: 'o', g: '⇄', name: 'Obrnuto', d: 'Ostalima su lijevo i desno zamijenjeni', dur: 5 },
+  sqO:    { t: 'o', g: '┐', name: 'Kutovi', d: 'Ostali skreću samo pod 90°', dur: 5 },
+  clearA: { t: 'a', g: '×', name: 'Brisanje', d: 'Svi tragovi nestaju', dur: 0 },
+  wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7 },
+};
+const PU_KEYS = Object.keys(POWERUPS);
+const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff' };
+
+const SKINS = {
+  sk_none:    { name: 'Obični', d: 'Standardni trag', price: 0 },
+  sk_neon:    { name: 'Neon', d: 'Trag svijetli', price: 120 },
+  sk_dash:    { name: 'Crtice', d: 'Isprekidani trag', price: 90 },
+  sk_pixel:   { name: 'Piksel', d: 'Kockasti, retro trag', price: 90 },
+  sk_rainbow: { name: 'Duga', d: 'Trag stalno mijenja boju', price: 220 },
+  sk_gold:    { name: 'Zlato', d: 'Zlatni trag bez obzira na boju', price: 320 },
+  sk_dildo:   { name: 'Dildo', d: 'Ružičasti, debeli trag s glavicom. Za odrasle.', price: 150 },
+  sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
+  sk_boobs:   { name: 'Dojke', d: 'Trag boje kože s parovima dojki. Za odrasle.', price: 160 },
+  sk_condom:  { name: 'Kondom', d: 'Prozirni trag s rezervoarom na vrhu. Za odrasle.', price: 160 },
+};
+const BADGES = {
+  bd_none:  { g: '', name: 'Bez ikone', d: '', price: 0 },
+  bd_bolt:  { g: '⚡', name: 'Munja', d: 'Za brze', price: 60 },
+  bd_star:  { g: '★', name: 'Zvijezda', d: 'Klasik', price: 100 },
+  bd_skull: { g: '☠', name: 'Lubanja', d: 'Za one koji ruše', price: 140 },
+  bd_gem:   { g: '◆', name: 'Dragulj', d: 'Rijetko', price: 180 },
+  bd_crown: { g: '♛', name: 'Kruna', d: 'Samo za prvake', price: 300 },
+  bd_ucross: { g: '⁺U', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M4 9v7a6 6 0 0 0 12 0V9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 1v6M7 4h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', name: 'U s križem', d: 'Veliko U, križić na vrhu', price: 200 },
+  bd_vag:   { g: '◊', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>', name: 'Vagina', d: 'Ikona za odrasle', price: 120 },
+  bd_boobs: { g: '(.)(.)', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="11" r="1.5" fill="currentColor"/><circle cx="17" cy="11" r="1.5" fill="currentColor"/></svg>', name: 'Dojke', d: 'Ikona za odrasle', price: 120 },
+  bd_condom: { g: '∩', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>', name: 'Kondom', d: 'Ikona za odrasle', price: 120 },
+};
+const STARTER_PU = ['fastS', 'slowS', 'thinS', 'ghostS', 'wrapS', 'jumpS', 'slowO', 'thickO', 'revO', 'sqO'];
+const STARTER_PRICE = { s: 110, o: 170 };
+
+const PU_RATE = { rijetko: { min: 6, max: 10, cap: 3 }, normalno: { min: 2.5, max: 5, cap: 4 }, 'često': { min: 1.2, max: 2.5, cap: 6 }, ludnica: { min: 0.5, max: 1.2, cap: 8 } };
+const DIFF = {
+  lako:    { every: 7, look: 85,  noise: 0.18, jump: false, seek: false, step: 6 },
+  srednje: { every: 4, look: 150, noise: 0.04, jump: true,  seek: true,  step: 5 },
+  'teško': { every: 2, look: 230, noise: 0,    jump: true,  seek: true,  step: 4 },
+};
+
+// ================= PERSISTED SETUP =================
+let setup = {
+  players: COLORS.map((c, i) => ({
+    name: DEFAULT_NAMES[i],
+    type: IS_TOUCH ? (i === 0 ? 'human' : i < 4 ? 'bot' : 'off') : (i < 2 ? 'human' : i < 5 ? 'bot' : 'off'),
+    diff: 'srednje',
+  })),
+  walls: 'smrt', shrink: true, powerups: true, jump: true, speed: 'normalno', target: 'auto',
+  puEnabled: Object.fromEntries(PU_KEYS.map(k => [k, true])),
+  puRate: 'normalno',
+  netBots: true,
+};
+try {
+  const saved = JSON.parse(localStorage.getItem('vijuga-setup') || 'null');
+  if (saved && saved.players && saved.players.length === 6) { setup = Object.assign(setup, saved); setup.puEnabled = Object.assign(Object.fromEntries(PU_KEYS.map(k => [k, true])), saved.puEnabled || {}); }
+} catch (e) {}
+function saveSetup() { try { localStorage.setItem('vijuga-setup', JSON.stringify(setup)); } catch (e) {} }
+
+// ================= PROFILE (accounts by name, coins, shop) =================
+// An account is a document in the shared `accounts` collection (or, without the database, in this browser).
+// Anyone picks their name on the login screen; an optional 4-digit PIN protects it.
+let profile = null; // {slug, name, color, coins, owned:[], eq:{skin,badge,pu}, matches, wins, kills, pinHash}
+let profileStore = 'local'; // 'db' | 'local'
+let dbNs = null, userNs = null, roomNs = null, dbWritable = null;
+const START_COINS = 500;
+const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
+function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, pinHash: '', created: Date.now() }; }
+function normalize(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
+function applyBonus(p) { if (p && !p.bonus500) { p.coins = (Number(p.coins) || 0) + START_COINS; p.bonus500 = true; p._bonusNew = true; } return p; }
+function slugOf(name) { const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return (base || 'igrac').slice(0, 40); }
+async function pinHash(pin, slug) {
+  try { const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(slug + ':' + pin)); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''); }
+  catch (e) { return 'plain:' + pin; }
+}
+// local backend
+function localAccounts() { try { const o = JSON.parse(localStorage.getItem('vijuga-accounts') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
+function localSave(doc) { try { const o = localAccounts(); o[doc.slug] = doc; localStorage.setItem('vijuga-accounts', JSON.stringify(o)); } catch (e) {} }
+function refreshLocalList() { accounts.list = Object.values(localAccounts()).map(normalize); accounts.ready = true; }
+// unified
+async function accountGet(slug) {
+  if (dbNs) { try { const snap = await dbNs.doc('accounts/' + slug).get(); if (snap.exists) return normalize(snap.data()); } catch (e) {} }
+  const o = localAccounts(); return o[slug] ? normalize(o[slug]) : null;
+}
+async function saveProfile() {
+  if (!profile) return;
+  delete profile._bonusNew;
+  profile.updatedAt = Date.now();
+  localSave(profile);
+  if (dbNs && dbWritable !== false) {
+    try { await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; }
+    catch (e) { profileStore = 'local'; dbWritable = false; }
+  }
+  if (!dbNs) refreshLocalList();
+  renderMe(); renderShop(); renderBoard();
+  if (roomNs) netPresence(myLobbyPres());
+}
+function rememberLogin(slug) { try { if (slug) localStorage.setItem('vijuga-login', slug); else localStorage.removeItem('vijuga-login'); } catch (e) {} }
+function loginAs(doc) {
+  profile = applyBonus(normalize(doc)); rememberLogin(profile.slug);
+  setup.players[0].name = profile.name; saveSetup();
+  if (profile._bonusNew) saveProfile(); else { renderMe(); renderShop(); renderBoard(); if (roomNs) netPresence(myLobbyPres()); }
+  renderPlayers(); renderNet(); $('#regModal').hidden = true;
+}
+function logout() { profile = null; rememberLogin(null); renderMe(); renderShop(); renderBoard(); renderPlayers(); if (roomNs) { roomState.ready = false; netPresence(Object.assign(myLobbyPres(), { rd: 0 })); } renderNet(); showLogin(); }
+function renderMe() {
+  const box = $('#me');
+  if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
+  const c = COLORS[profile.color] || COLORS[0];
+  box.innerHTML = `<span class="av" style="background:${c}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>${esc(profile.name)}${badgeOf(profile)}</b><span class="coins">● ${profile.coins}</span><button type="button" id="editBtn">uredi</button><button type="button" id="outBtn">odjava</button>`;
+  $('#editBtn').onclick = () => showRegister();
+  $('#outBtn').onclick = logout;
+}
+function showLogin() {
+  const m = $('#regModal'); m.hidden = false;
+  const list = [...accounts.list].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  m.innerHTML = `<form id="loginForm" novalidate>
+    <h3>Tko igra?</h3>
+    <p class="hint" style="margin:0">${dbNs ? 'Profili su zajednički: isti profil možeš nastaviti sutra ili s drugog uređaja.' : 'Profili se zasad pamte samo na ovom uređaju.'}</p>
+    <div class="who" id="who">${list.length ? '' : '<p class="hint">Još nema profila. Napravi prvi.</p>'}</div>
+    <div class="go"><button class="btn" type="button" id="newAcc">Novi igrač</button></div>
+  </form>`;
+  const who = $('#who');
+  list.forEach(a => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'whobtn';
+    b.innerHTML = `<span class="av" style="background:${COLORS[a.color] || COLORS[0]}">${esc(a.name.slice(0, 1).toUpperCase())}</span><span><b>${esc(a.name)}</b>${badgeGlyph(a.eq.badge) ? '<span class="badge">' + badgeGlyph(a.eq.badge) + '</span>' : ''}<small>● ${a.coins} · ${a.wins} pobj.${a.pinHash ? ' · PIN' : ''}</small></span>`;
+    b.onclick = () => pickAccount(a);
+    who.appendChild(b);
+  });
+  $('#newAcc').onclick = () => { profile = null; showRegister(); };
+}
+async function pickAccount(a) {
+  const fresh = (await accountGet(a.slug)) || a;
+  if (!fresh.pinHash) { loginAs(fresh); return; }
+  const m = $('#regModal');
+  m.innerHTML = `<form id="pinForm" novalidate><h3>${esc(fresh.name)}</h3><label><span class="label">PIN (4 znamenke)</span><input type="text" id="pinIn" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"></label><div class="err" id="pinErr"></div><div class="go"><button class="btn" type="submit">Prijavi se</button><button class="btn ghost" type="button" id="pinBack">Natrag</button></div></form>`;
+  $('#pinIn').focus(); $('#pinBack').onclick = showLogin;
+  $('#pinForm').onsubmit = async (e) => { e.preventDefault(); const h = await pinHash($('#pinIn').value.trim(), fresh.slug); if (h === fresh.pinHash) loginAs(fresh); else $('#pinErr').textContent = 'Krivi PIN.'; };
+}
+function showRegister() {
+  const m = $('#regModal'); m.hidden = false;
+  const editing = !!profile;
+  const cur = profile || blankProfile('', Math.random() * 6 | 0);
+  let color = cur.color;
+  m.innerHTML = `<form id="regForm" novalidate>
+    <h3>${editing ? 'Uredi profil' : 'Novi igrač'}</h3>
+    <p class="hint" style="margin:0">Ime vide ostali igrači u predvorju i na ljestvici.${dbNs ? '' : ' Spremam ga na ovaj uređaj.'}</p>
+    <label><span class="label">Tvoje ime</span><input type="text" id="regName" maxlength="14" autocomplete="nickname" value="${esc(editing ? cur.name : '')}" placeholder="npr. Zmaj"></label>
+    <div><span class="label">Boja</span><div class="colors" id="regColors"></div></div>
+    <label><span class="label">PIN (neobavezno, 4 znamenke)</span><input type="text" id="regPin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="${editing && cur.pinHash ? 'ostavi prazno da ostane isti' : 'bez PIN-a svatko može kliknuti tvoje ime'}"></label>
+    <div class="err" id="regErr"></div>
+    <div class="go"><button class="btn" type="submit">${editing ? 'Spremi' : 'Kreni'}</button><button class="btn ghost" type="button" id="regCancel">${editing ? 'Odustani' : 'Natrag'}</button></div>
+  </form>`;
+  const cols = $('#regColors');
+  const paint = () => { cols.innerHTML = ''; COLORS.forEach((c, i) => { const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.setAttribute('aria-label', DEFAULT_NAMES[i]); b.setAttribute('aria-pressed', String(i === color)); b.onclick = () => { color = i; paint(); }; cols.appendChild(b); }); };
+  paint();
+  $('#regName').focus();
+  $('#regCancel').onclick = () => { if (editing) m.hidden = true; else showLogin(); };
+  $('#regForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const name = $('#regName').value.trim().replace(/\s+/g, ' ');
+    const pin = $('#regPin').value.trim();
+    if (name.length < 2) { $('#regErr').textContent = 'Ime treba imati barem 2 znaka.'; return; }
+    if (pin && !/^\d{4}$/.test(pin)) { $('#regErr').textContent = 'PIN su točno 4 znamenke.'; return; }
+    const slug = slugOf(name);
+    if (!editing || slug !== profile.slug) {
+      const taken = await accountGet(slug);
+      if (taken) { $('#regErr').textContent = 'To ime već postoji. Odaberi ga na popisu ili uzmi drugo.'; return; }
+    }
+    if (!editing) profile = blankProfile(name, color); else { profile.name = name; profile.slug = slug; profile.color = color; }
+    if (pin) profile.pinHash = await pinHash(pin, slug);
+    rememberLogin(slug);
+    setup.players[0].name = name; saveSetup();
+    await saveProfile(); m.hidden = true; renderPlayers(); renderNet();
+  };
+}
+async function bootAccounts() {
+  // import an old single profile from v1
+  try { const old = JSON.parse(localStorage.getItem('vijuga-profile') || 'null'); if (old && old.name) { const d = normalize(old); d.slug = slugOf(d.name); const o = localAccounts(); if (!o[d.slug]) localSave(d); localStorage.removeItem('vijuga-profile'); rememberLogin(d.slug); } } catch (e) {}
+  if (!dbNs) refreshLocalList();
+  let last = null; try { last = localStorage.getItem('vijuga-login'); } catch (e) {}
+  if (last) { const d = await accountGet(last); if (d) { loginAs(d); return; } }
+  showLogin();
+}
+function awardCoins(place, kills, won) {
+  if (!profile) return 0;
+  const n = (PLACE_COINS[place] || 12) + kills * KILL_COINS;
+  profile.coins += n; profile.matches++; profile.kills += kills; if (won) profile.wins++;
+  saveProfile(); return n;
+}
+function skinPreview(cv, skinId, color) {
+  const c = cv.getContext('2d'); const w = cv.width = 200, h = cv.height = 44;
+  c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h);
+  c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round';
+  applySkin(c, skinId, color, 3, 0);
+  if (skinId === 'sk_dildo') { c.fillStyle = '#e98aa6'; c.beginPath(); c.arc(12, h / 2 - 6, 6, 0, 6.283); c.arc(12, h / 2 + 6, 6, 0, 6.283); c.fill(); }
+  const xe = ['sk_dildo', 'sk_vag', 'sk_boobs', 'sk_condom'].includes(skinId) ? w - 26 : w - 10;
+  c.beginPath(); for (let x = 10; x <= xe; x += 4) { const y = h / 2 + Math.sin(x / 22) * 12; if (x === 10) c.moveTo(x, y); else c.lineTo(x, y); }
+  c.stroke();
+  if (skinId === 'sk_dildo') { const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawDildoHead(c, xe, y, a, 3.6); }
+  if (skinId === 'sk_vag' || skinId === 'sk_boobs' || skinId === 'sk_condom') { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { ornAcc: 20 }); const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawSkinHead(c, skinId, xe, y, a, 3.4); }
+}
+function drawDildoHead(c, x, y, a, r) {
+  c.save(); c.translate(x, y); c.rotate(a);
+  c.shadowBlur = 0; c.setLineDash([]);
+  c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2.9; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 3, 0); c.lineTo(r * 0.6, 0); c.stroke();
+  c.fillStyle = '#e8809f'; c.beginPath(); c.ellipse(r * 0.9, 0, r * 0.9, r * 1.85, 0, 0, 6.283); c.fill();
+  c.fillStyle = '#f6adc4'; c.beginPath(); c.ellipse(r * 1.9, 0, r * 2.1, r * 1.6, 0, 0, 6.283); c.fill();
+  c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.ellipse(r * 2.4, -r * 0.5, r * 0.7, r * 0.35, 0, 0, 6.283); c.fill();
+  c.restore();
+}
+function badgeOf(p) { const b = BADGES[p && p.eq && p.eq.badge]; return b && b.g ? `<span class="badge" aria-hidden="true">${b.svg || b.g}</span>` : ''; }
+function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; return b.svg && !text ? b.svg : b.g; }
+function applySkin(c, skinId, color, r, gt) {
+  c.shadowBlur = 0; c.setLineDash([]); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = color;
+  switch (skinId) {
+    case 'sk_neon': c.shadowBlur = 10; c.shadowColor = color; break;
+    case 'sk_dash': c.setLineDash([r * 3, r * 2.2]); break;
+    case 'sk_pixel': c.lineCap = 'butt'; c.lineJoin = 'miter'; c.setLineDash([r * 1.2, r * 0.5]); break;
+    case 'sk_rainbow': c.strokeStyle = `hsl(${(gt * 160) % 360} 90% 62%)`; break;
+    case 'sk_gold': c.strokeStyle = '#ffd700'; c.shadowBlur = 6; c.shadowColor = '#ffb547'; break;
+    case 'sk_dildo': c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2 * 1.45; return true;
+    case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
+    case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
+    case 'sk_condom': c.strokeStyle = 'rgba(205,228,255,0.6)'; c.lineWidth = r * 2 * 1.35; return true;
+  }
+}
+function renderShop() {
+  const make = (box, items, kind) => {
+    box.innerHTML = '';
+    items.forEach(([id, it]) => {
+      const owned = profile && profile.owned.includes(id), eq = profile && profile.eq[kind] === id;
+      const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : '');
+      const prev = document.createElement('div'); prev.className = 'prev';
+      if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
+      else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${it.svg || it.g || '—'}</span>`; }
+      else { const P = POWERUPS[id]; prev.innerHTML = `<i class="pu" style="border:0;padding:0"><i class="${P.t}" style="width:32px;height:32px;font-size:18px">${P.g}</i></i>`; }
+      d.appendChild(prev);
+      d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`);
+      const act = document.createElement('div'); act.className = 'act';
+      const price = document.createElement('span'); price.className = 'price'; price.textContent = it.price ? `● ${it.price}` : 'besplatno';
+      const b = document.createElement('button'); b.type = 'button';
+      if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+      else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } }; }
+      else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[kind] = id; saveProfile(); }; }
+      else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; profile.coins -= it.price; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); }; }
+      act.append(price, b); d.appendChild(act); box.appendChild(d);
+    });
+  };
+  make($('#shopSkins'), Object.entries(SKINS), 'skin');
+  make($('#shopBadges'), Object.entries(BADGES), 'badge');
+  make($('#shopPu'), STARTER_PU.map(k => [k, { name: 'Start: ' + POWERUPS[k].name, d: POWERUPS[k].d + (POWERUPS[k].dur ? ' · ' + POWERUPS[k].dur + ' s' : ''), price: STARTER_PRICE[POWERUPS[k].t] }]), 'pu');
+}
+
+// ================= MENU UI =================
+const $ = (s) => document.querySelector(s);
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function seg(options, value, onPick) {
+  const el = document.createElement('div'); el.className = 'seg';
+  options.forEach(([v, label]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+    b.setAttribute('aria-pressed', String(v === value));
+    b.onclick = () => { onPick(v); };
+    el.appendChild(b);
+  });
+  return el;
+}
+function renderPlayers() {
+  const box = $('#players'); box.innerHTML = '';
+  setup.players.forEach((p, i) => {
+    const card = document.createElement('div'); card.className = 'pcard' + (p.type === 'off' ? ' off' : '');
+    const sw = document.createElement('div'); sw.className = 'swatch'; sw.style.background = COLORS[i];
+    const name = document.createElement('input'); name.type = 'text'; name.id = 'pname' + i; name.maxLength = 14; name.value = p.name;
+    name.setAttribute('aria-label', 'Ime igrača ' + (i + 1));
+    name.oninput = () => { p.name = name.value || DEFAULT_NAMES[i]; saveSetup(); };
+    const row = document.createElement('div'); row.className = 'prow';
+    row.appendChild(seg([['human', 'Igrač'], ['bot', 'Bot'], ['off', 'Isključen']], p.type, (v) => { p.type = v; saveSetup(); renderPlayers(); }));
+    if (p.type === 'bot') row.appendChild(seg([['lako', 'Lako'], ['srednje', 'Srednje'], ['teško', 'Teško']], p.diff, (v) => { p.diff = v; saveSetup(); renderPlayers(); }));
+    if (p.type === 'human') {
+      const k = document.createElement('span'); k.className = 'keys';
+      const kk = KEYS[i].txt;
+      const touchNote = IS_TOUCH && i < 2 ? (i === 0 ? ' · dodir dolje' : ' · dodir gore') : '';
+      k.innerHTML = `<kbd>${kk[0]}</kbd> <kbd>${kk[1]}</kbd> skok <kbd>${kk[2]}</kbd>${touchNote}`;
+      row.appendChild(k);
+    }
+    card.append(sw, name, row);
+    box.appendChild(card);
+  });
+  const active = setup.players.filter(p => p.type !== 'off').length;
+  const first = setup.players.find(p => p.type === 'human');
+  $('#startHint').textContent = active < 2 ? 'Uključi barem dva igrača.' : `${active} igrača · cilj ${targetFor(active)} bodova` + (profile && first ? ` · zlatnike dobiva ${first.name}` : '');
+  $('#start').disabled = active < 2;
+}
+function targetFor(n) { return setup.target === 'auto' ? Math.max(5, (n - 1) * 10) : Number(setup.target); }
+function renderSettings() {
+  const box = $('#settings'); box.innerHTML = '';
+  const add = (label, node, note) => { const d = document.createElement('div'); d.className = 'setting'; const l = document.createElement('span'); l.className = 'label'; l.textContent = label; d.append(l, node); if (note) { const n = document.createElement('span'); n.className = 'note'; n.textContent = note; d.appendChild(n); } box.appendChild(d); };
+  const upd = (k) => (v) => { setup[k] = v; saveSetup(); renderSettings(); renderPlayers(); renderLegend(); };
+  add('Zidovi', seg([['smrt', 'Ubijaju'], ['prolaz', 'Propuštaju']], setup.walls, upd('walls')), 'Ubijaju: udarac u rub arene znači ispadanje. Propuštaju: izlaziš na suprotnoj strani.');
+  add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
+  add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
+  add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
+  add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑ ili SKOK: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
+  add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
+  add('Cilj bodova', seg([['auto', 'Auto'], ['10', '10'], ['20', '20'], ['40', '40']], setup.target, upd('target')), 'Meč završava kad netko dosegne cilj s barem 2 boda prednosti. Auto = 10 × (broj igrača − 1).');
+}
+function renderLegend() {
+  const box = $('#legend'); box.innerHTML = '';
+  PU_KEYS.forEach(k => {
+    const p = POWERUPS[k], on = setup.puEnabled[k] !== false;
+    const d = document.createElement('button'); d.type = 'button'; d.className = 'pu' + (on ? '' : ' off'); d.setAttribute('aria-pressed', String(on));
+    d.innerHTML = `<i class="${p.t}">${p.g}</i><span><b>${p.name}</b><small>${p.d}${p.dur ? ' · ' + p.dur + ' s' : ''}</small></span><span class="chk">${on ? '✓' : ''}</span>`;
+    d.onclick = () => { setup.puEnabled[k] = !on; saveSetup(); renderLegend(); };
+    box.appendChild(d);
+  });
+  const n = PU_KEYS.filter(k => setup.puEnabled[k] !== false).length;
+  $('#puCount').textContent = setup.powerups ? `${n} od ${PU_KEYS.length} uključeno` : 'power-upovi su isključeni u pravilima';
+}
+$('#puAll').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = true); saveSetup(); renderLegend(); };
+$('#puNone').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = false); saveSetup(); renderLegend(); };
+$('#puSelf').onclick = () => { PU_KEYS.forEach(k => setup.puEnabled[k] = POWERUPS[k].t === 's'); saveSetup(); renderLegend(); };
+let curTab = 'local';
+try { curTab = localStorage.getItem('vijuga-tab') || 'local'; } catch (e) {}
+function showTab(t) {
+  curTab = t; try { localStorage.setItem('vijuga-tab', t); } catch (e) {}
+  document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  ['local', 'online', 'shop', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
+  if (t === 'online') renderNet();
+  if (t === 'board') renderBoard();
+}
+$('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[role=tab]'); if (b) showTab(b.dataset.tab); });
+
+// ================= MENU PREVIEW (attract mode) =================
+const pv = $('#preview'); const pctx = pv.getContext('2d');
+let pvSnakes = [], pvRAF = 0;
+function pvInit() {
+  const w = pv.clientWidth, h = pv.clientHeight, dpr = devicePixelRatio || 1;
+  pv.width = w * dpr; pv.height = h * dpr; pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  pctx.fillStyle = '#101b27'; pctx.fillRect(0, 0, w, h);
+  pvSnakes = COLORS.map((c, i) => ({ c, x: (i + .5) * w / 6, y: h / 2 + (i % 2 ? 20 : -20), a: Math.random() * 6.28, t: Math.random() * 10, gap: 0 }));
+}
+function pvTick() {
+  const w = pv.clientWidth, h = pv.clientHeight;
+  pctx.fillStyle = 'rgba(16,27,39,0.035)'; pctx.fillRect(0, 0, w, h);
+  pvSnakes.forEach(s => {
+    s.t += 0.016;
+    s.a += Math.sin(s.t * 1.3 + s.x * 0.01) * 0.05;
+    const nx = s.x + Math.cos(s.a) * 1.4, ny = s.y + Math.sin(s.a) * 1.4;
+    if (nx < 6 || nx > w - 6) s.a = Math.PI - s.a;
+    if (ny < 6 || ny > h - 6) s.a = -s.a;
+    if (Math.random() < 0.006) s.gap = 14;
+    if (s.gap > 0) s.gap--; else {
+      pctx.strokeStyle = s.c; pctx.lineWidth = 4; pctx.lineCap = 'round';
+      pctx.beginPath(); pctx.moveTo(s.x, s.y); pctx.lineTo(nx, ny); pctx.stroke();
+    }
+    s.x = Math.max(4, Math.min(w - 4, nx)); s.y = Math.max(4, Math.min(h - 4, ny));
+  });
+  pvRAF = requestAnimationFrame(pvTick);
+}
+function pvStart() { cancelAnimationFrame(pvRAF); pvInit(); if (!matchMedia('(prefers-reduced-motion: reduce)').matches) pvTick(); }
+
+// ================= AUDIO =================
+let actx = null, soundOn = true;
+try { soundOn = localStorage.getItem('vijuga-sound') !== '0'; } catch (e) {}
+function beep(freq, dur, type = 'square', vol = 0.06, slide = 0) {
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+const sfx = {
+  pick: () => { beep(660, .08, 'square', .05); setTimeout(() => beep(990, .1, 'square', .05), 60); },
+  die: () => beep(220, .35, 'sawtooth', .07, -170),
+  jump: () => beep(300, .18, 'triangle', .08, 500),
+  tick: () => beep(440, .07, 'square', .04),
+  go: () => beep(880, .2, 'square', .05),
+  round: () => { beep(523, .12); setTimeout(() => beep(659, .12), 110); setTimeout(() => beep(784, .22), 220); },
+};
+
+// ================= GAME STATE =================
+const cv = $('#cv'); const ctx = cv.getContext('2d');
+const trail = document.createElement('canvas'); const tctx = trail.getContext('2d');
+const bgc = document.createElement('canvas'); const bctx = bgc.getContext('2d');
+let W = 1000, H = 650, GW, GH, owner, stampT, T = 0;
+let G = null; // match
+let raf = 0, lastTs = 0, acc = 0, paused = false;
+const held = {};
+let net = null; // null | {role:'host'|'client', ...}
+
+function newMatch(netPlayers) {
+  const ps = [];
+  if (netPlayers) netPlayers.forEach(np => ps.push(Object.assign({ score: 0, kills: 0, wins: 0, picks: 0, jumps: 0, touchL: false, touchR: false }, np)));
+  else {
+    let firstHuman = true;
+    setup.players.forEach((cfg, i) => {
+      if (cfg.type === 'off') return;
+      const mine = cfg.type === 'human' && firstHuman && profile; if (cfg.type === 'human') firstHuman = false;
+      ps.push({ id: i, name: cfg.name, color: COLORS[i], human: cfg.type === 'human', diff: cfg.diff,
+        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', starter: mine ? profile.eq.pu : '', mine: !!mine,
+        score: 0, kills: 0, wins: 0, picks: 0, jumps: 0, touchL: false, touchR: false });
+    });
+  }
+  const speedMul = { sporo: 0.8, normalno: 1, brzo: 1.25 }[setup.speed];
+  G = { players: ps, target: targetFor(ps.length), speedMul, round: 0, phase: 'count', phaseT: 0, gt: 0,
+        pus: [], nextPu: 0, wrapAllUntil: 0, inset: 0, parts: [], over: false, ff: false, lastCount: 4, clr: 0, rank: null };
+  sizeArena();
+  newRound();
+}
+function sizeArena() {
+  const st = $('#stage').getBoundingClientRect();
+  const aw = Math.max(200, st.width - 16), ah = Math.max(200, st.height - 16);
+  let ratio = Math.min(2.1, Math.max(0.55, aw / ah));
+  if (net && net.role === 'client' && net.W) ratio = net.W / net.H;
+  const AREA = 1000 * 640;
+  W = Math.round(Math.sqrt(AREA * ratio) / CELL) * CELL; H = Math.round(AREA / W / CELL) * CELL;
+  GW = W / CELL; GH = H / CELL;
+  owner = new Uint8Array(GW * GH); stampT = new Uint32Array(GW * GH);
+  fitCanvas();
+}
+function fitCanvas() {
+  const st = $('#stage').getBoundingClientRect();
+  const aw = Math.max(100, st.width - 16), ah = Math.max(100, st.height - 16);
+  const s = Math.min(aw / W, ah / H);
+  const cw = Math.floor(W * s), ch = Math.floor(H * s), dpr = Math.min(2, devicePixelRatio || 1);
+  cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+  cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+  const q = Math.min(2, cv.width / W), tw = Math.round(W * q), th = Math.round(H * q);
+  if (trail.width !== tw || trail.height !== th) {
+    const copy = document.createElement('canvas'); copy.width = trail.width; copy.height = trail.height; copy.getContext('2d').drawImage(trail, 0, 0);
+    trail.width = tw; trail.height = th;
+    tctx.setTransform(1, 0, 0, 1, 0, 0); tctx.drawImage(copy, 0, 0, tw, th);
+  }
+  tctx.setTransform(q, 0, 0, q, 0, 0); tctx.lineCap = 'round'; tctx.lineJoin = 'round';
+  drawBg();
+}
+function drawBg() {
+  bgc.width = cv.width; bgc.height = cv.height;
+  const s = cv.width / W;
+  bctx.setTransform(1, 0, 0, 1, 0, 0);
+  bctx.fillStyle = '#101b27'; bctx.fillRect(0, 0, bgc.width, bgc.height);
+  bctx.setTransform(s, 0, 0, s, 0, 0);
+  bctx.fillStyle = 'rgba(131,150,171,0.16)';
+  for (let x = 25; x < W; x += 25) for (let y = 25; y < H; y += 25) bctx.fillRect(x - .8, y - .8, 1.6, 1.6);
+}
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+function newRound() {
+  G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
+  G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
+  owner.fill(0); stampT.fill(0); T = 0;
+  tctx.clearRect(0, 0, W, H);
+  const placed = [];
+  G.players.forEach(p => {
+    let x, y, tries = 0;
+    do { x = rand(W * .14, W * .86); y = rand(H * .14, H * .86); tries++; }
+    while (tries < 200 && placed.some(q => Math.hypot(q.x - x, q.y - y) < Math.min(W, H) * .22));
+    placed.push({ x, y });
+    const toC = Math.atan2(H / 2 - y, W / 2 - x);
+    p.roundStart = p.score || 0;
+    Object.assign(p, { x, y, a: toC + rand(-1.1, 1.1), alive: true, fx: [], gapLeft: 26, nextGap: rand(1.4, 3), jumpUntil: 0,
+      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false });
+  });
+  hudDirty = true; showOverlay(null);
+}
+
+// ---------- effects ----------
+function has(p, k) { for (const f of p.fx) if (f.k === k && f.until > G.gt) return true; return false; }
+function speedOf(p) {
+  let m = G.speedMul; for (const f of p.fx) if (f.until > G.gt) { if (f.k === 'fast') m *= 1.6; else if (f.k === 'slow') m *= 0.62; }
+  return BASE_SPEED * m;
+}
+function radiusOf(p) {
+  let m = 1; for (const f of p.fx) if (f.until > G.gt) { if (f.k === 'thin') m *= 0.5; else if (f.k === 'thick') m *= 2.1; }
+  return Math.max(1.1, BASE_R * m);
+}
+function wraps(p) { return setup.walls === 'prolaz' || G.wrapAllUntil > G.gt || has(p, 'wrap'); }
+function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }; }
+
+// ---------- grid ----------
+function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
+function stamp(p, r) {
+  const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
+  const gx0 = cx | 0, gy0 = cy | 0, id = p.id + 1;
+  for (let dy = -n; dy <= n; dy++) for (let dx = -n; dx <= n; dx++) {
+    const gx = gx0 + dx, gy = gy0 + dy;
+    if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) continue;
+    if ((gx + .5 - cx) ** 2 + (gy + .5 - cy) ** 2 > rc * rc + .3) continue;
+    const i = gy * GW + gx;
+    if (owner[i] === 0 || owner[i] === id) { owner[i] = id; stampT[i] = T; }
+  }
+}
+function blockedBy(x, y, p, grace) {
+  const i = cellIdx(x, y); if (i < 0) return 0;
+  const o = owner[i]; if (!o) return 0;
+  if (o === p.id + 1 && stampT[i] > T - grace) return 0;
+  return o;
+}
+
+// ---------- trail drawing ----------
+function skinAfter(c, skin, pts, r, p) {
+  if (skin === 'sk_vag') { c.strokeStyle = '#c2496f'; c.lineWidth = Math.max(1, r * 0.7); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
+  if (skin === 'sk_condom') { c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.5); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
+  if (skin === 'sk_boobs' && p) {
+    p.ornAcc = p.ornAcc || 0;
+    for (let i = 2; i < pts.length; i += 2) {
+      const dx = pts[i] - pts[i - 2], dy = pts[i + 1] - pts[i - 1]; p.ornAcc += Math.hypot(dx, dy);
+      if (p.ornAcc >= 30) { p.ornAcc = 0; const a = Math.atan2(dy, dx), d = r * 1.7;
+        for (const sgn of [-1, 1]) { const ox = pts[i] + Math.cos(a + Math.PI / 2) * d * sgn, oy = pts[i + 1] + Math.sin(a + Math.PI / 2) * d * sgn;
+          c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(ox, oy, r * 1.55, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke();
+          c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(ox + Math.cos(a) * r * 0.2, oy + Math.sin(a) * r * 0.2, r * 0.5, 0, 6.283); c.fill(); } }
+    }
+  }
+}
+function drawSkinHead(c, skin, x, y, a, r) {
+  c.save(); c.translate(x, y); c.rotate(a); c.shadowBlur = 0; c.setLineDash([]);
+  if (skin === 'sk_vag') {
+    c.fillStyle = '#f08aa8'; c.beginPath(); c.ellipse(r * 0.6, 0, r * 3.2, r * 1.9, 0, 0, 6.283); c.fill();
+    c.fillStyle = '#c2496f'; c.beginPath(); c.ellipse(r * 0.4, 0, r * 2.2, r * 0.55, 0, 0, 6.283); c.fill();
+    c.fillStyle = '#e46f93'; c.beginPath(); c.arc(r * 3.0, 0, r * 0.55, 0, 6.283); c.fill();
+  } else if (skin === 'sk_boobs') {
+    for (const sgn of [-1, 1]) { c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(r * 0.6, r * 1.6 * sgn, r * 1.8, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke(); c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(r * 1.1, r * 1.6 * sgn, r * 0.55, 0, 6.283); c.fill(); }
+  } else if (skin === 'sk_condom') {
+    c.strokeStyle = 'rgba(205,228,255,0.75)'; c.lineWidth = r * 2.7; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 2.5, 0); c.lineTo(r * 1.4, 0); c.stroke();
+    c.fillStyle = 'rgba(205,228,255,0.9)'; c.beginPath(); c.arc(r * 2.9, 0, r * 0.6, 0, 6.283); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = Math.max(1, r * 0.6); c.beginPath(); c.ellipse(-r * 2.4, 0, r * 0.5, r * 1.7, 0, 0, 6.283); c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.4); c.beginPath(); c.moveTo(-r * 2, -r * 0.7); c.lineTo(r * 1.4, -r * 0.7); c.stroke();
+  }
+  c.restore();
+}
+const badgeImgCache = {};
+function badgeImage(id, color) {
+  const b = BADGES[id]; if (!b || !b.svg) return null;
+  const key = id + color; if (badgeImgCache[key]) return badgeImgCache[key];
+  const img = new Image(); img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(b.svg.replace(/width="[^"]*" height="[^"]*"/, 'xmlns="http://www.w3.org/2000/svg" width="40" height="48"').replace(/currentColor/g, color).replace(/ style="[^"]*"/, ''));
+  badgeImgCache[key] = img; return img;
+}
+function drawBadge(c, id, x, y, size, color) {
+  const b = BADGES[id]; if (!b || !b.g) return;
+  const img = badgeImage(id, color);
+  if (img) { if (img.complete && img.naturalWidth) c.drawImage(img, x - size * 0.42, y - size * 0.5, size * 0.84, size); return; }
+  c.font = `700 ${size}px "Barlow Semi Condensed", sans-serif`; c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.g, x, y);
+}
+function drawBalls(x, y, a, r) { tctx.save(); tctx.setTransform(tctx.getTransform()); tctx.fillStyle = '#e98aa6'; const d = r * 1.7, bx = x - Math.cos(a) * r * 0.8, by = y - Math.sin(a) * r * 0.8; for (const sgn of [-1, 1]) { tctx.beginPath(); tctx.arc(bx + Math.cos(a + Math.PI / 2) * d * sgn, by + Math.sin(a + Math.PI / 2) * d * sgn, r * 1.9, 0, 6.283); tctx.fill(); } tctx.restore(); }
+function flushTrail(p, keepLast) {
+  if (p.pts.length >= 2) {
+    const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt);
+    if (!custom) tctx.lineWidth = p.ptsR * 2;
+    if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(p.pts[0], p.pts[1], p.a, p.ptsR); }
+    tctx.beginPath(); tctx.moveTo(p.pts[0], p.pts[1]);
+    for (let i = 2; i < p.pts.length; i += 2) tctx.lineTo(p.pts[i], p.pts[i + 1]);
+    tctx.stroke();
+    tctx.shadowBlur = 0; tctx.setLineDash([]);
+    skinAfter(tctx, p.skin, p.pts, p.ptsR, p);
+  }
+  p.pts = keepLast && p.pts.length >= 2 ? p.pts.slice(-2) : [];
+}
+
+// ---------- input ----------
+function humanIn(p) {
+  if (p.remote) return p.remoteIn || 0;
+  const k = KEYS[p.id];
+  return ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0);
+}
+function tryJump(p) {
+  if (!p.alive || G.phase !== 'run' || !setup.jump || G.gt < p.jumpReady) return;
+  p.jumpUntil = G.gt + JUMP_TIME; p.jumpReady = G.gt + JUMP_CD; p.jumps++;
+  flushTrail(p, false); sfx.jump();
+}
+
+// ---------- bots ----------
+function freeAt(x, y, p, grace, wrap, bd, r) {
+  if (!wrap && (x < bd.l + r || y < bd.t + r || x > bd.r - r || y > bd.b - r)) return false;
+  if (wrap) { const w = bd.r - bd.l, h = bd.b - bd.t; x = bd.l + (((x - bd.l) % w) + w) % w; y = bd.t + (((y - bd.t) % h) + h) % h; }
+  if (has(p, 'ghost')) return true;
+  return !blockedBy(x, y, p, grace);
+}
+function probe(p, c, turnFrac, D, look, grace, wrap, bd, r) {
+  const v = speedOf(p), k = TURN / v; let x = p.x, y = p.y, a = p.a, s = 0;
+  while (s < look) {
+    if (s < look * turnFrac) a += c * k * D.step;
+    x += Math.cos(a) * D.step; y += Math.sin(a) * D.step; s += D.step;
+    if (s > r + 1 && !freeAt(x, y, p, grace, wrap, bd, r)) return s;
+  }
+  return look;
+}
+function botThink(p) {
+  const D = DIFF[p.diff] || DIFF.srednje;
+  if (T % D.every !== p.id % D.every) return;
+  const r = radiusOf(p), bd = bounds(), wrap = wraps(p);
+  const grace = Math.ceil((2 * r + 4) / (speedOf(p) * SUB)) + 2;
+  const look = D.look * Math.max(1, speedOf(p) / BASE_SPEED);
+  if (has(p, 'square')) {
+    const st = (ang) => { const q = Object.assign({}, p, { a: ang }); return probe(q, 0, 0, D, look, grace, wrap, bd, r); };
+    const f = st(p.a);
+    if (f < look * 0.35) {
+      const L = st(p.a - Math.PI / 2), R = st(p.a + Math.PI / 2);
+      p.botIn = L > f || R > f ? (R >= L ? 1 : -1) : 0;
+    } else p.botIn = 0;
+    return;
+  }
+  let best = -1, bestC = 0; const scores = {};
+  for (const c of [-1, 0, 1]) {
+    const sc = Math.max(probe(p, c, 1, D, look, grace, wrap, bd, r), probe(p, c, .4, D, look, grace, wrap, bd, r));
+    scores[c] = sc + (c === p.botIn ? look * 0.06 : 0) + (c === 0 ? look * 0.02 : 0);
+    if (scores[c] > best) { best = scores[c]; bestC = c; }
+  }
+  if (D.seek && best >= look * 0.9 && G.pus.length) {
+    let tgt = null, td = 320;
+    for (const u of G.pus) { const t = POWERUPS[u.k].t; if (t === 'o' && Math.random() < .3) continue; const d = Math.hypot(u.x - p.x, u.y - p.y); if (d < td) { td = d; tgt = u; } }
+    if (tgt) {
+      let diff = Math.atan2(tgt.y - p.y, tgt.x - p.x) - p.a; diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      const c = Math.abs(diff) < 0.12 ? 0 : Math.sign(diff);
+      if (scores[c] >= look * 0.75) bestC = c;
+    }
+  }
+  if (D.noise && Math.random() < D.noise) bestC = [-1, 0, 1][Math.random() * 3 | 0];
+  p.botIn = bestC;
+  if (D.jump && best < 18 + r * 2 && G.gt >= p.jumpReady) tryJump(p);
+}
+
+// ---------- power-ups ----------
+function puPool() {
+  let pool = PU_KEYS.filter(k => setup.puEnabled[k] !== false);
+  if (!setup.jump) pool = pool.filter(k => k !== 'jumpS');
+  if (setup.walls === 'prolaz') pool = pool.filter(k => k !== 'wrapS' && k !== 'wrapA');
+  return pool;
+}
+function spawnPu() {
+  const bd = bounds(); const m = 30, pool = puPool();
+  if (!pool.length || bd.r - bd.l < 3 * m || bd.b - bd.t < 3 * m) return;
+  for (let tries = 0; tries < 30; tries++) {
+    const x = rand(bd.l + m, bd.r - m), y = rand(bd.t + m, bd.b - m);
+    if (G.players.some(p => p.alive && Math.hypot(p.x - x, p.y - y) < 70)) continue;
+    if (G.pus.some(u => Math.hypot(u.x - x, u.y - y) < 50)) continue;
+    G.pus.push({ k: pool[Math.random() * pool.length | 0], x, y, born: G.gt }); return;
+  }
+}
+function applyPu(p, k, silent) {
+  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); }
+  const add = (q, kind, dur) => q.fx.push({ k: kind, until: G.gt + dur });
+  const others = G.players.filter(q => q !== p && q.alive);
+  switch (k) {
+    case 'fastS': add(p, 'fast', P.dur); break;
+    case 'slowS': add(p, 'slow', P.dur); break;
+    case 'thinS': add(p, 'thin', P.dur); break;
+    case 'ghostS': add(p, 'ghost', P.dur); break;
+    case 'wrapS': add(p, 'wrap', P.dur); break;
+    case 'jumpS': p.jumpReady = G.gt; break;
+    case 'fastO': others.forEach(q => add(q, 'fast', P.dur)); break;
+    case 'slowO': others.forEach(q => add(q, 'slow', P.dur)); break;
+    case 'thickO': others.forEach(q => add(q, 'thick', P.dur)); break;
+    case 'revO': others.forEach(q => add(q, 'reverse', P.dur)); break;
+    case 'sqO': others.forEach(q => add(q, 'square', P.dur)); break;
+    case 'clearA':
+      G.players.forEach(q => flushTrail(q, false));
+      owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; break;
+    case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
+  }
+  G.toast = { text: P.name, color: PU_COLOR[P.t], x: p.x, y: p.y, t: G.gt };
+}
+
+// ---------- death ----------
+function kill(p, by) {
+  if (!p.alive || G.phase !== 'run') return;
+  p.alive = false; flushTrail(p, false); sfx.die();
+  if (by && by !== p) by.kills++;
+  G.players.forEach(q => { if (q.alive) q.score++; });
+  burst(p.x, p.y, p.color);
+  hudDirty = true;
+  const alive = G.players.filter(q => q.alive);
+  if (G.players.some(q => q.human) && !alive.some(q => q.human) && alive.length > 1) G.ff = true;
+  if (alive.length <= 1) endRound(alive[0] || null);
+}
+function burst(x, y, c) { for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, v = rand(20, 120); G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(.4, .9), c }); } }
+function ranking() { return [...G.players].sort((a, b) => b.score - a.score || b.kills - a.kills); }
+function endRound(winner) {
+  G.phase = 'end'; G.phaseT = 0; G.players.forEach(p => flushTrail(p, false));
+  if (winner) winner.wins++;
+  sfx.round();
+  const sorted = ranking();
+  const top = sorted[0], second = sorted[1];
+  if (top.score >= G.target && top.score - second.score >= 2) { G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; setTimeout(() => showResults(), 900); return; }
+  G.winner = winner ? winner.id : null;
+  showRoundBanner();
+}
+const ROUND_PAUSE = 10;
+function showRoundBanner() {
+  const winner = G.players.find(p => p.id === G.winner) || null;
+  const top = ranking()[0];
+  const lead = top.score >= G.target ? `<p>Cilj dostignut, ali treba 2 boda prednosti.</p>` : '';
+  const hostOnly = net && net.role === 'client';
+  const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, G.target))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
+  showOverlay(`<div class="banner"><h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>${lead}<div class="rres">${rows}</div><p>Runda ${G.round} · cilj ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Napiši poruku u chat dolje lijevo.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
+  if (!hostOnly) $('#nextBtn').onclick = () => nextRound();
+}
+function tickCountdown() {
+  const el = $('#cd'); if (!el || !G || G.phase !== 'end' || G.over) return;
+  const left = Math.max(0, Math.ceil(ROUND_PAUSE - G.phaseT)); if (el.textContent !== String(left)) el.textContent = String(left);
+}
+function nextRound() { if (G && G.phase === 'end' && !G.over && !(net && net.role === 'client')) newRound(); }
+
+// ---------- simulation ----------
+function substep() {
+  T++;
+  const bd = bounds();
+  for (const p of G.players) {
+    if (G.phase !== 'run') return;
+    if (!p.alive) continue;
+    if (!p.starterDone) { p.starterDone = true; if (p.starter && POWERUPS[p.starter]) applyPu(p, p.starter, true); }
+    let inp;
+    if (p.human) inp = humanIn(p); else { botThink(p); inp = p.botIn; }
+    const rev = has(p, 'reverse');
+    if (rev && (p.human || p.diff === 'lako')) inp = -inp;
+    if (has(p, 'square')) {
+      if (inp !== 0 && p.lastIn === 0 && T >= p.sqCool) { p.a += inp * Math.PI / 2; p.sqCool = T + 20; flushTrail(p, true); }
+    } else p.a += inp * TURN * SUB;
+    p.lastIn = inp;
+
+    const v = speedOf(p), r = radiusOf(p), step = v * SUB;
+    p.x += Math.cos(p.a) * step; p.y += Math.sin(p.a) * step;
+    const jumping = p.jumpUntil > G.gt;
+
+    if (p.x - r < bd.l || p.y - r < bd.t || p.x + r > bd.r || p.y + r > bd.b) {
+      if (wraps(p)) {
+        const w = bd.r - bd.l, h = bd.b - bd.t; let moved = false;
+        if (p.x < bd.l) { p.x += w; moved = true; } else if (p.x > bd.r) { p.x -= w; moved = true; }
+        if (p.y < bd.t) { p.y += h; moved = true; } else if (p.y > bd.b) { p.y -= h; moved = true; }
+        if (moved) { flushTrail(p, false); p.gapLeft = Math.max(p.gapLeft, r * 2 + 2); }
+      } else { kill(p, null); continue; }
+    }
+    if (!jumping && !has(p, 'ghost')) {
+      const grace = Math.ceil((2 * r + 4) / step) + 2;
+      let hit = 0;
+      for (const o of [-1.05, -0.5, 0, 0.5, 1.05]) {
+        hit = blockedBy(p.x + Math.cos(p.a + o) * r, p.y + Math.sin(p.a + o) * r, p, grace);
+        if (hit) break;
+      }
+      if (hit) { kill(p, G.players.find(q => q.id === hit - 1)); continue; }
+    }
+    if (p.gapLeft > 0) p.gapLeft -= step;
+    else if (G.gt > p.nextGap) { p.gapLeft = rand(14, 22) + r * 2; p.nextGap = G.gt + rand(1.5, 3.4); }
+    const drawing = p.gapLeft <= 0 && !jumping;
+    p.drawing = drawing;
+    if (drawing) {
+      stamp(p, r);
+      if (p.pts.length && Math.abs(p.ptsR - r) > .01) flushTrail(p, true);
+      p.ptsR = r; p.pts.push(p.x, p.y);
+    } else if (p.pts.length) flushTrail(p, false);
+    for (let i = G.pus.length - 1; i >= 0; i--) {
+      const u = G.pus[i];
+      if (Math.hypot(u.x - p.x, u.y - p.y) < 13 + r) { G.pus.splice(i, 1); applyPu(p, u.k); }
+    }
+  }
+}
+function update(dt) {
+  if (G.phase === 'count') {
+    G.phaseT += dt;
+    const n = Math.ceil(2.4 - G.phaseT);
+    if (n !== G.lastCount && n > 0) { G.lastCount = n; sfx.tick(); }
+    if (G.phaseT >= 2.4) { G.phase = 'run'; sfx.go(); }
+    return;
+  }
+  if (G.phase === 'end') { G.phaseT += dt; updateParts(dt); if (!G.over && !paused && G.phaseT >= ROUND_PAUSE) newRound(); return; }
+  const mul = G.ff ? 2.5 : 1;
+  acc += dt * mul;
+  while (acc >= SUB && G.phase === 'run') {
+    acc -= SUB; G.gt += SUB;
+    substep();
+  }
+  if (G.phase !== 'run') acc = 0;
+  if (setup.shrink && G.gt > 20) G.inset = Math.min(Math.min(W, H) * 0.32, G.inset + dt * mul * 7);
+  if (setup.powerups && G.gt > G.nextPu) { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; if (G.pus.length < R.cap) spawnPu(); G.nextPu = G.gt + rand(R.min, R.max); }
+  G.pus = G.pus.filter(u => G.gt - u.born < 14);
+  for (const p of G.players) p.fx = p.fx.filter(f => f.until > G.gt);
+  updateParts(dt);
+}
+function updateParts(dt) { for (const q of G.parts) { q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= .94; q.vy *= .94; q.life -= dt; } G.parts = G.parts.filter(q => q.life > 0); }
+
+// ---------- render ----------
+function render() {
+  const s = cv.width / W;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(bgc, 0, 0);
+  for (const p of G.players) if (p.pts && p.pts.length >= 2) flushTrail(p, true);
+  ctx.drawImage(trail, 0, 0, cv.width, cv.height);
+  ctx.setTransform(s, 0, 0, s, 0, 0);
+  const bd = bounds();
+  if (G.inset > 0.5) {
+    ctx.fillStyle = 'rgba(11,18,27,0.72)';
+    ctx.fillRect(0, 0, W, bd.t); ctx.fillRect(0, bd.b, W, H - bd.b); ctx.fillRect(0, bd.t, bd.l, bd.b - bd.t); ctx.fillRect(bd.r, bd.t, W - bd.r, bd.b - bd.t);
+  }
+  const open = setup.walls === 'prolaz' || G.wrapAllUntil > G.gt;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = open ? 'rgba(87,183,255,0.55)' : (G.inset > 0.5 ? '#ffb547' : 'rgba(131,150,171,0.35)');
+  ctx.setLineDash(open ? [8, 8] : []);
+  ctx.strokeRect(bd.l + 1.2, bd.t + 1.2, bd.r - bd.l - 2.4, bd.b - bd.t - 2.4);
+  ctx.setLineDash([]);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const u of G.pus) {
+    const P = POWERUPS[u.k], age = G.gt - u.born, c = PU_COLOR[P.t];
+    const fade = age > 11 ? (Math.sin(age * 20) > 0 ? 1 : .35) : 1;
+    const pop = Math.min(1, age * 5);
+    ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.arc(u.x, u.y, 13 * pop, 0, 6.283);
+    ctx.fillStyle = 'rgba(11,18,27,0.85)'; ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = c; ctx.stroke();
+    ctx.fillStyle = c; ctx.font = `700 ${15 * pop}px "Barlow Semi Condensed", sans-serif`;
+    ctx.fillText(P.g, u.x, u.y + 1);
+    ctx.globalAlpha = 1;
+  }
+  for (const p of G.players) {
+    if (!p.alive && G.phase !== 'count') continue;
+    const r = radiusOf(p), jumping = p.jumpUntil > G.gt;
+    const ghost = has(p, 'ghost');
+    if (jumping) { ctx.beginPath(); ctx.arc(p.x + 4, p.y + 5, r + 2, 0, 6.283); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill(); }
+    const hr = Math.max(3.2, r + 1.2) * (jumping ? 1.7 : 1);
+    ctx.globalAlpha = ghost ? (0.4 + 0.3 * Math.sin(G.gt * 25)) : 1;
+    ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
+    if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
+    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9));
+    // winner's badge blinks above the head between rounds
+    if (G.phase === 'end' && p.id === G.winner && p.alive && BADGES[p.badge] && BADGES[p.badge].g) { const k = 0.55 + 0.45 * Math.sin(G.phaseT * 9); ctx.globalAlpha = k; drawBadge(ctx, p.badge, p.x, p.y - hr - 16 - 3 * Math.sin(G.phaseT * 4), 22, '#ffb547'); ctx.globalAlpha = 1; }
+    ctx.globalAlpha = 1;
+    if (has(p, 'square')) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x - hr - 3, p.y - hr - 3, (hr + 3) * 2, (hr + 3) * 2); }
+    if (p.human && !p.remote && setup.jump && G.phase === 'run') {
+      const k = Math.min(1, 1 - (p.jumpReady - G.gt) / JUMP_CD);
+      ctx.beginPath(); ctx.arc(p.x, p.y, hr + 7, -Math.PI / 2, -Math.PI / 2 + k * 6.283);
+      ctx.strokeStyle = k >= 1 ? p.color : 'rgba(233,239,246,0.35)'; ctx.lineWidth = 1.6; ctx.stroke();
+    }
+    if (G.phase === 'count') {
+      const L = 34 + 6 * Math.sin(G.phaseT * 8);
+      const ex = p.x + Math.cos(p.a) * L, ey = p.y + Math.sin(p.a) * L;
+      ctx.strokeStyle = p.color; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x + Math.cos(p.a) * (hr + 4), p.y + Math.sin(p.a) * (hr + 4)); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ex + Math.cos(p.a) * 8, ey + Math.sin(p.a) * 8);
+      ctx.lineTo(ex + Math.cos(p.a + 2.4) * 8, ey + Math.sin(p.a + 2.4) * 8); ctx.lineTo(ex + Math.cos(p.a - 2.4) * 8, ey + Math.sin(p.a - 2.4) * 8); ctx.closePath(); ctx.fillStyle = p.color; ctx.fill();
+      ctx.font = '600 15px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = p.color;
+      const lbl = (p.human ? p.name : p.name + ' · bot') + (p.mine || (net && net.role === 'client' && p.id === net.myId) ? ' (ti)' : '');
+      ctx.fillText(lbl, p.x, p.y - 20);
+      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x - ctx.measureText(lbl).width / 2 - 10, p.y - 20, 15, p.color);
+      const hint = controlHint(p);
+      if (hint) { ctx.font = '600 12px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = 'rgba(233,239,246,0.75)'; ctx.fillText(hint, p.x, p.y + 24); }
+    }
+  }
+  for (const q of G.parts) { ctx.globalAlpha = Math.max(0, q.life); ctx.fillStyle = q.c; ctx.fillRect(q.x - 1.6, q.y - 1.6, 3.2, 3.2); }
+  ctx.globalAlpha = 1;
+  if (G.toast && G.gt - G.toast.t < 1.2 && G.gt >= G.toast.t) {
+    const k = (G.gt - G.toast.t) / 1.2;
+    ctx.globalAlpha = 1 - k; ctx.fillStyle = G.toast.color; ctx.font = '600 18px "Barlow Semi Condensed", sans-serif';
+    ctx.fillText(G.toast.text, G.toast.x, G.toast.y - 24 - k * 24); ctx.globalAlpha = 1;
+  }
+  if (G.phase === 'count') {
+    const n = Math.ceil(2.4 - G.phaseT);
+    ctx.font = `400 ${Math.min(W, H) * 0.16}px Bungee, Impact, sans-serif`;
+    ctx.fillStyle = 'rgba(233,239,246,0.9)'; ctx.fillText(n > 0 ? String(n) : '', W / 2, H / 2);
+    ctx.font = '600 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#8396ab';
+    ctx.fillText(`Runda ${G.round}`, W / 2, H / 2 + Math.min(W, H) * 0.12);
+  }
+  if (G.ff && G.phase === 'run') { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.textAlign = 'right'; ctx.fillText('ubrzano ▶▶', W - 14, 18); ctx.textAlign = 'center'; }
+  if (setup.shrink && G.phase === 'run' && G.gt > 16 && G.gt < 20) { ctx.font = '700 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.fillText(`Arena se steže za ${Math.ceil(20 - G.gt)}`, W / 2, 22); }
+  if (net && net.role === 'client' && !net.connected) { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ff5d73'; ctx.fillText('Veza s domaćinom prekinuta…', W / 2, H - 20); }
+}
+
+// ---------- HUD ----------
+let hudDirty = true;
+function renderHud() {
+  if (!hudDirty) return; hudDirty = false;
+  const box = $('#scores'); box.innerHTML = '';
+  ranking().forEach(p => {
+    const c = document.createElement('div'); c.className = 'chip' + (p.alive || G.phase === 'count' ? '' : ' dead');
+    c.innerHTML = `<span class="dot" style="background:${p.color}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}</span>`;
+    box.appendChild(c);
+  });
+  $('#target').textContent = `cilj ${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
+}
+function updatePads() {
+  document.querySelectorAll('.pad.jump').forEach(b => {
+    const p = G.players.find(q => q.id === Number(b.dataset.pid));
+    b.classList.toggle('cool', !p || !p.alive || G.gt < p.jumpReady || G.phase !== 'run');
+  });
+}
+
+// ---------- loop ----------
+function frame(ts) {
+  const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
+  if (net && net.role === 'client') { clientTick(); }
+  else { if (!paused) update(dt); if (net && net.role === 'host') hostSend(); }
+  render(); renderHud(); updatePads(); tickCountdown();
+  raf = requestAnimationFrame(frame);
+}
+
+// ---------- screens ----------
+function controlHint(p) {
+  if (!p.human) return '';
+  if (net && net.role === 'client') return p.id === net.myId ? (IS_TOUCH ? 'dodir  ◀ ▶  SKOK' : '← →  skok ↑') : 'online';
+  if (p.remote) return 'online';
+  const humans = G.players.filter(q => q.human && !q.remote);
+  const idx = humans.indexOf(p);
+  if (IS_TOUCH && idx >= 0 && idx < 2) return idx === 0 ? 'dodir dolje  ◀ ▶' : 'dodir gore  ◀ ▶';
+  const k = KEYS[p.id]; return `${k.txt[0]}  ${k.txt[1]}   skok ${k.txt[2]}`;
+}
+function showOverlay(html) { $('#overlay').innerHTML = html || ''; }
+const PAD_ICONS = {
+  sk_boobs: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="${side === 'L' ? 13 : 11}" cy="13" r="2.2" fill="currentColor"/></svg>`,
+  sk_vag: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>`,
+  sk_dildo: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:scaleX(${side === 'L' ? -1 : 1})"><path d="M3 15h11" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><ellipse cx="16" cy="15" rx="5" ry="4" fill="currentColor"/><circle cx="4" cy="20" r="2.4" fill="currentColor"/><circle cx="4" cy="10" r="2.4" fill="currentColor"/></svg>`,
+  sk_condom: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>`,
+};
+function padIcon(p, side) {
+  const f = PAD_ICONS[p.skin]; if (f) return f(side);
+  const b = BADGES[p.badge]; if (b && b.svg) return b.svg.replace(/width="[^"]*" height="[^"]*"/, '').replace(/ style="[^"]*"/, '');
+  return `<span style="font-size:30px;line-height:1">${side === 'L' ? '◀' : '▶'}</span>`;
+}
+function buildPads() {
+  const humans = net ? G.players.filter(p => p.human && (net.role === 'host' ? !p.remote : p.id === net.myId)) : G.players.filter(p => p.human);
+  const mk = (box, p) => {
+    box.innerHTML = ''; box.hidden = !p || !IS_TOUCH; if (box.hidden) return;
+    box.style.setProperty('--pc', p.color);
+    const grp = document.createElement('div'); grp.className = 'padgrp';
+    const mkBtn = (k, inner, cap, extra) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'pad ' + (extra || '');
+      b.innerHTML = inner + (cap ? `<span class="cap">${cap}</span>` : '');
+      b.style.setProperty('--pc', p.color); b.dataset.pid = p.id;
+      const on = (e) => { e.preventDefault(); b.classList.add('on'); if (k === 'L') p.touchL = true; else if (k === 'R') p.touchR = true; else localJump(p); clientInput(); };
+      const off = (e) => { e.preventDefault(); b.classList.remove('on'); if (k === 'L') p.touchL = false; else if (k === 'R') p.touchR = false; clientInput(); };
+      b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
+      b.addEventListener('contextmenu', e => e.preventDefault());
+      return b;
+    };
+    grp.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
+    const j = mkBtn('J', '<span style="font-family:var(--display);font-size:15px">SKOK</span>', '', 'jump');
+    if (!setup.jump) j.style.visibility = 'hidden';
+    box.append(grp, j);
+  };
+  mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
+}
+function localJump(p) { if (net && net.role === 'client') { net.jumpN++; clientInput(); } else tryJump(p); }
+function enterGame() {
+  $('#gchat').hidden = !net; if (net) { wireChat('#gchatIn', '#gchatSend'); renderChat(); }
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
+  cancelAnimationFrame(pvRAF);
+  $('#menu').hidden = true; $('#game').hidden = false; $('#regModal').hidden = true;
+  paused = false; acc = 0; lastTs = performance.now();
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+  try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+}
+function startGame() {
+  net = null;
+  $('#menu').hidden = true; $('#game').hidden = false;
+  G = { players: setup.players.map((c, i) => ({ id: i, color: COLORS[i], human: c.type === 'human' })).filter(p => p.human) }; buildPads();
+  newMatch(); buildPads(); enterGame();
+}
+function toMenu() {
+  cancelAnimationFrame(raf); paused = false; G = null;
+  if (net) { if (net.role === 'host') netPresence({ st: null }); net = null; }
+  $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true;
+  renderPlayers(); renderMe(); renderShop(); pvStart(); if (curTab === 'online') renderNet();
+}
+function togglePause(force) {
+  if (!G || G.over || (net && net.role === 'client')) return;
+  paused = force !== undefined ? force : !paused;
+  if (paused) {
+    showOverlay(`<div class="banner"><h3>Pauza</h3><div class="row"><button class="btn" id="resumeBtn">Nastavi</button><button class="btn ghost" id="quitBtn">Izbornik</button></div><p class="hint">${IS_TOUCH ? '' : 'Esc za nastavak'}</p></div>`);
+    $('#resumeBtn').onclick = () => togglePause(false);
+    $('#quitBtn').onclick = toMenu;
+  } else { showOverlay(null); lastTs = performance.now(); if (G.phase === 'end') showRoundBanner(); }
+}
+function showResults() {
+  const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)) : ranking();
+  const w = rows[0]; sfx.round();
+  let earn = '';
+  const mine = net ? (net.role === 'client' ? rows.find(p => p.id === net.myId) : rows.find(p => p.mine)) : rows.find(p => p.mine);
+  if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); earn = `<p class="earn">${place + 1}. mjesto · +${n} novčića (ukupno ${profile.coins})</p>`; }
+  else if (!profile) earn = `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>`;
+  const isClient = net && net.role === 'client';
+  showOverlay(`<div class="banner"><span class="label">Pobjednik meča</span><h3 style="color:${w.color}">${esc(w.name)}${badgeGlyph(w.badge) ? ' ' + badgeGlyph(w.badge) : ''}</h3>${earn}
+    <div class="tablewrap"><table class="podium"><thead><tr><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Skokovi</th><th>Power-up</th></tr></thead><tbody>
+    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td><span style="color:${p.color}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.jumps}</td><td>${p.picks}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="row">${isClient ? '' : '<button class="btn" id="againBtn">Revanš</button>'}<button class="btn ghost" id="menuBtn">Izbornik</button></div></div>`);
+  if (!isClient) $('#againBtn').onclick = () => { showOverlay(null); if (net && net.role === 'host') hostStart(); else { newMatch(); buildPads(); } };
+  $('#menuBtn').onclick = toMenu;
+}
+
+// ================= ONLINE (room capability) =================
+let roomState = { connected: false, peers: [], me: null, ready: false, hostPeer: null, watching: false, lastSt: null };
+let myPres = {};
+function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.presence(patch).catch(() => {}); }
+function myLobbyPres() { return { nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
+function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); }
+function findHost() {
+  const hosts = roomState.peers.filter(p => p.presence && p.presence.st && typeof p.presence.st === 'object').sort((a, b) => a.peer < b.peer ? -1 : 1);
+  return hosts[0] || null;
+}
+function renderNet() {
+  const box = $('#net'); if (!box) return;
+  if (!roomNs && roomState.resolved) {
+    box.innerHTML = `<div class="notice">Online soba trenutno nije dostupna (nema veze s poslužiteljem). Lokalna igra, trgovina i profili rade. Osvježi stranicu za novi pokušaj.</div>`; return;
+  }
+  if (!roomNs) { box.innerHTML = `<div class="status"><span class="led"></span>Povezujem se s predvorjem…</div>`; return; }
+  if (!profile) { box.innerHTML = `<div class="notice">Za online igru prvo se prijavi.</div><div class="go"><button class="btn" id="netReg">Prijava</button></div>`; $('#netReg').onclick = () => showLogin(); return; }
+  const peers = roomState.peers.filter(p => p.kind === 'viewer');
+  const host = findHost();
+  const readyPeers = peers.filter(p => p.presence && p.presence.rd);
+  const html = [];
+  html.push(`<div class="status"><span class="led ${roomState.connected ? 'on' : ''}"></span>${roomState.connected ? 'Povezano' : 'Nema veze'} · ${peers.length} u sobi · ${readyPeers.length} spremno</div>`);
+  if (host) {
+    html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
+  }
+  html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span></div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „Lokalna igra”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
+  html.push(`<div class="chat"><span class="label">Chat</span><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
+  box.innerHTML = html.join('');
+  wireChat('#lchatIn', '#lchatSend'); renderChat();
+  if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
+  if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
+  if ($('#netStart')) $('#netStart').onclick = hostStart;
+  if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; clientBegin(host); };
+  $('#netBots').onchange = (e) => { setup.netBots = e.target.checked; saveSetup(); };
+}
+// chat over presence: {msg:[text, counter, time]} — the newest message per person is visible to everyone in the room
+const chatLog = []; const chatSeen = {}; let chatN = 0;
+function sendChat(text) {
+  text = String(text || '').trim().slice(0, 80); if (!text || !roomNs) return;
+  chatN++; netPresence({ msg: [text, chatN, Date.now()] });
+  const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
+}
+function wireChat(inSel, btnSel) {
+  const i = $(inSel), b = $(btnSel); if (!i) return;
+  const go = () => { sendChat(i.value); i.value = ''; };
+  b.onclick = go; i.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } e.stopPropagation(); };
+}
+function collectChat() {
+  let changed = false;
+  for (const p of roomState.peers) {
+    const m = p.presence && p.presence.msg;
+    if (!Array.isArray(m) || typeof m[0] !== 'string') continue;
+    const key = p.peer; if (chatSeen[key] === m[1]) continue;
+    const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
+    chatLog.push({ name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), me: p.isMe && p.sameTab, at: Date.now() });
+    changed = true;
+  }
+  if (chatLog.length > 40) chatLog.splice(0, chatLog.length - 40);
+  if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
+}
+function renderChat() {
+  const html = chatLog.slice(-8).map(m => `<div><b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${esc(m.name)}:</b> ${esc(m.text)}</div>`).join('') || '<div class="hint">Još nema poruka.</div>';
+  const a = $('#lchatLog'), g = $('#gchatLog');
+  if (a) { a.innerHTML = html; a.scrollTop = a.scrollHeight; }
+  if (g) { g.innerHTML = html; g.scrollTop = g.scrollHeight; }
+}
+function renderBoard() {
+  const b = $('#board'); if (!b) return;
+  const mine = profile ? `<div class="coinnote" style="margin-bottom:14px"><span>Ti: <b>${esc(profile.name)}</b> · zlatnici <b>${profile.coins}</b> · mečevi <b>${profile.matches}</b> · pobjede <b>${profile.wins}</b> · rušenja <b>${profile.kills}</b></span></div>` : '';
+  const rows = [...accounts.list].sort((x, y) => y.coins - x.coins || y.wins - x.wins).slice(0, 30);
+  const where = dbNs ? 'Zajednička ljestvica svih igrača.' : 'Bez veze s bazom: ljestvica igrača s ovog uređaja.';
+  if (!rows.length) { b.innerHTML = mine + `<p class="hint">${where} Još je prazna.</p>`; return; }
+  b.innerHTML = mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${esc(String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+// host
+function hostStart() {
+  const peers = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.rd).sort((a, b) => a.peer < b.peer ? -1 : 1).slice(0, 6);
+  if (!peers.length) return;
+  const used = new Set(); const players = [];
+  peers.forEach((pr, i) => {
+    let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
+    const me = pr.isMe && pr.sameTab;
+    players.push({ id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', mine: me });
+  });
+  if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'srednje', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
+  net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode };
+  $('#menu').hidden = true; $('#game').hidden = false;
+  G = { players: players.filter(p => p.mine) }; buildPads();
+  newMatch(players); buildPads(); enterGame(); hostSend(true);
+}
+function hostSend(force) {
+  const now = performance.now(); if (!force && now - net.lastSend < (net.supa ? 80 : 40)) return; net.lastSend = now;
+  // read remote inputs
+  for (const p of G.players) if (p.remote) {
+    const pr = roomState.peers.find(q => q.peer === p.remote);
+    if (pr && pr.presence) { p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0)); const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); } }
+    else p.remoteIn = 0;
+  }
+  const st = { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0,
+    pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, rm: p.remote || null })),
+    pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
+    ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
+    s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump } };
+  netPresence({ st });
+}
+
+// client
+function clientBegin(host) {
+  if (net && net.role === 'client') return;
+  const st = host.presence.st;
+  net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now() };
+  Object.assign(setup, st.s || {});
+  G = { players: [], target: st.tg, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, pus: [], inset: 0, wrapAllUntil: 0, parts: [], over: false, ff: false, speedMul: 1, clr: st.clr, rank: null };
+  $('#menu').hidden = true; $('#game').hidden = false;
+  sizeArena(); applyState(st, true); buildPads(); enterGame();
+}
+function applyState(st, first) {
+  const mePeer = roomState.me;
+  if (st.r !== net.round || first) { net.round = st.r; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
+  if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; }
+  const prevPhase = G.phase;
+  Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
+  G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
+  G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
+  const byId = Object.fromEntries(G.players.map(p => [p.id, p]));
+  const newPlayers = [];
+  for (const q of st.pl) {
+    let p = byId[q.i];
+    if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
+    const wasAlive = p.alive;
+    Object.assign(p, { name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm });
+    if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
+    if (wasAlive === true && !p.alive) { burst(p.x, p.y, p.color); sfx.die(); }
+    if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
+    // trail segment
+    const pv = net.prev[q.i];
+    if (pv && pv.d && q.d && Math.hypot(pv.x - q.x, pv.y - q.y) < 40) {
+      if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(pv.x, pv.y, q.a, q.rr); }
+      const custom = applySkin(tctx, p.skin, p.color, q.rr, G.gt); if (!custom) tctx.lineWidth = q.rr * 2;
+      tctx.beginPath(); tctx.moveTo(pv.x, pv.y); tctx.lineTo(q.x, q.y); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]);
+      skinAfter(tctx, p.skin, [pv.x, pv.y, q.x, q.y], q.rr, p);
+    }
+    net.prev[q.i] = q;
+    newPlayers.push(p);
+  }
+  if (newPlayers.length !== G.players.length) hudDirty = true;
+  G.players = newPlayers;
+  if (prevPhase !== G.phase) {
+    hudDirty = true;
+    if (G.phase === 'run') sfx.go();
+    if (G.phase === 'end') { sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
+    if (G.phase === 'count') showOverlay(null);
+  }
+  if (first && G.phase === 'end' && !G.over) showRoundBanner();
+}
+function clientTick() {
+  const host = roomState.peers.find(p => p.peer === net.hostPeer);
+  const st = host && host.presence && host.presence.st;
+  if (st) { if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); applyState(st); } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; }
+  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !G.over) { showOverlay(`<div class="banner"><h3>Domaćin je otišao</h3><div class="row"><button class="btn" id="menuBtn">Izbornik</button></div></div>`); $('#menuBtn').onclick = toMenu; } }
+  updateParts(1 / 60);
+  clientInput();
+}
+function clientInput() {
+  if (!net || net.role !== 'client' || net.myId == null) return;
+  const me = G.players.find(p => p.id === net.myId); if (!me) return;
+  const k = KEYS[0];
+  const v = ((held[k.r] || me.touchR) ? 1 : 0) - ((held[k.l] || me.touchL) ? 1 : 0);
+  const key = v + ':' + net.jumpN;
+  if (key !== net.lastIn) { net.lastIn = key; netPresence({ in: v, j: net.jumpN }); }
+}
+
+// Backend outside claude.ai: Supabase Realtime (lobby + match state) and a small accounts table.
+// Realtime (lobby, match) runs on one project; shared accounts live in a table on another.
+const SUPA = { url: 'https://ccvticsarzenznjksepp.supabase.co', key: 'sb_publishable_udzNxEuRi4J8f13SisGHhA_o7CbP4sa', dbUrl: 'https://umpvnepxsqfkxjpclkxc.supabase.co', dbKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtcHZuZXB4c3Fma3hqcGNsa3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NzMyMDAsImV4cCI6MjA2ODI0OTIwMH0.iZhnC1FpAMzXujBvAwqTGhXBnNknMk_96TRNsNv77uQ', table: 'vijuga_accounts' };
+function loadScript(src) { return new Promise((res, rej) => { const t = document.createElement('script'); t.src = src; t.onload = res; t.onerror = rej; document.head.appendChild(t); }); }
+async function initSupabase() {
+  await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js');
+  const sb = window.supabase.createClient(SUPA.url, SUPA.key, { realtime: { params: { eventsPerSecond: 40 } } });
+  const sdb = window.supabase.createClient(SUPA.dbUrl, SUPA.dbKey, { auth: { persistSession: false } });
+  window.__supaMode = true;
+  // ---- accounts table as a tiny document store
+  let accountsCb = null, accountsErr = null;
+  async function pollAccounts() {
+    if (!accountsCb) return;
+    const { data, error } = await sdb.from(SUPA.table).select('data').order('coins', { ascending: false }).limit(200);
+    if (error) { if (accountsErr) accountsErr(error); return; }
+    accountsCb({ docs: (data || []).map(r => ({ data: () => r.data })) });
+  }
+  dbNs = {
+    doc(path) { const slug = path.split('/').pop(); return {
+      async get() { const { data, error } = await sdb.from(SUPA.table).select('data').eq('slug', slug).maybeSingle(); if (error) throw error; return { exists: !!data, data: () => data ? data.data : undefined }; },
+      async set(doc) { const { error } = await sdb.from(SUPA.table).upsert({ slug, name: doc.name, coins: doc.coins, data: doc, updated_at: new Date().toISOString() }); if (error) throw error; pollAccounts(); },
+    }; },
+    collection() { return { onSnapshot(cb, err) { accountsCb = cb; accountsErr = err; pollAccounts(); const t = setInterval(pollAccounts, 20000); return () => clearInterval(t); } }; },
+  };
+  // ---- realtime channel as a room: presence for lobby info, broadcast for fast match state
+  const myPeer = Math.random().toString(36).slice(2, 10);
+  const peersMap = {}; let connected = false; const peerHandlers = [], connHandlers = [];
+  const toPeers = () => Object.values(peersMap);
+  const fire = () => { const peers = toPeers(); peerHandlers.forEach(h => h({ peers, joined: [], left: [], updated: [] })); };
+  const mkPeer = (key, pres) => ({ peer: key, by: null, isMe: key === myPeer, sameTab: key === myPeer, kind: 'viewer', guest: false, presence: pres, updatedAt: Date.now() });
+  const ch = sb.channel('vijuga-lobby', { config: { presence: { key: myPeer }, broadcast: { self: false } } });
+  ch.on('presence', { event: 'sync' }, () => {
+    const st = ch.presenceState(); const seen = new Set();
+    for (const key in st) { const pr = st[key][0] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j } : {}; peersMap[key] = mkPeer(key, Object.assign({}, fast, pr)); }
+    for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
+    fire();
+  });
+  ch.on('broadcast', { event: 'p' }, ({ payload }) => {
+    if (!payload || typeof payload.peer !== 'string' || payload.peer === myPeer || !payload.patch) return;
+    const prev = peersMap[payload.peer]; if (!prev) return;
+    peersMap[payload.peer] = mkPeer(payload.peer, Object.assign({}, prev.presence, payload.patch)); fire();
+  });
+  const lobbyPres = {}; let trackTimer = 0;
+  ch.subscribe((status) => { const c = status === 'SUBSCRIBED'; if (c !== connected) { connected = c; connHandlers.forEach(h => h(c)); } if (c) ch.track(Object.assign({}, lobbyPres)); });
+  peersMap[myPeer] = mkPeer(myPeer, {});
+  roomNs = {
+    async presence(patch) {
+      const fast = {}, slow = {}; let hasFast = false, hasSlow = false;
+      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; } }
+      const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
+      if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
+      if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
+      fire();
+    },
+    peers: toPeers,
+    onPeers(h) { peerHandlers.push(h); setTimeout(() => h({ peers: toPeers(), joined: toPeers(), left: [], updated: [] }), 0); return () => {}; },
+    connected: () => connected,
+    onConnection(h) { connHandlers.push(h); setTimeout(() => h(connected), 0); return () => {}; },
+  };
+}
+async function initCapabilities() {
+  if (window.claude && window.claude.use) {
+    try {
+      const [u, d, r] = await Promise.all([window.claude.use('user'), window.claude.use('db'), window.claude.use('room')]);
+      userNs = u; dbNs = d; roomNs = r;
+    } catch (e) {}
+    if (userNs) { try { dbWritable = await userNs.can('data.write'); } catch (e) { dbWritable = null; } }
+  } else if (SUPA.url && SUPA.key) {
+    try { await initSupabase(); } catch (e) { roomNs = null; dbNs = null; }
+  }
+  roomState.resolved = true;
+  if (dbNs) {
+    let failed = false;
+    await new Promise(res => {
+      let done = false; const fin = () => { if (!done) { done = true; res(); } };
+      try {
+        dbNs.collection('accounts').onSnapshot(qs => { accounts.list = qs.docs.map(x => normalize(x.data())); accounts.ready = true; renderBoard(); if (!profile && !$('#regModal').hidden && $('#loginForm')) showLogin(); fin(); }, () => { failed = true; fin(); });
+      } catch (e) { failed = true; fin(); }
+      setTimeout(fin, 8000);
+    });
+    if (failed) { dbNs = null; dbWritable = false; }
+  }
+  await bootAccounts();
+  renderPlayers(); renderMe(); renderShop();
+  if (roomNs) {
+    roomNs.onConnection(c => { roomState.connected = c; if (curTab === 'online' && $('#menu').hidden === false) renderNet(); }, () => { roomNs = null; roomState.connected = false; renderNet(); });
+    roomNs.onPeers(ch => {
+      roomState.peers = ch.peers; collectChat();
+      const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
+      if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { netPresence({ st: null }); toMenu(); } }
+      if (!net && roomState.ready && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) clientBegin(h); }
+      if (curTab === 'online' && !$('#menu').hidden) renderNet();
+    }, () => { roomNs = null; renderNet(); });
+    netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 }));
+  }
+  renderNet();
+}
+
+// ---------- events ----------
+const GAME_CODES = new Set(KEYS.flatMap(k => [k.l, k.r, k.j]).concat(['Space', 'Escape', 'KeyP']));
+addEventListener('keydown', (e) => {
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  if (!$('#game').hidden) {
+    if (GAME_CODES.has(e.code)) e.preventDefault();
+    if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
+    if (e.code === 'Space') { if (G && G.phase === 'end' && !G.over) nextRound(); return; }
+    held[e.code] = true;
+    if (G && !paused && !e.repeat) {
+      if (net && net.role === 'client') { if (KEYS[0].j === e.code) { net.jumpN++; } clientInput(); }
+      else G.players.forEach(p => { if (p.human && !p.remote && KEYS[p.id].j === e.code) tryJump(p); });
+    }
+    return;
+  }
+  if (e.code === 'Enter' && document.activeElement.tagName !== 'INPUT' && curTab === 'local' && !$('#start').disabled) startGame();
+});
+addEventListener('keyup', (e) => { held[e.code] = false; if (net && net.role === 'client') clientInput(); });
+addEventListener('blur', () => { for (const k in held) held[k] = false; if (G && G.phase === 'run' && !net) togglePause(true); clientInput(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run' && !paused && !net) togglePause(true); });
+addEventListener('resize', () => { if (!$('#game').hidden && G) fitCanvas(); else if (!$('#menu').hidden) pvStart(); });
+$('#start').onclick = startGame;
+$('#pauseBtn').onclick = () => { if (net && net.role === 'client') { showOverlay(`<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div></div>`); $('#resumeBtn').onclick = () => showOverlay(null); $('#quitBtn').onclick = toMenu; } else togglePause(); };
+$('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').style.opacity = soundOn ? 1 : .4; try { localStorage.setItem('vijuga-sound', soundOn ? '1' : '0'); } catch (e) {} };
+$('#soundBtn').style.opacity = soundOn ? 1 : .4;
+
+renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
+initCapabilities();
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults };
+})();
+</script>
+
+</body>
+</html>
