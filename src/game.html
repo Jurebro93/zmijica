@@ -157,13 +157,13 @@ button.pu:hover { border-color: var(--line); }
 .banner p { margin: 0; color: var(--muted); }
 .banner .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .banner .earn { color: var(--amber); font-weight: 700; font-size: 18px; }
-.pads { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); padding-block: 10px; background: var(--ink); border-top: 1px solid var(--line); user-select: none; -webkit-user-select: none; }
+.pads { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); padding-block: 10px; background: var(--ink); border-top: 1px solid var(--line); user-select: none; -webkit-user-select: none; }
 .pads.top { transform: rotate(180deg); border-top: 0; border-bottom: 1px solid var(--line); }
-.padgrp { display: flex; gap: 12px; }
+.pads .pad[data-k=L] { justify-self: start; } .pads .pad[data-k=R] { justify-self: end; } .pads .pad[data-k=J] { justify-self: center; }
 .pad { width: 74px; height: 74px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--pc, var(--line)) 70%, transparent); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc, var(--panel)) 28%, var(--panel)), var(--panel) 75%); color: var(--fg); touch-action: none; display: grid; place-items: center; grid-template-rows: 1fr auto; padding: 6px 0 8px; box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); transition: transform .08s, background .08s; }
 .pad svg { width: 34px; height: 34px; color: var(--pc, var(--fg)); }
 .pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
-.pad.big { width: 86px; height: 86px; }
+.pad.big { width: 92px; height: 92px; }
 .pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
 .pad.on { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc) 65%, var(--panel)), color-mix(in srgb, var(--pc) 30%, var(--panel)) 75%); transform: scale(.94); }
 .pad.cool { opacity: .45; }
@@ -307,7 +307,7 @@ const KEYS = [
 ];
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
-const BASE_SPEED = 82, TURN = 3.1, BASE_R = 2.5, CELL = 2, SUB = 1 / 240;
+const BASE_SPEED = 82, TURN = 3.1, BASE_R = 3.2, CELL = 2, SUB = 1 / 240;
 const JUMP_TIME = 0.4, JUMP_CD = 5;
 const PLACE_COINS = [60, 35, 20, 12, 12, 12], KILL_COINS = 3;
 
@@ -1245,9 +1245,8 @@ function buildPads() {
   const mk = (box, p) => {
     box.innerHTML = ''; box.hidden = !p || !IS_TOUCH; if (box.hidden) return;
     box.style.setProperty('--pc', p.color);
-    const grp = document.createElement('div'); grp.className = 'padgrp';
     const mkBtn = (k, inner, cap, extra) => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'pad ' + (extra || '');
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'pad ' + (extra || ''); b.dataset.k = k;
       b.innerHTML = inner + (cap ? `<span class="cap">${cap}</span>` : '');
       b.style.setProperty('--pc', p.color); b.dataset.pid = p.id;
       const on = (e) => { e.preventDefault(); b.classList.add('on'); if (k === 'L') p.touchL = true; else if (k === 'R') p.touchR = true; else localJump(p); clientInput(); };
@@ -1256,10 +1255,9 @@ function buildPads() {
       b.addEventListener('contextmenu', e => e.preventDefault());
       return b;
     };
-    grp.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
     const j = mkBtn('J', '<span style="font-family:var(--display);font-size:15px">SKOK</span>', '', 'jump');
     if (!setup.jump) j.style.visibility = 'hidden';
-    box.append(grp, j);
+    box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), j, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
   };
   mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
 }
