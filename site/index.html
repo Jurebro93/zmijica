@@ -1859,6 +1859,9 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 
 // ---------- grid ----------
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
+// the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
+const SKIN_COLOR = { sk_gold: '#ffd700', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_dildo: '#f29ab4', sk_vag: '#f08aa8', sk_boobs: '#f3c6a5', sk_condom: '#cde4ff', sk_hairy: '#cf9580', sk_rainbow: null };
+function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return SKIN_COLOR[p.skin] || p.color; }
 const SKIN_W = { sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
 function stamp(p, r) {
@@ -2267,6 +2270,7 @@ function render() {
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
   drawBounties(ctx);
   if (luxFx.length) drawLux(ctx);
+  if (innerWidth < 760 || (net && G.players.length > 4)) drawBoard(ctx);
   if (G.tombs) for (const t of G.tombs) { ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🪦', t.x, t.y); ctx.font = '700 11px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText('R.I.P. ' + t.name, t.x, t.y + 18); ctx.restore(); }
   if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
@@ -2302,7 +2306,7 @@ function render() {
       ctx.beginPath(); ctx.moveTo(ex + Math.cos(p.a) * 8, ey + Math.sin(p.a) * 8);
       ctx.lineTo(ex + Math.cos(p.a + 2.4) * 8, ey + Math.sin(p.a + 2.4) * 8); ctx.lineTo(ex + Math.cos(p.a - 2.4) * 8, ey + Math.sin(p.a - 2.4) * 8); ctx.closePath(); ctx.fillStyle = p.color; ctx.fill();
       const lu = Math.min(2.2, Math.max(1, 0.85 / Math.max(0.05, (cv.clientWidth || W) / W)));
-      ctx.font = `600 ${Math.round(15 * lu)}px "Barlow Semi Condensed", sans-serif`; ctx.fillStyle = p.color;
+      ctx.font = `600 ${Math.round(15 * lu)}px "Barlow Semi Condensed", sans-serif`; ctx.fillStyle = dispColor(p);
       const lbl = (p.human ? p.name : p.name + ' · bot') + (p.mine || (net && net.role === 'client' && p.id === net.myId) ? ' (ti)' : '');
       ctx.fillText(lbl, p.x, p.y - 12 - 8 * lu);
       if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x - ctx.measureText(lbl).width / 2 - 10 * lu, p.y - 12 - 8 * lu, 15 * lu, p.color);
@@ -2355,13 +2359,35 @@ function render() {
 
 // ---------- HUD ----------
 let hudDirty = true;
+function drawBoard(c) {
+  const rows = ranking(); if (!rows.length) return;
+  const s = cv.width / W; c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+  const fs = Math.max(11, Math.min(14, Math.round(cv.width / 32))), lh = fs + 6, pad = 7;
+  c.font = `600 ${fs}px "Barlow Semi Condensed", sans-serif`; c.textBaseline = 'middle';
+  let wmax = 0; for (const p of rows) wmax = Math.max(wmax, c.measureText(p.name).width);
+  const w = Math.round(pad + 12 + 6 + wmax + 10 + c.measureText('999').width + pad), h = rows.length * lh + pad;
+  const x0 = 8, y0 = 8;
+  c.globalAlpha = 0.55; c.fillStyle = '#0b121b'; c.beginPath(); c.roundRect ? c.roundRect(x0, y0, w, h, 8) : c.rect(x0, y0, w, h); c.fill();
+  c.globalAlpha = 0.9;
+  rows.forEach((p, i) => {
+    const y = y0 + pad / 2 + lh * i + lh / 2, dead = !p.alive && G.phase !== 'count';
+    c.globalAlpha = dead ? 0.45 : 0.92;
+    c.fillStyle = dispColor(p); c.beginPath(); c.arc(x0 + pad + 5, y, 5, 0, 6.283); c.fill();
+    c.fillStyle = '#e9eff6'; c.textAlign = 'left'; c.fillText(p.name, x0 + pad + 16, y);
+    if (dead) { c.strokeStyle = 'rgba(233,239,246,.7)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0 + pad + 16, y); c.lineTo(x0 + pad + 16 + c.measureText(p.name).width, y); c.stroke(); }
+    c.textAlign = 'right'; c.fillStyle = '#ffb547'; c.fillText(String(p.score), x0 + w - pad, y);
+    const rr = reactionOf(peerOfPlayer(p)); if (rr) { c.textAlign = 'left'; c.fillText(rr.e, x0 + w + 4, y); }
+  });
+  c.restore();
+}
 function renderHud() {
   if (!hudDirty) return; hudDirty = false;
   const box = $('#scores'); box.innerHTML = '';
+  box.style.display = (innerWidth < 760 || (net && G.players.length > 4)) && !watchingNow() ? 'none' : ''; // the translucent list over the arena shows everyone instead
   ranking().forEach(p => {
     const c = document.createElement('div'); c.className = 'chip' + (p.alive || G.phase === 'count' ? '' : ' dead');
     const rr = reactionOf(peerOfPlayer(p));
-    c.innerHTML = `<span class="dot" style="background:${p.color}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span>${rr ? '<span class="re">' + rr.e + '</span>' : ''}<span class="sc">${p.score}</span>`;
+    c.innerHTML = `<span class="dot" style="background:${dispColor(p)}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span>${rr ? '<span class="re">' + rr.e + '</span>' : ''}<span class="sc">${p.score}</span>`;
     box.appendChild(c);
   });
   $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
@@ -2608,7 +2634,7 @@ function showResults() {
   if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${p.color}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
+    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
     </tbody></table></div>`;
   let actions;
   if (net) {
@@ -2635,7 +2661,7 @@ function rematchState() {
     if (p.slug && !(pe && pe.presence && (pe.presence.again === net.mid || pe.presence.rd))) { const alt = roomState.peers.filter(q => q.presence && q.presence.sl === p.slug && q.presence.pg !== 'stats' && !q.presence.obs).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0]; if (alt) pe = alt; }
     const pr = (pe && pe.presence) || {};
     const here = !!pe && (!!pr.rd || pr.again === net.mid || !!pr.st || !!pr.hs); const ready = here && pr.again === net.mid;
-    return { name: p.name, color: p.color, here, ready };
+    return { name: p.name, color: dispColor(p), here, ready };
   });
 }
 function renderReady() {
