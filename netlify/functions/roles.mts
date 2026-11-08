@@ -50,6 +50,15 @@ export default async (req: Request, context: Context) => {
     if (role) roles[target] = role; else delete roles[target];
     await store.setJSON("roles", roles); return json({ master: MASTER, roles, mutes });
   }
+  if (context.params.action === "grant") {
+    // master gives a player coins (as a gift the player's game collects on its next load)
+    if (mine !== "master") return json({ error: "master only" }, 403);
+    const amount = Math.floor(Number(b.amount) || 0); if (amount < 1 || amount > 50000) return json({ error: "bad amount" }, 400);
+    const acc = await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(target, { type: "json" }) as Record<string, unknown> | null; if (!acc) return json({ error: "unknown player" }, 404);
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await getStore({ name: "vijuga-gifts", consistency: "strong" }).setJSON(`${target}/${id}`, { id, from: "admin", fromName: String(b.note ?? "").slice(0, 40) || "Admin: bonus", item: "coins:" + amount, at: Date.now() });
+    return json({ ok: true, id, amount });
+  }
   if (context.params.action === "treasury") {
     if (mine !== "master") return json({ error: "master only" }, 403);
     return json({ treasury: (await treasury()).value });
