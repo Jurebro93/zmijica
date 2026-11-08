@@ -300,7 +300,12 @@ button.pu:hover { border-color: var(--line); }
 .pads.top { transform: rotate(180deg); border-top: 0; border-bottom: 1px solid var(--line); }
 .pads .pad[data-k=L] { justify-self: start; } .pads .pad[data-k=R] { justify-self: end; } .pads .pad[data-k=J] { justify-self: center; }
 .pad { width: 74px; height: 74px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--pc, var(--line)) 70%, transparent); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc, var(--panel)) 28%, var(--panel)), var(--panel) 75%); color: var(--fg); touch-action: none; display: grid; place-items: center; grid-template-rows: 1fr auto; padding: 6px 0 8px; box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); transition: transform .08s, background .08s; }
-.pad svg { width: 34px; height: 34px; color: var(--pc, var(--fg)); }
+.pad svg { width: 34px; height: 34px; color: var(--pc, var(--fg)); opacity: .55; }
+.pico { position: relative; display: grid; place-items: center; }
+.pico > * { grid-area: 1 / 1; }
+.pico .parr { font-size: 30px; line-height: 1; color: #fff; text-shadow: 0 0 6px rgba(0,0,0,.9), 0 0 2px #000; }
+.pad { border-width: 3px !important; border-color: var(--pc, var(--line)) !important; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc, var(--panel)) 45%, var(--panel)), color-mix(in srgb, var(--pc, var(--panel)) 14%, var(--panel)) 80%) !important; }
+.pad .cap { color: #e9eff6 !important; }
 .pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
 .pad.big { width: 92px; height: 92px; }
 .pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
@@ -867,7 +872,7 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
     case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
     case 'sk_condom': c.strokeStyle = 'rgba(205,228,255,0.6)'; c.lineWidth = r * 2 * 1.35; return true;
-    case 'sk_hairy': c.strokeStyle = '#cf9580'; c.lineWidth = r * 2 * 1.45; return true;
+    case 'sk_hairy': c.strokeStyle = '#cf9580'; c.lineWidth = r * 2 * 1.15; return true;
   }
 }
 function renderShop() {
@@ -1511,6 +1516,11 @@ function render() {
     drawPuIcon(ctx, u.k, u.x, u.y, R);
     ctx.globalAlpha = 1;
   }
+  if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
+    const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
+    ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
+    ctx.beginPath(); ctx.moveTo(pv.x, pv.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.restore();
+  }
   for (const p of G.players) {
     if (!p.alive && G.phase !== 'count') continue;
     const r = radiusOf(p), jumping = p.jumpUntil > G.gt;
@@ -1521,7 +1531,7 @@ function render() {
     ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
-    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 1.35 : 1));
+    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
     // winner's badge blinks above the head between rounds
     if (G.phase === 'end' && p.id === G.winner && p.alive && BADGES[p.badge] && BADGES[p.badge].g) { const k = 0.55 + 0.45 * Math.sin(G.phaseT * 9); ctx.globalAlpha = k; drawBadge(ctx, p.badge, p.x, p.y - hr - 16 - 3 * Math.sin(G.phaseT * 4), 22, '#ffb547'); ctx.globalAlpha = 1; }
     ctx.globalAlpha = 1;
@@ -1639,9 +1649,10 @@ const PAD_ICONS = {
   sk_condom: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>`,
 };
 function padIcon(p, side) {
-  const f = PAD_ICONS[p.skin]; if (f) return f(side);
-  const b = BADGES[p.badge]; if (b && b.svg) return b.svg.replace(/width="[^"]*" height="[^"]*"/, '').replace(/ style="[^"]*"/, '');
-  return `<span style="font-size:30px;line-height:1">${side === 'L' ? '◀' : '▶'}</span>`;
+  const arrow = `<b class="parr">${side === 'L' ? '◀' : '▶'}</b>`;
+  const f = PAD_ICONS[p.skin]; if (f) return `<span class="pico">${f(side)}${arrow}</span>`;
+  const b = BADGES[p.badge]; if (b && b.svg) return `<span class="pico">${b.svg.replace(/width="[^"]*" height="[^"]*"/, '').replace(/ style="[^"]*"/, '')}${arrow}</span>`;
+  return `<span class="pico">${arrow}</span>`;
 }
 function buildPads() {
   const humans = net ? G.players.filter(p => p.human && (net.role === 'host' ? !p.remote : p.id === net.myId)) : G.players.filter(p => p.human);
@@ -1664,7 +1675,7 @@ function buildPads() {
   };
   mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
 }
-function localJump(p) { if (net && net.role === 'client') { net.jumpN++; clientInput(); } else tryJump(p); }
+function localJump(p) { if (net && net.role === 'client') { net.jumpN = Math.max(net.jumpN + 1, Date.now()); clientInput(); } else tryJump(p); }
 function enterGame() {
   if (watchingNow()) netPresence({ ig: null, pl: null }); else netPresence({ ig: 1, pl: net ? null : 1 });
   renderSpecBar();
@@ -1677,6 +1688,7 @@ function enterGame() {
   $('#menu').hidden = true; $('#game').hidden = false; $('#regModal').hidden = true;
   paused = false; acc = 0; lastTs = performance.now();
   cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+  fitCanvas(); requestAnimationFrame(() => { if (G && !$('#game').hidden) fitCanvas(); });
   try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
 }
 function startGame() {
@@ -2317,6 +2329,8 @@ function applyState(st, first) {
     const wasAlive = p.alive;
     Object.assign(p, { name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.rm === mePeer) { net.myId = p.id; p.mine = true; }
+    if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
+    p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
     if (wasAlive === true && !p.alive) { burst(p.x, p.y, p.color); sfx.die(); }
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
     // trail segment
@@ -2350,6 +2364,21 @@ function clientTick() {
   else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   updateParts(1 / 60);
   clientInput();
+  predictHeads();
+}
+// draw heads slightly ahead of the last snapshot (and turn my own head at once) so 10 snapshots/s look smooth
+function predictHeads() {
+  if (!net || net.role !== 'client' || !G || G.phase !== 'run') return;
+  const dt = Math.min(0.16, (performance.now() - net.lastSeen) / 1000);
+  for (const p of G.players) {
+    if (!p.alive || p.sx == null || !p.v) continue;
+    let a = p.sa;
+    if (p.id === net.myId && !has(p, 'square')) {
+      const k = KEYS[0]; let v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0); if (has(p, 'reverse')) v = -v;
+      a = p.sa + v * TURN * dt * 0.5; p.a = p.sa + v * TURN * dt;
+    }
+    p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
+  }
 }
 function clientInput() {
   if (!net || net.role !== 'client' || net.myId == null) return;
