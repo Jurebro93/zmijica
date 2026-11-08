@@ -247,6 +247,7 @@ button.pu:hover { border-color: var(--line); }
 #trollPop[hidden] { display: none; }
 #trollPop .tp-t { display: flex; gap: 6px; flex-wrap: wrap; }
 #trollPop .trolls { grid-template-columns: repeat(4, 1fr); }
+#gchatX { position: absolute; top: 4px; right: 6px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 18px; line-height: 1; z-index: 2; }
 #reactPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; background: color-mix(in srgb, var(--ink) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 8px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
 #reactPop[hidden] { display: none; }
 .rbtn { width: 46px; height: 46px; border-radius: 10px; border: 0; background: var(--panel); font-size: 26px; line-height: 1; display: grid; place-items: center; transition: transform .08s; }
@@ -489,7 +490,7 @@ button.pu:hover { border-color: var(--line); }
       <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
       <div id="trollPop" hidden role="dialog" aria-label="Zezalice"></div>
       <div id="igMsgs" aria-live="polite"></div>
-      <div id="gchat" hidden><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
+      <div id="gchat" hidden><button type="button" id="gchatX" aria-label="Zatvori chat">×</button><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
     <div class="specbar" id="specBar" hidden></div>
     <div class="pads" id="padsBottom" hidden></div>
@@ -1590,6 +1591,12 @@ function render() {
   }
   if (G.ff && G.phase === 'run') { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.textAlign = 'right'; ctx.fillText('ubrzano ▶▶', W - 14, 18); ctx.textAlign = 'center'; }
   if (setup.shrink && G.phase === 'run' && G.gt > 16 && G.gt < 20) { ctx.font = '700 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.fillText(`Arena se steže za ${Math.ceil(20 - G.gt)}`, W / 2, 22); }
+  if (G.pz && G.phase === 'run') {
+    ctx.save(); ctx.fillStyle = 'rgba(8,13,20,0.55)'; ctx.fillRect(0, 0, W, H); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '400 30px Bungee, Impact, sans-serif'; ctx.fillStyle = '#ffb547'; ctx.fillText('⏸ ' + G.pz[1], W / 2, H / 2 - 22);
+    ctx.font = '700 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText(`${G.pz[0]} je izašao iz igre. Čekamo ga još ${G.pz[1]} s, zatim ispada iz runde.`, W / 2, H / 2 + 14);
+    ctx.restore();
+  }
   if (net && net.role === 'client' && !net.connected) { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ff5d73'; ctx.fillText('Veza s domaćinom prekinuta…', W / 2, H - 20); }
 }
 
@@ -1625,8 +1632,8 @@ function frame(ts) {
   if (!G) return;
   if (profile && G.phase === 'run' && !watchingNow()) { profile.playMs = (profile.playMs || 0) + dt * 1000; profileDirty = true; }
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return; }
-  else { if (!paused) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
-  render(); renderHud(); updatePads(); tickCountdown();
+  else { if (net && net.role === 'host') hostReadInputs(); const away = net && net.role === 'host' && hostAwayPause(); if (!paused && !away) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
+  render(); renderHud(); updatePads(); tickCountdown(); chatAutoHide();
   raf = requestAnimationFrame(frame);
 }
 
@@ -1699,6 +1706,7 @@ function startGame() {
 }
 function toMenu() {
   cancelAnimationFrame(raf); paused = false; G = null;
+  if (net && net.role === 'client' && net.myId != null) netPresence({ vis: 0 });
   netPresence({ ig: null, pl: null, sp: null, watch: null }); followHost(null); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
   if (profile && profileDirty) { profileDirty = false; saveProfile(); }
   if (net) { if (net.role === 'host') netPresence({ st: null }); net = null; }
@@ -1783,7 +1791,7 @@ function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.p
 function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0 }; }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null };
-function onlineOthers() { return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug || (!p.isMe && p.presence.pg !== 'stats'))); }
+function onlineOthers() { const seen = new Set(); return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug)).sort((a, b) => (!!(b.presence.st || b.presence.hs) - !!(a.presence.st || a.presence.hs)) || ((b.presence.ig || 0) - (a.presence.ig || 0))).filter(p => { const k = p.presence.sl || p.peer; if (seen.has(k)) return false; seen.add(k); return true; }); }
 function peerStatus(pr) { return pr.pg === 'stats' ? 'gleda statistiku' : (pr.st || pr.hs) ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
 function canWatch(pr) { return !!(pr && (pr.st || pr.hs || (pr.ig && pr.pl))); }
 function notify(html, opts = {}) {
@@ -2154,7 +2162,10 @@ function renderNet() {
   }
   if (!roomNs) { box.innerHTML = `<div class="status"><span class="led"></span>Povezujem se s predvorjem…</div>`; return; }
   if (!profile) { box.innerHTML = `<div class="notice">Za online igru prvo se prijavi.</div><div class="go"><button class="btn" id="netReg">Prijava</button></div>`; $('#netReg').onclick = () => showLogin(); return; }
-  const peers = roomState.peers.filter(p => p.kind === 'viewer');
+  const peers = (() => { const all = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.pg !== 'stats'), seen = new Set(), out = [];
+    // one row per player: this tab first, then whichever tab of that player is hosting or ready
+    for (const p of [...all].sort((a, b) => ((b.isMe && b.sameTab) - (a.isMe && a.sameTab)) || ((!!(b.presence.st || b.presence.hs)) - (!!(a.presence.st || a.presence.hs))) || ((b.presence.rd || 0) - (a.presence.rd || 0)))) { const k = p.presence.sl || p.peer; if (seen.has(k)) continue; seen.add(k); out.push(p); }
+    return out; })();
   const host = findHost();
   const readyPeers = peers.filter(p => p.presence && p.presence.rd);
   const html = [];
@@ -2195,6 +2206,11 @@ function renderNetPeersSoon() { if (netPeersTimer || $('#menu').hidden || curTab
 function buildReactPop() {
   const pop = $('#reactPop'); if (pop.childElementCount) return;
   REACTIONS.forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rbtn'; b.textContent = e; b.setAttribute('aria-label', 'Reakcija ' + e); b.onclick = () => { sendReaction(e); pop.hidden = true; }; pop.appendChild(b); });
+}
+let chatPhase = null;
+function chatAutoHide() {
+  if (!G) return; const ph = G.phase; if (ph === chatPhase) return; chatPhase = ph;
+  if (ph === 'run' && chatOpen && IS_TOUCH && document.activeElement && document.activeElement.id !== 'gchatIn') setChatOpen(false);
 }
 function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; } updateUnread(); }
 function updateUnread() { const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
@@ -2277,17 +2293,39 @@ function hostStart(rematch) {
   newMatch(players); buildPads(); enterGame(); hostSend(true);
 }
 function hostSend(force) {
-  const now = performance.now(); const gap = !net.supa ? 40 : (G.phase === 'run' || G.phase === 'count') ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
-  // read remote inputs
-  for (const p of G.players) if (p.remote) {
-    const pr = roomState.peers.find(q => q.peer === p.remote);
-    if (pr && pr.presence) { p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0)); const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); } }
-    else p.remoteIn = 0;
-  }
+  const now = performance.now(); const gap = !net.supa ? 40 : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return; net.lastSend = now;
   netPresence({ st: buildSnap() });
 }
+function hostReadInputs() {
+  for (const p of G.players) if (p.remote) {
+    let pr = roomState.peers.find(q => q.peer === p.remote);
+    if ((!pr || p.away) && p.slug) {
+      // same player on a new connection (reload, new tab): hand the snake over
+      const taken = new Set(G.players.map(q => q.remote).filter(Boolean));
+      const back = roomState.peers.find(q => q.peer !== p.remote && !taken.has(q.peer) && !(q.isMe && q.sameTab) && q.presence && q.presence.sl === p.slug && q.presence.pg !== 'stats' && q.presence.vis !== 0 && q.presence.fol === roomState.me);
+      if (back) { p.remote = back.peer; p.peerId = back.peer; p.lastJ = Number(back.presence.j) || 0; p.awayAt = 0; pr = back; hudDirty = true; }
+    }
+    if (pr && pr.presence) { p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0)); const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); } p.away = pr.presence.vis === 0; }
+    else { p.remoteIn = 0; p.away = true; }
+  }
+}
+// A guest who left the app pauses the round for up to AWAY_MS; after that they are out of the round.
+const AWAY_MS = 10000;
+function hostAwayPause() {
+  if (G.phase !== 'run') { G.pz = null; return false; }
+  const now = performance.now(); let wait = null;
+  for (const p of G.players) {
+    if (!p.remote || !p.alive || !p.away) { p.awayAt = 0; continue; }
+    if (!p.awayAt) p.awayAt = now;
+    const left = AWAY_MS - (now - p.awayAt);
+    if (left <= 0) { kill(p, null); p.awayAt = 0; G.toast = { text: p.name + ' je eliminiran (izašao)', color: '#ff5d73', x: W / 2, y: H / 2, t: G.gt }; continue; }
+    if (!wait || left < wait.left) wait = { name: p.name, left };
+  }
+  G.pz = wait ? [wait.name, Math.ceil(wait.left / 1000)] : null;
+  return !!wait;
+}
 function buildSnap() {
-  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, pz: G.pz || null, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => ({ i: p.id, n: p.name, h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -2295,7 +2333,7 @@ function buildSnap() {
 }
 
 // client
-function followHost(peer) { if (roomNs && roomNs.follow) roomNs.follow(peer); }
+function followHost(peer) { if (roomNs && roomNs.follow) roomNs.follow(peer); if ((myPres.fol || null) !== (peer || null)) netPresence({ fol: peer || null }); }
 function joinHost(host) {
   if (net || !host) return; followHost(host.peer);
   if (joinHost.busy === host.peer) return; joinHost.busy = host.peer; const t0 = performance.now();
@@ -2306,7 +2344,7 @@ function clientBegin(host, key = 'st', spectate = false) {
   if (net && net.role === 'client') return;
   const st = host.presence[key]; if (!st) return;
   net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid, key, spectate, target: spectate ? host.peer : null };
-  if (!spectate) netPresence({ again: null });
+  if (!spectate) netPresence({ again: null, vis: 1 });
   if (!spectate && myPres.rd && !(st.pl || []).some(q => q.rm === roomState.me)) { roomState.rqAt = Date.now(); netPresence({ rq: roomState.rqAt }); }
   Object.assign(setup, st.s || {});
   G = { players: [], target: st.tg, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, pus: [], inset: 0, wrapAllUntil: 0, parts: [], over: false, ff: false, speedMul: 1, clr: st.clr, rank: null };
@@ -2318,6 +2356,7 @@ function applyState(st, first) {
   if (st.r !== net.round || first) { net.round = st.r; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; }
   const prevPhase = G.phase;
+  G.pz = st.pz || null;
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
@@ -2359,7 +2398,7 @@ function clientTick() {
   const st = host && host.presence && host.presence[net.key || 'st'];
   if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) net.target = tg || net.target; return 'restarted'; }
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); const back = net.staleShown; if (back) { net.staleShown = false; showOverlay(null); } applyState(st); if (back && G.phase === 'end' && !G.over) showRoundBanner(); }
-    else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${nm} je zastao</h3><p>Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
+    else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
   else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
   else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   updateParts(1 / 60);
@@ -2426,7 +2465,7 @@ async function initSupabase() {
   let ch = null;
   const onSync = () => {
     const st = ch ? ch.presenceState() : {}; const seen = new Set();
-    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
+    for (const key in st) { const metas = st[key] || []; const pr = metas[metas.length - 1] || {}; if (pr.obs) continue; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg, ping: prev.presence.ping, pong: prev.presence.pong, sp: prev.presence.sp, dm: prev.presence.dm, tr: prev.presence.tr, fol: prev.presence.fol, vis: prev.presence.vis } : {}; if (prev && prev.presence.fastAt && Date.now() - prev.presence.fastAt < 5000) { for (const k of ['rd', 'again', 'ig', 'pl', 'watch']) if (k in prev.presence) fast[k] = prev.presence[k]; } peersMap[key] = mkPeer(key, Object.assign({}, pr, fast)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   };
@@ -2437,7 +2476,7 @@ async function initSupabase() {
   };
   // Match snapshots and inputs travel on a per-host channel, so only the players and
   // spectators of that match receive them (every broadcast is billed once per receiver).
-  const gchans = {}; let following = null;
+  const gchans = {}; let following = null, resendT = 0;
   const gname = (peer) => ROOM + '-g-' + peer;
   const gjoin = (peer) => { const n = gname(peer); if (gchans[n]) return gchans[n]; const g = { ch: sb.channel(n, { config: { broadcast: { self: false } } }), ok: false }; g.ch.on('broadcast', { event: 'p' }, onP); g.ch.subscribe((s) => { g.ok = s === 'SUBSCRIBED'; if ((s === 'CLOSED' || s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') && gchans[n] === g) { delete gchans[n]; try { sb.removeChannel(g.ch); } catch (e) {} } }); gchans[n] = g; return g; };
   const gleave = (peer) => { const n = gname(peer); const g = gchans[n]; if (g) { sb.removeChannel(g.ch); delete gchans[n]; } };
@@ -2471,12 +2510,12 @@ async function initSupabase() {
           own[k] = patch[k]; hasOwn = true;
           // the lobby only learns that a match is running (hs), not every frame of it
           if (k === 'st') { const on = patch[k] ? 1 : null; if ((lobbyPres.hs || null) !== on) { slow.hs = on; fast.hs = on; hasSlow = hasFast = true; } }
-        } else if (k === 'in' || k === 'j') { toHost[k] = patch[k]; hasToHost = true; }
-        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr') { fast[k] = patch[k]; hasFast = true; }
+        } else if (k === 'in' || k === 'j' || k === 'vis') { toHost[k] = patch[k]; hasToHost = true; }
+        else if (k === 're' || k === 'msg' || k === 'ping' || k === 'pong' || k === 'dm' || k === 'tr' || k === 'fol') { fast[k] = patch[k]; hasFast = true; }
         else { slow[k] = patch[k]; hasSlow = true; if (k === 'rd' || k === 'again' || k === 'ig' || k === 'pl' || k === 'watch') { fast[k] = patch[k]; hasFast = true; } }
       }
       if (hasOwn && connected) gsend(myPeer, own);
-      if (hasToHost && connected && following && following !== myPeer) gsend(following, toHost);
+      if (hasToHost && connected) { const to = following && following !== myPeer ? following : ('vis' in toHost && lobbyPres.hs ? myPeer : null); if (to) { gsend(to, toHost); if ('in' in toHost || 'j' in toHost) { const again = Object.assign({}, toHost); clearTimeout(resendT); resendT = setTimeout(() => { gsend(to, again); resendT = setTimeout(() => gsend(to, again), 250); }, 120); } } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) scheduleTrack(); }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
@@ -2550,6 +2589,15 @@ addEventListener('keydown', (e) => {
 addEventListener('keyup', (e) => { held[e.code] = false; if (net && net.role === 'client') clientInput(); });
 addEventListener('blur', () => { for (const k in held) held[k] = false; if (G && G.phase === 'run' && !net) togglePause(true); clientInput(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run' && !paused && !net) togglePause(true); });
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (!net || !G) return;
+  if (document.hidden) { hiddenAt = Date.now(); netPresence({ vis: 0 }); return; }
+  netPresence({ vis: 1 });
+  // the host's own snake: away longer than the limit means out of this round
+  if (net.role === 'host' && hiddenAt && Date.now() - hiddenAt > AWAY_MS && G.phase === 'run') { const me = G.players.find(p => p.mine); if (me) kill(me, null); }
+  hiddenAt = 0; lastTs = performance.now();
+});
 addEventListener('resize', () => { if (!$('#game').hidden && G) fitCanvas(); else if (!$('#menu').hidden) pvStart(); });
 $('#start').onclick = startGame;
 // a long press on the touch pads must not select text or open the callout menu
@@ -2574,6 +2622,7 @@ function renderTrollPop() {
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
 document.addEventListener('pointerdown', (e) => { const p = $('#trollPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'trollBtn') p.hidden = true; });
+$('#gchatX').onclick = (e) => { e.stopPropagation(); setChatOpen(false); };
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
 $('#chatBtn').onclick = () => setChatOpen(!chatOpen);
 document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });
