@@ -149,6 +149,17 @@ button.pu:hover { border-color: var(--line); }
 .chatrow button { border: 0; border-radius: 8px; background: var(--amber); color: #1a1205; font-weight: 700; padding: 0 14px; }
 #gchat { position: absolute; left: max(10px, env(safe-area-inset-left, 0px)); bottom: 10px; width: min(320px, 60%); pointer-events: auto; display: grid; gap: 4px; background: color-mix(in srgb, var(--ink) 75%, transparent); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
 #gchat .chatlog { max-height: 96px; font-size: 13px; }
+.iconbtn { position: relative; }
+.unread { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
+#reactPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; background: color-mix(in srgb, var(--ink) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 8px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+#reactPop[hidden] { display: none; }
+.rbtn { width: 46px; height: 46px; border-radius: 10px; border: 0; background: var(--panel); font-size: 26px; line-height: 1; display: grid; place-items: center; transition: transform .08s; }
+.rbtn:active { transform: scale(.88); }
+.rrow2 { display: flex; flex-wrap: wrap; gap: 4px; }
+.rrow2 .rbtn { width: 38px; height: 38px; font-size: 21px; }
+.chip .re { font-size: 17px; line-height: 1; animation: rePop .35s ease-out; }
+.peer .re { font-size: 20px; margin-left: 4px; animation: rePop .35s ease-out; }
+@keyframes rePop { from { transform: scale(.2); } 70% { transform: scale(1.35); } to { transform: scale(1); } }
 #gchat .chatrow input { padding: 6px 8px; font-size: 14px; }
 .notice { background: color-mix(in srgb, var(--all) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--all) 40%, var(--line)); border-radius: 8px; padding: 10px 12px; font-size: 14px; line-height: 1.4; }
 
@@ -314,12 +325,15 @@ button.pu:hover { border-color: var(--line); }
     <div class="hud">
       <div id="scores"></div>
       <span class="target" id="target"></span>
+      <button class="iconbtn netonly" id="reactBtn" aria-label="Brze reakcije" hidden>😀</button>
+      <button class="iconbtn netonly" id="chatBtn" aria-label="Chat" hidden>💬<span class="unread" id="unread" hidden></span></button>
       <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
       <button class="iconbtn" id="pauseBtn" aria-label="Pauza">II</button>
     </div>
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
       <div class="overlay" id="overlay"></div>
+      <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
       <div id="gchat" hidden><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
     <div class="pads" id="padsBottom" hidden></div>
@@ -1189,7 +1203,7 @@ function render() {
   for (const u of G.pus) {
     const P = POWERUPS[u.k], age = G.gt - u.born, c = PU_COLOR[P.t];
     const fade = age > 11 ? (Math.sin(age * 20) > 0 ? 1 : .35) : 1;
-    const pop = Math.min(1, age * 5);
+    const pop = Math.max(0.01, Math.min(1, age * 5));
     ctx.globalAlpha = fade;
     ctx.beginPath(); ctx.arc(u.x, u.y, 13 * pop, 0, 6.283);
     ctx.fillStyle = 'rgba(11,18,27,0.85)'; ctx.fill();
@@ -1232,6 +1246,22 @@ function render() {
       if (hint) { ctx.font = '600 12px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = 'rgba(233,239,246,0.75)'; ctx.fillText(hint, p.x, p.y + 24); }
     }
   }
+  const ui = Math.max(1, 0.85 / Math.max(0.05, (cv.clientWidth || W) / W)); // keep labels readable when the arena is shrunk
+  if (net) for (const p of G.players) {
+    const peer = peerOfPlayer(p); if (!peer) continue;
+    const r = reactionOf(peer), m = lastMsgOf(peer);
+    if (r) {
+      const k = (performance.now() - r.at) / 4500, pop = k < .08 ? k / .08 * 1.3 : k < .14 ? 1.3 - (k - .08) / .06 * .3 : 1;
+      ctx.globalAlpha = k > .8 ? (1 - k) / .2 : 1; ctx.font = `${Math.round(30 * ui * pop)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(r.e, p.x, p.y - (22 + 14 * ui) - k * 26 * ui); ctx.globalAlpha = 1;
+    }
+    if (m) {
+      const k = (performance.now() - m.t) / 4500, txt = m.text.length > 28 ? m.text.slice(0, 27) + '…' : m.text;
+      ctx.font = `600 ${Math.round(14 * ui)}px "Barlow Semi Condensed", sans-serif`; const bh = 22 * ui, w = ctx.measureText(txt).width + 12 * ui, x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, p.x)), y = p.y + (r ? 1 : -1) * (12 + bh);
+      ctx.globalAlpha = k > .85 ? (1 - k) / .15 : .95; ctx.fillStyle = '#e9eff6'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y - bh / 2, w, bh, 7 * ui) : ctx.rect(x - w / 2, y - bh / 2, w, bh); ctx.fill();
+      ctx.fillStyle = '#0b121b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x, y + 1); ctx.globalAlpha = 1;
+    }
+  }
   for (const q of G.parts) { ctx.globalAlpha = Math.max(0, q.life); ctx.fillStyle = q.c; ctx.fillRect(q.x - 1.6, q.y - 1.6, 3.2, 3.2); }
   ctx.globalAlpha = 1;
   if (G.toast && G.gt - G.toast.t < 1.2 && G.gt >= G.toast.t) {
@@ -1258,7 +1288,8 @@ function renderHud() {
   const box = $('#scores'); box.innerHTML = '';
   ranking().forEach(p => {
     const c = document.createElement('div'); c.className = 'chip' + (p.alive || G.phase === 'count' ? '' : ' dead');
-    c.innerHTML = `<span class="dot" style="background:${p.color}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}</span>`;
+    const rr = reactionOf(peerOfPlayer(p));
+    c.innerHTML = `<span class="dot" style="background:${p.color}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span>${rr ? '<span class="re">' + rr.e + '</span>' : ''}<span class="sc">${p.score}</span>`;
     box.appendChild(c);
   });
   $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
@@ -1326,7 +1357,9 @@ function buildPads() {
 }
 function localJump(p) { if (net && net.role === 'client') { net.jumpN++; clientInput(); } else tryJump(p); }
 function enterGame() {
-  $('#gchat').hidden = !net; if (net) { wireChat('#gchatIn', '#gchatSend'); renderChat(); }
+  document.querySelectorAll('.netonly').forEach(b => { b.hidden = !net; });
+  if (net) { buildReactPop(); wireChat('#gchatIn', '#gchatSend'); renderChat(); }
+  setChatOpen(chatOpen); $('#reactPop').hidden = true;
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
   cancelAnimationFrame(pvRAF);
   $('#menu').hidden = true; $('#game').hidden = false; $('#regModal').hidden = true;
@@ -1343,7 +1376,7 @@ function startGame() {
 function toMenu() {
   cancelAnimationFrame(raf); paused = false; G = null;
   if (net) { if (net.role === 'host') netPresence({ st: null }); net = null; }
-  $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true;
+  $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true; $('#reactPop').hidden = true;
   renderPlayers(); renderMe(); renderShop(); pvStart(); if (curTab === 'online') renderNet();
 }
 function togglePause(force) {
@@ -1436,11 +1469,12 @@ function renderNet() {
     html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span></div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer"><span class="dot" style="background:${c}"></span><span>${esc(String(pr.nm || 'Bez imena'))}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span></div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „Lokalna igra”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
-  html.push(`<div class="chat"><span class="label">Chat</span><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
+  html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
   wireChat('#lchatIn', '#lchatSend'); renderChat();
+  document.querySelectorAll('#lreact .rbtn').forEach(b => b.onclick = () => sendReaction(b.dataset.e));
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
   if ($('#netStart')) $('#netStart').onclick = hostStart;
@@ -1449,6 +1483,26 @@ function renderNet() {
 }
 // chat over presence: {msg:[text, counter, time]} — the newest message per person is visible to everyone in the room
 const chatLog = []; const chatSeen = {}; let chatN = 0;
+const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🍆', '🍑', '🖕', '👏', '🥳', '😈'];
+const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
+let chatOpen = !IS_TOUCH, unread = 0;
+function sendReaction(e) {
+  if (!roomNs || !REACTIONS.includes(e)) return;
+  const now = performance.now(); if (now - lastReactAt < 700) return; lastReactAt = now;
+  reactN++; netPresence({ re: [e, reactN, Date.now()] });
+  if (roomState.me) { reacts[roomState.me] = { e, at: performance.now() }; reactSeen[roomState.me] = reactN; hudDirty = true; renderNetPeersSoon(); }
+}
+function reactionOf(peer) { const r = peer && reacts[peer]; return r && performance.now() - r.at < 4500 ? r : null; }
+function peerOfPlayer(p) { if (!net) return null; if (net.role === 'host') return p.remote || (p.mine ? roomState.me : null); return p.peerId || p.remote || null; }
+function lastMsgOf(peer) { for (let i = chatLog.length - 1; i >= 0; i--) { const m = chatLog[i]; if (m.peer === peer) return performance.now() - m.t < 4500 ? m : null; } return null; }
+let netPeersTimer = 0;
+function renderNetPeersSoon() { if (netPeersTimer || $('#menu').hidden || curTab !== 'online') return; netPeersTimer = setTimeout(() => { netPeersTimer = 0; renderNet(); }, 120); }
+function buildReactPop() {
+  const pop = $('#reactPop'); if (pop.childElementCount) return;
+  REACTIONS.forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rbtn'; b.textContent = e; b.setAttribute('aria-label', 'Reakcija ' + e); b.onclick = () => { sendReaction(e); pop.hidden = true; }; pop.appendChild(b); });
+}
+function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; } updateUnread(); }
+function updateUnread() { const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
   text = String(text || '').trim().slice(0, 80); if (!text || !roomNs) return;
   chatN++; netPresence({ msg: [text, chatN, Date.now()] });
@@ -1466,9 +1520,20 @@ function collectChat() {
     if (!Array.isArray(m) || typeof m[0] !== 'string') continue;
     const key = p.peer; if (chatSeen[key] === m[1]) continue;
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
-    chatLog.push({ name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), me: p.isMe && p.sameTab, at: Date.now() });
-    changed = true;
+    chatLog.push({ name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), me: p.isMe && p.sameTab, at: Date.now(), t: performance.now(), peer: key });
+    changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
+  for (const p of roomState.peers) {
+    const r = p.presence && p.presence.re;
+    if (!Array.isArray(r) || !REACTIONS.includes(r[0])) continue;
+    if (reactSeen[p.peer] === r[1]) continue;
+    const first = !(p.peer in reactSeen); reactSeen[p.peer] = r[1];
+    if (first && Date.now() - (Number(r[2]) || 0) > 8000) continue;
+    reacts[p.peer] = { e: r[0], at: performance.now() }; hudDirty = true; renderNetPeersSoon();
+    if (!$('#game').hidden && !(p.isMe && p.sameTab)) beep(760, .06, 'triangle', .04);
+    setTimeout(() => { hudDirty = true; renderNetPeersSoon(); }, 4600);
+  }
+  updateUnread();
   if (chatLog.length > 40) chatLog.splice(0, chatLog.length - 40);
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
@@ -1627,7 +1692,7 @@ async function initSupabase() {
   const ch = sb.channel('vijuga-lobby', { config: { presence: { key: myPeer }, broadcast: { self: false } } });
   ch.on('presence', { event: 'sync' }, () => {
     const st = ch.presenceState(); const seen = new Set();
-    for (const key in st) { const pr = st[key][0] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j } : {}; peersMap[key] = mkPeer(key, Object.assign({}, fast, pr)); }
+    for (const key in st) { const pr = st[key][0] || {}; seen.add(key); const prev = peersMap[key]; const fast = prev ? { st: prev.presence.st, in: prev.presence.in, j: prev.presence.j, re: prev.presence.re, msg: prev.presence.msg } : {}; peersMap[key] = mkPeer(key, Object.assign({}, fast, pr)); }
     for (const key in peersMap) if (!seen.has(key) && key !== myPeer) delete peersMap[key];
     fire();
   });
@@ -1642,7 +1707,7 @@ async function initSupabase() {
   roomNs = {
     async presence(patch) {
       const fast = {}, slow = {}; let hasFast = false, hasSlow = false;
-      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; } }
+      for (const k in patch) { if (k === 'st' || k === 'in' || k === 'j' || k === 're' || k === 'msg') { fast[k] = patch[k]; hasFast = true; } else { slow[k] = patch[k]; hasSlow = true; } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) { clearTimeout(trackTimer); trackTimer = setTimeout(() => ch.track(Object.assign({}, lobbyPres)), 60); } }
       if (hasFast && connected) ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {});
@@ -1715,6 +1780,9 @@ addEventListener('blur', () => { for (const k in held) held[k] = false; if (G &&
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run' && !paused && !net) togglePause(true); });
 addEventListener('resize', () => { if (!$('#game').hidden && G) fitCanvas(); else if (!$('#menu').hidden) pvStart(); });
 $('#start').onclick = startGame;
+$('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
+$('#chatBtn').onclick = () => setChatOpen(!chatOpen);
+document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });
 $('#pauseBtn').onclick = () => { if (net && net.role === 'client') { showOverlay(`<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div></div>`); $('#resumeBtn').onclick = () => showOverlay(null); $('#quitBtn').onclick = () => leaveOnline(); } else togglePause(); };
 $('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').style.opacity = soundOn ? 1 : .4; try { localStorage.setItem('vijuga-sound', soundOn ? '1' : '0'); } catch (e) {} };
 $('#soundBtn').style.opacity = soundOn ? 1 : .4;
