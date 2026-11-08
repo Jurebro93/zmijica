@@ -60,6 +60,24 @@ button:disabled { cursor: default; opacity: .5; }
 @keyframes livePulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 70%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 .onp { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; font-weight: 600; }
 .onp .st { color: var(--muted); font-size: 12px; font-weight: 500; }
+.meetbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 8px 10px; background: var(--ink); border: 1px solid var(--line); border-radius: 10px; }
+.meetbar .mt { flex: 1 1 220px; min-width: 0; font-size: 15px; }
+.meetbar .ms { color: var(--muted); }
+.meetbar .ms b { color: var(--amber); }
+.btn.wa { background: #25d366; color: #062b14; text-decoration: none; display: inline-flex; align-items: center; }
+.mday { display: grid; gap: 6px; }
+.mchips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.mchip { background: var(--ink); border: 1px solid var(--line); border-radius: 9px; padding: 6px 2px; display: grid; justify-items: center; gap: 2px; color: var(--fg); min-height: 54px; }
+.mchip b { font-size: 16px; }
+.mchip small { font-size: 11px; color: var(--amber); font-weight: 700; min-height: 13px; }
+.mchip.on { border-color: var(--amber); background: rgba(255,181,71,.16); }
+.mchip:disabled { opacity: .35; }
+.mdots { display: flex; gap: 2px; min-height: 7px; }
+.mdots i, .mwho i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.mpeople { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; }
+.mwho { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.mwho small { color: var(--muted); font-weight: 500; }
+.meetbest { font-size: 15px; } .meetbest b { color: var(--amber); }
 .onhero .recent { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
 .onhero .recent .rl { color: var(--muted); font-size: 13px; font-weight: 600; margin-right: 2px; }
 .onp.rec { opacity: .92; }
@@ -1674,6 +1692,78 @@ function recentPlayers(onlineSlugs) {
   const me = profile ? profile.slug : '', week = Date.now() - 7 * 86400000;
   return accounts.list.filter(a => a.slug && a.slug !== me && !onlineSlugs.has(a.slug) && Number(a.updatedAt) > week).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
 }
+// ---------- "when do we meet?" poll ----------
+const MEET_API = 'https://vijuga.netlify.app/api/meet';
+const MEET_HOURS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+const meet = { votes: {}, loaded: false, timers: {} };
+const zDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb' }).format(t);
+const zHour = () => Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zagreb', hour: '2-digit', hour12: false }).format(Date.now())) % 24;
+function meetDays() { return [zDay(Date.now()), zDay(Date.now() + 86400000)]; }
+async function loadMeet() {
+  try { const r = await fetch(MEET_API + '?days=' + meetDays().join(','), { cache: 'no-store' }); if (!r.ok) return; const j = await r.json(); meet.votes = j.votes || {}; meet.loaded = true; renderOnbar(); if (!$('#regModal').hidden && $('#meetForm')) showMeet(); } catch (e) {}
+}
+setTimeout(loadMeet, 1500); setInterval(loadMeet, 60000);
+function meetCounts(day) {
+  const c = {}; for (const v of meet.votes[day] || []) for (const h of v.slots || []) (c[h] ||= []).push(v);
+  return c;
+}
+function meetBest() {
+  const [today, tomorrow] = meetDays(), now = zHour();
+  for (const [day, label] of [[today, 'danas'], [tomorrow, 'sutra']]) {
+    const c = meetCounts(day); let best = null;
+    for (const h of MEET_HOURS) { if (day === today && h < now) continue; const n = (c[h] || []).length; if (n && (!best || n > best.n)) best = { h, n, who: c[h], day, label }; }
+    if (best) return best;
+  }
+  return null;
+}
+const MEET_JOKES = [
+  (t, w) => `🐍 Vijuga ${t}! ${w} Tko zakasni, dobiva 💩 kakice na ekran. Glasaj kad ti paše:`,
+  (t, w) => `⚡ Službeni poziv na Vijugu ${t}. ${w} Ne dođeš li, bot preuzima tvoje ime i sramoti te 🤖`,
+  (t, w) => `📯 TUUUT! Zmije se sudaraju ${t}. ${w} Ponesi živce i zlatnike za zezancije:`,
+  (t, w) => `🙃 ${t} igramo Vijugu. ${w} Tko ne dođe, gleda arenu naglavačke cijeli tjedan:`,
+  (t, w) => `🌑 Mrak pada ${t}, a s njim i tvoj rezultat. ${w} Dođi na Vijugu:`,
+];
+function meetShareText(best) {
+  const t = best ? `${best.label} u ${best.h}:00` : 'večeras';
+  const w = best ? `Već nas je ${best.n}: ${best.who.map(v => v.name).join(', ')}.` : 'Reci kad si slobodan!';
+  return MEET_JOKES[Math.floor(Math.random() * MEET_JOKES.length)](t, w) + ' ' + GAME_URL;
+}
+function meetWaLink(best) { return 'https://wa.me/?text=' + encodeURIComponent(meetShareText(best)); }
+function myMeetSlots(day) { const v = (meet.votes[day] || []).find(x => profile && x.slug === profile.slug); return v ? v.slots.slice() : []; }
+function toggleMeet(day, h) {
+  if (!profile) { showLogin(); return; }
+  const list = (meet.votes[day] ||= []); let v = list.find(x => x.slug === profile.slug);
+  if (!v) { v = { slug: profile.slug, name: profile.name, color: profile.color, slots: [], at: Date.now() }; list.push(v); }
+  v.slots = v.slots.includes(h) ? v.slots.filter(x => x !== h) : [...v.slots, h].sort((a, b) => a - b);
+  if (!v.slots.length) meet.votes[day] = list.filter(x => x !== v);
+  showMeet(); renderOnbar();
+  clearTimeout(meet.timers[day]);
+  meet.timers[day] = setTimeout(async () => {
+    try { const r = await fetch(MEET_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, day, slots: myMeetSlots(day), auth: profile.pinHash || '' }) }); if (!r.ok) toast('Glas nije spremljen. Pokušaj ponovno.'); else toast('Glas spremljen ✓'); } catch (e) { toast('Nema veze, glas nije spremljen.'); }
+  }, 700);
+}
+function showMeet() {
+  if (!profile) { showLogin(); return; }
+  const m = $('#regModal'); m.hidden = false;
+  const [today, tomorrow] = meetDays(), now = zHour(), best = meetBest();
+  const dayBlock = (day, label) => {
+    const c = meetCounts(day), mine = myMeetSlots(day);
+    const chips = MEET_HOURS.map(h => { const past = day === today && h < now, who = c[h] || [], on = mine.includes(h);
+      return `<button type="button" class="mchip ${on ? 'on' : ''}" data-day="${day}" data-h="${h}" ${past ? 'disabled' : ''} title="${esc(who.map(v => v.name).join(', '))}"><b>${h}h</b><span class="mdots">${who.slice(0, 5).map(v => `<i style="background:${COLORS[Number(v.color)] || COLORS[0]}"></i>`).join('')}</span><small>${who.length ? who.length : ''}</small></button>`; }).join('');
+    const people = (meet.votes[day] || []).map(v => `<span class="mwho"><i style="background:${COLORS[Number(v.color)] || COLORS[0]}"></i>${esc(v.name)} <small>${v.slots.map(h => h + 'h').join(', ')}</small></span>`).join('');
+    return `<div class="mday"><span class="label">${label}</span><div class="mchips">${chips}</div>${people ? `<div class="mpeople">${people}</div>` : ''}</div>`;
+  };
+  m.innerHTML = `<form class="profile" id="meetForm" novalidate onsubmit="return false">
+    <h3>Kad ćemo se naći?</h3>
+    <p class="hint" style="margin:0">Dodirni sate u kojima si slobodan (možeš više). Svi vide glasove, pa se lakše dogovorite.</p>
+    ${dayBlock(today, 'Danas')}${dayBlock(tomorrow, 'Sutra')}
+    <div class="meetbest">${best ? `Najviše glasova: <b>${best.label} u ${best.h}:00</b> (${best.n}: ${esc(best.who.map(v => v.name).join(', '))})` : 'Još nitko nije glasao. Budi prvi!'}</div>
+    <div class="row"><a class="btn wa" id="meetWa" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Šaljiva pozivnica na WhatsApp</a><button class="btn ghost" type="button" id="meetClose">Zatvori</button></div>
+  </form>`;
+  m.querySelectorAll('.mchip').forEach(b => b.onclick = () => toggleMeet(b.dataset.day, Number(b.dataset.h)));
+  $('#meetClose').onclick = () => { m.hidden = true; };
+  $('#meetWa').onclick = () => { setTimeout(() => { const a = $('#meetWa'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
+}
 function renderOnbar() {
   const bar = $('#onbar'); if (!bar) return;
   if (!roomNs) { bar.className = 'onhero empty'; bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><span>${roomState.resolved ? 'Online soba trenutno nije dostupna.<small>Osvježi stranicu za novi pokušaj. Do tada možeš igrati s botovima.</small>' : 'Spajanje na online sobu…'}</span></div></div>`; renderBotNote(0); return; }
@@ -1694,7 +1784,11 @@ function renderOnbar() {
   const second = !n ? `<button class="btn ghost" type="button" id="heroInvite">Pozovi prijatelje</button><button class="btn ghost" type="button" id="heroBots">Igraj s botovima</button>` : '';
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
   const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
+  const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button><a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${meetHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  $('#meetBtn').onclick = () => showMeet();
+  $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
   if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (!net) hostStart(); };
