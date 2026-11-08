@@ -1632,6 +1632,12 @@ let W = 1000, H = 650, GW, GH, owner, stampT, T = 0;
 let G = null; // match
 let raf = 0, lastTs = 0, acc = 0, paused = false;
 const held = {};
+// online, my own snake always uses the first key set (arrows), whatever its colour slot
+function keysOf(p) { return KEYS[net && p.mine ? 0 : p.id] || KEYS[0]; }
+// leaving the window or app must release every key and pad, or the snake keeps turning
+function releaseAll() { for (const k in held) held[k] = false; if (G && G.players) G.players.forEach(p => { p.touchL = p.touchR = false; }); document.querySelectorAll('.pad.on').forEach(b => b.classList.remove('on')); if (net && net.role === 'client') clientInput(); }
+addEventListener('blur', releaseAll);
+document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
 let net = null; // null | {role:'host'|'client', ...}
 
 function newMatch(netPlayers) {
@@ -1893,7 +1899,7 @@ function flushTrail(p, keepLast) {
 // ---------- input ----------
 function humanIn(p) {
   if (p.remote) return p.remoteIn || 0;
-  const k = KEYS[p.id];
+  const k = keysOf(p);
   const v = ((held[k.r] || p.touchR) ? 1 : 0) - ((held[k.l] || p.touchL) ? 1 : 0);
   return mirrorOn() ? -v : v;
 }
@@ -2380,7 +2386,7 @@ function controlHint(p) {
   const humans = G.players.filter(q => q.human && !q.remote);
   const idx = humans.indexOf(p);
   if (IS_TOUCH && idx >= 0 && idx < 2) return idx === 0 ? 'dodir dolje  ◀ ▶' : 'dodir gore  ◀ ▶';
-  const k = KEYS[p.id]; return `${k.txt[0]}  ${k.txt[1]}   skok ${k.txt[2]}`;
+  const k = keysOf(p); return `${k.txt[0]}  ${k.txt[1]}   skok ${k.txt[2]}`;
 }
 function showOverlay(html) { $('#overlay').innerHTML = html || ''; }
 const PAD_ICONS = {
@@ -3450,8 +3456,8 @@ addEventListener('keydown', (e) => {
     if (e.code === 'Space') { if (G && G.phase === 'end' && !G.over) nextRound(); return; }
     held[e.code] = true;
     if (G && !paused && !e.repeat) {
-      if (net && net.role === 'client') { if (KEYS[0].j === e.code) { net.jumpN++; } clientInput(); }
-      else G.players.forEach(p => { if (p.human && !p.remote && KEYS[p.id].j === e.code) tryJump(p); });
+      if (net && net.role === 'client') { const me = G.players.find(x => x.id === net.myId); if (KEYS[0].j === e.code && me) localJump(me); else clientInput(); }
+      else G.players.forEach(p => { if (p.human && !p.remote && keysOf(p).j === e.code) tryJump(p); });
     }
     return;
   }
