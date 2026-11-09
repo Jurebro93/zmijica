@@ -2670,8 +2670,8 @@ function renderReady() {
     const enough = present.length + queued >= 2 || (setup.netBots && present.length >= 1);
     const hint = $('#readyHint'); if (hint) hint.textContent = enough ? '' : 'Za novu igru trebaju barem 2 igrača (ili uključi „dopuni botovima” u predvorju).';
     const readyN = present.filter(r => r.ready).length; if (readyN && !net.firstReadyAt) net.firstReadyAt = performance.now(); if (!readyN) net.firstReadyAt = 0;
-    const waitedLong = readyN >= 2 && net.firstReadyAt && performance.now() - net.firstReadyAt > 25000;
-    if (hint && readyN && !present.every(r => r.ready)) hint.textContent = waitedLong ? '' : `Čekamo još: ${present.filter(r => !r.ready).map(r => r.name).join(', ')} (kreće samo za ${Math.max(0, Math.ceil((25000 - (performance.now() - net.firstReadyAt)) / 1000))} s)`;
+    const waitedLong = false;
+    if (hint && readyN && !present.every(r => r.ready)) hint.textContent = `Čekamo još: ${present.filter(r => !r.ready).map(r => r.name).join(', ')}`;
     if (enough && (present.every(r => r.ready) || waitedLong) && !net.rematching) { net.rematching = true; setTimeout(() => { if (net && net.role === 'host' && G && G.over) hostStart(true); }, 800); }
   }
 }
@@ -2800,7 +2800,7 @@ function renderOnbar() {
     : 'Uđi u predvorje i pozovi ih, puno je zabavnije od botova.';
   const label = n === 0 ? 'Samo ti si online' : n === 1 ? '1 igrač online uz tebe' : `${n} igrača online uz tebe`;
   const mainBtn = !profile ? `<button class="btn go-online" type="button" id="goOnlineBtn">Prijavi se i igraj online</button>`
-    : roomState.ready && !hostOther && inLobby ? `<button class="btn go-online join" type="button" id="startNowBtn">Pokreni meč (${inLobby + 1} igrača)</button>`
+    : roomState.ready && !hostOther && inLobby ? `<button class="btn go-online join" type="button" id="startNowBtn">${myPres.ok ? '⏳ Spreman si · čekamo ostale' : '✅ Spreman za meč'} (${readyCount()}/${inLobby + 1})</button>`
     : roomState.ready && !hostOther ? `<button class="btn go-online" type="button" id="goOnlineBtn">U predvorju si ✓</button>`
     : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? '🌐 Priključi se meču' : '🌐 Igraj online'}</button>`;
   const second = `<button class="btn go-bots" type="button" id="heroBots">🤖 S botovima</button>${!n ? '<button class="linkbtn" type="button" id="heroInvite">📲 Pozovi prijatelje</button>' : ''}`;
@@ -2816,7 +2816,7 @@ function renderOnbar() {
   $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
-  if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (net) return; if (invitePendingList().length && !social.forceNow) { social.autoStart = true; social.forceNow = true; setTimeout(() => { social.forceNow = false; }, 8000); notify(`Čekam da odgovore na poziv: <b>${invitePendingList().map(x => esc(x)).join(', ')}</b>. Meč kreće sam čim svi odgovore (klikni opet za start bez njih).`, { ms: 7000 }); return; } social.autoStart = false; social.accepted = []; hostStart(); };
+  if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (net) return; toggleReady(); };
   if ($('#goOnlineBtn')) $('#goOnlineBtn').onclick = () => {
     if (!profile) { showLogin(); return; }
     goOnlineLobby();
@@ -3196,7 +3196,7 @@ function tryWatchSlug() {
   if (pe && pe.presence.ig) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { tryWatchSlug.done = true; startSpectate(h.peer); } }
 }
 setTimeout(() => { if (WATCH_SLUG && !tryWatchSlug.done) { tryWatchSlug.done = true; notify('Taj igrač trenutno ne igra. Pogledaj tko je online gore.', { warn: true }); } }, 9000);
-function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 })); renderNet(); renderOnbar(); }
+function joinLobby(ready) { roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 }, ready ? {} : { ok: null })); renderNet(); renderOnbar(); }
 // ---- invites: the inviter starts the match only after everyone invited has answered (accept / decline / 60 s timeout)
 const INVITE_MS = 60000;
 function invitePending(peer) { const t = social.pingSent[peer]; return !!t && performance.now() - t < INVITE_MS && roomState.peers.some(p => p.peer === peer); }
@@ -3213,9 +3213,33 @@ function inviteTick() {
   const h = findHost(); if (h && !(h.isMe && h.sameTab)) { social.autoStart = false; social.accepted = []; return; }
   if (!roomState.ready) { joinLobby(true); return; }
   social.autoStart = false; social.accepted = [];
-  if (arrived.length) hostStart();
+  if (arrived.length) { notify('Svi pozvani su u predvorju. Kad svi stisnu <b>Spreman</b>, meč kreće.', { ms: 8000 }); renderNet(); }
 }
 setInterval(inviteTick, 1000);
+// ---- "everyone presses Ready": the match starts by itself when every player in the lobby is ready
+function lobbyPlayers() { const seen = new Set(); return roomState.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.rd && p.presence.nm && p.presence.pg !== 'stats' && !p.presence.obs).filter(p => { const k = p.presence.sl || p.peer; if (seen.has(k)) return false; seen.add(k); return true; }); }
+function readyCount() { return lobbyPlayers().filter(p => p.presence.ok).length; }
+function toggleReady() {
+  if (!profile) { showLogin(); return; }
+  if (!roomState.ready) joinLobby(true);
+  const on = !myPres.ok; netPresence({ ok: on ? 1 : null });
+  if (on) { const n = lobbyPlayers().length, k = readyCount(); toast(k >= n ? 'Svi spremni – meč kreće!' : `Spreman si (${k}/${n}). Čekamo ostale…`); }
+  renderOnbar(); if (curTab === 'online') renderNet();
+}
+let allReadySince = 0;
+function lobbyTick() {
+  if (net || !roomState.ready || !$('#game').hidden || !profile || TMODE) { allReadySince = 0; return; }
+  if (findHost()) { allReadySince = 0; return; }
+  const lp = lobbyPlayers(); const n = lp.length, k = lp.filter(p => p.presence.ok).length;
+  const enough = n >= 2 || (n >= 1 && setup.netBots);
+  if (!enough || k < n) { allReadySince = 0; return; }
+  if (!allReadySince) allReadySince = performance.now();
+  if (performance.now() - allReadySince < 1200) return; // a moment of calm so everyone's flag has arrived
+  // the one who has waited in the lobby longest hosts (same answer on every device)
+  const starter = [...lp].sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1))[0];
+  if (starter && starter.isMe && starter.sameTab) { allReadySince = 0; hostStart(); }
+}
+setInterval(lobbyTick, 500);
 function findHost() {
   const hosts = roomState.peers.filter(p => p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs)).sort((a, b) => a.peer < b.peer ? -1 : 1);
   return hosts[0] || null;
@@ -3234,12 +3258,12 @@ function renderNet() {
   const host = findHost();
   const readyPeers = peers.filter(p => p.presence && p.presence.rd);
   const html = [];
-  html.push(`<div class="status"><span class="led ${roomState.connected ? 'on' : ''}"></span>${roomState.connected ? 'Povezano' : 'Nema veze'} · ${peers.length} u sobi · ${readyPeers.length} spremno</div>`);
+  html.push(`<div class="status"><span class="led ${roomState.connected ? 'on' : ''}"></span>${roomState.connected ? 'Povezano' : 'Nema veze'} · ${readyPeers.length} u predvorju · ${readyPeers.filter(p => p.presence.ok).length} spremno${roomState.ready && !host ? ' · meč kreće kad svi u predvorju stisnu „Spreman”' : ''}</div>`);
   if (host) {
     html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
-  html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn" id="netStart" ${readyPeers.length < 1 ? 'disabled' : ''}>Pokreni meč</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd ? 'spreman' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn ${myPres.ok ? 'ghost' : ''}" id="netStart">${myPres.ok ? '⏳ Spreman · odustani' : '✅ Spreman za meč'}</button>` : ''}${roomState.ready && !host && myRole() === 'master' ? `<button class="btn ghost sm" id="netForce" title="Admin: pokreni bez čekanja">▶ Pokreni odmah</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „S botovima”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   box.innerHTML = html.join('');
@@ -3248,7 +3272,8 @@ function renderNet() {
   document.querySelectorAll('#lreact .rbtn').forEach(b => b.onclick = () => sendReaction(b.dataset.e));
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
-  if ($('#netStart')) $('#netStart').onclick = hostStart;
+  if ($('#netStart')) $('#netStart').onclick = toggleReady;
+  if ($('#netForce')) $('#netForce').onclick = () => { if (!net) hostStart(); };
   if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; joinHost(host); };
   $('#netBots').onchange = (e) => { setup.netBots = e.target.checked; saveSetup(); };
 }
@@ -3432,7 +3457,7 @@ function hostStart(rematch) {
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; else toast('Trebaju barem 2 igrača u predvorju, ili uključi botove.'); return; }
   { const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 1).filter(r => r > 0.3 && r < 3); netRatio = Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / Math.max(1, rs.length)))); }
   net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36) };
-  netPresence({ again: null, rd: 1, pls: players.filter(p => p.human && p.slug).map(p => p.slug) }); roomState.ready = true;
+  netPresence({ again: null, ok: null, rd: 1, pls: players.filter(p => p.human && p.slug).map(p => p.slug) }); roomState.ready = true;
   $('#menu').hidden = true; $('#game').hidden = false;
   G = { players: players.filter(p => p.mine) }; buildPads();
   newMatch(players); buildPads(); enterGame(); hostSend(true);
@@ -3503,7 +3528,7 @@ function clientBegin(host, key = 'st', spectate = false) {
   if (net && net.role === 'client') return;
   const st = host.presence[key]; if (!st) return;
   net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid, key, spectate, target: spectate ? host.peer : null };
-  if (!spectate) netPresence({ again: null, vis: 1 });
+  if (!spectate) netPresence({ again: null, ok: null, vis: 1 });
   if (!spectate && myPres.rd && !(st.pl || []).some(q => q.rm === roomState.me)) { roomState.rqAt = Date.now(); netPresence({ rq: roomState.rqAt }); }
   if (!net.savedSetup) net.savedSetup = Object.assign({}, setup);
   Object.assign(setup, st.s || {});
