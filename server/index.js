@@ -20,14 +20,7 @@ const MAX_MSG = 700_000; // bytes; voice messages can reach a few hundred kB on 
 const TRANSIENT = new Set(["msg", "re", "ping", "pong", "dm", "bt"]); // relayed, never kept in presence
 const IDENTITY = ["sl", "nm", "st", "hs", "pls", "pmid", "cl"]; // a direct message may not forge who the sender is or what match they host
 const MAX_PRES = 64_000; // bytes; a presence patch without a transient key (chat/voice) is lobby state and must stay small
-const RATE_BURST = 150, RATE_PER_SEC = 60; // per connection: a host sends ~15 snapshots + inputs per second
-
-// an old connection answers a ping within a few seconds; a zombie (phone asleep, network changed) does not
-const alive = (ws, ms = 3000) => new Promise((ok) => {
-  if (ws.readyState !== 1) return ok(false);
-  let done = false; const fin = (v) => { if (!done) { done = true; ws.off("pong", onPong); ok(v); } }; const onPong = () => fin(true);
-  ws.once("pong", onPong); try { ws.ping(); } catch { fin(false); } setTimeout(() => fin(false), ms);
-});
+const RATE_BURST = 600, RATE_PER_SEC = 200; // per connection; a host sends ~20 messages a second, so only a real flood is throttled
 
 /** @type {Map<string, Map<string, {ws: import('ws').WebSocket, presence: Record<string, unknown>, following: string|null, alive: boolean}>>} */
 const rooms = new Map();
@@ -56,25 +49,23 @@ wss.on("connection", (ws) => {
   let roomName = null, peer = null;
   ws.isAlive = true;
   ws.on("pong", () => { ws.isAlive = true; });
-  let tokens = RATE_BURST, lastFill = Date.now(), joining = false;
-  ws.on("message", async (buf) => {
+  let tokens = RATE_BURST, lastFill = Date.now();
+  ws.on("message", (buf) => {
     let m; try { m = JSON.parse(buf.toString()); } catch { return; }
     if (!m || typeof m !== "object") return;
     const now = Date.now(); tokens = Math.min(RATE_BURST, tokens + (now - lastFill) / 1000 * RATE_PER_SEC); lastFill = now;
     if (tokens < 1) return; tokens--; // flooding peers are throttled, not relayed
     msgCount++;
     if (m.t === "hi") {
-      if (roomName || joining) return;
+      if (roomName) return;
       if (!ROOM_RE.test(String(m.room)) || !PEER_RE.test(String(m.peer))) { send(ws, { t: "err", e: "bad hi" }); ws.close(); return; }
+      // The newest connection of a peer id always wins, at once. A phone that comes back from the background often
+      // opens its new socket while the old one still looks alive; making the newcomer wait (or refusing it) left a
+      // "zombie" entry in the room: a phantom host nobody could join, a player whose inputs never arrived, a ready
+      // flag that never changed.
       const room = roomOf(m.room);
       const old = room.get(m.peer);
-      if (old && old.ws !== ws) {
-        // the peer id is public, so a newcomer may only replace a connection that no longer answers (the player's own reconnect)
-        joining = true; const stillThere = await alive(old.ws); joining = false;
-        if (ws.readyState !== 1) return;
-        if (stillThere && room.get(m.peer) === old) { send(ws, { t: "err", e: "taken" }); ws.close(); return; }
-        try { old.ws.close(); } catch {}
-      }
+      if (old && old.ws !== ws) { try { old.ws.close(); } catch {} }
       roomName = m.room; peer = m.peer;
       room.set(peer, { ws, presence: (old && old.presence) || {}, following: null, alive: true });
       send(ws, { t: "hello", peer, now: Date.now() });
@@ -87,14 +78,11 @@ wss.on("connection", (ws) => {
     if (m.t === "pres" && m.patch && typeof m.patch === "object") {
       if (buf.length > MAX_PRES && !Object.keys(m.patch).some((k) => TRANSIENT.has(k))) return;
       for (const k in m.patch) { if (TRANSIENT.has(k)) continue; if (m.patch[k] === null) delete me.presence[k]; else me.presence[k] = m.patch[k]; }
-      // the same account on a new connection (reload, network change): the old connection is a ghost -> drop it,
-      // but only once it has stopped answering, so nobody can kick a live player just by claiming their slug
+      // the same account on a new connection (reload, network change, second tab): the old connection is a ghost -> drop it
+      // at once. The game relies on one live connection per account; two of them made lobby flags (ready, host) ambiguous.
       const sl = typeof m.patch.sl === "string" ? m.patch.sl : null;
       if (sl && me.presence.pg !== "stats" && !me.presence.obs) {
-        for (const [k, o] of [...room]) if (k !== peer && o.presence.sl === sl && o.presence.pg !== "stats" && !o.presence.obs && !o.checking) {
-          o.checking = true;
-          alive(o.ws).then((there) => { o.checking = false; if (there || room.get(k) !== o || room.get(peer) !== me) return; send(o.ws, { t: "replaced" }); setTimeout(() => { try { o.ws.close(4001, "replaced"); } catch {} }, 50); room.delete(k); for (const q of room.values()) send(q.ws, { t: "bye", peer: k }); });
-        }
+        for (const [k, o] of [...room]) if (k !== peer && o.presence.sl === sl && o.presence.pg !== "stats" && !o.presence.obs) { send(o.ws, { t: "replaced" }); setTimeout(() => { try { o.ws.close(4001, "replaced"); } catch {} }, 50); room.delete(k); for (const q of room.values()) send(q.ws, { t: "bye", peer: k }); }
       }
       const out = JSON.stringify({ t: "p", peer, patch: m.patch });
       for (const [k, o] of room) if (k !== peer && o.ws.readyState === 1) o.ws.send(out);
