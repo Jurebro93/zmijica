@@ -2270,6 +2270,16 @@ function render() {
     if (me && me.alive && G.phase === 'run') { const rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt); const mir = mirrorOn();
       if (rv || mir) { const left = rv ? Math.ceil(rv.until - G.gt) : Math.ceil((mirrorUntil - performance.now()) / 1000); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `400 ${Math.round(Math.min(W, H) * 0.055)}px Bungee, Impact, sans-serif`; ctx.fillStyle = 'rgba(11,18,27,.7)'; const tw = Math.min(W, H) * 0.62; ctx.fillRect(W / 2 - tw / 2, H * 0.06, tw, Math.min(W, H) * 0.09); ctx.fillStyle = '#ff5d73'; ctx.fillText(`⇄ OBRNUTE KONTROLE · ${Math.max(1, left)} s`, W / 2, H * 0.06 + Math.min(W, H) * 0.045); ctx.restore(); } } }
   if (G.rings && G.rings.length) { const now = performance.now(); G.rings = G.rings.filter(r => now - r.t0 < 450); for (const r of G.rings) { const k = (now - r.t0) / 450; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, 6 + 34 * k, 0, 6.283); ctx.stroke(); ctx.restore(); } }
+  { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
+    if (me && me.alive && G.phase === 'run') {
+      const PUN = { fast: ['»', 'Brzina'], slow: ['«', 'Usporenje'], thin: ['—', 'Tanki trag'], ghost: ['○', 'Duh'], wrap: ['□', 'Bez zidova'], thick: ['●', 'Debeli trag'], reverse: ['⇄', 'Obrnuto'], square: ['┐', 'Kutovi'], sharp: ['↺', 'Oštro'], wide: ['◡', 'Tromo'] };
+      const list = me.fx.filter(f => f.until > G.gt && PUN[f.k]).map(f => ({ k: f.k, left: f.until - G.gt, total: (POWERUPS[f.k + 'S'] || POWERUPS[f.k + 'O'] || { dur: 6 }).dur || 6 }));
+      if (mirrorOn()) list.push({ k: 'mirror', left: (mirrorUntil - performance.now()) / 1000, total: (TROLLS.mirror || { ms: 8000 }).ms / 1000 });
+      if (list.length) { const bw = Math.min(W * 0.42, 220), bh = 9, x0 = W - bw - 10; let y = 10; ctx.save(); ctx.font = `600 ${Math.max(10, Math.round(Math.min(W, H) * 0.028))}px "Barlow Semi Condensed", sans-serif`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        for (const e of list) { const lbl = e.k === 'mirror' ? ['🪞', 'Zrcalo'] : PUN[e.k]; const bad = ['reverse', 'square', 'wide', 'thick', 'slow', 'mirror'].includes(e.k); const frac = Math.max(0, Math.min(1, e.left / e.total));
+          ctx.globalAlpha = 0.85; ctx.fillStyle = 'rgba(11,18,27,.75)'; ctx.fillRect(x0 - 4, y - 2, bw + 8, bh + 18); ctx.fillStyle = '#e9eff6'; ctx.fillText(`${lbl[0]} ${lbl[1]} · ${Math.ceil(e.left)} s`, x0, y + 6);
+          ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(x0, y + 13, bw, bh); ctx.fillStyle = bad ? '#ff5d73' : '#3ddc97'; ctx.fillRect(x0, y + 13, bw * frac, bh); y += bh + 20; }
+        ctx.restore(); } } }
   if (luxFx.length) drawLux(ctx);
   // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
   // snake never seems to float ahead of its own trail
@@ -2614,7 +2624,8 @@ function toMenu() {
   if (net && net.role === 'client' && net.myId != null) netPresence({ vis: 0 });
   netPresence({ ig: null, pl: null, sp: null, watch: null }); followHost(null); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
   if (profile && profileDirty) { profileDirty = false; saveProfile(); }
-  if (net) { if (net.role === 'host') netPresence({ st: null, pls: null }); net = null; }
+  if (net) { try { if (net.role === 'client' && net.mid) localStorage.setItem('vijuga-left', net.mid); } catch (e) {} if (net.role === 'host') netPresence({ st: null, pls: null, pmid: null }); net = null; }
+  netPresence({ ok: null, again: null });
   $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true; $('#reactPop').hidden = true;
   renderPlayers(); renderMe(); renderShop(); pvStart(); if (curTab === 'online') renderNet();
 }
@@ -2955,7 +2966,7 @@ function watchingNow() { return !!(net && net.role === 'client' && (net.spectate
 function queueList() {
   const inMatch = new Set(G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   if (net && net.role === 'client' && net.hostPeer) inMatch.add(net.hostPeer);
-  return roomState.peers.filter(p => p.presence && p.presence.rd && !p.presence.hs && !inMatch.has(p.peer) && !(p.presence.again && net && p.presence.again === net.mid)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
+  return roomState.peers.filter(p => p.presence && p.presence.rd && p.presence.ok && !p.presence.hs && !inMatch.has(p.peer) && !(p.presence.again && net && p.presence.again === net.mid)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
 }
 function watcherCount() { const me = roomState.me; return me ? roomState.peers.filter(p => !(p.isMe && p.sameTab) && p.presence && p.presence.watch === me).length : 0; }
 function startSpectate(peer) {
@@ -3238,7 +3249,9 @@ function toggleReady() {
   if (!profile) { showLogin(); return; }
   if (!roomState.ready) joinLobby(true);
   const on = !myPres.ok; netPresence({ ok: on ? 1 : null });
-  if (on) { const n = lobbyPlayers().length, k = readyCount(); toast(k >= n ? 'Svi spremni – meč kreće!' : `Spreman si (${k}/${n}). Čekamo ostale…`); }
+  const h = findHost();
+  if (on && h && !(h.isMe && h.sameTab)) { toast('Meč je u tijeku – ulaziš od sljedeće runde ili na revanš.'); joinHost(h); }
+  else if (on) { const n = lobbyPlayers().length, k = readyCount(); toast(k >= n ? 'Svi spremni – meč kreće!' : `Spreman si (${k}/${n}). Čekamo ostale…`); }
   renderOnbar(); if (curTab === 'online') renderNet();
 }
 let allReadySince = 0;
@@ -3275,7 +3288,7 @@ function renderNet() {
   const html = [];
   html.push(`<div class="status"><span class="led ${roomState.connected ? 'on' : ''}"></span>${roomState.connected ? 'Povezano' : 'Nema veze'} · ${readyPeers.length} u predvorju · ${readyPeers.filter(p => p.presence.ok).length} spremno${roomState.ready && !host ? ' · meč kreće kad svi u predvorju stisnu „Spreman”' : ''}</div>`);
   if (host) {
-    html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
+    html.push(`<div class="notice">Meč je u tijeku, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm ghost" id="netReadyRun" style="margin-left:8px">✅ Spreman (uđi od sljedeće runde)</button><button class="btn sm" id="netWatch" style="margin-left:8px">${roomState.ready ? 'Priključi se' : 'Gledaj'}</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn ${myPres.ok ? 'ghost' : ''}" id="netStart">${myPres.ok ? '⏳ Spreman · odustani' : '✅ Spreman za meč'}</button>` : ''}${roomState.ready && !host && myRole() === 'master' ? `<button class="btn ghost sm" id="netForce" title="Admin: pokreni bez čekanja">▶ Pokreni odmah</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
   html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${pr.st ? 'domaćin' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
@@ -3288,6 +3301,7 @@ function renderNet() {
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
   if ($('#netStart')) $('#netStart').onclick = toggleReady;
+  if ($('#netReadyRun')) $('#netReadyRun').onclick = () => { if (!myPres.ok) toggleReady(); else { const h = findHost(); if (h) joinHost(h); } };
   if ($('#netForce')) $('#netForce').onclick = () => { if (!net) hostStart(); };
   if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; joinHost(host); };
   $('#netBots').onchange = (e) => { setup.netBots = e.target.checked; saveSetup(); };
@@ -3454,7 +3468,7 @@ function hostStart(rematch) {
   // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
   const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
-  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && !p.presence.again)) : p.presence.rd) && !invitePending(p.peer));
+  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && p.presence.ok && !p.presence.again)) : (p.presence.rd && p.presence.ok)) && !invitePending(p.peer));
   { const bySl = {}; for (const c of [...cand].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))) { const sl = c.presence.sl; if (sl) { if (bySl[sl]) c._dup = true; else bySl[sl] = c; } } }
   const cand2 = cand.filter(c => !c._dup); cand.length = 0; cand.push(...cand2);
   const meP = cand.find(p => p.isMe && p.sameTab);
@@ -3472,7 +3486,7 @@ function hostStart(rematch) {
   if (players.length < 2) { if (net && net.role === 'host') net.rematching = false; else toast('Trebaju barem 2 igrača u predvorju, ili uključi botove.'); return; }
   { const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 1).filter(r => r > 0.3 && r < 3); netRatio = Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / Math.max(1, rs.length)))); }
   net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36) };
-  netPresence({ again: null, ok: null, rd: 1, pls: players.filter(p => p.human && p.slug).map(p => p.slug) }); roomState.ready = true;
+  netPresence({ again: null, ok: null, rd: 1, pls: players.filter(p => p.human && p.slug).map(p => p.slug), pmid: net.mid }); roomState.ready = true;
   $('#menu').hidden = true; $('#game').hidden = false;
   G = { players: players.filter(p => p.mine) }; buildPads();
   newMatch(players); buildPads(); enterGame(); hostSend(true);
@@ -3866,8 +3880,8 @@ async function initCapabilities() {
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
       collectChat(); collectSocial(); collectDirect(); tryWatchSlug(); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
       if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { netPresence({ st: null }); toMenu(); } }
-      if (!net && roomState.ready && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
-      else if (!net && $('#game').hidden && profile) { const h = findHost(); if (h && !(h.isMe && h.sameTab) && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(profile.slug)) { if (!roomState.ready) joinLobby(true); joinHost(h); } }
+      if (!net && roomState.ready && myPres.ok && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
+      else if (!net && $('#game').hidden && profile) { const h = findHost(); let leftMid = ''; try { leftMid = localStorage.getItem('vijuga-left') || ''; } catch (e) {} if (h && !(h.isMe && h.sameTab) && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(profile.slug) && h.presence.pmid && h.presence.pmid !== leftMid) { if (!roomState.ready) joinLobby(true); joinHost(h); } }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();
     }, () => { roomNs = null; renderNet(); });
     netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 }));
