@@ -21,6 +21,10 @@ const TRANSIENT = new Set(["msg", "re", "ping", "pong", "dm", "bt"]); // relayed
 const IDENTITY = ["sl", "nm", "st", "hs", "pls", "pmid", "cl"]; // a direct message may not forge who the sender is or what match they host
 const MAX_PRES = 64_000; // bytes; a presence patch without a transient key (chat/voice) is lobby state and must stay small
 const RATE_BURST = 150, RATE_PER_SEC = 60; // per connection: a host sends ~15 snapshots + inputs per second
+// 9.11.: a client pings every 5 s from its JavaScript; a locked phone keeps answering protocol pings for minutes
+// while its page is frozen, so a host that went quiet stayed in the room as a ghost host and the players who took
+// the match over kept bowing to it. No message of any kind for IDLE_MS -> the connection is dropped (bye to all).
+const IDLE_MS = Number(process.env.IDLE_MS) || 40_000;
 
 // an old connection answers a ping within a few seconds; a zombie (phone asleep, network changed) does not
 const alive = (ws, ms = 3000) => new Promise((ok) => {
@@ -54,10 +58,11 @@ const syncPeers = (room) => { const peers = [...room.entries()].map(([peer, m]) 
 
 wss.on("connection", (ws) => {
   let roomName = null, peer = null;
-  ws.isAlive = true;
+  ws.isAlive = true; ws.lastMsg = Date.now();
   ws.on("pong", () => { ws.isAlive = true; });
   let tokens = RATE_BURST, lastFill = Date.now(), joining = false;
   ws.on("message", async (buf) => {
+    ws.lastMsg = Date.now();
     let m; try { m = JSON.parse(buf.toString()); } catch { return; }
     if (!m || typeof m !== "object") return;
     const now = Date.now(); tokens = Math.min(RATE_BURST, tokens + (now - lastFill) / 1000 * RATE_PER_SEC); lastFill = now;
@@ -121,7 +126,7 @@ wss.on("connection", (ws) => {
   });
   ws.on("error", () => {});
 });
-// drop dead sockets (phone went to sleep without closing)
-setInterval(() => { for (const ws of wss.clients) { if (ws.isAlive === false) { try { ws.terminate(); } catch {} continue; } ws.isAlive = false; try { ws.ping(); } catch {} } }, 6000);
+// drop dead sockets (phone went to sleep without closing) and frozen pages (protocol pongs, but no messages for IDLE_MS)
+setInterval(() => { const now = Date.now(); for (const ws of wss.clients) { if (ws.isAlive === false || now - (ws.lastMsg || now) > IDLE_MS) { try { ws.terminate(); } catch {} continue; } ws.isAlive = false; try { ws.ping(); } catch {} } }, 6000);
 
 server.listen(PORT, () => console.log(`vijuga-server listening on ${PORT}`));
