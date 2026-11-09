@@ -417,6 +417,8 @@ button.pu:hover { border-color: var(--line); }
 #cv { display: block; border-radius: 6px; touch-action: none; box-shadow: 0 0 0 1px var(--line); }
 .overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .banner { max-height: calc(100% - 12px); overflow-y: auto; overscroll-behavior: contain; text-align: center; pointer-events: auto; background: color-mix(in srgb, var(--ink) 85%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 18px 26px; max-width: min(92%, 560px); display: grid; gap: 10px; justify-items: center; }
+.banner.lap { background: color-mix(in srgb, var(--ink) 34%, transparent); border-color: color-mix(in srgb, var(--line) 60%, transparent); text-shadow: 0 1px 3px #000, 0 0 8px rgba(0,0,0,.9); }
+.banner.lap .rrow .bar { opacity: .75; }
 .banner h3 { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 5vw, 34px); margin: 0; line-height: 1.05; text-wrap: balance; }
 .banner p { margin: 0; color: var(--muted); }
 .banner .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
@@ -2134,8 +2136,8 @@ function humanIn(p) {
   return mirrorOn() ? -v : v;
 }
 function tryJump(p) {
-  if (!p.alive || G.phase !== 'run' || !setup.jump || G.gt < p.jumpReady) return;
-  p.jumpUntil = G.gt + JUMP_TIME; p.jumpReady = G.gt + JUMP_CD; p.jumps++;
+  if (!p.alive || !(G.phase === 'run' || lapOn()) || !setup.jump || G.gt < p.jumpReady) return;
+  p.jumpUntil = G.gt + JUMP_TIME; p.jumpReady = G.gt + JUMP_CD; if (G.phase === 'run') p.jumps++;
   flushTrail(p, false); sfx.jump();
 }
 
@@ -2293,7 +2295,7 @@ function showRoundBanner() {
   const hostOnly = net && net.role === 'client';
   const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, top.score))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
   const teamWin = G.winTeam != null ? `<h3 style="color:${TEAM_C[G.winTeam]}">Tim ${TEAM_N[G.winTeam]} pobjeđuje!</h3><p>${G.players.filter(p => p.team === G.winTeam).map(p => esc(p.name)).join(' & ')}</p>` : '';
-  showOverlay(`<div class="banner">${teamWin || `<h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>`}${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Chat i reakcije: gumbi 💬 i 😀 gore desno.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
+  showOverlay(`<div class="banner lap">${teamWin || `<h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? '👑 ' + esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>`}${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Chat i reakcije: gumbi 💬 i 😀 gore desno.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
   if (!hostOnly) $('#nextBtn').onclick = () => nextRound();
 }
 function tickCountdown() {
@@ -2303,13 +2305,20 @@ function tickCountdown() {
 function nextRound() { if (G && G.phase === 'end' && !G.over && !(net && net.role === 'client')) newRound(); }
 
 // ---------- simulation ----------
-function substep() {
+// Victory lap: whoever survived the round keeps steering under the see-through round banner until the next round starts
+// (or for LAP_MAX seconds after the last round). Nothing counts any more: no points, no kills, no power-ups; a crash just
+// ends the lap.
+const LAP_MAX = 12; let lapAcc = 0;
+function lapOn() { return !!G && G.phase === 'end' && G.phaseT < LAP_MAX && G.players.some(p => p.alive); }
+function lapDeath(p) { if (!p.alive) return; p.alive = false; flushTrail(p, false); sfx.die(); deathFx(p); hudDirty = true; }
+function substep(lap) {
   T++;
   const bd = bounds();
+  const die = lap ? (p) => lapDeath(p) : kill;
   for (const p of G.players) {
-    if (G.phase !== 'run') return;
+    if (G.phase !== (lap ? 'end' : 'run')) return;
     if (!p.alive) continue;
-    if (!p.starterDone) { p.starterDone = true; if (p.starter && POWERUPS[p.starter]) applyPu(p, p.starter, true); }
+    if (!lap && !p.starterDone) { p.starterDone = true; if (p.starter && POWERUPS[p.starter]) applyPu(p, p.starter, true); }
     let inp;
     if (p.human) inp = humanIn(p); else { botThink(p); inp = p.botIn; }
     const rev = has(p, 'reverse');
@@ -2330,7 +2339,7 @@ function substep() {
         if (p.x < bd.l) { p.x += w; moved = true; } else if (p.x > bd.r) { p.x -= w; moved = true; }
         if (p.y < bd.t) { p.y += h; moved = true; } else if (p.y > bd.b) { p.y -= h; moved = true; }
         if (moved) { flushTrail(p, false); p.gapLeft = Math.max(p.gapLeft, r * 2 + 2); }
-      } else { kill(p, null); continue; }
+      } else { die(p, null); continue; }
     }
     portalStep(p);
     if (!jumping && !has(p, 'ghost')) {
@@ -2341,7 +2350,7 @@ function substep() {
         hit = blockedBy(p.x + Math.cos(p.a + o) * hr2, p.y + Math.sin(p.a + o) * hr2, p, grace);
         if (hit) break;
       }
-      if (hit) { kill(p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)); continue; }
+      if (hit) { die(p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)); continue; }
     }
     if (p.gapLeft > 0) p.gapLeft -= step;
     else if (G.gt > p.nextGap) { p.gapLeft = rand(14, 22) + r * 2 * skinW(p); p.nextGap = G.gt + rand(1.5, 3.4); }
@@ -2352,7 +2361,7 @@ function substep() {
       if (p.pts.length && Math.abs(p.ptsR - r) > .01) flushTrail(p, true);
       p.ptsR = r; p.pts.push(p.x, p.y);
     } else if (p.pts.length) flushTrail(p, false);
-    for (let i = G.pus.length - 1; i >= 0; i--) {
+    if (!lap) for (let i = G.pus.length - 1; i >= 0; i--) {
       const u = G.pus[i];
       if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + r) { G.pus.splice(i, 1); applyPu(p, u.k); }
     }
@@ -2367,7 +2376,11 @@ function update(dt) {
     if (G.phaseT >= countLen()) { G.phase = 'run'; sfx.go(); }
     return;
   }
-  if (G.phase === 'end') { G.phaseT += dt; updateParts(dt); if (!G.over && !paused && G.phaseT >= ROUND_PAUSE) newRound(); return; }
+  if (G.phase === 'end') {
+    G.phaseT += dt;
+    if (lapOn()) { lapAcc += dt; while (lapAcc >= SUB && lapOn()) { lapAcc -= SUB; G.gt += SUB; substep(true); } for (const p of G.players) p.fx = p.fx.filter(f => f.until > G.gt); } else lapAcc = 0;
+    updateParts(dt); if (!G.over && !paused && G.phaseT >= ROUND_PAUSE) newRound(); return;
+  }
   const mul = G.ff ? 2.5 : 1;
   acc += dt * mul;
   while (acc >= SUB && G.phase === 'run') {
@@ -2445,7 +2458,7 @@ function render() {
   if (luxFx.length) drawLux(ctx);
   // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
   // snake never seems to float ahead of its own trail
-  if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
+  if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     if (!p.alive || !p.drawing || p.sx == null || (p.jumpUntil && p.jumpUntil > G.gt)) continue;
     const d = Math.hypot(p.x - p.sx, p.y - p.sy); if (d < 0.3 || d > 40) continue;
     const rr = radiusOf(p); const custom = applySkin(ctx, p.skin, p.color, rr, G.gt); if (!custom) ctx.lineWidth = rr * 2;
@@ -2453,7 +2466,7 @@ function render() {
   }
   if (innerWidth < 760 || (net && G.players.length > 4)) drawBoard(ctx);
   if (G.tombs) for (const t of G.tombs) { ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🪦', t.x, t.y); ctx.font = '700 11px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText('R.I.P. ' + t.name, t.x, t.y + 18); ctx.restore(); }
-  if (net && net.role === 'client' && G.phase === 'run') for (const p of G.players) {
+  if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
     ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
     ctx.beginPath(); ctx.moveTo(pv.x, pv.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.restore();
@@ -2471,8 +2484,12 @@ function render() {
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
     else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
-    // winner's badge blinks above the head between rounds
-    if (G.phase === 'end' && p.id === G.winner && p.alive && BADGES[p.badge] && BADGES[p.badge].g) { const k = 0.55 + 0.45 * Math.sin(G.phaseT * 9); ctx.globalAlpha = k; drawBadge(ctx, p.badge, p.x, p.y - hr - 16 - 3 * Math.sin(G.phaseT * 4), 22, '#ffb547'); ctx.globalAlpha = 1; }
+    // the survivor of the round rides a victory lap with a crown above the head (and their own icon above the crown)
+    if (G.phase === 'end' && p.alive && (p.id === G.winner || (G.winTeam != null && p.team === G.winTeam))) {
+      const bob = 3 * Math.sin(G.phaseT * 5), cy = p.y - hr - 15 + bob;
+      ctx.save(); ctx.font = '20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👑', p.x, cy); ctx.restore();
+      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x, cy - (BADGES[p.badge].big ? 30 : 22), 20, '#ffb547');
+    }
     ctx.globalAlpha = 1;
     if (has(p, 'square')) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x - hr - 3, p.y - hr - 3, (hr + 3) * 2, (hr + 3) * 2); }
     if (p.human && !p.remote && setup.jump && G.phase === 'run') {
@@ -3808,7 +3825,7 @@ function hostSend(force) {
   // lobby heartbeat: a host whose game loop froze, or whose tab went to sleep, stops beating and no longer blocks the room
   if (now - (net.hbAt || 0) > 2500) { net.hbAt = now; if (G.over && !net.overAt) net.overAt = now; if (!G.over) net.overAt = 0; netPresence(G.over ? { hb: Date.now(), ho: 1 + Math.floor((now - net.overAt) / 1000) } : myPres.ho ? { hb: Date.now(), ho: null } : { hb: Date.now() }); }
   if (net.beatAt && now - net.beatAt > HOST_STALE_MS) net.wasStale = now; net.beatAt = now; // my game stood still (hidden tab): others may have moved on
-  const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count') ? 66 : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return;
+  const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count' || lapOn()) ? 66 : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return;
   if (!force && roomNs && roomNs.busy && roomNs.busy()) { net.skipped = (net.skipped || 0) + 1; if (net.skipped < 8) return; } // the connection is backed up: hold this frame (but never for long)
   net.skipped = 0; net.lastSend = now; net.sendN = (net.sendN || 0) + 1;
   netPresence({ st: buildSnap(force || net.sendN % 8 === 1 || !!G.plDirty) }); G.plDirty = false;
@@ -3921,7 +3938,7 @@ function applyState(st, first) {
     if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { let da = q.a - p._la; da = Math.atan2(Math.sin(da), Math.cos(da)); const wa = da / (st.gt - p._lgt); p._wa = Math.abs(wa) < 12 ? (p._wa == null ? wa : p._wa * 0.5 + wa * 0.5) : 0; }
     p._la = q.a; p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
-    if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); onDeath(p, q.kb); }
+    if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); if (prevPhase !== 'end') onDeath(p, q.kb); } // a crash during the victory lap counts for nothing
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
     // trail segment
     const pv = net.prev[q.i];
@@ -3997,7 +4014,7 @@ function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
   const st = host && host.presence && host.presence[net.key || 'st'];
   if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target, saved = net.savedSetup; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) { net.target = tg || net.target; if (saved) net.savedSetup = saved; } return 'restarted'; } // a rematch keeps my own settings for when I leave
-  if (net.myId != null && G && G.phase === 'run' && performance.now() - (net.inSentAt || 0) > 250) clientInput(true);
+  if (net.myId != null && G && (G.phase === 'run' || lapOn()) && performance.now() - (net.inSentAt || 0) > 250) clientInput(true);
   if (roomNs && roomNs.probe && performance.now() - net.lastSeen > 2000 && performance.now() - (net.probeAt || 0) > 1200) { net.probeAt = performance.now(); roomNs.probe(); } // is it the host, or my own connection?
   if (roomNs && roomNs.rejoin && performance.now() - net.lastSeen > 3500 && performance.now() - (net.rejoinAt || 0) > 5000) { net.rejoinAt = performance.now(); roomNs.rejoin(); }
   if (st && st.W && st.H && (st.W !== W || st.H !== H) && G) { net.W = st.W; net.H = st.H; setArenaSize(st.W, st.H); }
@@ -4015,7 +4032,7 @@ function clientTick() {
 }
 // draw heads slightly ahead of the last snapshot (and turn my own head at once) so 10 snapshots/s look smooth
 function predictHeads() {
-  if (!net || net.role !== 'client' || !G || G.phase !== 'run') return;
+  if (!net || net.role !== 'client' || !G || !(G.phase === 'run' || lapOn())) return;
   const nowP = performance.now(), dt = Math.min(0.3, (nowP - net.lastSeen) / 1000);
   const fdt = Math.min(0.1, (nowP - (net._pf || nowP)) / 1000); net._pf = nowP; const decay = Math.exp(-fdt / 0.14);
   for (const p of G.players) {
