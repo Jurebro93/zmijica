@@ -502,13 +502,41 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
   .pad .cap { font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.cunread { position: absolute; top: 0; right: 16%; min-width: 17px; height: 17px; border-radius: 9px; background: var(--bad); color: #fff; font: 700 11px/17px system-ui, sans-serif; font-style: normal; text-align: center; padding: 0 4px; letter-spacing: 0; }
+.cunread[hidden] { display: none; }
+.tabs .tabx { position: relative; } .tabs .cunread, .chatteaser .cunread { position: static; display: inline-block; margin-left: 5px; vertical-align: 1px; }
+#bnav button.on { color: var(--amber); }
+.chatteaser { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); background: color-mix(in srgb, var(--amber) 7%, var(--panel)); color: var(--fg); text-align: left; cursor: pointer; }
+.chatteaser.new { border-color: var(--amber); box-shadow: 0 0 0 2px color-mix(in srgb, var(--amber) 30%, transparent); }
+.chatteaser .cti { font-size: 24px; } .chatteaser .ctx { flex: 1; min-width: 0; display: grid; gap: 1px; font-size: 14px; }
+.chatteaser .ctx > b { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); }
+.chatteaser #chatTeaserTxt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .chatteaser #chatTeaserTxt .ctime { color: var(--muted); font-size: 11px; margin-left: 4px; }
+.chatteaser .ctgo { border-radius: 999px; background: var(--amber); color: #1a1205; font-weight: 800; font-size: 13px; padding: 6px 13px; white-space: nowrap; }
+.chatsheet .chatlog { max-height: min(46dvh, 420px); min-height: 120px; font-size: 15px; gap: 5px; align-content: start; background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.chatsheet .chatlog div { overflow-wrap: anywhere; }
+.chatsheet .chatrow input { padding: 11px 12px; font-size: 16px; } .chatsheet .chatrow button { padding: 0 16px; } .chatsheet .micbtn { padding: 0 14px; font-size: 21px; background: color-mix(in srgb, var(--amber) 14%, var(--ink)); border-color: var(--amber); }
+.qchips { display: flex; gap: 6px; flex-wrap: wrap; } .qchip { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 5px 11px; font-size: 13px; }
+.qchip:hover { border-color: var(--amber); }
+.allgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.allcard { display: grid; justify-items: center; gap: 2px; padding: 12px 4px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); text-decoration: none; text-align: center; cursor: pointer; }
+.allcard span { font-size: 26px; line-height: 1.15; } .allcard b { font-size: 14px; } .allcard small { color: var(--muted); font-size: 11px; line-height: 1.2; }
+.allcard:hover { border-color: var(--amber); }
+@media (min-width: 761px) { .tabs .tabme { display: none; } }
+@media (max-width: 760px) {
+  .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; overflow: visible; border-bottom: 0; -webkit-mask-image: none; mask-image: none; padding-right: 0; }
+  .tabs button, .tabs a.tablink { padding: 9px 1px; font-size: 12px; letter-spacing: 0; text-align: center; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); margin: 0; overflow: hidden; text-overflow: clip; }
+  .tabs button[aria-selected=true] { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, var(--panel)); }
+  .tabs .tabx[data-go=chat] { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); color: var(--fg); }
+  .tabs .cunread { margin-left: 2px; }
+}
+@media (max-width: 380px) { .tabs button, .tabs a.tablink { font-size: 11px; padding: 9px 0; } }
 </style>
 
 <div id="app">
   <!-- MENU -->
   <section id="menu">
     <div id="coinFloat" hidden></div>
-    <nav id="bnav" aria-label="Brzi izbornik"><button type="button" data-go="me"><span>👤</span>Profil</button><button type="button" data-go="shop"><span>🛒</span>Trgovina</button><button type="button" data-go="play" class="bplay"><span>▶</span>IGRAJ</button><button type="button" data-go="tour"><span>🏆</span>Turnir</button><a href="stats.html" data-go="stats"><span>📊</span>Statistika</a></nav>
+    <nav id="bnav" aria-label="Brzi izbornik"><button type="button" data-go="me"><span>👤</span>Profil</button><button type="button" data-go="chat"><span>💬</span>Chat<i class="cunread" hidden></i></button><button type="button" data-go="play" class="bplay"><span>▶</span>IGRAJ</button><button type="button" data-go="shop"><span>🛒</span>Trgovina</button><button type="button" data-go="all"><span>☰</span>Sve</button></nav>
     <button type="button" id="fabPlay" hidden>▶ Igraj</button>
     <div class="wrap">
       <header class="brand">
@@ -517,17 +545,20 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
         <div class="me" id="me"></div>
       </header>
       <div class="onhero" id="onbar" aria-live="polite"></div>
+      <button type="button" class="chatteaser" id="chatTeaser" data-go="chat"><span class="cti">💬</span><span class="ctx"><b>Chat <i class="cunread" hidden></i></b><span id="chatTeaserTxt">Pozdravi ekipu: napiši prvu poruku ili snimi glasovnu 🎤</span></span><span class="ctgo">Piši</span></button>
       <canvas id="preview" aria-hidden="true"></canvas>
 
       <div class="tabs" role="tablist" id="tabs">
         <button role="tab" data-tab="online" aria-selected="true">Online</button>
         <button role="tab" data-tab="local" aria-selected="false">S botovima</button>
+        <button type="button" class="tabx" data-go="chat">💬 Chat<i class="cunread" hidden></i></button>
         <button role="tab" data-tab="shop" aria-selected="false">Trgovina</button>
         <button role="tab" data-tab="tour" aria-selected="false">Turnir 🏆</button>
         <button role="tab" data-tab="auct" aria-selected="false">Aukcija 🔨</button>
         <button role="tab" data-tab="board" aria-selected="false">Ljestvica</button>
-        <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
         <a class="tablink" href="stats.html">Statistika</a>
+        <button role="tab" data-tab="help" aria-selected="false">Pravila</button>
+        <button type="button" class="tabx tabme" data-go="me">👤 Profil</button>
       </div>
 
       <div class="tab" id="tab-local" hidden>
@@ -1097,6 +1128,34 @@ async function grantAll() {
   notify(`💰 Gotovo: <b>${ok}</b> igrača dobiva po <b>${v}</b> zlatnika${fail ? ` (${fail} nije uspjelo, probaj ponovno kasnije)` : ''}. Sjedaju im za najviše dvije minute ili kad osvježe igru.`, { ms: 15000 });
   collectGifts();
 }
+// every section is reachable from everywhere: the bottom bar, the top menu and the "Sve" sheet all go through here
+function navGo(g) {
+  closeModal(); const im = $('#inviteModal'); if (im && !im.hidden && !social.pendingFrom) im.hidden = true;
+  if (g === 'play') showPlayChooser(); else if (g === 'me') showProfile(); else if (g === 'chat') openChat(); else if (g === 'all') openAll(); else if (g === 'invite') { if (profile) shareInvite(); else showLogin(); }
+  else { showTab(g); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+function openAll() {
+  const m = $('#regModal'), n = chatUnseen(); m.hidden = false;
+  const items = [['online', '🌐', 'Online', 'igraj s ljudima'], ['local', '🤖', 'S botovima', 'kreće odmah'], ['chat', '💬', 'Chat', n ? plural(n, 'nova poruka', 'nove poruke', 'novih poruka') : 'piši i snimaj glasovne'], ['shop', '🛒', 'Trgovina', 'ikone, tragovi, kutije'], ['tour', '🏆', 'Turnir', 'natjecanja'], ['auct', '🔨', 'Aukcija', 'unikati na dražbi'], ['board', '🥇', 'Ljestvica', 'tko vodi'], ['stats', '📊', 'Statistika', 'mečevi i brojke'], ['help', '❓', 'Pravila', 'kako se igra'], ['me', '👤', 'Profil', 'izgled i postavke'], ['invite', '🎁', 'Pozovi prijatelja', '+' + REF_COINS + ' zlatnika'], ['play', '▶', 'Igraj', 'odaberi način']];
+  m.innerHTML = `<form class="profile allsheet" novalidate onsubmit="return false"><h3>Sve na jednom mjestu</h3><div class="allgrid">${items.map(([go, ic, t, d]) => go === 'stats' ? `<a class="allcard" href="stats.html"><span>${ic}</span><b>${t}</b><small>${d}</small></a>` : `<button type="button" class="allcard" data-go="${go}"><span>${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div></form>`;
+  m.querySelector('.allgrid').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) navGo(b.dataset.go); };
+}
+// the chat, reachable from anywhere in the menu: text, quick lines and voice messages
+const CHAT_QUICK = ['Ajmo partiju! 🎮', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
+function openChat() {
+  if (!profile) { showLogin(); return; }
+  const m = $('#regModal'); m.hidden = false;
+  m.innerHTML = `<form class="profile chatsheet" novalidate onsubmit="return false"><h3>💬 Chat</h3><p class="hint" id="schatWho" style="margin:0"></p>
+    <div class="chatlog" id="schatLog"></div>
+    <div class="qchips" id="schatQuick">${CHAT_QUICK.map(t => `<button type="button" class="qchip">${esc(t)}</button>`).join('')}</div>
+    <div class="chatrow"><input type="text" id="schatIn" maxlength="80" placeholder="Napiši poruku svima…" aria-label="Poruka" autocomplete="off"><button type="button" id="schatSend">Pošalji</button></div>
+    <p class="hint" style="margin:0">🎤 <b>Glasovna poruka:</b> drži mikrofon i govori (do 5 s). Čuju je svi koji su tog trena online.</p></form>`;
+  wireChat('#schatIn', '#schatSend');
+  $('#schatIn').addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); }); // the box swallows keys so they do not steer; Esc must still close
+  $('#schatQuick').onclick = (e) => { const b = e.target.closest('.qchip'); if (b) sendChat(b.textContent); };
+  renderChat();
+  if (!IS_TOUCH) $('#schatIn').focus();
+}
 function showPlayChooser() {
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile playpick" novalidate onsubmit="return false"><h3>Kako želiš igrati?</h3>
@@ -1112,7 +1171,8 @@ function quickPlay() {
   $('#menu').scrollTo({ top: 0, behavior: 'smooth' });
 }
 setTimeout(() => {
-  $('#bnav').addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-go]'); if (!b) return; const g = b.dataset.go; if (g === 'stats') return; e.preventDefault(); closeModal(); const im = $('#inviteModal'); if (im && !im.hidden && !social.pendingFrom) im.hidden = true; if (g === 'play') showPlayChooser(); else if (g === 'me') showProfile(); else { showTab(g); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
+  $('#bnav').addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-go]'); if (!b) return; e.preventDefault(); navGo(b.dataset.go); });
+  $('#chatTeaser').addEventListener('click', () => navGo('chat'));
   const fab = $('#fabPlay'); if (fab) fab.onclick = showPlayChooser;
   const menu = $('#menu'), cf = $('#coinFloat');
   const onScroll = () => { const y = menu.scrollTop; if (cf) { cf.hidden = !profile || y < 160; if (!cf.hidden) cf.innerHTML = `<b>${esc(profile.name)}</b> <span>● ${profile.coins}</span>`; } if (fab) fab.hidden = innerWidth < 760 || y < 420; };
@@ -1792,13 +1852,14 @@ setTimeout(announceUnique, 5000);
 function showTab(t) {
   curTab = t;
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('#bnav [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === t));
   ['local', 'online', 'shop', 'tour', 'auct', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
   if (t === 'tour') loadTours();
   if (t === 'auct') loadAuct();
   if (t === 'online') renderNet();
   if (t === 'board') renderBoard();
 }
-$('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[role=tab]'); if (b) showTab(b.dataset.tab); });
+$('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[role=tab]'); if (b) { showTab(b.dataset.tab); return; } const x = e.target.closest('[data-go]'); if (x) navGo(x.dataset.go); });
 
 // ================= MENU PREVIEW (attract mode) =================
 const pv = $('#preview'); const pctx = pv.getContext('2d');
@@ -3879,6 +3940,26 @@ function fmtChatTime(at) { if (!at) return ''; const d = new Date(at), n = new D
 const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🍆', '🍑', '🖕', '👏', '🥳', '😈'];
 const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
 let chatOpen = !IS_TOUCH, unread = 0;
+let chatSeenAt = (() => { try { return Number(localStorage.getItem('vijuga-chat-seen')) || 0; } catch (e) { return 0; } })();
+function chatUnseen() { let n = 0; for (const m of chatLog) if (m.at > chatSeenAt && !m.me && !(profile && m.sl === profile.slug)) n++; return n; }
+function updateChatBadges() { const n = chatUnseen(); document.querySelectorAll('.cunread').forEach(el => { el.hidden = !n; el.textContent = n > 9 ? '9+' : String(n); }); const t = $('#chatTeaser'); if (t) t.classList.toggle('new', n > 0); }
+function markChatSeen() { const last = chatLog.length ? chatLog[chatLog.length - 1].at : 0; if (last > chatSeenAt) { chatSeenAt = last; try { localStorage.setItem('vijuga-chat-seen', String(last)); } catch (e) {} } updateChatBadges(); }
+// is a chat log really in front of the player right now (the chat sheet, the lobby chat on screen, the chat in a match)?
+function chatLooking() {
+  if (document.hidden) return false;
+  if ($('#schatLog')) return true;
+  if (!$('#game').hidden) { const tp = $('#tpChatLog'); return !!net && (chatOpen || (!!tp && !$('#trollPop').hidden)); }
+  const a = $('#lchatLog'); if (!a || $('#menu').hidden || curTab !== 'online') return false;
+  const r = a.getBoundingClientRect(); return r.height > 0 && r.top < innerHeight - 40 && r.bottom > 40;
+}
+setInterval(() => { if (chatUnseen() && chatLooking()) markChatSeen(); }, 1500);
+function renderChatTeaser() {
+  const t = $('#chatTeaserTxt'); if (!t) return;
+  const last = chatLog[chatLog.length - 1];
+  t.innerHTML = last ? `<b>${esc(last.name)}:</b> ${last.audio || /^🎤/.test(last.text) ? '🎤 glasovna poruka' : esc(last.text)}<small class="ctime">${fmtChatTime(last.at)}</small>` : 'Pozdravi ekipu: napiši prvu poruku ili snimi glasovnu 🎤';
+  const who = $('#schatWho'); if (who) { const on = onlineOthers(); who.textContent = !roomNs ? 'Nema veze sa sobom: poruke se trenutno ne mogu slati.' : on.length ? '🟢 Online uz tebe: ' + on.slice(0, 8).map(p => String(p.presence.nm).slice(0, 14)).join(', ') + (on.length > 8 ? ' +' + (on.length - 8) : '') : 'Trenutno si jedini online. Napisana poruka ostaje i čeka ostale.'; }
+  updateChatBadges();
+}
 function sendReaction(e) {
   if (!roomNs || !REACTIONS.includes(e)) return;
   const now = performance.now(); if (now - lastReactAt < 700) return; lastReactAt = now;
@@ -3900,10 +3981,11 @@ function chatAutoHide() {
   if (ph === 'run' && chatOpen && IS_TOUCH && document.activeElement && document.activeElement.id !== 'gchatIn') setChatOpen(false);
 }
 function playVoice(src) { try { const au = new Audio(src); au.play().catch(() => {}); } catch (e) {} }
-function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; } updateUnread(); }
+function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; if (net) markChatSeen(); } updateUnread(); }
 function updateUnread() { document.querySelectorAll('.ptool.chat').forEach(b => b.classList.toggle('has', !!unread && !chatOpen)); const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
-  text = String(text || '').trim().slice(0, 80); if (!text || !roomNs) return;
+  text = String(text || '').trim().slice(0, 80); if (!text) return;
+  if (!roomNs) { toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
   if (profile && mutedUntil(profile.slug)) { toast(`🔇 Moderator te utišao do ${new Date(mutedUntil(profile.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}.`); return; }
   const at = Date.now(); chatN++; netPresence({ msg: [text, chatN, at] });
   if (profile) fetch(API_BASE + '/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ room: chatRoom, slug: profile.slug, auth: profile.pinHash || '', text, at }) }).catch(() => {});
@@ -3976,6 +4058,10 @@ function renderChat() {
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
   if (g) { g.innerHTML = (big ? chatLog : chatLog.slice(-4)).map(m => line(m, big)).join('') || empty; g.scrollTop = g.scrollHeight; }
   const tp = $('#tpChatLog'); if (tp) { tp.innerHTML = chatLog.slice(-25).map(m => line(m, true)).join('') || empty; tp.scrollTop = tp.scrollHeight; }
+  const sc = $('#schatLog'); if (sc) { sc.innerHTML = chatLog.slice(-60).map(m => line(m, true)).join('') || empty; sc.scrollTop = sc.scrollHeight; }
+  // whoever is looking at a chat log has seen the messages
+  if (chatLooking()) markChatSeen();
+  renderChatTeaser();
   document.querySelectorAll('.vplay').forEach(b => b.onclick = () => playVoice(b.dataset.a));
 }
 function renderBoard() {
@@ -4640,6 +4726,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, findHost, hostStale, drawAnim, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, findHost, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
