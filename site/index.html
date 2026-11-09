@@ -1880,7 +1880,7 @@ function stamp(p, r) {
   for (let dy = -n; dy <= n; dy++) for (let dx = -n; dx <= n; dx++) {
     const gx = gx0 + dx, gy = gy0 + dy;
     if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) continue;
-    if ((gx + .5 - cx) ** 2 + (gy + .5 - cy) ** 2 > rc * rc + .3) continue;
+    if ((gx + .5 - cx) ** 2 + (gy + .5 - cy) ** 2 > rc * rc) continue;
     const i = gy * GW + gx;
     if (owner[i] === 0 || owner[i] === id) { owner[i] = id; stampT[i] = T; }
   }
@@ -2014,7 +2014,7 @@ function tryJump(p) {
 
 // ---------- bots ----------
 function freeAt(x, y, p, grace, wrap, bd, r) {
-  if (!wrap && (x < bd.l + r || y < bd.t + r || x > bd.r - r || y > bd.b - r)) return false;
+  if (!wrap && (x < bd.l + r * 0.55 || y < bd.t + r * 0.55 || x > bd.r - r * 0.55 || y > bd.b - r * 0.55)) return false;
   if (wrap) { const w = bd.r - bd.l, h = bd.b - bd.t; x = bd.l + (((x - bd.l) % w) + w) % w; y = bd.t + (((y - bd.t) % h) + h) % h; }
   if (has(p, 'ghost')) return true;
   return !blockedBy(x, y, p, grace);
@@ -2178,7 +2178,8 @@ function substep() {
     p.x += Math.cos(p.a) * step; p.y += Math.sin(p.a) * step;
     const jumping = p.jumpUntil > G.gt;
 
-    if (p.x - r < bd.l || p.y - r < bd.t || p.x + r > bd.r || p.y + r > bd.b) {
+    const wr = r * 0.55; // a trail may run a hair's breadth along the edge
+    if (p.x - wr < bd.l || p.y - wr < bd.t || p.x + wr > bd.r || p.y + wr > bd.b) {
       if (wraps(p)) {
         const w = bd.r - bd.l, h = bd.b - bd.t; let moved = false;
         if (p.x < bd.l) { p.x += w; moved = true; } else if (p.x > bd.r) { p.x -= w; moved = true; }
@@ -2190,8 +2191,9 @@ function substep() {
     if (!jumping && !has(p, 'ghost')) {
       const grace = Math.ceil((2 * r + 4) / step) + 2;
       let hit = 0;
-      for (const o of [-1.05, -0.5, 0, 0.5, 1.05]) {
-        hit = blockedBy(p.x + Math.cos(p.a + o) * r, p.y + Math.sin(p.a + o) * r, p, grace);
+      const hr2 = r * 0.78; // the probe is a little smaller than the drawn head: tight gaps are passable
+      for (const o of [-0.8, -0.4, 0, 0.4, 0.8]) {
+        hit = blockedBy(p.x + Math.cos(p.a + o) * hr2, p.y + Math.sin(p.a + o) * hr2, p, grace);
         if (hit) break;
       }
       if (hit) { kill(p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)); continue; }
@@ -2201,7 +2203,7 @@ function substep() {
     const drawing = p.gapLeft <= 0 && !jumping;
     p.drawing = drawing;
     if (drawing) {
-      stamp(p, r * skinW(p));
+      stamp(p, Math.max(1, r * skinW(p) - 0.35));
       if (p.pts.length && Math.abs(p.ptsR - r) > .01) flushTrail(p, true);
       p.ptsR = r; p.pts.push(p.x, p.y);
     } else if (p.pts.length) flushTrail(p, false);
@@ -2279,6 +2281,9 @@ function render() {
   }
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
   drawBounties(ctx);
+  { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
+    if (me && me.alive && G.phase === 'run') { const rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt); const mir = mirrorOn();
+      if (rv || mir) { const left = rv ? Math.ceil(rv.until - G.gt) : Math.ceil((mirrorUntil - performance.now()) / 1000); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `400 ${Math.round(Math.min(W, H) * 0.055)}px Bungee, Impact, sans-serif`; ctx.fillStyle = 'rgba(11,18,27,.7)'; const tw = Math.min(W, H) * 0.62; ctx.fillRect(W / 2 - tw / 2, H * 0.06, tw, Math.min(W, H) * 0.09); ctx.fillStyle = '#ff5d73'; ctx.fillText(`⇄ OBRNUTE KONTROLE · ${Math.max(1, left)} s`, W / 2, H * 0.06 + Math.min(W, H) * 0.045); ctx.restore(); } } }
   if (luxFx.length) drawLux(ctx);
   // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
   // snake never seems to float ahead of its own trail
@@ -2715,6 +2720,7 @@ function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roo
 { let arT = 0; addEventListener('resize', () => { clearTimeout(arT); arT = setTimeout(() => { if (roomNs && $('#game').hidden) netPresence({ ar: myArenaRatio() }); }, 1500); }); }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null, autoStart: false, accepted: [], lastAnswer: 0 };
+const PAGE_T0 = Date.now();
 function onlineOthers() { const seen = new Set(); return roomState.peers.filter(p => p.kind === 'viewer' && !(p.isMe && p.sameTab) && p.presence && p.presence.nm && (!profile || p.presence.sl !== profile.slug)).sort((a, b) => (!!(b.presence.st || b.presence.hs) - !!(a.presence.st || a.presence.hs)) || ((b.presence.ig || 0) - (a.presence.ig || 0))).filter(p => { const k = p.presence.sl || p.peer; if (seen.has(k)) return false; seen.add(k); return true; }); }
 function peerStatus(pr) { return pr.pg === 'stats' ? 'gleda statistiku' : (pr.st || pr.hs) ? 'online meč (domaćin)' : pr.ig && pr.pl ? 'igra s botovima' : pr.ig ? 'u online meču' : pr.watch ? 'gleda tuđu igru' : pr.rd ? 'u predvorju' : 'na stranici'; }
 function canWatch(pr) { return !!(pr && (pr.st || pr.hs || (pr.ig && pr.pl))); }
@@ -3201,7 +3207,7 @@ function collectDirect() {
     if (p.isMe && p.sameTab) continue;
     const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
     if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
-    if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000) receiveTroll(pr.tr[1], from, p.peer); } }
+    if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000 && (Number(pr.tr[3]) || 0) > PAGE_T0 - 1500) receiveTroll(pr.tr[1], from, p.peer); } }
     else if (Array.isArray(pr.tr) && !(p.isMe && p.sameTab) && G && !$('#game').hidden) { const key = 'w:' + p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; const tgt = roomState.peers.find(q => q.peer === pr.tr[0]); const t = TROLLS[pr.tr[1]]; if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) showIgMsg(`${t.e} <b>${esc(from)}</b> → <b>${esc(String((tgt.presence && tgt.presence.nm) || 'igrač'))}</b>: ${t.name}`); } }
     if (Array.isArray(pr.bt)) { const key = p.peer + ':' + pr.bt[3]; if (!seenBt[key]) { seenBt[key] = 1; if (Date.now() - (Number(pr.bt[4]) || 0) < 600000 && pr.bt[0] === curMid()) { const amt = Math.max(0, Math.min(5000, Number(pr.bt[2]) || 0)); addBounty(pr.bt[0] + ':' + pr.bt[1], amt, from); if (!$('#game').hidden) showIgMsg(`🎯 ${esc(from)} je stavio ucjenu ${amt} na ${esc(String(pr.bt[5] || '').slice(0, 14))}!`, true); } } }
     if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
@@ -3945,7 +3951,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
 
