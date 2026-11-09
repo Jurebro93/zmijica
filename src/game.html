@@ -953,16 +953,20 @@ async function collectGifts() {
   try {
     const r = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug), { cache: 'no-store' }); if (!r.ok) return;
     const { gifts } = await r.json(); if (!gifts || !gifts.length) return;
+    let got = 0;
     for (const g of gifts) {
-      if (/^coins:\d+$/.test(g.item)) { const n = Number(g.item.slice(6)); profile.coins += n; notify(`💰 <b>${esc(g.fromName || 'Turnir')}</b>: +${n} zlatnika`, { ms: 9000 }); await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '' }) }).catch(() => {}); continue; }
+      // the gift is credited only once the server has removed it, otherwise a failed DELETE would credit it again on every load
+      const del = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '' }) }).catch(() => null);
+      if (!del || !del.ok) continue;
+      got++;
+      if (/^coins:\d+$/.test(g.item)) { const n = Number(g.item.slice(6)); profile.coins += n; notify(`💰 <b>${esc(g.fromName || 'Turnir')}</b>: +${n} zlatnika`, { ms: 9000 }); continue; }
       if (TROLLS[g.item] || g.item === 'shield') profile.inv[g.item] = (profile.inv[g.item] || 0) + 1;
       else if ((SKINS[g.item] || BADGES[g.item]) && !profile.owned.includes(g.item)) profile.owned.push(g.item);
-      else profile.coins += itemPrice(g.item) || 0;
+      else if (!SKINS[g.item] && !BADGES[g.item]) continue; // unknown item: nothing to credit
       notify(`🎁 <b>${esc(g.fromName || g.from)}</b> ti je poklonio: <b>${esc(itemName(g.item))}</b>`, { ms: 8000 });
-      await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '' }) }).catch(() => {});
     }
-    saveProfile(); renderShop(); checkAchievements();
-  } catch (e) {}
+    if (got) { saveProfile(); renderShop(); checkAchievements(); }
+  } catch (e) {} finally { collectGifts.busy = false; }
 }
 setTimeout(() => { if (pushOn()) navigator.serviceWorker.register('sw.js').catch(() => {}); }, 3000);
 setTimeout(collectGifts, 4000);
@@ -1606,10 +1610,16 @@ function pvStart() { cancelAnimationFrame(pvRAF); pvInit(); if (!matchMedia('(pr
 // ================= AUDIO =================
 let actx = null, soundOn = true;
 try { soundOn = localStorage.getItem('vijuga-sound') !== '0'; } catch (e) {}
+// browsers (iOS above all) only let audio start from a user gesture: wake the context on the first tap/key, not from network callbacks
+function wakeAudio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state !== 'running') actx.resume().catch(() => {}); } catch (e) {} }
+addEventListener('pointerdown', wakeAudio, { capture: true, passive: true });
+addEventListener('touchend', wakeAudio, { capture: true, passive: true });
+addEventListener('keydown', wakeAudio, { capture: true });
 function beep(freq, dur, type = 'square', vol = 0.06, slide = 0) {
   if (!soundOn) return;
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state !== 'running') { actx.resume().catch(() => {}); return; } // a suspended context would queue the sounds and play them all at once later
     const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
     o.type = type; o.frequency.setValueAtTime(freq, t);
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
@@ -1986,10 +1996,12 @@ function flushTrail(p, keepLast) {
     const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt);
     if (!custom) tctx.lineWidth = p.ptsR * 2;
     if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(p.pts[0], p.pts[1], p.a, p.ptsR); }
+    // the trail is drawn in short pieces; a dashed skin must continue its pattern across pieces, so the dash offset follows the trail length
+    tctx.lineDashOffset = -(p.dashLen || 0); let len = 0;
     tctx.beginPath(); tctx.moveTo(p.pts[0], p.pts[1]);
-    for (let i = 2; i < p.pts.length; i += 2) tctx.lineTo(p.pts[i], p.pts[i + 1]);
-    tctx.stroke();
-    tctx.shadowBlur = 0; tctx.setLineDash([]);
+    for (let i = 2; i < p.pts.length; i += 2) { tctx.lineTo(p.pts[i], p.pts[i + 1]); len += Math.hypot(p.pts[i] - p.pts[i - 2], p.pts[i + 1] - p.pts[i - 1]); }
+    tctx.stroke(); p.dashLen = (p.dashLen || 0) + len;
+    tctx.shadowBlur = 0; tctx.setLineDash([]); tctx.lineDashOffset = 0;
     skinAfter(tctx, p.skin, p.pts, p.ptsR, p);
   }
   p.pts = keepLast && p.pts.length >= 2 ? p.pts.slice(-2) : [];
@@ -2075,6 +2087,8 @@ function spawnPu() {
   if (!pool.length || bd.r - bd.l < 3 * m || bd.b - bd.t < 3 * m) return;
   for (let tries = 0; tries < 30; tries++) {
     const x = rand(bd.l + m, bd.r - m), y = rand(bd.t + m, bd.b - m);
+    // never inside an arena wall or outside the circle (the whole token must be reachable)
+    if (G.arena && (G.arena.rects.length || G.arena.circle) && [0, 1, 2, 3, 4].some(i => inArenaWall(x + (i ? Math.cos(i * Math.PI / 2) * (PU_R + 6) : 0), y + (i ? Math.sin(i * Math.PI / 2) * (PU_R + 6) : 0)))) continue;
     if (G.players.some(p => p.alive && Math.hypot(p.x - x, p.y - y) < 70)) continue;
     if (G.pus.some(u => Math.hypot(u.x - x, u.y - y) < 50)) continue;
     G.pus.push({ k: pool[Math.random() * pool.length | 0], x, y, born: G.gt }); return;
@@ -2096,7 +2110,7 @@ function applyPu(p, k, silent) {
     case 'thickO': others.forEach(q => add(q, 'thick', P.dur)); break;
     case 'revO': others.forEach(q => add(q, 'reverse', P.dur)); break;
     case 'sqO': others.forEach(q => add(q, 'square', P.dur)); break;
-    case 'sharpS': add(P, 'sharp', P.dur); break;
+    case 'sharpS': add(p, 'sharp', P.dur); break;
     case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
     case 'clearA':
       G.players.forEach(q => flushTrail(q, false));
@@ -2143,7 +2157,7 @@ function endRound(winner) {
   sfx.round(); if (winner && winner.vs) setTimeout(() => playVictory(winner.vs), 350);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
+  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -2616,6 +2630,9 @@ function buildPads() {
       if (e.cancelable && (ptr.size || e.type !== 'touchstart')) e.preventDefault();
       sync();
     };
+    // the pads are rebuilt for every match: drop the previous match's listeners first or stale closures keep steering an old player id
+    if (box._onTouch) for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.removeEventListener(ev, box._onTouch);
+    box._onTouch = onTouch;
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.addEventListener(ev, onTouch, { passive: false });
     // mouse / pen (desktop): one button at a time
     box.onpointerdown = (e) => { if (e.pointerType === 'touch') return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
@@ -2681,7 +2698,7 @@ function showResults() {
     return;
   }
   const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking();
-  const w = rows[0]; sfx.round();
+  const w = rows[0]; // the fanfare already played when the last round ended
   let earn = '';
   const mine = net ? (net.role === 'client' ? rows.find(p => p.id === net.myId) : rows.find(p => p.mine)) : rows.find(p => p.mine);
   if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
@@ -3415,7 +3432,7 @@ function wireChat(inSel, btnSel) {
     mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(mic); }); mic.addEventListener('contextmenu', e => e.preventDefault());
     b.parentNode.insertBefore(mic, b);
   }
-  const go = () => { sendChat(i.value); i.value = ''; };
+  const go = () => { sendChat(i.value); i.value = ''; if (!$('#game').hidden) i.blur(); }; // in a match the keys must steer again right after sending
   b.onclick = go; i.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } e.stopPropagation(); };
 }
 function collectChat() {
@@ -3426,7 +3443,8 @@ function collectChat() {
     const key = p.peer; if (chatSeen[key] === m[1]) continue;
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
     if (mutedUntil(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
-    const audio = typeof m[3] === 'string' && /^data:audio\//.test(m[3]) && m[3].length < 100000 ? m[3] : null;
+    // only a plain base64 audio data URL is accepted: it is placed into HTML attributes, so no other characters may get through
+    const audio = typeof m[3] === 'string' && /^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 420000 ? m[3] : null;
     if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
     if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio);
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
@@ -3446,7 +3464,7 @@ function collectChat() {
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
 function renderChat() {
-  const line = (m, t) => `<div>${m.at ? `<small class="ctime">${fmtChatTime(m.at)}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${m.audio}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
+  const line = (m, t) => `<div>${m.at ? `<small class="ctime">${fmtChatTime(m.at)}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${esc(m.audio)}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
   const empty = '<div class="hint">Još nema poruka.</div>';
   const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
@@ -3944,7 +3962,7 @@ async function initCapabilities() {
       roomState.peers = ch.peers;
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
       collectChat(); collectSocial(); collectDirect(); tryWatchSlug(); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
-      if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { netPresence({ st: null }); toMenu(); } }
+      if (net && net.role === 'host') { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { net = null; netPresence({ st: null, pls: null, pmid: null }); toMenu(); } } // net is dropped first: toMenu's own presence patch re-enters this handler
       if (!net && roomState.ready && myPres.ok && $('#game').hidden) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
       else if (!net && $('#game').hidden && profile) { const h = findHost(); let leftMid = ''; try { leftMid = localStorage.getItem('vijuga-left') || ''; } catch (e) {} if (h && !(h.isMe && h.sameTab) && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(profile.slug) && h.presence.pmid && h.presence.pmid !== leftMid) { if (!roomState.ready) joinLobby(true); joinHost(h); } }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();
@@ -3960,8 +3978,13 @@ addEventListener('keydown', (e) => {
   if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
   if (!$('#game').hidden) {
     if (GAME_CODES.has(e.code)) e.preventDefault();
+    if (e.code === 'Escape') { // Esc first closes an open popup; only then does it pause
+      let closed = false; for (const id of ['#trollPop', '#reactPop']) { const p = $(id); if (p && !p.hidden) { p.hidden = true; closed = true; } }
+      if ($('#gchat') && !$('#gchat').hidden && $('#gchat').classList.contains('big')) { $('#gchat').classList.remove('big'); closed = true; }
+      if (closed) return;
+    }
     if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
-    if (e.code === 'Space') { if (G && G.phase === 'end' && !G.over) nextRound(); return; }
+    if (e.code === 'Space') { if (G && !paused && G.phase === 'end' && !G.over) nextRound(); return; }
     held[e.code] = true;
     if (G && !paused && !e.repeat) {
       if (net && net.role === 'client') { const me = G.players.find(x => x.id === net.myId); if (KEYS[0].j === e.code && me) localJump(me); else clientInput(); }
@@ -3969,11 +3992,13 @@ addEventListener('keydown', (e) => {
     }
     return;
   }
-  if (e.code === 'Enter' && document.activeElement.tagName !== 'INPUT' && curTab === 'local' && !$('#start').disabled) startGame();
+  // Enter on a focused button already clicks it (a focused Kreni would start two matches), so only a bare Enter starts the match
+  const tag = document.activeElement ? document.activeElement.tagName : '';
+  if (e.code === 'Enter' && tag !== 'INPUT' && tag !== 'BUTTON' && tag !== 'A' && tag !== 'SELECT' && tag !== 'TEXTAREA' && curTab === 'local' && !$('#start').disabled && $('#regModal').hidden) startGame();
 });
 addEventListener('keyup', (e) => { held[e.code] = false; if (net && net.role === 'client') clientInput(); });
-addEventListener('blur', () => { for (const k in held) held[k] = false; if (G && G.phase === 'run' && !net) togglePause(true); clientInput(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run' && !paused && !net) togglePause(true); });
+addEventListener('blur', () => { for (const k in held) held[k] = false; if (G && (G.phase === 'run' || G.phase === 'count') && !net) togglePause(true); clientInput(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && (G.phase === 'run' || G.phase === 'count') && !paused && !net) togglePause(true); });
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (!net || !G) return;
@@ -4024,7 +4049,17 @@ $('#gchatBig').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.tog
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
 $('#chatBtn').onclick = () => setChatOpen(!chatOpen);
 document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });
-$('#pauseBtn').onclick = () => { if (net && net.role === 'client') { showOverlay(`<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div></div>`); $('#resumeBtn').onclick = () => showOverlay(null); $('#quitBtn').onclick = () => leaveOnline(); } else togglePause(); };
+$('#pauseBtn').onclick = () => {
+  if (net && net.role === 'client') {
+    // a client cannot pause the host's match: ask in a separate layer so the round banner / results (Ready, Izađi) underneath stay intact
+    let ask = $('#leaveAsk');
+    if (ask) { ask.remove(); return; }
+    ask = document.createElement('div'); ask.className = 'overlay'; ask.id = 'leaveAsk'; ask.style.zIndex = '30';
+    ask.innerHTML = `<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div></div>`;
+    $('#overlay').after(ask);
+    $('#resumeBtn').onclick = () => ask.remove(); $('#quitBtn').onclick = () => { ask.remove(); leaveOnline(); };
+  } else togglePause();
+};
 $('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').style.opacity = soundOn ? 1 : .4; try { localStorage.setItem('vijuga-sound', soundOn ? '1' : '0'); } catch (e) {} };
 $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
