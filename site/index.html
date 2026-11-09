@@ -893,7 +893,6 @@ function showPlayer(slug) {
     <span class="label">Ikone</span><div class="wrow">${badges.map(k => chip(P.eq.badge === k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('') || none}</div>
     <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
     <span class="label">Efekti</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
-    <span class="label">Zezalice u džepu</span><div class="wrow">${Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && (TROLLS[k] || k === 'shield')).map(([k, v]) => chip(false, `${(TROLLS[k] || { name: 'Štit' }).name} ×${v}`, `<em>${(TROLLS[k] || { e: '🛡️' }).e}</em>`)).join('') || none}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
     ${myRole() === 'master' ? `<div class="rolepick"><b>Uloga</b>${[['', 'Igrač'], ['moderator', '🛡️ Moderator'], ['turnir', '🏆 Voditelj turnira'], ['admin', '⭐ Admin']].map(([k, n]) => `<button type="button" class="rp ${roleOfSlug(P.slug) === k ? 'on' : ''}" data-r="${k}">${n}</button>`).join('')}</div>` : ''}
     ${myRole() === 'master' ? `<div class="rolepick"><b>Pokloni</b><button type="button" class="rp" id="pGrant">💰 Zlatnici</button><button type="button" class="rp" id="pGrantItem">🎁 Zezalica</button></div>` : ''}
@@ -1052,6 +1051,7 @@ function showProfile() {
     <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
     ${['te', 'ds', 'vs'].map(kind => { const own = Object.keys(EFFECTS).filter(k => EFFECTS[k].kind === kind && P.owned.includes(k)); return own.length ? `<span class="label">${{ te: 'Efekt traga', ds: 'Kad ispadneš', vs: 'Zvuk pobjede' }[kind]}</span><div class="wrow">${chip(kind, '', 'Bez', '<em>—</em>')}${own.map(k => chip(kind, k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('')}</div>` : ''; }).join('')}
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
+    <span class="label">Zezalice u džepu</span><div class="wrow">${Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && (TROLLS[k] || k === 'shield')).map(([k, v]) => `<span style="padding:4px 9px;border:1px solid var(--line);border-radius:9px;font-size:13px">${(TROLLS[k] || { e: '🛡️' }).e} ${(TROLLS[k] || { name: 'Štit' }).name} ×${v}</span>`).join('') || '<span class="hint">ništa – kupi u Trgovini → Zezalice ili otvori kutiju</span>'}</div>
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
     <p style="margin:0">${pushOn() ? '🔔 Obavijesti su uključene na ovom uređaju.' : '<button class="btn ghost sm" type="button" id="profPush">🔔 Uključi obavijesti (pozivi i podsjetnici)</button>'}</p>
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
@@ -3168,6 +3168,7 @@ function drawBounties(c) {
 function mirrorOn() { return performance.now() < mirrorUntil; }
 function sendTroll(peer, id) {
   const t = TROLLS[id]; if (!t || !peer || !profile || !roomNs) return;
+  if (G && !G.over && (G.phase === 'count' || (G.phase === 'run' && G.gt < 2))) { toast('Pričekaj da runda krene (prve 2 s bez zezanja).'); return; }
   const stocked = (profile.inv[id] || 0) > 0;
   if (!stocked && !watchingNow()) { toast('Nemaš tu zezalicu. Kupi je u trgovini.'); return; }
   if (!stocked && profile.coins < t.price) { toast('Nemaš dovoljno zlatnika.'); return; }
@@ -3591,7 +3592,7 @@ function hostAwayPause() {
   G.pz = null; return false; // the match never pauses for one absent player
 }
 function buildSnap(full = true) {
-  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -3674,6 +3675,33 @@ function applyState(st, first) {
   }
   if (first && G.phase === 'end' && !G.over) showRoundBanner();
 }
+function hostCandidates() {
+  const present = new Set(roomState.peers.map(p => p.peer));
+  return G.players.filter(p => p.human && (p.peerId || p.remote) && present.has(p.peerId || p.remote) && (p.peerId || p.remote) !== net.hostPeer).map(p => p.peerId || p.remote).sort();
+}
+function migrateHost() {
+  if (!net || net.role !== 'client' || !G || G.over || net.spectate || net.myId == null) return;
+  const cands = hostCandidates(); if (!cands.length) return;
+  const pick = cands[0];
+  if (pick === roomState.me) { takeOverHost(); return; }
+  if (net.hostPeer !== pick) { const np = G.players.find(p => (p.peerId || p.remote) === pick); net.hostPeer = pick; followHost(pick); net.lastSeen = performance.now(); net.lostAt = 0; net.staleShown = false; net.lostShown = false; showOverlay(null); showIgMsg(`👑 Domaćin je otišao – meč dalje vodi <b>${esc(np ? np.name : 'drugi igrač')}</b>`); }
+}
+function takeOverHost() {
+  const old = net;
+  for (const p of G.players) {
+    if (p.human) { const pr = p.peerId || p.remote; if (p.id === old.myId) { p.mine = true; p.remote = null; } else { p.mine = false; p.remote = pr; p.remoteIn = 0; const pe = roomState.peers.find(q => q.peer === pr); p.lastJ = pe ? Number(pe.presence.j) || 0 : 0; p.lastIs = 0; p.inAt = 0; } }
+    else { p.diff = p.diff || 'teško'; p.botIn = 0; }
+    p.pts = []; p.tv = 0; p.fx = p.fx || []; p.ptsR = radiusOf(p); p.lastIn = 0; p.sqCool = 0; p.gapLeft = p.gapLeft || 0; p.nextGap = p.nextGap || G.gt + 1.5; p.jumpUntil = p.jumpUntil || 0; if (p.jumpReady == null || p.jumpReady >= 999) p.jumpReady = setup.jump ? G.gt + 1 : Infinity; p.killer = null; p.starterDone = true; p.ballsDrawn = true; p.away = false; p.awayAt = 0; p.decoAcc = 0; p.roundStart = p.roundStart ?? p.score;
+  }
+  net = { role: 'host', lastSend: 0, myId: old.myId, supa: !!window.__supaMode, mid: old.mid, migrated: true };
+  Object.assign(G, { pz: null, parts: G.parts || [], pus: G.pus || [], nextPu: G.gt + 3, tombs: G.tombs || [], kx: G.kx || {}, wrapAllUntil: G.wrapAllUntil || 0, inset: G.inset || 0, clr: G.clr || 0, target: G.target || roundsFor(), speedMul: G.speedMul || 1, lastCount: 4, plDirty: true });
+  if (G.arena && typeof stampArena === 'function') { try { stampArena(); } catch (e) {} }
+  T = Math.max(T, 100000); // every stamp received so far counts as old (no self-grace on them)
+  netPresence({ rd: 1, hs: 1, st: buildSnap(true), pls: G.players.filter(p => p.human && p.slug).map(p => p.slug), pmid: net.mid }); roomState.ready = true;
+  if (myPres.fol) netPresence({ fol: roomState.me });
+  buildPads(); hudDirty = true; showOverlay(null); net.lastSend = 0;
+  showIgMsg('👑 Domaćin je otišao – <b>ti</b> vodiš meč dalje'); toast('Preuzeo si vođenje meča');
+}
 function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
   const st = host && host.presence && host.presence[net.key || 'st'];
@@ -3681,9 +3709,11 @@ function clientTick() {
   if (net.myId != null && G && G.phase === 'run' && performance.now() - (net.inSentAt || 0) > 250) clientInput(true);
   if (roomNs && roomNs.rejoin && performance.now() - net.lastSeen > 3500 && performance.now() - (net.rejoinAt || 0) > 5000) { net.rejoinAt = performance.now(); roomNs.rejoin(); }
   if (st && st.W && st.H && (st.W !== W || st.H !== H) && G) { net.W = st.W; net.H = st.H; setArenaSize(st.W, st.H); }
+  if (st && st.sm && G) G.speedMul = st.sm;
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = performance.now(); const back = net.staleShown; if (back) { net.staleShown = false; showOverlay(null); } applyState(st); if (back && G.phase === 'end' && !G.over) showRoundBanner(); }
+    else if (performance.now() - net.lastSeen > 9000 && !net.spectate && !G.over && net.myId != null && hostCandidates().length) { migrateHost(); return; }
     else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
-  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
+  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 2500 && !net.spectate && !G.over && net.myId != null) { migrateHost(); if (!net || net.role !== 'client') return; } else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
   else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   updateParts(1 / 60);
   clientInput();
