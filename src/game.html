@@ -403,8 +403,7 @@ button.pu:hover { border-color: var(--line); }
 .pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
 .pad.big { width: 92px; height: 92px; }
 .padmid { display: grid; gap: 6px; justify-items: center; }
-.pad.sm { width: 54px; height: 54px; } .pad.sm span { font-size: 11px !important; }
-.zbtn { width: 92px; height: 60px; border-radius: 16px; border: 2px solid #b48cff; background: linear-gradient(180deg, #3a2a66, #221a3d); color: #fff; font-family: var(--display); font-size: 12px; display: grid; justify-items: center; gap: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; } .zbtn span { font-size: 24px; line-height: 1; }
+.zbtn { width: 92px; height: 34px; border-radius: 12px; border: 1px solid #b48cff; background: linear-gradient(180deg, #3a2a66, #221a3d); color: #fff; font-size: 15px; letter-spacing: 2px; display: grid; place-items: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
 .pad.on { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc) 65%, var(--panel)), color-mix(in srgb, var(--pc) 30%, var(--panel)) 75%); transform: scale(.94); }
 .pad.cool { opacity: .45; }
@@ -2609,7 +2608,7 @@ function buildPads() {
     const j = mkBtn('J', '<span style="font-family:var(--display);font-size:15px">SKOK</span>', '', 'jump');
     if (!setup.jump) j.style.visibility = 'hidden';
     let mid = j;
-    if (net && !watchingNow()) { mid = document.createElement('div'); mid.className = 'padmid'; const z = document.createElement('button'); z.type = 'button'; z.className = 'zbtn'; z.innerHTML = '<span>😈</span>ZEZAJ · 💬'; z.onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const pop = $('#trollPop'); pop.hidden = !pop.hidden; renderTrollPop(); }; j.classList.add('sm'); mid.append(z, j); }
+    if (net && !watchingNow()) { mid = document.createElement('div'); mid.className = 'padmid'; const z = document.createElement('button'); z.type = 'button'; z.className = 'zbtn'; z.innerHTML = '😈 💬 😀'; z.title = 'Zezalice, chat, reakcije'; z.onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const pop = $('#trollPop'); pop.hidden = !pop.hidden; renderTrollPop(); }; j.classList.add('big'); mid.append(z, j); }
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
     // the whole bar is one touch surface: left third turns left, right third turns right, middle jumps.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
@@ -2635,7 +2634,7 @@ function buildPads() {
     box._onTouch = onTouch;
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.addEventListener(ev, onTouch, { passive: false });
     // mouse / pen (desktop): one button at a time
-    box.onpointerdown = (e) => { if (e.pointerType === 'touch') return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
+    box.onpointerdown = (e) => { if (e.pointerType === 'touch' || (e.target && e.target.closest && e.target.closest('.zbtn'))) return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
     box.onpointermove = (e) => { if (e.pointerType === 'touch') return; const k = 'm' + e.pointerId; const z = ptr.get(k); if (z && z !== 'J') { const sd = sideOf(e.clientX); if (sd !== z) { ptr.set(k, sd); sync(); } } };
     const upM = (e) => { if (e.pointerType === 'touch') return; if (ptr.delete('m' + e.pointerId)) sync(); };
     box.onpointerup = upM; box.onpointercancel = upM; box.onlostpointercapture = upM;
@@ -4025,7 +4024,14 @@ function renderTrollPop() {
   const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
   const inv = profile ? profile.inv : {}, cool = performance.now() - lastTrollSent < 5000;
   const owned = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0);
-  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpt ${trollTab === 'r' ? 'on' : ''}" data-t="r">😀 Reakcije</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  if (trollTab === 'r') {
+    const emo = REACTIONS.concat(isVip() ? VIP_REACTIONS : []);
+    pop.innerHTML = tabs + `<div class="rrow2">${emo.map(e => `<button type="button" class="rbtn" data-e="${e}">${e}</button>`).join('')}</div><p class="hint" style="margin:0">Reakcija se pokaže pored tvog imena svima u meču.</p>`;
+    pop.querySelectorAll('.rbtn').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendReaction(b.dataset.e); pop.hidden = true; });
+    pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
+    return;
+  }
   if (trollTab === 'c') {
     pop.innerHTML = tabs + `<div class="chatlog" id="tpChatLog" style="max-height:38vh"></div><div class="chatrow"><input type="text" id="tpChatIn" maxlength="80" placeholder="Poruka svima… (🎤 drži za glas)" aria-label="Poruka"><button type="button" id="tpChatSend">Pošalji</button></div>`;
     wireChat('#tpChatIn', '#tpChatSend'); renderChat();
