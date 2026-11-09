@@ -1154,7 +1154,7 @@ function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; return 
 function applySkin(c, skinId, color, r, gt) {
   c.shadowBlur = 0; c.setLineDash([]); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = color;
   switch (skinId) {
-    case 'sk_neon': c.shadowBlur = 10; c.shadowColor = color; break;
+    case 'sk_neon': c.strokeStyle = color; c.lineWidth = r * 2 * 0.7; c.shadowBlur = 5; c.shadowColor = color; return true; // thin, soft glow
     case 'sk_dash': c.setLineDash([r * 3, r * 2.2]); break;
     case 'sk_pixel': c.lineCap = 'butt'; c.lineJoin = 'miter'; c.setLineDash([r * 1.2, r * 0.5]); break;
     case 'sk_rainbow': c.strokeStyle = `hsl(${(gt * 160) % 360} 90% 62%)`; break;
@@ -1849,7 +1849,7 @@ function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 
 // the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
 const SKIN_COLOR = { sk_gold: '#ffd700', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_dildo: '#f29ab4', sk_vag: '#f08aa8', sk_boobs: '#f3c6a5', sk_condom: '#cde4ff', sk_hairy: '#cf9580', sk_rainbow: null };
 function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return SKIN_COLOR[p.skin] || p.color; }
-const SKIN_W = { sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
+const SKIN_W = { sk_neon: 0.7, sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
 function stamp(p, r) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
