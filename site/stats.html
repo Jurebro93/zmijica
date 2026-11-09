@@ -313,7 +313,7 @@ function showCard(slug) {
   const p = data && data.players.find(x => x.slug === slug); if (!p) return;
   const dur = ms => fmtDur(ms || 0);
   const st = (k, v) => `<div><b>${v}</b><span>${k}</span></div>`;
-  const eq = p.eq || {}, owned = p.owned || [];
+  const eq = p.eq || {}, owned = (p.owned || []).filter(id => !String(id).startsWith('x_')); // x_… are markers (login streak, welcome box), not items
   const eqSet = new Set(Object.values(eq).flatMap(v => String(v || '').split(',')));
   const chips = (ids, names, cur, set) => ids.length ? `<div class="chips">${ids.map(id => { const on = id === cur || (set && set.has(id)); return `<span class="${on ? 'on' : ''}">${esc(names[id] || id)}${on ? ' ✓' : ''}</span>`; }).join('')}</div>` : '<span class="note">ništa još</span>';
   const inv = Object.entries(p.inv || {}).filter(([k, v]) => v > 0 && TROLL[k]);
@@ -370,7 +370,7 @@ function ranked() {
   ].map(([t, h]) => `<div class="lead"><h3>${t}</h3>${h}</div>`).join('');
 }
 function renderWeek() { const w = data.weekly, b = $('#weekBox'); if (!w) { b.hidden = true; return; } b.hidden = false; b.innerHTML = `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap" data-player="${esc(w.slug)}"><span style="font-size:46px">🏆</span><div><div class="note" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Igrač tjedna</div><div style="font-family:var(--display);font-size:28px;color:var(--amber)">${esc(w.name)}</div><div class="note">${w.firsts} pobjeda · ${w.podiums} postolja · ${w.kills} rušenja · ${w.matches} mečeva u zadnjih 7 dana</div></div></div>`; }
-function render() { renderRecent(); renderWeek(); ranked(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', data.owned || {}, Object.assign({}, SKIN, BADGE, PU)); }
+function render() { renderRecent(); renderWeek(); ranked(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', Object.fromEntries(Object.entries(data.owned || {}).filter(([k]) => !k.startsWith('x_'))), Object.assign({}, SKIN, BADGE, PU)); }
 addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
 
