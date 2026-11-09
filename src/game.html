@@ -635,6 +635,8 @@ const POWERUPS = {
   thickO: { t: 'o', g: '●', name: 'Debeli trag', d: 'Ostali ostavljaju dvostruki trag', dur: 6 },
   revO:   { t: 'o', g: '⇄', name: 'Obrnuto', d: 'Ostalima su lijevo i desno zamijenjeni', dur: 5 },
   sqO:    { t: 'o', g: '┐', name: 'Kutovi', d: 'Ostali skreću samo pod 90°', dur: 5 },
+  sharpS: { t: 's', g: '↺', name: 'Oštro skretanje', d: 'Skrećeš puno oštrije (uski krugovi)', dur: 6 },
+  wideO:  { t: 'o', g: '◡', name: 'Tromo skretanje', d: 'Ostali skreću jako široko, teško naprave krug', dur: 6 },
   clearA: { t: 'a', g: '×', name: 'Brisanje', d: 'Svi tragovi nestaju', dur: 0 },
   wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7 },
 };
@@ -658,6 +660,8 @@ function drawPuIcon(c, k, x, y, R) {
     case 'revO': c.beginPath(); c.moveTo(-0.9 * s, -0.4 * s); c.lineTo(0.9 * s, -0.4 * s); c.moveTo(0.45 * s, -0.85 * s); c.lineTo(0.9 * s, -0.4 * s); c.lineTo(0.45 * s, 0.05 * s);
       c.moveTo(0.9 * s, 0.45 * s); c.lineTo(-0.9 * s, 0.45 * s); c.moveTo(-0.45 * s, 0.0 * s); c.lineTo(-0.9 * s, 0.45 * s); c.lineTo(-0.45 * s, 0.9 * s); c.stroke(); break;
     case 'sqO': c.beginPath(); c.moveTo(-0.8 * s, -0.6 * s); c.lineTo(0.55 * s, -0.6 * s); c.lineTo(0.55 * s, 0.85 * s); c.stroke(); break;
+    case 'sharpS': c.beginPath(); c.arc(0, 0.1 * s, 0.55 * s, Math.PI * 0.2, Math.PI * 1.75); c.stroke(); c.beginPath(); c.moveTo(0.35 * s, -0.75 * s); c.lineTo(0.62 * s, -0.35 * s); c.lineTo(0.2 * s, -0.3 * s); c.stroke(); break;
+    case 'wideO': c.beginPath(); c.arc(0, -1.2 * s, 1.75 * s, Math.PI * 0.3, Math.PI * 0.7); c.stroke(); c.beginPath(); c.moveTo(-0.9 * s, 0.1 * s); c.lineTo(-0.55 * s, 0.55 * s); c.lineTo(-0.2 * s, 0.1 * s); c.stroke(); break;
     case 'clearA': c.beginPath(); c.moveTo(-0.7 * s, -0.7 * s); c.lineTo(0.7 * s, 0.7 * s); c.moveTo(0.7 * s, -0.7 * s); c.lineTo(-0.7 * s, 0.7 * s); c.stroke(); break;
     default: c.font = `800 ${Math.round(R)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText((POWERUPS[k] || {}).g || '?', 0, 0);
   }
@@ -1649,6 +1653,7 @@ function trailFx(p, now) {
   else if (p.te === 'te_bubble' && Math.random() < .4) tparts.push({ t: 'b', x, y, vx: (Math.random() - .5) * 10, vy: -14, life: 1.2, born: now, r: 3 + Math.random() * 4 });
 }
 function deathFx(p) {
+  if (G) { (G.rings ||= []).push({ x: p.x, y: p.y, c: dispColor(p), t0: performance.now() }); if (G.rings.length > 6) G.rings.shift(); }
   const now = performance.now();
   if (p.ds === 'ds_confetti') { const cs = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff']; for (let i = 0; i < 60; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 160; tparts.push({ t: 'r', x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, g: 120, life: 1.4, born: now, c: cs[i % cs.length], r: 3 }); } }
   else if (p.ds === 'ds_ghost') tparts.push({ t: 'e', e: '👻', x: p.x, y: p.y, vx: 0, vy: -45, life: 1.8, born: now, r: 28 });
@@ -1790,7 +1795,7 @@ function newRound() {
     const toC = Math.atan2(H / 2 - y, W / 2 - x);
     p.roundStart = p.score || 0;
     Object.assign(p, { x, y, a: toC + rand(-1.1, 1.1), alive: true, fx: [], gapLeft: 26, nextGap: rand(1.4, 3), jumpUntil: 0,
-      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false });
+      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false });
   });
   hudDirty = true; showOverlay(null);
   G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
@@ -1800,6 +1805,7 @@ function newRound() {
 function has(p, k) { for (const f of p.fx) if (f.k === k && f.until > G.gt) return true; return false; }
 const MAX_STACK = 2;
 function fxCount(p, k) { let n = 0; for (const f of p.fx) if (f.k === k && f.until > G.gt) n++; return Math.min(MAX_STACK, n); }
+function turnMul(p) { return (has(p, 'sharp') ? 1.8 : 1) * (has(p, 'wide') ? 0.42 : 1); }
 function speedOf(p) { return BASE_SPEED * G.speedMul * Math.pow(1.6, fxCount(p, 'fast')) * Math.pow(0.62, fxCount(p, 'slow')); }
 function radiusOf(p) { return Math.max(1.1, BASE_R * Math.pow(0.5, fxCount(p, 'thin')) * Math.pow(2.1, fxCount(p, 'thick'))); }
 const OBST = 254;
@@ -2075,6 +2081,8 @@ function applyPu(p, k, silent) {
     case 'thickO': others.forEach(q => add(q, 'thick', P.dur)); break;
     case 'revO': others.forEach(q => add(q, 'reverse', P.dur)); break;
     case 'sqO': others.forEach(q => add(q, 'square', P.dur)); break;
+    case 'sharpS': add(P, 'sharp', P.dur); break;
+    case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
     case 'clearA':
       G.players.forEach(q => flushTrail(q, false));
       owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; stampArena(); break;
@@ -2148,7 +2156,7 @@ function substep() {
     if (rev && (p.human || p.diff === 'lako')) inp = -inp;
     if (has(p, 'square')) {
       if (inp !== 0 && p.lastIn === 0 && T >= p.sqCool) { p.a += inp * Math.PI / 2; p.sqCool = T + 20; flushTrail(p, true); }
-    } else p.a += inp * TURN * SUB * (speedOf(p) / BASE_SPEED);
+    } else { p.tv = (p.tv || 0) + (inp - (p.tv || 0)) * Math.min(1, SUB / 0.04); if (Math.abs(p.tv) < 0.01) p.tv = 0; p.a += p.tv * TURN * SUB * (speedOf(p) / BASE_SPEED) * turnMul(p); } // steering eases in over ~40 ms: round, smooth curves
     p.lastIn = inp;
 
     const v = speedOf(p), r = radiusOf(p), step = v * SUB;
@@ -2261,6 +2269,7 @@ function render() {
   { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
     if (me && me.alive && G.phase === 'run') { const rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt); const mir = mirrorOn();
       if (rv || mir) { const left = rv ? Math.ceil(rv.until - G.gt) : Math.ceil((mirrorUntil - performance.now()) / 1000); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `400 ${Math.round(Math.min(W, H) * 0.055)}px Bungee, Impact, sans-serif`; ctx.fillStyle = 'rgba(11,18,27,.7)'; const tw = Math.min(W, H) * 0.62; ctx.fillRect(W / 2 - tw / 2, H * 0.06, tw, Math.min(W, H) * 0.09); ctx.fillStyle = '#ff5d73'; ctx.fillText(`⇄ OBRNUTE KONTROLE · ${Math.max(1, left)} s`, W / 2, H * 0.06 + Math.min(W, H) * 0.045); ctx.restore(); } } }
+  if (G.rings && G.rings.length) { const now = performance.now(); G.rings = G.rings.filter(r => now - r.t0 < 450); for (const r of G.rings) { const k = (now - r.t0) / 450; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, 6 + 34 * k, 0, 6.283); ctx.stroke(); ctx.restore(); } }
   if (luxFx.length) drawLux(ctx);
   // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
   // snake never seems to float ahead of its own trail
@@ -3576,6 +3585,7 @@ function applyState(st, first) {
       const custom = applySkin(tctx, p.skin, p.color, q.rr, G.gt); if (!custom) tctx.lineWidth = q.rr * 2;
       tctx.beginPath(); tctx.moveTo(pv.x, pv.y); tctx.lineTo(q.x, q.y); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]);
       skinAfter(tctx, p.skin, [pv.x, pv.y, q.x, q.y], q.rr, p);
+      { const d = Math.hypot(q.x - pv.x, q.y - pv.y), n = Math.max(1, Math.ceil(d)), g = { id: q.i, x: 0, y: 0 }; for (let k = 0; k <= n; k++) { g.x = pv.x + (q.x - pv.x) * k / n; g.y = pv.y + (q.y - pv.y) * k / n; stamp(g, Math.max(1, q.rr * skinW(p) - 0.35)); } }
     }
     net.prev[q.i] = q;
     newPlayers.push(p);
@@ -3588,7 +3598,7 @@ function applyState(st, first) {
     if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
     if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
     if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) setTimeout(() => playVictory(wnr.vs), 350); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
-    if (G.phase === 'count') showOverlay(null);
+    if (G.phase === 'count') { showOverlay(null); if (owner) owner.fill(0); }
   }
   if (first && G.phase === 'end' && !G.over) showRoundBanner();
 }
@@ -3618,9 +3628,12 @@ function predictHeads() {
     if (p.id !== net.myId && p._wa && !has(p, 'square')) { a = p.sa + p._wa * dt * 0.5; p.a = p.sa + p._wa * dt; }
     if (p.id === net.myId && !has(p, 'square')) {
       const k = KEYS[0]; let v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
-      const tr = TURN * (p.v / BASE_SPEED); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
+      const tr = TURN * (p.v / BASE_SPEED) * turnMul(p); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
-    p.x = p.sx + Math.cos(a) * p.v * dt; p.y = p.sy + Math.sin(a) * p.v * dt;
+    let nx = p.sx + Math.cos(a) * p.v * dt, ny = p.sy + Math.sin(a) * p.v * dt;
+    { const rr = radiusOf(p), bd = bounds(), wr = rr * 0.55; const probe = (x, y) => { if (x - wr < bd.l || y - wr < bd.t || x + wr > bd.r || y + wr > bd.b) return !wraps(p); const i = cellIdx(x + Math.cos(a) * rr * 0.78, y + Math.sin(a) * rr * 0.78); return i >= 0 && owner[i] && owner[i] !== p.id + 1 && owner[i] !== OBST; };
+      if (!(p.jumpUntil > G.gt) && !has(p, 'ghost') && probe(nx, ny)) { nx = p.sx; ny = p.sy; } }
+    p.x = nx; p.y = ny;
     if (p.ex || p.ey || p.ea) { p.ex *= decay; p.ey *= decay; p.ea *= decay; p.x += p.ex; p.y += p.ey; p.a += p.ea; if (Math.abs(p.ex) + Math.abs(p.ey) < 0.05) p.ex = p.ey = 0; if (Math.abs(p.ea) < 0.002) p.ea = 0; }
     p._vx = p.x; p._vy = p.y; p._va = p.a;
   }
