@@ -163,6 +163,14 @@ button:disabled { cursor: default; opacity: .5; }
 .achs { display: flex; flex-wrap: wrap; gap: 6px; }
 .ach { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); opacity: .35; font-size: 16px; }
 .ach small { font-size: 12px; } .ach.on { opacity: 1; border-color: var(--amber); background: rgba(255,181,71,.1); }
+.streak { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.streak .sd { border: 1px solid var(--line); border-radius: 9px; padding: 6px 2px; display: grid; gap: 2px; background: var(--ink); font-size: 13px; } .streak .sd small { color: var(--muted); font-size: 11px; }
+.streak .sd.done { opacity: .6; } .streak .sd.now { border-color: var(--amber); background: rgba(255,181,71,.16); color: var(--amber); } .streak .sd:last-child b { color: var(--amber); }
+@media (max-width: 420px) { .streak { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.boxbox { border: 1px solid rgba(255,181,71,.5); background: linear-gradient(180deg, rgba(255,181,71,.1), transparent); border-radius: 14px; padding: 12px; }
+.boxrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 10px; }
+.boxcard { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+.boxcard .be { font-size: 44px; line-height: 1; } .boxcard.b-silver { border-color: #b9c4d0; } .boxcard.b-gold { border-color: #ffd23f; box-shadow: 0 0 0 1px rgba(255,210,63,.25) inset; } .boxcard.b-diamond { border-color: #7df9ff; box-shadow: 0 0 14px rgba(125,249,255,.25); }
 .dailyrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
 .daily { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 12px; border-radius: 12px; border: 1px solid var(--amber); background: rgba(255,181,71,.08); }
 .daily .tag { grid-column: 1 / -1; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); }
@@ -287,6 +295,7 @@ button.pu:hover { border-color: var(--line); }
 .item .prev canvas { width: 100%; height: 44px; display: block; }
 .item .prev .ic { font-size: 28px; }
 .item.pic .prev { height: 84px; } .item.pic .prev .ic { font-size: 56px; line-height: 1; }
+canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .item b { font-size: 17px; } .item small { color: var(--muted); display: block; }
 .item .price { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
 .item .act { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
@@ -543,10 +552,11 @@ button.pu:hover { border-color: var(--line); }
       </div>
 
       <div class="tab" id="tab-shop" hidden>
-        <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on">🛒 Sve</button><button type="button" data-c="local">⚓ Šibenik i navijači</button><button type="button" data-c="skins">〰️ Tragovi</button><button type="button" data-c="badges">⭐ Ikone</button><button type="button" data-c="pu">⚡ Power-upovi</button><button type="button" data-c="fx">✨ Efekti</button><button type="button" data-c="trolls">😈 Zezalice</button><button type="button" data-c="premium">💎 Premium</button><button type="button" data-c="unique">🗳️ Unikati</button></div></div>
+        <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on">🛒 Sve</button><button type="button" data-c="boxes">🎁 Kutije</button><button type="button" data-c="local">⚓ Šibenik i navijači</button><button type="button" data-c="skins">〰️ Tragovi</button><button type="button" data-c="badges">⭐ Ikone</button><button type="button" data-c="pu">⚡ Power-upovi</button><button type="button" data-c="fx">✨ Efekti</button><button type="button" data-c="trolls">😈 Zezalice</button><button type="button" data-c="premium">💎 Premium</button><button type="button" data-c="unique">🗳️ Unikati</button></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
-        <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
+        <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
+        <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
@@ -710,8 +720,16 @@ const SKINS = {
   sk_condom:  { name: 'Kondom', d: 'Prozirni trag s rezervoarom na vrhu. Za odrasle.', price: 160 },
   sk_hairy:   { name: 'Dlakava jaja', d: 'Koža s dlakama, na glavi dvije dlakave kugle. Za odrasle.', price: 170 },
 };
+// an animated icon lives on a small canvas wherever a badge is shown in the page; the same routine draws it in the arena
+const ABD = (k) => '<canvas class="abd" data-a="' + k + '" width="56" height="56" aria-hidden="true"></canvas>';
 const BADGES = {
   bd_none:  { g: '', name: 'Bez ikone', d: '', price: 0 },
+  bd_a_fire:  { g: '🔥', anim: 'fire',  premium: true, svg: ABD('fire'),  name: 'Vatra koja gori', d: 'ANIMACIJA: plamen gori uz tvoje ime i iznad zmije. Rijetko ispadne iz kutije', price: 7000 },
+  bd_a_ski:   { g: '⛷️', anim: 'ski',   premium: true, svg: ABD('ski'),   name: 'Skijaš skakač', d: 'ANIMACIJA: skijaš se spušta zaletištem i leti. Rijetko ispadne iz kutije', price: 7500 },
+  bd_a_graph: { g: '📈', anim: 'graph', premium: true, svg: ABD('graph'), name: 'Graf koji raste', d: 'ANIMACIJA: stupci i strelica idu samo gore. Rijetko ispadne iz kutije', price: 7000 },
+  bd_a_wifi:  { g: '📶', anim: 'wifi',  premium: true, svg: ABD('wifi'),  name: 'WiFi koji radi', d: 'ANIMACIJA: signal se pali crtu po crtu. Rijetko ispadne iz kutije', price: 7000 },
+  bd_a_load:  { g: '⏳', anim: 'load',  premium: true, svg: ABD('load'),  name: 'Loading', d: 'ANIMACIJA: kružić koji se vječno učitava. Rijetko ispadne iz kutije', price: 7500 },
+  bd_a_ninja: { g: '🥷', anim: 'ninja', premium: true, svg: ABD('ninja'), name: 'Ninja koji nestaje', d: 'ANIMACIJA: ninja nestane u dimu i opet se stvori. Rijetko ispadne iz kutije', price: 8000 },
   bd_bolt:  { g: '⚡', name: 'Munja', d: 'Za brze', price: 60 },
   bd_star:  { g: '★', name: 'Zvijezda', d: 'Klasik', price: 100 },
   bd_skull: { g: '☠', name: 'Lubanja', d: 'Za one koji ruše', price: 140 },
@@ -848,7 +866,40 @@ function loginAs(doc) {
   setup.players[0].name = profile.name; saveSetup();
   if (profile._bonusNew) saveProfile(); else { renderMe(); renderShop(); renderBoard(); if (roomNs) netPresence(myLobbyPres()); }
   renderPlayers(); renderNet(); $('#regModal').hidden = true;
+  clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 1200);
 }
+// ---- daily login streak and the welcome box. Both are remembered as markers in the profile's `owned` list (the
+// server keeps that list as it is): 'x_s:<date>:<day>' = the last day a streak reward was taken and which day it was,
+// 'x_fbox' = the free welcome box has been opened.
+const STREAK_COINS = [100, 200, 300, 500, 800, 1200, 3000];
+function streakState() { const e = ((profile && profile.owned) || []).find(x => x.startsWith('x_s:')); const m = e ? e.split(':') : []; return { date: m[1] || '', day: Math.max(0, Math.min(7, Number(m[2]) || 0)) }; }
+function claimStreak() {
+  if (!profile) return null;
+  const today = zDay(Date.now()), st = streakState(); if (st.date === today) return null;
+  const day = st.date === zDay(Date.now() - 86400000) ? (st.day % 7) + 1 : 1; // a missed day starts again from day 1
+  profile.owned = profile.owned.filter(x => !x.startsWith('x_s:')); profile.owned.push(`x_s:${today}:${day}`);
+  const n = STREAK_COINS[day - 1]; profile.coins += n; saveProfile();
+  return { day, n };
+}
+function showStreak(st, then) {
+  const m = $('#regModal'); m.hidden = false;
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><h3>🔥 Dnevna nagrada: ${st.day}. dan zaredom</h3><p style="font-size:22px;margin:0;color:var(--amber);font-weight:700">+${st.n} zlatnika</p>
+    <div class="streak">${STREAK_COINS.map((c, i) => `<div class="sd ${i + 1 < st.day ? 'done' : i + 1 === st.day ? 'now' : ''}"><small>${i + 1}. dan</small><b>${i + 1 < st.day ? '✓' : '●'} ${c}</b></div>`).join('')}</div>
+    <p class="hint" style="margin:0">${st.day < 7 ? `Dođi i sutra: ${st.day + 1}. dan nosi <b>${STREAK_COINS[st.day]}</b> zlatnika, a 7. dan <b>${STREAK_COINS[6]}</b>. Preskočiš li dan, brojanje kreće ispočetka.` : 'Cijeli tjedan! Sutra kreće novi krug od 1. dana.'}</p>
+    <div class="go" style="justify-content:center"><button class="btn" type="button" id="streakOk">Super!</button></div></form>`;
+  sfx.pick();
+  $('#streakOk').onclick = () => { m.hidden = true; if (then) then(); };
+}
+function welcomeBox() { if (!profile || profile.owned.includes('x_fbox') || !$('#game').hidden) return; profile.owned.push('x_fbox'); openBox('basic', true); }
+// after a login (and when a new day begins while the game is open): the streak reward first, then, once, the welcome box
+function dailyGreeting() {
+  if (!profile || !$('#game').hidden || document.hidden) return;
+  const m = $('#regModal'); if (m && !m.hidden) { clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
+  const st = claimStreak();
+  if (st) showStreak(st, welcomeBox); else welcomeBox();
+}
+setInterval(dailyGreeting, 15 * 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(dailyGreeting, 1500); });
 function logout() { profile = null; rememberLogin(null); renderMe(); renderShop(); renderBoard(); renderPlayers(); if (roomNs) { roomState.ready = false; netPresence(Object.assign(myLobbyPres(), { rd: 0 })); } renderNet(); showLogin(); }
 function renderMe() {
   setTimeout(() => { try { renderOnbar(); } catch (e) {} }, 0);
@@ -1160,6 +1211,7 @@ function showRegister() {
     rememberLogin(slug);
     setup.players[0].name = name; saveSetup();
     await saveProfile(); m.hidden = true; renderPlayers(); renderNet();
+    if (!editing) { clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 900); }
   };
 }
 const GAME_URL = 'https://zmijica.onrender.com/';
@@ -1242,31 +1294,60 @@ function applySkin(c, skinId, color, r, gt) {
 }
 function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
 function dailyOffer() { const pool = [...Object.keys(SKINS), ...Object.keys(BADGES)].filter(k => { const x = SKINS[k] || BADGES[k]; return x.price > 0 && !x.limit && !x.premium && !x.unique && (x.season == null || x.season === seasonNow()); }); return pool[dayHash('offer') % pool.length]; }
-const BOX_PRICE = 150;
+// ---- surprise boxes. A dearer box holds more coins, better items and a higher chance of a rare animated icon.
+// pRare: an animated premium icon; pItem: a skin / icon / start power-up (the best of `picks` draws); pCoins: coins; otherwise pranks.
+const BOXES = {
+  basic:   { e: '🎁', name: 'Kutija iznenađenja', price: 150,  pRare: 0.005, pItem: 0.35, pCoins: 0.20, coins: [200, 350],   picks: 1, trolls: 2 },
+  silver:  { e: '🥈', name: 'Srebrna kutija',     price: 500,  pRare: 0.02,  pItem: 0.40, pCoins: 0.27, coins: [350, 700],   picks: 2, trolls: 3 },
+  gold:    { e: '🥇', name: 'Zlatna kutija',      price: 1500, pRare: 0.07,  pItem: 0.42, pCoins: 0.30, coins: [1200, 2400], picks: 3, trolls: 5 },
+  diamond: { e: '💎', name: 'Dijamantna kutija',  price: 4000, pRare: 0.20,  pItem: 0.40, pCoins: 0.35, coins: [3500, 8000], picks: 4, trolls: 8 },
+};
+const BOX_PRICE = BOXES.basic.price;
 const BOX_PER_DAY = 5;
-function openBox() {
-  if (!profile || profile.coins < BOX_PRICE) { toast('Nemaš dovoljno zlatnika.'); return; }
-  const day = zDay(Date.now()); if (!profile.box || profile.box.d !== day) profile.box = { d: day, n: 0 };
-  if (profile.box.n >= BOX_PER_DAY) { toast(`Danas si već otvorio ${BOX_PER_DAY} kutija – sutra opet.`); return; }
-  profile.box.n++;
-  profile.coins -= BOX_PRICE; profile.spent = (profile.spent || 0) + BOX_PRICE; profile.purchases = (profile.purchases || 0) + 1;
-  const items = [...Object.keys(SKINS), ...Object.keys(BADGES), ...STARTER_PU].filter(k => !profile.owned.includes(k) && !(SKINS[k] || BADGES[k] || {}).limit && itemPrice(k) > 0);
-  const roll = Math.random(); let msg;
-  if (items.length && roll < 0.35) { const k = items[Math.floor(Math.random() * items.length)]; profile.owned.push(k); msg = `🎉 ${itemName(k)}! (vrijedi ${itemPrice(k)})`; }
-  else if (roll < 0.55) { const n = 200 + Math.floor(Math.random() * 7) * 25; profile.coins += n; msg = `💰 ${n} zlatnika!`; }
-  else { const ids = Object.keys(TROLLS); const a = ids[Math.floor(Math.random() * ids.length)], b = ids[Math.floor(Math.random() * ids.length)]; profile.inv[a] = (profile.inv[a] || 0) + 1; profile.inv[b] = (profile.inv[b] || 0) + 1; msg = `😈 Zezalice: ${TROLLS[a].e} ${TROLLS[a].name} i ${TROLLS[b].e} ${TROLLS[b].name}`; }
-  sfx.pick(); saveProfile(); renderShop();
+const pct = (v) => (v * 100 < 1 ? (v * 100).toFixed(1).replace('.', ',') : String(Math.round(v * 100))) + ' %';
+function boxLeftToday() { const day = zDay(Date.now()); return profile ? BOX_PER_DAY - (profile.box && profile.box.d === day ? profile.box.n : 0) : 0; }
+function rollBox(kind) {
+  const B = BOXES[kind];
+  const rare = Object.keys(BADGES).filter(k => BADGES[k].anim && !profile.owned.includes(k));
+  const pool = [...Object.keys(SKINS), ...Object.keys(BADGES), ...STARTER_PU].filter(k => !profile.owned.includes(k) && !(SKINS[k] || BADGES[k] || {}).limit && !(BADGES[k] && BADGES[k].anim) && itemPrice(k) > 0);
+  if (rare.length && Math.random() < B.pRare) { const k = rare[Math.floor(Math.random() * rare.length)]; profile.owned.push(k); return { rare: k, msg: `🌟 RIJETKO! <b>${esc(BADGES[k].name)}</b> ${BADGES[k].svg}<br><small>animirana premium ikona, vrijedi ${itemPrice(k)}</small>` }; }
+  const roll = Math.random();
+  if (pool.length && roll < B.pItem) { let best = null; for (let n = 0; n < B.picks; n++) { const k = pool[Math.floor(Math.random() * pool.length)]; if (!best || itemPrice(k) > itemPrice(best)) best = k; } profile.owned.push(best); return { item: best, msg: `🎉 ${esc(itemName(best))}! (vrijedi ${itemPrice(best)})` }; }
+  if (roll < B.pItem + B.pCoins || (!pool.length && roll < B.pItem + B.pCoins + 0.2)) { const steps = Math.floor((B.coins[1] - B.coins[0]) / 25) + 1; const n = B.coins[0] + Math.floor(Math.random() * steps) * 25; profile.coins += n; return { coins: n, msg: `💰 ${n} zlatnika!` }; }
+  const ids = Object.keys(TROLLS), got = {}; for (let n = 0; n < B.trolls; n++) { const a = ids[Math.floor(Math.random() * ids.length)]; profile.inv[a] = (profile.inv[a] || 0) + 1; got[a] = (got[a] || 0) + 1; }
+  return { trolls: got, msg: '😈 Zezalice: ' + Object.entries(got).map(([a, n]) => `${TROLLS[a].e} ${TROLLS[a].name}${n > 1 ? ' ×' + n : ''}`).join(', ') };
+}
+// free: the welcome box of a first login (costs nothing, does not count towards the daily limit)
+function openBox(kind, free) {
+  if (!BOXES[kind]) kind = 'basic';
+  const B = BOXES[kind]; if (!profile) return null;
+  if (!free) {
+    if (profile.coins < B.price) { toast('Nemaš dovoljno zlatnika.'); return null; }
+    const day = zDay(Date.now()); if (!profile.box || profile.box.d !== day) profile.box = { d: day, n: 0 };
+    if (profile.box.n >= BOX_PER_DAY) { toast(`Danas si već otvorio ${BOX_PER_DAY} kutija – sutra opet.`); return null; }
+    profile.box.n++;
+    profile.coins -= B.price; profile.spent = (profile.spent || 0) + B.price; profile.purchases = (profile.purchases || 0) + 1;
+  }
+  const res = rollBox(kind);
+  sfx.pick(); if (res.rare) setTimeout(() => sfx.round(), 250); saveProfile(); renderShop();
   const m = $('#regModal'); m.hidden = false;
-  m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><div style="font-size:64px" class="boxpop">🎁</div><h3>Iz kutije si dobio</h3><p style="font-size:20px;margin:0">${msg}</p><div class="go" style="justify-content:center"><button class="btn" type="button" id="boxOk">Super!</button>${profile.coins >= BOX_PRICE ? '<button class="btn ghost" type="button" id="boxAgain">Otvori još jednu (● ' + BOX_PRICE + ')</button>' : ''}</div></form>`;
-  $('#boxOk').onclick = () => { m.hidden = true; }; if ($('#boxAgain')) $('#boxAgain').onclick = openBox;
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><div style="font-size:64px" class="boxpop">${B.e}</div><h3>${free ? 'Dobrodošlica: besplatna kutija iznenađenja!' : esc(B.name) + ': dobio si'}</h3><p style="font-size:20px;margin:0" id="boxMsg">${res.msg}</p>${free ? '<p class="hint" style="margin:0">U trgovini (kartica <b>🎁 Kutije</b>) možeš kupiti još kutija – običnu, srebrnu, zlatnu i dijamantnu – i otkriti svašta zanimljivo: skinove, ikone, zlatnike, zezalice, a uz malo sreće i rijetku animiranu ikonu.</p>' : ''}<div class="go" style="justify-content:center"><button class="btn" type="button" id="boxOk">Super!</button>${free ? '<button class="btn ghost" type="button" id="boxShop">🎁 Pogledaj kutije</button>' : profile.coins >= B.price && boxLeftToday() > 0 ? '<button class="btn ghost" type="button" id="boxAgain">Otvori još jednu (● ' + B.price + ')</button>' : ''}</div></form>`;
+  $('#boxOk').onclick = () => { m.hidden = true; }; if ($('#boxAgain')) $('#boxAgain').onclick = () => openBox(kind);
+  if ($('#boxShop')) $('#boxShop').onclick = () => { m.hidden = true; showTab('shop'); const b = document.querySelector('#shopCats [data-c=boxes]'); if (b) b.click(); };
+  return res;
+}
+function renderBoxes() {
+  const box = $('#shopBoxes'); if (!box) return;
+  const left = boxLeftToday();
+  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b><span class="hint">zlatnici ${B.coins[0]}–${B.coins[1]} · predmet ${pct(B.pItem)}${B.picks > 1 ? ' (bolji od ' + B.picks + ')' : ''} · zezalice ×${B.trolls} · <b style="color:var(--amber)">rijetka animacija ${pct(B.pRare)}</b></span><button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button></div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (🔥 ⛷️ 📈 📶 ⏳ 🥷).</p>`;
+  box.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
 }
 function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
 function renderDailyShop() {
   const box = $('#shopDaily'); if (!box) return;
   const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
-  box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana</span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>
-    <div class="daily"><span class="tag">🎁 Kutija iznenađenja</span><b>● ${BOX_PRICE}</b><span class="hint">skin, ikona, start power-up, 200–350 zlatnika ili 2 zezalice</span><button class="btn sm" type="button" id="openBox" ${!profile || profile.coins < BOX_PRICE ? 'disabled' : ''}>Otvori</button></div>`;
-  $('#openBox').onclick = openBox;
+  box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana</span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>`;
+  renderBoxes();
   $('#goOffer').onclick = () => { const el = [...document.querySelectorAll('#shopSkins .item, #shopBadges .item')].find(x => x.textContent.includes(it.name)); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); } };
 }
 function seasonNow() { const m = new Date().getMonth(); return m >= 9 ? (m === 11 ? 1 : 0) : m === 0 ? 1 : m <= 2 ? 2 : 3; } // 0 bundeva (lis–stu), 1 snijeg (pro–sij), 2 ljubav (velj–ožu), 3 ljeto (tra–ruj)
@@ -1292,6 +1373,7 @@ function applyShopFilter() {
   document.querySelectorAll('#tab-shop [data-cat]').forEach(sec => { const grids = [...sec.querySelectorAll('.shop')]; if (grids.length > 1) sec.style.display = grids.some(g => [...g.children].some(c => c.style.display !== 'none')) ? '' : 'none'; });
   // category cards: one category at a time; a search looks through all of them
   if (shopCat !== 'all' && !q) document.querySelectorAll('#tab-shop [data-cat]').forEach(sec => { if (sec.dataset.cat !== shopCat) sec.style.display = 'none'; });
+  { const bx = document.querySelector('#tab-shop [data-cat=boxes]'); if (bx) bx.style.display = q ? 'none' : (shopCat === 'all' || shopCat === 'boxes' ? '' : 'none'); }
   const extra = shopCat === 'all' || !!q; for (const sel of ['#tab-shop .coinnote', '#shopDaily']) { const el = document.querySelector(sel); if (el) el.style.display = extra ? '' : 'none'; }
 }
 function renderShop() {
@@ -1303,7 +1385,7 @@ function renderShop() {
       const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
       const prev = document.createElement('div'); prev.className = 'prev';
       if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
-      else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${it.svg || it.g || '—'}</span>`; if (it.big) d.classList.add('pic'); }
+      else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${it.svg || it.g || '—'}</span>`; if (it.big || it.anim) d.classList.add('pic'); }
       else { const P = POWERUPS[id]; prev.innerHTML = `<i class="pu" style="border:0;padding:0"><i class="${P.t}" style="width:32px;height:32px;font-size:18px">${P.g}</i></i>`; }
       d.appendChild(prev);
       d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`);
@@ -1321,7 +1403,8 @@ function renderShop() {
   };
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium), 'badge');
+  make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local), 'badge');
   const prb = $('#shopPremium');
@@ -2072,15 +2155,66 @@ function drawSkinHead(c, skin, x, y, a, r) {
   }
   c.restore();
 }
+// ---- animated premium icons: one routine per icon. x, y is the centre, s the side of the square, t seconds.
+function drawAnim(c, kind, x, y, s, t) {
+  const u = s / 2, TAU = 6.2832; c.save(); c.translate(x, y); c.lineCap = 'round'; c.lineJoin = 'round';
+  if (kind === 'fire') { // three layered flames that flicker, sparks that rise
+    const fl = (w, h, col, ph) => { const k = 0.09 * Math.sin(t * 9 + ph) + 0.05 * Math.sin(t * 17 + ph * 2); c.beginPath(); c.moveTo(0, u * 0.9); c.bezierCurveTo(-w * u * 1.25, u * 0.55, -w * u * (0.85 + k), -h * u * 0.1, k * u * 2.4, -h * u); c.bezierCurveTo(w * u * (0.85 - k), -h * u * 0.1, w * u * 1.25, u * 0.55, 0, u * 0.9); c.fillStyle = col; c.fill(); };
+    fl(0.62, 0.95, '#e8421a', 0); fl(0.44, 0.62, '#ff8a1e', 1.3); fl(0.25, 0.3, '#ffe066', 2.1);
+    for (let i = 0; i < 3; i++) { const ph = (t * 0.9 + i / 3) % 1; c.globalAlpha = 1 - ph; c.fillStyle = '#ffc266'; c.beginPath(); c.arc(u * 0.55 * Math.sin(i * 2.1 + t * 1.3), u * (0.1 - ph * 1.05), u * 0.07, 0, TAU); c.fill(); }
+  } else if (kind === 'ski') { // down the in-run, off the lip, a long flight, the landing
+    const ph = (t * 0.5) % 1; c.strokeStyle = '#cfe3f5'; c.lineWidth = Math.max(1, u * 0.1);
+    c.beginPath(); c.moveTo(-u * 0.95, -u * 0.8); c.quadraticCurveTo(-u * 0.5, -u * 0.05, -u * 0.12, -u * 0.08); c.stroke();
+    c.beginPath(); c.moveTo(-u * 0.05, u * 0.35); c.quadraticCurveTo(u * 0.45, u * 0.8, u * 0.95, u * 0.82); c.stroke();
+    let px, py, rot;
+    if (ph < 0.28) { const k = ph / 0.28; px = -u * 0.9 + k * u * 0.78; py = -u * 0.86 + (1 - (1 - k) * (1 - k)) * u * 0.66; rot = 0.8 - k * 0.75; }
+    else if (ph < 0.82) { const k = (ph - 0.28) / 0.54; px = -u * 0.12 + k * u * 0.92; py = -u * 0.2 - Math.sin(k * 3.1416) * u * 0.34 + k * k * u * 0.86; rot = -0.3 + k * 0.75; }
+    else { const k = (ph - 0.82) / 0.18; px = u * 0.8 + k * u * 0.12; py = u * 0.66 + k * u * 0.03; rot = 0.12; }
+    c.translate(px, py - u * 0.1); c.rotate(rot);
+    c.strokeStyle = '#ffd23f'; c.lineWidth = Math.max(1, u * 0.1); c.beginPath(); c.moveTo(-u * 0.32, u * 0.13); c.lineTo(u * 0.36, u * 0.13); c.stroke();
+    c.strokeStyle = '#ff5d73'; c.lineWidth = Math.max(1.2, u * 0.15); c.beginPath(); c.moveTo(-u * 0.06, u * 0.08); c.lineTo(u * 0.16, -u * 0.13); c.stroke();
+    c.fillStyle = '#ffe0c2'; c.beginPath(); c.arc(u * 0.25, -u * 0.22, u * 0.11, 0, TAU); c.fill();
+  } else if (kind === 'graph') { // bars grow one after another, the arrow climbs over them
+    const ph = (t * 0.42) % 1, ease = (k) => { k = Math.max(0, Math.min(1, k)); return 1 - (1 - k) * (1 - k); };
+    c.strokeStyle = 'rgba(233,239,246,.55)'; c.lineWidth = Math.max(1, u * 0.08); c.beginPath(); c.moveTo(-u * 0.85, -u * 0.8); c.lineTo(-u * 0.85, u * 0.8); c.lineTo(u * 0.9, u * 0.8); c.stroke();
+    const hs = [0.4, 0.75, 1.1, 1.45], cols = ['#4cc9f0', '#3ddc97', '#ffd23f', '#ff5d73'];
+    for (let i = 0; i < 4; i++) { const h = hs[i] * u * ease(ph * 2.2 - i * 0.22); c.fillStyle = cols[i]; c.fillRect(-u * 0.68 + i * u * 0.4, u * 0.76 - h, u * 0.27, h); }
+    const k = ease(ph * 1.7 - 0.25); if (k > 0.02) { const x0 = -u * 0.72, y0 = u * 0.25, x1 = x0 + k * u * 1.5, y1 = y0 - k * u * 1.0; c.strokeStyle = '#fff'; c.lineWidth = Math.max(1.2, u * 0.11); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); c.beginPath(); c.moveTo(x1, y1); c.lineTo(x1 - u * 0.3, y1 + u * 0.03); c.moveTo(x1, y1); c.lineTo(x1 - u * 0.07, y1 + u * 0.29); c.stroke(); }
+  } else if (kind === 'wifi') { // the dot, then one arc after another
+    const n = Math.floor((t * 2.4) % 5); c.lineWidth = Math.max(1.4, u * 0.2);
+    for (let i = 0; i < 3; i++) { c.strokeStyle = i < n ? '#4cc9f0' : 'rgba(233,239,246,.2)'; c.beginPath(); c.arc(0, u * 0.62, u * (0.42 + i * 0.36), -2.36, -0.78); c.stroke(); }
+    c.fillStyle = n > 0 || (t * 2.4) % 5 > 0.4 ? '#4cc9f0' : 'rgba(233,239,246,.3)'; c.beginPath(); c.arc(0, u * 0.62, u * 0.14, 0, TAU); c.fill();
+  } else if (kind === 'load') { // eight dots, the bright one runs around
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU - 1.5708, k = ((i / 8 - t * 1.1) % 1 + 1) % 1; c.globalAlpha = 0.18 + 0.82 * k * k; c.fillStyle = '#ffd23f'; c.beginPath(); c.arc(Math.cos(a) * u * 0.66, Math.sin(a) * u * 0.66, u * (0.1 + 0.09 * k), 0, TAU); c.fill(); }
+    c.globalAlpha = 1; c.fillStyle = '#e9eff6'; c.font = `700 ${Math.max(6, Math.round(u * 0.44))}px "Barlow Semi Condensed", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(Math.floor((t * 31) % 100) + '%', 0, 0);
+  } else if (kind === 'ninja') { // there, a puff of smoke, gone, back again
+    const ph = (t * 0.38) % 1; let a = 1, sc = 1, puff = -1;
+    if (ph > 0.5 && ph <= 0.62) { const k = (ph - 0.5) / 0.12; a = 1 - k; sc = 1 - k * 0.5; puff = k; } else if (ph > 0.62 && ph <= 0.8) { a = 0; puff = 1 + (ph - 0.62) / 0.18; } else if (ph > 0.8) { const k = (ph - 0.8) / 0.2; a = k; sc = 0.6 + 0.4 * k; }
+    if (puff >= 0 && puff < 2) { c.globalAlpha = Math.max(0, 0.7 * (1 - puff / 2)); c.fillStyle = '#b9c4d0'; for (const [dx, dy] of [[-0.45, 0.25], [0.4, 0.3], [0, -0.35], [-0.2, -0.05], [0.3, -0.1]]) { c.beginPath(); c.arc(dx * u * (1 + puff * 0.5), dy * u * (1 + puff * 0.5), u * (0.22 + puff * 0.14), 0, TAU); c.fill(); } }
+    if (a > 0.01) { c.globalAlpha = a; c.scale(sc, sc);
+      c.strokeStyle = '#ff3b4f'; c.lineWidth = Math.max(1, u * 0.12); c.beginPath(); c.moveTo(u * 0.62, -u * 0.18); c.quadraticCurveTo(u * 0.9, -u * 0.3 + u * 0.1 * Math.sin(t * 7), u * 0.98, u * 0.05 + u * 0.1 * Math.sin(t * 7 + 1)); c.stroke();
+      c.fillStyle = '#1b1f27'; c.beginPath(); c.arc(0, 0, u * 0.72, 0, TAU); c.fill(); c.strokeStyle = '#5b6b7c'; c.lineWidth = Math.max(1, u * 0.06); c.stroke();
+      c.fillStyle = '#ff3b4f'; c.fillRect(-u * 0.72, -u * 0.42, u * 1.44, u * 0.16);
+      c.fillStyle = '#ffe0c2'; c.beginPath(); c.ellipse(0, -u * 0.06, u * 0.56, u * 0.2, 0, 0, TAU); c.fill();
+      c.fillStyle = '#10141a'; const bl = (t * 0.7) % 1 > 0.94 ? 0.2 : 1; c.beginPath(); c.ellipse(-u * 0.24, -u * 0.06, u * 0.09, u * 0.1 * bl, 0, 0, TAU); c.ellipse(u * 0.24, -u * 0.06, u * 0.09, u * 0.1 * bl, 0, 0, TAU); c.fill(); }
+  }
+  c.restore();
+}
+// the animated icons that sit in the page (shop, lobby, names, results) are redrawn a few times a second
+setInterval(() => {
+  if (document.hidden) return; const cs = document.querySelectorAll('canvas.abd'); if (!cs.length) return; const t = performance.now() / 1000;
+  cs.forEach(cv => { if (cv.offsetParent === null) return; const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height); drawAnim(c, cv.dataset.a, cv.width / 2, cv.height / 2, cv.width * 0.94, t); });
+}, 66);
 const badgeImgCache = {};
 function badgeImage(id, color) {
-  const b = BADGES[id]; if (!b || !b.svg) return null;
+  const b = BADGES[id]; if (!b || !b.svg || b.anim) return null;
   const key = id + color; if (badgeImgCache[key]) return badgeImgCache[key];
   const img = new Image(); img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(b.svg.replace(/width="[^"]*" height="[^"]*"/, b.big ? 'xmlns="http://www.w3.org/2000/svg" width="96" height="96"' : 'xmlns="http://www.w3.org/2000/svg" width="40" height="48"').replace(/currentColor/g, color).replace(/ style="[^"]*"/, ''));
   badgeImgCache[key] = img; return img;
 }
 function drawBadge(c, id, x, y, size, color) {
   const b = BADGES[id]; if (!b || !b.g) return;
+  if (b.anim) { drawAnim(c, b.anim, x, y, size * 1.7, performance.now() / 1000); return; }
   const img = badgeImage(id, color);
   if (img && b.big) { const s2 = size * 1.5; if (img.complete && img.naturalWidth) c.drawImage(img, x - s2 / 2, y - s2 / 2, s2, s2); return; }
   if (img) { if (img.complete && img.naturalWidth) c.drawImage(img, x - size * 0.42, y - size * 0.5, size * 0.84, size); return; }
@@ -2461,11 +2595,12 @@ function render() {
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
     else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
+    if (p.alive && G.phase === 'run' && BADGES[p.badge] && BADGES[p.badge].anim) { ctx.globalAlpha = 0.9; drawAnim(ctx, BADGES[p.badge].anim, p.x, p.y - hr - 12, 17, performance.now() / 1000); ctx.globalAlpha = 1; }
     // the survivor of the round rides a victory lap with a crown above the head (and their own icon above the crown)
     if (G.phase === 'end' && p.alive && (p.id === G.winner || (G.winTeam != null && p.team === G.winTeam))) {
       const bob = 3 * Math.sin(G.phaseT * 5), cy = p.y - hr - 15 + bob;
       ctx.save(); ctx.font = '20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👑', p.x, cy); ctx.restore();
-      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x, cy - (BADGES[p.badge].big ? 30 : 22), 20, '#ffb547');
+      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x, cy - (BADGES[p.badge].big || BADGES[p.badge].anim ? 30 : 22), 20, '#ffb547');
     }
     ctx.globalAlpha = 1;
     if (has(p, 'square')) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x - hr - 3, p.y - hr - 3, (hr + 3) * 2, (hr + 3) * 2); }
@@ -2484,7 +2619,7 @@ function render() {
       ctx.font = `600 ${Math.round(15 * lu)}px "Barlow Semi Condensed", sans-serif`; ctx.fillStyle = dispColor(p);
       const lbl = (p.human ? p.name : p.name + ' · bot') + (p.mine || (net && net.role === 'client' && p.id === net.myId) ? ' (ti)' : '');
       ctx.fillText(lbl, p.x, p.y - 12 - 8 * lu);
-      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x - ctx.measureText(lbl).width / 2 - (BADGES[p.badge].big ? 16 : 10) * lu, p.y - 12 - 8 * lu, 15 * lu, p.color);
+      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x - ctx.measureText(lbl).width / 2 - (BADGES[p.badge].big || BADGES[p.badge].anim ? 16 : 10) * lu, p.y - 12 - 8 * lu, 15 * lu, p.color);
       const hint = controlHint(p);
       if (hint) { ctx.font = `600 ${Math.round(12 * lu)}px "Barlow Semi Condensed", sans-serif`; ctx.fillStyle = 'rgba(233,239,246,0.75)'; ctx.fillText(hint, p.x, p.y + 14 + 10 * lu); }
     }
@@ -4372,6 +4507,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, findHost, hostStale, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, findHost, hostStale, drawAnim, openBox, rollBox, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
