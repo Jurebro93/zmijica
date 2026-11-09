@@ -2264,6 +2264,7 @@ function substep() {
   }
 }
 function update(dt) {
+  if (G.phase === 'run' && G.players.length && !G.players.some(p => p.alive)) { endRound(null); return; } // safety: a round with nobody alive can never hang
   if (G.phase === 'count') {
     G.phaseT += dt;
     const n = Math.ceil(countLen() - G.phaseT);
