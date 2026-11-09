@@ -130,6 +130,7 @@ button:disabled { cursor: default; opacity: .5; }
 .betrow button { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 4px 12px; font-weight: 700; }
 .betrow button.bntb { border-color: #ff5d73; background: rgba(255,93,115,.12); }
 .betrow button:disabled { opacity: .4; } .betrow .sep { width: 10px; }
+.tptabs { display: flex; gap: 6px; align-items: center; } .tpt { flex: 1; border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 9px; padding: 7px 4px; font-weight: 700; font-size: 13px; } .tpt.on { color: #fff; border-color: #b48cff; background: #2b2050; } .tpx { border: 0; background: none; color: var(--muted); font-size: 20px; padding: 0 6px; }
 .micbtn { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 9px; padding: 0 10px; font-size: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
 .micbtn.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; } @keyframes recp { 50% { opacity: .6; } }
 .vplay { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
@@ -336,7 +337,7 @@ button.pu:hover { border-color: var(--line); }
 #gchat .chatlog { max-height: 96px; font-size: 13px; }
 .iconbtn { position: relative; }
 .unread { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
-#trollPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 8px; width: min(340px, calc(100% - 20px)); }
+#trollPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; max-height: calc(100% - 16px); overflow-y: auto; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 8px; width: min(340px, calc(100% - 20px)); }
 #trollPop[hidden] { display: none; }
 #trollPop .tp-t { display: flex; gap: 6px; flex-wrap: wrap; }
 #trollPop .trolls { grid-template-columns: repeat(4, 1fr); }
@@ -388,7 +389,7 @@ button.pu:hover { border-color: var(--line); }
   #padsBottom .pad.big { grid-row: 2; align-self: end; justify-self: center; margin-bottom: max(12px, env(safe-area-inset-bottom, 0px)); width: 100px; height: 100px; }
   #padsBottom .pad[data-k=L] { grid-column: 1; margin-left: env(safe-area-inset-left, 0px); }
   #padsBottom .pad[data-k=R] { grid-column: 3; margin-right: env(safe-area-inset-right, 0px); }
-  #padsBottom .pad.jump { grid-column: 3; grid-row: 2; align-self: start; justify-self: center; margin-top: 12px; }
+  #padsBottom .pad.jump, #padsBottom .padmid { grid-column: 3; grid-row: 2; align-self: start; justify-self: center; margin-top: 12px; }
   #bnav button, #bnav a { font-size: 10px !important; padding: 2px 0 !important; } #bnav span { font-size: 16px !important; }
 }
 #game { height: 100%; display: flex; flex-direction: column; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -424,6 +425,9 @@ button.pu:hover { border-color: var(--line); }
 .pad .cap { color: #e9eff6 !important; }
 .pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
 .pad.big { width: 92px; height: 92px; }
+.padmid { display: grid; gap: 6px; justify-items: center; }
+.pad.sm { width: 54px; height: 54px; } .pad.sm span { font-size: 11px !important; }
+.zbtn { width: 92px; height: 60px; border-radius: 16px; border: 2px solid #b48cff; background: linear-gradient(180deg, #3a2a66, #221a3d); color: #fff; font-family: var(--display); font-size: 12px; display: grid; justify-items: center; gap: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; } .zbtn span { font-size: 24px; line-height: 1; }
 .pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
 .pad.on { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc) 65%, var(--panel)), color-mix(in srgb, var(--pc) 30%, var(--panel)) 75%); transform: scale(.94); }
 .pad.cool { opacity: .45; }
@@ -750,7 +754,7 @@ const BADGES = {
   bd_hairy: { g: '∞', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', name: 'Dlakava jaja', d: 'Ikona za odrasle', price: 130 },
   bd_condom: { g: '∩', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>', name: 'Kondom', d: 'Ikona za odrasle', price: 120 },
 };
-const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'revO', 'sqO'];
+const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
 const STARTER_PRICE = { s: 110, o: 170 };
 
 const PU_RATE = { rijetko: { min: 6, max: 10, cap: 3 }, normalno: { min: 2.5, max: 5, cap: 4 }, 'često': { min: 1.2, max: 2.5, cap: 6 }, ludnica: { min: 0.5, max: 1.2, cap: 8 } };
@@ -788,7 +792,7 @@ const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
 function itemPrice(id) { return (PREMIUM[id] && PREMIUM[id].price) || (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
-const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170 };
+const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170 };
 function refundRetired(P) {
   for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
   return P;
@@ -799,7 +803,7 @@ function backfillSpend(P) {
   P.spent = Math.max(P.spent || 0, bought.reduce((a, id) => a + itemPrice(id), 0));
   return P;
 }
-function normalize(d) { return backfillSpend(refundRetired(normalize0(d))); }
+function normalize(d) { const n = backfillSpend(refundRetired(normalize0(d))); if (n.eq && n.eq.pu && !STARTER_PU.includes(n.eq.pu)) n.eq.pu = ''; return n; }
 function normalize0(d) { return Object.assign(blankProfile(), { coins: 0, bonus500: false }, d, { owned: Array.isArray(d.owned) ? d.owned.filter(x => typeof x === 'string') : ['sk_none', 'bd_none'], eq: Object.assign({ skin: 'sk_none', badge: 'bd_none', pu: '' }, d.eq || {}), coins: Number(d.coins) || 0, matches: Number(d.matches) || 0, wins: Number(d.wins) || 0, kills: Number(d.kills) || 0, spent: Number(d.spent) || 0, purchases: Number(d.purchases) || 0, playMs: Number(d.playMs) || 0, siteMs: Number(d.siteMs) || 0, trollsSent: Number(d.trollsSent) || 0, trollsGot: Number(d.trollsGot) || 0, daily: d.daily && typeof d.daily === 'object' ? d.daily : null, inv: (d.inv && typeof d.inv === 'object') ? Object.fromEntries(Object.entries(d.inv).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))]).filter(([, v]) => v > 0)) : {}, name: String(d.name || 'Igrač').slice(0, 14), slug: String(d.slug || slugOf(d.name || '')) }); }
 function applyBonus(p) { if (p && !p.bonus500) { p.coins = (Number(p.coins) || 0) + START_COINS; p.bonus500 = true; p._bonusNew = true; } return p; }
 function slugOf(name) { const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return (base || 'igrac').slice(0, 40); }
@@ -816,11 +820,18 @@ async function accountGet(slug) {
   if (dbNs) { try { const snap = await dbNs.doc('accounts/' + slug).get(); if (snap.exists) return normalize(snap.data()); } catch (e) {} }
   const o = localAccounts(); return o[slug] ? normalize(o[slug]) : null;
 }
+// saves go out one at a time (a second save while the first is still in flight would carry a stale revision and be refused)
+let saveBusy = false, savePending = false;
 async function saveProfile() {
   if (!profile) return;
   delete profile._bonusNew;
   profile.updatedAt = Date.now();
   localSave(profile);
+  if (saveBusy) { savePending = true; return; }
+  saveBusy = true;
+  try { await saveProfileNow(); } finally { saveBusy = false; if (savePending) { savePending = false; saveProfile(); } }
+}
+async function saveProfileNow() {
   if (dbNs && dbWritable !== false) {
     if (window.__replaced) return; // another tab/device took over this account: this copy must not overwrite it
     try { const srv = await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; if (srv && srv.updatedAt && profile) profile._rev = srv.updatedAt; }
@@ -1206,8 +1217,12 @@ function applySkin(c, skinId, color, r, gt) {
 function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
 function dailyOffer() { const pool = [...Object.keys(SKINS), ...Object.keys(BADGES)].filter(k => { const x = SKINS[k] || BADGES[k]; return x.price > 0 && !x.limit && !x.premium && !x.unique && (x.season == null || x.season === seasonNow()); }); return pool[dayHash('offer') % pool.length]; }
 const BOX_PRICE = 150;
+const BOX_PER_DAY = 5;
 function openBox() {
   if (!profile || profile.coins < BOX_PRICE) { toast('Nemaš dovoljno zlatnika.'); return; }
+  const day = zDay(Date.now()); if (!profile.box || profile.box.d !== day) profile.box = { d: day, n: 0 };
+  if (profile.box.n >= BOX_PER_DAY) { toast(`Danas si već otvorio ${BOX_PER_DAY} kutija – sutra opet.`); return; }
+  profile.box.n++;
   profile.coins -= BOX_PRICE; profile.spent = (profile.spent || 0) + BOX_PRICE; profile.purchases = (profile.purchases || 0) + 1;
   const items = [...Object.keys(SKINS), ...Object.keys(BADGES), ...STARTER_PU].filter(k => !profile.owned.includes(k) && !(SKINS[k] || BADGES[k] || {}).limit && itemPrice(k) > 0);
   const roll = Math.random(); let msg;
@@ -2130,6 +2145,20 @@ function kill(p, by) {
 }
 function burst(x, y, c) { for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, v = rand(20, 120); G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(.4, .9), c }); } }
 function ranking() { return [...G.players].sort((a, b) => b.score - a.score || b.kills - a.kills); }
+// the match winner gets a random drop (coins or a prank); everybody sees it
+function makeDrop() {
+  if (G.drop) return; const w = ranking()[0]; if (!w || !w.human) return;
+  const pool = Object.keys(TROLLS).filter(k => k !== 'shield');
+  const item = Math.random() < 0.5 ? 'coins:' + (50 + 25 * Math.floor(Math.random() * 7)) : pool[Math.floor(Math.random() * pool.length)];
+  G.drop = { id: w.id, name: w.name, item }; announceDrop(G.drop);
+}
+function announceDrop(d) {
+  if (!d || !G || G.dropShown === d.item + d.id) return; G.dropShown = d.item + d.id;
+  const txt = d.item.startsWith('coins:') ? `${d.item.slice(6)} zlatnika` : `${(TROLLS[d.item] || {}).e || '🎁'} ${(TROLLS[d.item] || { name: d.item }).name}`;
+  showIgMsg(`🎁 <b>${esc(d.name)}</b> pobjednik meča osvaja nasumični drop: <b>${txt}</b>`); toast(`🎁 Drop: ${d.name} → ${txt}`);
+  const me = G.players.find(p => p.mine || (net && net.role === 'client' && p.id === net.myId)) || (!net ? G.players.find(p => p.human) : null);
+  if (me && me.id === d.id && profile) { if (d.item.startsWith('coins:')) profile.coins += Number(d.item.slice(6)) || 0; else profile.inv[d.item] = (profile.inv[d.item] || 0) + 1; saveProfile(); }
+}
 function endRound(winner) {
   G.phase = 'end'; G.phaseT = 0; G.players.forEach(p => flushTrail(p, false));
   if (winner) winner.wins++;
@@ -2137,7 +2166,7 @@ function endRound(winner) {
   sfx.round(); if (winner && winner.vs) setTimeout(() => playVictory(winner.vs), 350);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
+  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); setTimeout(() => showResults(), 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -2199,8 +2228,8 @@ function substep() {
     if (!jumping && !has(p, 'ghost')) {
       const grace = Math.ceil((2 * r + 4) / step) + 2;
       let hit = 0;
-      const hr2 = r * 0.78; // the probe is a little smaller than the drawn head: tight gaps are passable
-      for (const o of [-0.8, -0.4, 0, 0.4, 0.8]) {
+      const hr2 = r * 0.62; // the probe is a short nose in front of the centre: grazing a trail end or edge is forgiven
+      for (const o of [-0.6, -0.3, 0, 0.3, 0.6]) {
         hit = blockedBy(p.x + Math.cos(p.a + o) * hr2, p.y + Math.sin(p.a + o) * hr2, p, grace);
         if (hit) break;
       }
@@ -2290,16 +2319,17 @@ function render() {
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
   drawBounties(ctx);
   { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
-    if (me && me.alive && G.phase === 'run') { const rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt); const mir = mirrorOn();
-      if (rv || mir) { const left = rv ? Math.ceil(rv.until - G.gt) : Math.ceil((mirrorUntil - performance.now()) / 1000); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `400 ${Math.round(Math.min(W, H) * 0.055)}px Bungee, Impact, sans-serif`; ctx.fillStyle = 'rgba(11,18,27,.7)'; const tw = Math.min(W, H) * 0.62; ctx.fillRect(W / 2 - tw / 2, H * 0.06, tw, Math.min(W, H) * 0.09); ctx.fillStyle = '#ff5d73'; ctx.fillText(`⇄ OBRNUTE KONTROLE · ${Math.max(1, left)} s`, W / 2, H * 0.06 + Math.min(W, H) * 0.045); ctx.restore(); } } }
+    if (me && me.alive && G.phase === 'run') { const rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt); const mir = mirrorOn(); const fl = trollFx.find(f => f.id === 'flip' && f.until > performance.now());
+      if (rv || mir || fl) { const left = rv ? Math.ceil(rv.until - G.gt) : mir ? Math.ceil((mirrorUntil - performance.now()) / 1000) : Math.ceil((fl.until - performance.now()) / 1000); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `400 ${Math.round(Math.min(W, H) * 0.055)}px Bungee, Impact, sans-serif`; ctx.fillStyle = 'rgba(11,18,27,.7)'; const tw = Math.min(W, H) * 0.62; ctx.fillRect(W / 2 - tw / 2, H * 0.06, tw, Math.min(W, H) * 0.09); ctx.fillStyle = '#ff5d73'; ctx.fillText(`${fl && !rv && !mir ? '🙃 NAGLAVAČKE' : '⇄ OBRNUTE KONTROLE'} · ${Math.max(1, left)} s`, W / 2, H * 0.06 + Math.min(W, H) * 0.045); ctx.restore(); } } }
   if (G.rings && G.rings.length) { const now = performance.now(); G.rings = G.rings.filter(r => now - r.t0 < 450); for (const r of G.rings) { const k = (now - r.t0) / 450; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, 6 + 34 * k, 0, 6.283); ctx.stroke(); ctx.restore(); } }
   { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
     if (me && me.alive && G.phase === 'run') {
       const PUN = { fast: ['»', 'Brzina'], slow: ['«', 'Usporenje'], thin: ['—', 'Tanki trag'], ghost: ['○', 'Duh'], wrap: ['□', 'Bez zidova'], thick: ['●', 'Debeli trag'], reverse: ['⇄', 'Obrnuto'], square: ['┐', 'Kutovi'], sharp: ['↺', 'Oštro'], wide: ['◡', 'Tromo'] };
       const list = me.fx.filter(f => f.until > G.gt && PUN[f.k]).map(f => ({ k: f.k, left: f.until - G.gt, total: (POWERUPS[f.k + 'S'] || POWERUPS[f.k + 'O'] || { dur: 6 }).dur || 6 }));
       if (mirrorOn()) list.push({ k: 'mirror', left: (mirrorUntil - performance.now()) / 1000, total: (TROLLS.mirror || { ms: 8000 }).ms / 1000 });
+      for (const f of trollFx) if (f.until > performance.now() && TROLLS[f.id] && f.id !== 'mirror') list.push({ k: 'troll:' + f.id, left: (f.until - performance.now()) / 1000, total: TROLLS[f.id].ms / 1000 });
       if (list.length) { const bw = Math.min(W * 0.42, 220), bh = 9, x0 = W - bw - 10; let y = 10; ctx.save(); ctx.font = `600 ${Math.max(10, Math.round(Math.min(W, H) * 0.028))}px "Barlow Semi Condensed", sans-serif`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-        for (const e of list) { const lbl = e.k === 'mirror' ? ['🪞', 'Zrcalo'] : PUN[e.k]; const bad = ['reverse', 'square', 'wide', 'thick', 'slow', 'mirror'].includes(e.k); const frac = Math.max(0, Math.min(1, e.left / e.total));
+        for (const e of list) { const lbl = e.k === 'mirror' ? ['🪞', 'Zrcalo'] : e.k.startsWith('troll:') ? [TROLLS[e.k.slice(6)].e, TROLLS[e.k.slice(6)].name] : PUN[e.k]; const bad = ['reverse', 'square', 'wide', 'thick', 'slow', 'mirror'].includes(e.k) || e.k.startsWith('troll:'); const frac = Math.max(0, Math.min(1, e.left / e.total));
           ctx.globalAlpha = 0.85; ctx.fillStyle = 'rgba(11,18,27,.75)'; ctx.fillRect(x0 - 4, y - 2, bw + 8, bh + 18); ctx.fillStyle = '#e9eff6'; ctx.fillText(`${lbl[0]} ${lbl[1]} · ${Math.ceil(e.left)} s`, x0, y + 6);
           ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(x0, y + 13, bw, bh); ctx.fillStyle = bad ? '#ff5d73' : '#3ddc97'; ctx.fillRect(x0, y + 13, bw * frac, bh); y += bh + 20; }
         ctx.restore(); } } }
@@ -2587,7 +2617,9 @@ function buildPads() {
     };
     const j = mkBtn('J', '<span style="font-family:var(--display);font-size:15px">SKOK</span>', '', 'jump');
     if (!setup.jump) j.style.visibility = 'hidden';
-    box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), j, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
+    let mid = j;
+    if (net && !watchingNow()) { mid = document.createElement('div'); mid.className = 'padmid'; const z = document.createElement('button'); z.type = 'button'; z.className = 'zbtn'; z.innerHTML = '<span>😈</span>ZEZAJ · 💬'; z.onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const pop = $('#trollPop'); pop.hidden = !pop.hidden; renderTrollPop(); }; j.classList.add('sm'); mid.append(z, j); }
+    box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
     // the whole bar is one touch surface: left third turns left, right third turns right, middle jumps.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
     // Touch input is read from the browser's own list of fingers (e.touches) on every event, so a lost
@@ -2599,6 +2631,7 @@ function buildPads() {
       box.querySelectorAll('.pad').forEach(btn => btn.classList.toggle('on', btn.dataset.k === 'J' ? [...ptr.values()].includes('J') : h[btn.dataset.k] > 0)); clientInput(); };
     box._sync = sync;
     const onTouch = (e) => {
+      if (e.target && e.target.closest && e.target.closest('.zbtn')) return; // the prank/chat button is an ordinary button
       if (e.type === 'touchstart') { for (const t of e.changedTouches) { const z = padAt(t.clientX, t.clientY); if (z) { ptr.set(t.identifier, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); } } }
       else if (e.type === 'touchmove') { for (const t of e.changedTouches) { const z = ptr.get(t.identifier); if (z && z !== 'J') { const sd = sideOf(t.clientX); if (sd !== z) ptr.set(t.identifier, sd); } } }
       else { for (const t of e.changedTouches) ptr.delete(t.identifier); }
@@ -3387,7 +3420,7 @@ async function startVoice(btn) {
     const chunks = []; mr.ondataavailable = e => e.data.size && chunks.push(e.data);
     mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' }); const ms = performance.now() - recState.t0; recState = null; btn.classList.remove('rec');
       if (ms < 400) { toast('Drži 🎤 dok govoriš.'); return; }
-      const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 90000) { toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); const me = roomState.peers.find(p => p.isMe && p.sameTab); collectChat(); toast('🎤 Poslano'); }; fr.readAsDataURL(blob); };
+      const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 400000) { toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); const me = roomState.peers.find(p => p.isMe && p.sameTab); collectChat(); toast('🎤 Poslano'); }; fr.readAsDataURL(blob); };
     recState = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), 5000) }; mr.start(); btn.classList.add('rec'); beep(880, .06, 'sine', .04);
     if (!voiceWanted) setTimeout(() => stopVoice(), 50);
   } catch (e) { toast('Mikrofon nije dopušten.'); recState = null; }
@@ -3440,6 +3473,7 @@ function renderChat() {
   const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
   if (g) { g.innerHTML = (big ? chatLog : chatLog.slice(-4)).map(m => line(m, big)).join('') || empty; g.scrollTop = g.scrollHeight; }
+  const tp = $('#tpChatLog'); if (tp) { tp.innerHTML = chatLog.slice(-25).map(m => line(m, true)).join('') || empty; tp.scrollTop = tp.scrollHeight; }
   document.querySelectorAll('.vplay').forEach(b => b.onclick = () => playVoice(b.dataset.a));
 }
 function renderBoard() {
@@ -3491,7 +3525,7 @@ function hostStart(rematch) {
   // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
   const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
-  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && (rematch ? (p.presence.again === lastMid || (p.presence.rd && p.presence.ok && !p.presence.again)) : (p.presence.rd && p.presence.ok)) && !invitePending(p.peer));
+  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && ((p.isMe && p.sameTab) || (rematch ? (p.presence.again === lastMid || (p.presence.rd && p.presence.ok && !p.presence.again)) : (p.presence.rd && p.presence.ok))) && !invitePending(p.peer));
   { const bySl = {}; for (const c of [...cand].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))) { const sl = c.presence.sl; if (sl) { if (bySl[sl]) c._dup = true; else bySl[sl] = c; } } }
   const cand2 = cand.filter(c => !c._dup); cand.length = 0; cand.push(...cand2);
   const meP = cand.find(p => p.isMe && p.sameTab);
@@ -3557,7 +3591,7 @@ function hostAwayPause() {
   G.pz = null; return false; // the match never pauses for one absent player
 }
 function buildSnap(full = true) {
-  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -3580,7 +3614,7 @@ function clientBegin(host, key = 'st', spectate = false) {
   if (net && net.role === 'client') return;
   const st = host.presence[key]; if (!st) return;
   net = { role: 'client', hostPeer: host.peer, myId: null, prev: {}, round: -1, clr: 0, jumpN: 0, connected: true, lastIn: null, W: st.W, H: st.H, lastSeen: performance.now(), mid: st.mid, key, spectate, target: spectate ? host.peer : null };
-  if (!spectate) netPresence({ again: null, ok: null, vis: 1 });
+  if (!spectate) netPresence({ again: null, vis: 1 });
   if (!spectate && myPres.rd && !(st.pl || []).some(q => q.rm === roomState.me)) { roomState.rqAt = Date.now(); netPresence({ rq: roomState.rqAt }); }
   if (!net.savedSetup) net.savedSetup = Object.assign({}, setup);
   Object.assign(setup, st.s || {});
@@ -3608,7 +3642,7 @@ function applyState(st, first) {
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none' }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.sl) p.slug = q.sl;
-    if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) setTimeout(() => { buildPads(); renderSpecBar(); if (G.round > 1) showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); }
+    if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (G.round > 1) showIgMsg('🎮 Ti si u meču! Upravljaš svojom zmijom.'); }, 0); } }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { let da = q.a - p._la; da = Math.atan2(Math.sin(da), Math.cos(da)); const wa = da / (st.gt - p._lgt); p._wa = Math.abs(wa) < 12 ? (p._wa == null ? wa : p._wa * 0.5 + wa * 0.5) : 0; }
@@ -3633,6 +3667,7 @@ function applyState(st, first) {
     hudDirty = true; if (watchingNow()) setTimeout(renderSpecBar, 0);
     if (G.phase === 'run') sfx.go();
     if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
+    if (st.dr) announceDrop(st.dr);
     if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
     if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) setTimeout(() => playVictory(wnr.vs), 350); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
     if (G.phase === 'count') { showOverlay(null); if (owner) owner.fill(0); }
@@ -3668,7 +3703,7 @@ function predictHeads() {
       const tr = TURN * (p.v / BASE_SPEED) * turnMul(p); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     let nx = p.sx + Math.cos(a) * p.v * dt, ny = p.sy + Math.sin(a) * p.v * dt;
-    { const rr = radiusOf(p), bd = bounds(), wr = rr * 0.55; const probe = (x, y) => { if (x - wr < bd.l || y - wr < bd.t || x + wr > bd.r || y + wr > bd.b) return !wraps(p); const i = cellIdx(x + Math.cos(a) * rr * 0.78, y + Math.sin(a) * rr * 0.78); return i >= 0 && owner[i] && owner[i] !== p.id + 1 && owner[i] !== OBST; };
+    { const rr = radiusOf(p), bd = bounds(), wr = rr * 0.55; const probe = (x, y) => { if (x - wr < bd.l || y - wr < bd.t || x + wr > bd.r || y + wr > bd.b) return !wraps(p); const i = cellIdx(x + Math.cos(a) * rr * 0.62, y + Math.sin(a) * rr * 0.62); return i >= 0 && owner[i] && owner[i] !== p.id + 1 && owner[i] !== OBST; };
       if (!(p.jumpUntil > G.gt) && !has(p, 'ghost') && probe(nx, ny)) { nx = p.sx; ny = p.sy; } }
     p.x = nx; p.y = ny;
     if (p.ex || p.ey || p.ea) { p.ex *= decay; p.ey *= decay; p.ea *= decay; p.x += p.ex; p.y += p.ey; p.a += p.ea; if (Math.abs(p.ex) + Math.abs(p.ey) < 0.05) p.ex = p.ey = 0; if (Math.abs(p.ea) < 0.002) p.ea = 0; }
@@ -3951,16 +3986,26 @@ function trollTargets() {
   if (!net || !G) return [];
   return G.players.filter(p => p.human).map(p => ({ peer: peerOfPlayer(p), name: p.name, color: p.color })).filter(x => x.peer && x.peer !== roomState.me);
 }
+let trollTab = 'z';
 function renderTrollPop() {
   const pop = $('#trollPop'); if (!pop || pop.hidden) return;
+  if (pop.querySelector('#tpChatIn') && document.activeElement === pop.querySelector('#tpChatIn') && trollTab === 'c') return; // do not wipe a message being typed
   const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
   const inv = profile ? profile.inv : {}, cool = performance.now() - lastTrollSent < 5000;
   const owned = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0);
-  pop.innerHTML = `<b style="font-size:15px">😈 Zezni protivnika</b>
+  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  if (trollTab === 'c') {
+    pop.innerHTML = tabs + `<div class="chatlog" id="tpChatLog" style="max-height:38vh"></div><div class="chatrow"><input type="text" id="tpChatIn" maxlength="80" placeholder="Poruka svima… (🎤 drži za glas)" aria-label="Poruka"><button type="button" id="tpChatSend">Pošalji</button></div>`;
+    wireChat('#tpChatIn', '#tpChatSend'); renderChat();
+    pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
+    return;
+  }
+  pop.innerHTML = tabs + `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
     ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}</b><small>imaš ${inv[id]}</small></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
     ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}`;
+  pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
   pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendTroll(trollPick, b.dataset.id); });
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });

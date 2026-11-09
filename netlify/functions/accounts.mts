@@ -54,6 +54,7 @@ function clean(input: unknown, slug: string): Doc | string {
     eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20), te: String(eq.te ?? "").slice(0, 20), ds: String(eq.ds ?? "").slice(0, 20), vs: String(eq.vs ?? "").slice(0, 20), bg: String(eq.bg ?? "").slice(0, 20) },
     title: typeof d.title === "string" ? d.title.replace(/[<>]/g, "").slice(0, 24) : undefined,
     bonus500: !!d.bonus500,
+    box: d.box && typeof d.box === "object" ? { d: String((d.box as Record<string, unknown>).d ?? "").slice(0, 10), n: num((d.box as Record<string, unknown>).n, 999) } : undefined,
     room: typeof d.room === "string" && /^[a-z0-9]{4,8}$/.test(d.room) ? d.room : undefined,
     created: num(d.created, 9e15),
     invitedBy: typeof d.invitedBy === "string" && /^[a-z0-9-]{1,40}$/.test(d.invitedBy) ? d.invitedBy : undefined,

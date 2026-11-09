@@ -16,7 +16,8 @@ import { WebSocketServer } from "ws";
 
 const PORT = Number(process.env.PORT) || 8787;
 const ROOM_RE = /^vijuga-lobby(-[a-z0-9-]{1,24})?$/, PEER_RE = /^[a-z0-9]{4,16}$/;
-const MAX_MSG = 200_000; // bytes; voice messages are ~90 kB
+const MAX_MSG = 700_000; // bytes; voice messages can reach a few hundred kB on some phones
+const TRANSIENT = new Set(["msg", "re", "ping", "pong", "dm", "bt"]); // relayed, never kept in presence
 
 /** @type {Map<string, Map<string, {ws: import('ws').WebSocket, presence: Record<string, unknown>, following: string|null, alive: boolean}>>} */
 const rooms = new Map();
@@ -64,7 +65,7 @@ wss.on("connection", (ws) => {
     const room = rooms.get(roomName); const me = room && room.get(peer); if (!me || me.ws !== ws) return;
     if (m.t === "ping") { send(ws, { t: "pong", n: m.n, now: Date.now() }); return; }
     if (m.t === "pres" && m.patch && typeof m.patch === "object") {
-      for (const k in m.patch) { if (m.patch[k] === null) delete me.presence[k]; else me.presence[k] = m.patch[k]; }
+      for (const k in m.patch) { if (TRANSIENT.has(k)) continue; if (m.patch[k] === null) delete me.presence[k]; else me.presence[k] = m.patch[k]; }
       // the same account on a new connection (reload, network change): the old connection is a ghost -> drop it
       const sl = typeof m.patch.sl === "string" ? m.patch.sl : null;
       if (sl && me.presence.pg !== "stats" && !me.presence.obs) {
