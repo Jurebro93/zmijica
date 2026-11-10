@@ -449,6 +449,8 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
   #padsBottom .padmid .pad.big { grid-row: auto; align-self: auto; margin-bottom: 0; } /* the big SKOK inside the tool column keeps DOM order: tools first, pad under them */
   #bnav button, #bnav a { font-size: 10px !important; padding: 2px 0 !important; } #bnav span { font-size: 16px !important; }
 }
+html, body { touch-action: manipulation; } /* a double tap never zooms the page (iOS zoomed in mid-match and the arena slid off the screen) */
+#game.over #padsBottom { display: none !important; } /* results: the whole screen, no black band where the pads were */
 #game { height: 100%; display: flex; flex-direction: column; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 #game input { -webkit-user-select: text; user-select: text; }
 .pads { touch-action: none; }
@@ -4298,8 +4300,18 @@ async function shareShot() {
 // menu (localStorage vijuga-padstyle) or the link says ?pads=a|b|c
 let PAD_STYLE = (() => { try { const v = new URLSearchParams(location.search).get('pads') || localStorage.getItem('vijuga-padstyle'); return ['a', 'b', 'c'].includes(v) ? v : 'c'; } catch (e) { return 'c'; } })();
 function localJump(p) { if (net && net.role === 'client') { net.jumpN = Math.max(net.jumpN + 1, Date.now()); clientInput(); } else tryJump(p); }
+// iOS Safari lets a pinch (or a double tap) zoom the page in mid-match: the arena then slides off the screen and the top bar
+// goes under the clock. In a match pinching is stopped, and a zoomed page is set back to normal size (the viewport's
+// maximum-scale=1 makes Safari zoom out); in the menu everything is as before.
+const VP = document.querySelector('meta[name=viewport]'), VP_BASE = VP ? VP.content : '';
+const inMatchNow = () => !!(G && !$('#game').hidden);
+function lockZoom(on) { if (!VP) return; const want = on ? VP_BASE.replace(/,?\s*maximum-scale=[^,]*/g, '') + ',maximum-scale=1' : VP_BASE; if (VP.content !== want) VP.content = want; }
+function unzoom() { if (!VP || !inMatchNow()) return; const vv = window.visualViewport; if (vv && vv.scale > 1.01) { VP.content = VP_BASE; requestAnimationFrame(() => lockZoom(true)); } }
+document.addEventListener('gesturestart', (e) => { if (inMatchNow()) e.preventDefault(); });
+document.addEventListener('touchmove', (e) => { if (inMatchNow() && e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+if (window.visualViewport) visualViewport.addEventListener('resize', unzoom);
 function enterGame() {
-  $('#game').classList.remove('over');
+  $('#game').classList.remove('over'); lockZoom(true); unzoom();
   { const t = $('#toast'); if (t) t.className = ''; } myRevenge = 0; myLastKiller = null; hideDeathCard();
   for (const id of ['#regModal', '#inviteModal', '#pcardBg']) { const m = $(id); if (m) m.hidden = true; }
   const gc = $('#gchat'); if (gc) gc.classList.remove('big');
@@ -4325,7 +4337,7 @@ function startGame() {
   newMatch(); buildPads(); enterGame();
 }
 function toMenu() {
-  document.querySelectorAll('.jumptip').forEach(x => x.remove());
+  document.querySelectorAll('.jumptip').forEach(x => x.remove()); lockZoom(false);
   cancelAnimationFrame(raf); paused = false; G = null;
   if (net && net.savedSetup) { Object.assign(setup, net.savedSetup); net.savedSetup = null; } // my own settings come back after a match run on the host's rules (also after I took the match over)
   if (net && net.role === 'client' && net.myId != null) netPresence({ vis: 0 });
@@ -4370,12 +4382,12 @@ function showResults() {
   const mine = net ? (net.role === 'client' ? rows.find(p => p.id === net.myId) : rows.find(p => p.mine)) : rows.find(p => p.mine);
   const pmid = net && net.mid ? String(net.mid) : null, paidMids = profile ? (Array.isArray(profile.paidMids) ? profile.paidMids : (profile.paidMids = [])) : [];
   if (mine && profile && !G.awarded && pmid && paidMids.includes(pmid)) G.awarded = true; // this match was paid already (results reopened)
-  if (mine && profile && !G.awarded) { G.awarded = true; if (pmid) { paidMids.push(pmid); paidMids.splice(0, Math.max(0, paidMids.length - 20)); } const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
+  if (mine && profile && !G.awarded) { G.awarded = true; if (pmid) { paidMids.push(pmid); paidMids.splice(0, Math.max(0, paidMids.length - 20)); } const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnN = n; G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   if (profile && mine) { const L = levelOf(profile); earn += `<div class="lvprog"><span>⭐ Nivo <b>${L.lv}</b></span><i><b style="width:${L.pct}%"></b></i><span>još ${fmtN(L.next)} XP</span></div>`; }
   earn += matchAwards(rows); $('#game').classList.add('over');
   const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}${badgesHtml(pBadges(p))}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
+    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}${badgesHtml(pBadges(p))}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (p === mine && G.earnN != null ? G.earnN : Math.round(((PLACE_COINS[i] || 12) * coinMult() + p.kills * KILL_COINS) * Math.min(1, (Number(G.target) || 5) / 5))) : '–'}</td></tr>`).join('')}
     </tbody></table></div>`;
   let actions;
   if (net) {
@@ -4384,7 +4396,7 @@ function showResults() {
     actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div><p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Pogledaj statistiku svih igrača</a></p>`;
   }
   if (profile && mine) actions += `<div class="row"><button class="btn ghost wa" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
-  showOverlay(`<div class="banner"><span class="label">Kraj meča · ${plural(G.target, 'runda', 'runde', 'rundi')}</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgesHtml(pBadges(w))}</h3>${earn}${table}${actions}</div>`);
+  showOverlay(`<div class="banner"><span class="label">Kraj meča · ${plural(G.target, 'runda', 'runde', 'rundi')}</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgesHtml(pBadges(w))}</h3>${actions}${earn}${table}</div>`);
   if ($('#waShare')) $('#waShare').onclick = () => waOpen(matchShareText(rows, mine));
   if (net) {
     $('#readyBtn').onclick = () => { if (myPres.again === net.mid) return; netPresence({ again: net.mid }); renderReady(); }; // a second tap never cancels: that is the small link
@@ -5421,7 +5433,7 @@ function playVoice(src, auto) {
   try { const au = new Audio(src); au.volume = 1;
     au.play().then(() => { if (auto) volumeHint(false); }, (err) => {
       if (auto && err && err.name === 'NotAllowedError') volumeHint(true); // the browser wants a tap first
-      else if (!auto) toast('Ova glasovna poruka se ne može pustiti na ovom uređaju.'); });
+      else if (!auto || !playVoice.warned) { playVoice.warned = true; toast('Ova glasovna se ne može pustiti na ovom uređaju (pošiljatelj neka osvježi igru: nove glasovne rade na svim mobitelima).'); } });
   } catch (e) {}
 }
 let volumeHinted = false;
@@ -5491,9 +5503,29 @@ async function startVoice(btn, ptrId) {
     if (ms < 400) { voiceHint('short'); return; }
     if (!roomNs) { voiceHint(null); toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
     voiceHint('send');
-    const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 120000) { voiceHint(null); toast('Poruka je preduga: snimi kraće.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint(onlineOthers().length ? 'sent' : 'alone'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(blob); };
+    voiceWav(blob).catch(() => null).then((wav) => {
+    const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 120000) { voiceHint(null); toast('Poruka je preduga: snimi kraće.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint(onlineOthers().length ? 'sent' : 'alone'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(wav && wav.size > 44 ? wav : blob); }); };
   try { mr.start(); } catch (e) { clearTimeout(rs.timer); stream.getTracks().forEach(t => t.stop()); voiceWanted = false; voiceHint(null); toast('Ovaj preglednik ne može snimiti zvuk.'); return; }
   recState = rs; btn.classList.add('rec'); voiceHint('rec'); beep(880, .06, 'sine', .04);
+}
+// A voice message goes as WAV (16 bit, 8 kHz, mono): every phone and browser plays it (a WebM recorded on Android does not
+// play on some iPhones), and 5 s always fit the room's limit (an iPhone's own recording can be too big). If this browser
+// cannot read back its own recording, the recording goes as it is.
+const VOICE_RATE = 8000;
+async function voiceWav(blob) {
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+  const data = await blob.arrayBuffer(); const ctx = actx || (actx = new AC());
+  const audio = await new Promise((res, rej) => { try { const p = ctx.decodeAudioData(data, res, rej); if (p && p.then) p.then(res, rej); } catch (e) { rej(e); } });
+  const sr = audio.sampleRate, nch = audio.numberOfChannels, chs = []; for (let c = 0; c < nch; c++) chs.push(audio.getChannelData(c));
+  const len = Math.max(1, Math.min(Math.floor(audio.duration * VOICE_RATE), Math.ceil((VOICE_MAX + 600) / 1000 * VOICE_RATE))), step = sr / VOICE_RATE, out = new Float32Array(len);
+  let peak = 0;
+  for (let i = 0; i < len; i++) { const a = Math.floor(i * step), b = Math.max(a + 1, Math.min(chs[0].length, Math.floor((i + 1) * step))); let sum = 0, k = 0; for (let j = a; j < b; j++) for (let c = 0; c < nch; c++) { sum += chs[c][j] || 0; k++; } const v = k ? sum / k : 0; out[i] = v; if (Math.abs(v) > peak) peak = Math.abs(v); }
+  const gain = peak > 0.02 ? Math.min(4, 0.9 / peak) : 1; // a quiet phone microphone is brought up, never clipped
+  const dv = new DataView(new ArrayBuffer(44 + len * 2)), W = (o, t) => { for (let i = 0; i < t.length; i++) dv.setUint8(o + i, t.charCodeAt(i)); };
+  W(0, 'RIFF'); dv.setUint32(4, 36 + len * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, VOICE_RATE, true); dv.setUint32(28, VOICE_RATE * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, len * 2, true);
+  for (let i = 0; i < len; i++) dv.setInt16(44 + i * 2, Math.round(Math.max(-1, Math.min(1, out[i] * gain)) * 32767), true);
+  return new Blob([dv.buffer], { type: 'audio/wav' });
 }
 function stopVoice() { const was = voiceWanted; voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } else if (was && !recState && voiceEl.classList.contains('v-wait') && (voicePerm === 'prompt' || (voicePerm == null && !micGranted))) voiceHint('perm'); }
 // the lobby redraws its chat often, so a release anywhere ends the recording, but only the finger that holds the mic:
@@ -6302,6 +6334,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
+window.__vijuga = { voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
 })();
 </script>
