@@ -577,6 +577,20 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 .tpvpads { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: space-between; padding: 0 12px; pointer-events: none; }
 .tpvpads span { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: rgba(255,93,115,.25); border: 2px solid #ff5d73; } .tpvpads .j { font-size: 12px; font-weight: 800; color: #fff; }
 .troll .tq { font-style: normal; font-size: 12px; margin-left: 4px; opacity: .8; }
+.t2head { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.t2stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; } .t2stats div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 8px; text-align: center; display: grid; gap: 2px; } .t2stats b { font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--amber); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .t2stats span { font-size: 12px; color: var(--muted); line-height: 1.15; }
+@media (max-width: 520px) { .t2stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.t2hero { border-radius: 20px; padding: 16px; display: grid; gap: 12px; margin-bottom: 12px; background: linear-gradient(160deg, #2a2340, #172435 60%); border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); } .t2hero.money { background: linear-gradient(160deg, #11402f, #12302a 55%, #142233); border-color: rgba(61,220,151,.5); }
+.t2top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .t2top h3 { margin: 0; font-size: 22px; flex: 1 1 auto; } .demotag { background: #ffd23f; color: #241a00; font-weight: 800; font-size: 12px; border-radius: 8px; padding: 2px 8px; }
+.t2pot { display: grid; justify-items: center; text-align: center; gap: 2px; } .t2pot small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; } .t2pot b { font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1; color: #fff; } .t2pot span { color: var(--muted); font-size: 14px; }
+.t2prizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: end; } .t2prizes div { background: rgba(11,18,27,.55); border: 1px solid var(--line); border-radius: 14px; padding: 8px; display: grid; justify-items: center; gap: 2px; } .t2prizes .p1 { padding: 14px 8px; border-color: #ffd23f; } .t2prizes span { font-size: 26px; } .t2prizes b { font-size: 17px; } .t2prizes small { color: var(--muted); font-size: 12px; }
+.t2meta { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; font-size: 14px; color: var(--muted); } .t2meta b { color: var(--fg); }
+.t2how summary { cursor: pointer; font-size: 14px; color: var(--amber); } .t2how p { margin: 6px 0 0; font-size: 14px; }
+.t2reg { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; display: grid; gap: 8px; } .t2reg h4 { margin: 0; } .t2ok { margin: 0; color: var(--good); font-weight: 700; }
+.t2stake { display: grid; gap: 4px; font-weight: 600; } .t2stake input { width: 110px; font-size: 22px; font-weight: 700; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); } .t2chips { display: flex; gap: 6px; flex-wrap: wrap; } .t2chips .chip { cursor: pointer; }
+.t2best { margin: 0; font-size: 15px; } .t2best b { color: var(--good); font-size: 18px; } .t2pay { font-size: 18px; padding: 12px 18px; }
+.demopay .dcard { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .demopay .dcard div { background: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: grid; gap: 2px; } .demopay .dcard div:first-child { grid-column: 1 / -1; } .demopay .dcard small { color: var(--muted); font-size: 12px; } .demopay .dcard b { font-size: 20px; letter-spacing: .04em; } .demopay .dcard button { justify-self: start; }
+.t2new .row { display: flex; gap: 8px; } .t2new select { width: 100%; max-width: 320px; }
 .tmoney { border: 1px solid #2f9e6b; background: rgba(61,220,151,.08); border-radius: 10px; padding: 8px 10px; font-size: 14px; margin: 6px 0; }
 .tpayouts { display: grid; gap: 6px; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; } .tpo { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .tpo .ok { color: var(--good); font-weight: 700; }
 .achbtn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); background: color-mix(in srgb, var(--amber) 6%, var(--ink)); color: var(--fg); text-align: left; cursor: pointer; }
@@ -667,7 +681,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
-        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>najskuplje animacije koje vide svi u meču. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda</small></h2><div class="shop" id="shopLux"></div></div>
+        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>tvoj dolazak u igru: igra stane, svi gledaju tvoju animaciju, pa piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda. Ako imaš više, vrti se najskuplja</small></h2><div class="shop" id="shopLux"></div></div>
         <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
@@ -1835,21 +1849,38 @@ let curTab = 'online'; // the game always opens on the online tab
 // ================= tournaments =================
 const TOUR_API = 'https://vijuga.netlify.app/api/tournament', TOUR_FEE = 500;
 const TMODE = (() => { try { const q = new URLSearchParams(location.search); const id = q.get('turnir'); return id && /^[a-z0-9]{4,20}$/.test(id) ? { id, k: Number(q.get('kolo')) || 0, s: Number(q.get('stol')) || 0 } : null; } catch (e) { return null; } })();
-let tours = [], tourSel = null, tourTimer = 0, tourPayOn = false;
+let tours = [], tourSel = null, tourTimer = 0, tourPayOn = false, tourTest = false;
 const PAY_API = 'https://vijuga.netlify.app/api/pay';
 const fmtEur = (v) => (Math.round(Number(v) * 100) / 100).toLocaleString('hr-HR', { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 }) + ' €';
 // real money: the player goes to Stripe's payment page (card, Google Pay, Apple Pay) and comes back with ?placeno=<tournament>
-async function payTour(t) {
+const DEMO_CARD = { n: '4242 4242 4242 4242', d: '12/34', c: '123' };
+const isMoneyT = (t) => !!(t && (t.eur || t.stake));
+async function payTour(t, amount) {
   if (!profile) { showLogin(); return; }
-  if (!profile.pinHash) { toast('Za turnir s pravim novcem prvo postavi PIN (Profil → uredi).'); return; }
-  if (!confirm(`Kotizacija ${fmtEur(t.eur)}. Prva tri mjesta dijele nagradni fond (50 % / 30 % / 20 %). Ako se ne skupi 6 igrača, novac se vraća. Nastaviti na plaćanje?`)) return;
-  try {
-    const r = await fetch(PAY_API + '/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', tour: t.id }) });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.url) { toast({ 'payments off': 'Plaćanje još nije uključeno. Javi adminu.', 'pin needed': 'Za turnir s pravim novcem prvo postavi PIN (Profil → uredi).', auth: 'Prijava nije uspjela (PIN).', full: 'Turnir je pun.', 'registration closed': 'Prijave su zatvorene.', 'already in': 'Već si prijavljen.' }[j.error] || 'Plaćanje nije uspjelo (' + (j.error || r.status) + ').'); return; }
-    try { sessionStorage.setItem('vijuga-paying', t.id); } catch (e) {}
-    location.href = j.url;
-  } catch (e) { toast('Nema veze s poslužiteljem.'); }
+  const eur = t.eur || Math.floor(Number(amount) || 0);
+  if (t.stake && (eur < t.stake.min || eur > t.stake.max)) { toast(`Ulog mora biti od ${t.stake.min} do ${t.stake.max} €.`); return; }
+  if (!t.test && !profile.pinHash) { toast('Za turnir s pravim novcem prvo postavi PIN (Profil → uredi).'); return; }
+  const go = async () => {
+    try {
+      const r = await fetch(PAY_API + '/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', tour: t.id, amount: eur }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.url) { toast({ 'payments off': 'Plaćanje još nije uključeno. Javi adminu.', 'pin needed': 'Za turnir s pravim novcem prvo postavi PIN (Profil → uredi).', auth: 'Prijava nije uspjela (PIN).', full: 'Turnir je pun.', 'registration closed': 'Prijave su zatvorene.', 'already in': 'Već si prijavljen.', 'bad amount': `Ulog mora biti od ${j.min} do ${j.max} €.` }[j.error] || 'Plaćanje nije uspjelo (' + (j.error || r.status) + ').'); return; }
+      try { sessionStorage.setItem('vijuga-paying', t.id); } catch (e) {}
+      location.href = j.url;
+    } catch (e) { toast('Nema veze s poslužiteljem.'); }
+  };
+  if (!t.test) { if (confirm(`Uplata ${fmtEur(eur)} karticom ili Google Payem (Stripe). ${t.stake ? 'Fond se dijeli po ulogu.' : 'Prva tri mjesta dijele fond 50 / 30 / 20 %.'} Ako se ne skupi dovoljno igrača, novac se vraća. Nastaviti?`)) go(); return; }
+  // demo money: the test card is shown here (and again on Stripe's page); Stripe lets nobody fill a card in for the player
+  document.querySelectorAll('.demoov').forEach(x => x.remove());
+  const ov = document.createElement('div'); ov.className = 'achov demoov';
+  ov.innerHTML = `<div class="achcard demopay" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>🧪 Demo uplata ${fmtEur(eur)}</h3>
+    <p class="hint" style="margin:0">Testni novac: ništa se stvarno ne naplaćuje. Na Stripeovoj stranici upiši ovo (piše i tamo, iznad tipke za plaćanje):</p>
+    <div class="dcard"><div><small>Broj kartice</small><b>${DEMO_CARD.n}</b><button type="button" class="btn sm ghost" data-copy="${DEMO_CARD.n.replace(/ /g, '')}">Kopiraj</button></div><div><small>Datum</small><b>${DEMO_CARD.d}</b></div><div><small>CVC</small><b>${DEMO_CARD.c}</b></div><div><small>Ime, email</small><b>bilo što</b></div></div>
+    <button type="button" class="btn" id="demoGo">Nastavi na plaćanje →</button></div>`;
+  const close = () => ov.remove(); ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
+  ov.querySelector('[data-copy]').onclick = async (e) => { try { await navigator.clipboard.writeText(e.target.dataset.copy); toast('📋 Broj kartice je kopiran.'); } catch (x) { toast('Broj kartice: ' + DEMO_CARD.n); } };
+  ov.querySelector('#demoGo').onclick = () => { close(); go(); };
+  document.body.appendChild(ov);
 }
 // back from Stripe: wait until the payment has put me on the tournament
 (function paidReturn() {
@@ -1943,33 +1974,69 @@ function rolesHelpHtml() {
   return `<h2>Uloge</h2><p class="hint">Uloge dodjeljuje master admin na kartici igrača (klikni ime igrača → „Uloga”). Oznaka uloge vidi se uz ime.</p>${Object.entries(ROLE_INFO).map(([k, r]) => `<p><span class="rtag rt-${k}">${r.tag}</span> <b>${r.n}</b>: ${r.d}</p>`).join('')}<p><b>Igrač</b> (bez oznake): igra, kupuje, sudjeluje u turnirima, gleda i zeza druge.</p>`;
 }
 async function loadTours() {
-  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; tourPayOn = !!j.payments; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
+  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; tourPayOn = !!j.payments; tourTest = !!j.test; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
   if (!tourSel || !tours.some(t => t.id === tourSel)) tourSel = (tours.find(t => t.status !== 'done' && t.status !== 'cancelled') || tours[0] || {}).id || null;
   renderTour(); clearTimeout(tourTimer); if (curTab === 'tour' && !$('#menu').hidden) tourTimer = setTimeout(loadTours, 20000);
 }
 async function tourCall(id, action, extra) {
   if (!profile) { showLogin(); return null; }
   try { const r = await fetch(TOUR_API + (id ? '/' + id + (action ? '/' + action : '') : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'need 6 players': 'Za turnir s pravim novcem treba barem 6 igrača.', 'payments off': 'Plaćanje (Stripe) još nije uključeno.', 'refund failed': 'Povrat novca nije uspio, pokušaj ponovno.', 'payment required': 'Za ovaj turnir se prijavljuje plaćanjem.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
+    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'need players': `Za ovaj turnir treba barem ${j.min} igrača.`, 'bad stake': 'Ulog mora biti od 1 do 100 €.', 'payments off': 'Plaćanje (Stripe) još nije uključeno.', 'refund failed': 'Povrat novca nije uspio, pokušaj ponovno.', 'payment required': 'Za ovaj turnir se prijavljuje plaćanjem.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
   catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
+}
+function splitPotC(st, ranking, shares = [0.5, 0.3, 0.2]) {
+  const win = {}, back = {}; let prev = 0;
+  for (const L of [...new Set(Object.values(st))].sort((a, b) => a - b)) { const inn = Object.keys(st).filter(s => st[s] >= L), layer = (L - prev) * inn.length; prev = L;
+    if (inn.length === 1) { back[inn[0]] = (back[inn[0]] || 0) + layer; continue; }
+    const best = ranking.filter(s => inn.includes(s)).slice(0, shares.length), sum = shares.slice(0, best.length).reduce((a, b) => a + b, 0); best.forEach((s, i) => { win[s] = (win[s] || 0) + layer * shares[i] / sum; }); }
+  return { win, back };
+}
+// what I could win as the winner with this stake, the others staying as they are (with at least two other players)
+function bestCase(t, me, eur) { const st = Object.assign({}, t.stakes || {}); st[me] = eur; const others = Object.keys(st).filter(s => s !== me); if (!others.length) return 0; return Math.floor((splitPotC(st, [me, ...others]).win[me] || 0) * 100) / 100; }
+function tourStats() {
+  const done = tours.filter(t => t.status === 'done'), eur = done.filter(isMoneyT).reduce((a, t) => a + (t.winners || []).reduce((b, w) => b + (w.prize || 0), 0), 0), coins = done.filter(t => !isMoneyT(t)).reduce((a, t) => a + (t.winners || []).reduce((b, w) => b + (w.prize || 0), 0), 0);
+  const wins = {}; for (const t of done) { const w = (t.winners || [])[0]; if (w) wins[w.name] = (wins[w.name] || 0) + 1; }
+  const top = Object.entries(wins).sort((a, b) => b[1] - a[1])[0], biggest = tours.reduce((m, t) => isMoneyT(t) && t.pot > m ? t.pot : m, 0);
+  return { n: done.length, eur, coins, top, biggest };
 }
 function tableUrl(t, k, tb) { return GAME_URL + `?soba=t${t.id}-k${k}-s${tb.id}&turnir=${t.id}&kolo=${k}&stol=${tb.id}`; }
 function renderTour() {
   const box = $('#tour'); if (!box) return;
   const t = tours.find(x => x.id === tourSel), me = profile && profile.slug;
   const fmtT = ms => new Date(ms).toLocaleString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const pick = tours.length > 1 ? `<div class="tpick">${tours.map(x => `<button type="button" class="tpk ${x.id === tourSel ? 'on' : ''}" data-id="${x.id}">${esc(x.name)} <small>${{ open: 'prijave', running: 'u tijeku', final: 'finale', done: 'gotov', cancelled: 'otkazan' }[x.status]}</small></button>`).join('')}</div>` : '';
-  let html = `<div class="thead"><span class="tcup">🏆</span><div><h2 style="margin:0">Turniri</h2><p class="hint" style="margin:0">3 kola po stolovima (bodovi 10/6/3/1/0), 5 najboljih ide u finale. <b>Za zlatnike:</b> kotizacija ${TOUR_FEE}, fond 🥇 60 % · 🥈 30 % · 🥉 10 %. <b>💶 Za pravi novac:</b> kotizacija 5, 10 ili 15 €, plaćanje karticom ili Google Payem, najmanje 6 igrača, prva tri dijele fond 🥇 50 % · 🥈 30 % · 🥉 20 %.</p></div></div>${pick}`;
-  if (!t) html += '<p class="hint">Trenutno nema turnira. Admin ga raspisuje ovdje, a ti ćeš dobiti mjesto čim se otvore prijave.</p>';
+  const until = ms => { const m = Math.round((ms - Date.now()) / 60000); return m <= 0 ? 'sada' : m < 60 ? `za ${m} min` : m < 2880 ? `za ${Math.floor(m / 60)} h ${m % 60 ? (m % 60) + ' min' : ''}` : `za ${Math.round(m / 1440)} d`; };
+  const st = tourStats();
+  let html = `<div class="t2head"><span class="tcup">🏆</span><div><h2 style="margin:0">Turniri</h2><p class="hint" style="margin:0">3 kola po stolovima, 5 najboljih u finale</p></div></div>
+    <div class="t2stats"><div><b>${st.n}</b><span>odigrano</span></div><div><b>${fmtEur(st.eur)}</b><span>podijeljeno</span></div><div><b>${st.coins.toLocaleString('hr-HR')}</b><span>zlatnika u nagradama</span></div><div><b>${st.top ? esc(st.top[0]) : '–'}</b><span>${st.top ? `najviše pobjeda (${st.top[1]})` : 'prvi pobjednik?'}</span></div></div>`;
+  if (tours.length > 1) html += `<div class="tpick">${tours.map(x => `<button type="button" class="tpk ${x.id === tourSel ? 'on' : ''}" data-id="${x.id}">${isMoneyT(x) ? '💶 ' : ''}${esc(x.name)} <small>${{ open: 'prijave', running: 'u tijeku', final: 'finale', done: 'gotov', cancelled: 'otkazan' }[x.status]}</small></button>`).join('')}</div>`;
+  if (!t) html += '<p class="hint">Trenutno nema turnira. Admin ga raspisuje ovdje dolje, a ti ćeš dobiti mjesto čim se otvore prijave.</p>';
   else {
-    const inT = t.players.some(p => p.slug === me), enough = profile && profile.coins >= TOUR_FEE, money = !!t.eur;
+    const money = isMoneyT(t), inT = t.players.some(p => p.slug === me), enough = profile && profile.coins >= TOUR_FEE, minP = t.min || 6;
     const status = { open: '📝 Prijave otvorene', running: `⚔️ Kolo ${t.rounds.length} od 3`, final: '🔥 Finale', done: '🏁 Gotov', cancelled: '✖ Otkazan' }[t.status];
-    html += `<div class="tcard"><div class="trow1"><h3>${esc(t.name)}</h3><span class="tst">${status}</span></div>
-      <div class="tinfo"><div><b>${fmtT(t.start)}</b><span>početak</span></div><div><b class="gold">${money ? '💶 ' + fmtEur(t.pot) : '💰 ' + t.pot}</b><span>${money ? 'nagradni fond' : 'fond'}${t.bonus ? ` (admin +${t.bonus})` : ''}</span></div><div><b>${t.players.length}/${t.max}</b><span>prijavljeno${money ? ' (min. 6)' : ''}</span></div><div><b>${money ? fmtEur(t.eur) : t.fee}</b><span>kotizacija</span></div></div>`;
-    if (money) html += `<div class="tmoney"><b>💶 Turnir za pravi novac.</b> Plaća se karticom ili Google Payem (preko Stripea). Fond: 🥇 ${fmtEur(t.pot * .5)} · 🥈 ${fmtEur(t.pot * .3)} · 🥉 ${fmtEur(t.pot * .2)}. Ako se do sat vremena nakon početka ne skupi 6 igrača, turnir se otkazuje i novac se vraća na karticu. Odjava prije početka također vraća novac. Samo za punoljetne.</div>`;
-    if (money && t.status === 'open') html += !profile ? '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>' : inT ? `<p>✅ Plaćeno i prijavljen si. Budi online u ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (novac se vraća na karticu)</button>` : !profile.pinHash ? `<p class="hint">Za turnir s pravim novcem prvo postavi <b>PIN</b> (Profil → uredi), da nitko drugi ne može igrati pod tvojim imenom.</p><button class="btn ghost" type="button" id="tPin">Postavi PIN</button>` : !tourPayOn ? '<p class="hint">Plaćanje još nije uključeno.</p>' : t.players.length >= t.max ? '<p class="hint">Turnir je pun.</p>' : `<button class="btn" type="button" id="tPay">💳 Plati ${fmtEur(t.eur)} i prijavi se</button><p class="hint" style="margin:4px 0 0">Google Pay, Apple Pay ili kartica. Plaćanje ide preko Stripea; igra ne vidi podatke tvoje kartice.</p>`;
-    else if (t.status === 'open') html += !profile ? '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>' : inT ? `<p>✅ Prijavljen si. Budi online u ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (vraća ${t.fee})</button>` : enough ? `<button class="btn" type="button" id="tJoin">Prijavi se · ● ${t.fee}</button>` : `<p class="hint">Imaš ● ${profile.coins}. Zaradi još <b>${TOUR_FEE - profile.coins}</b> zlatnika u mečevima za kotizaciju.</p>`;
-    html += `<div class="tplayers">${t.players.map(p => `<span class="onp" data-player="${esc(p.slug)}">${money && (t.paidSlugs || []).includes(p.slug) ? '💶 ' : ''}${esc(p.name)}${t.points[p.slug] != null ? ` <span class="st">${t.points[p.slug]} b</span>` : ''}</span>`).join('') || '<span class="hint">Još nitko.</span>'}</div>`;
+    const potTxt = money ? fmtEur(t.pot) : (t.pot || 0).toLocaleString('hr-HR') + ' 💰';
+    const prize = (i) => money ? (t.stake ? `${[50, 30, 20][i]} %` : fmtEur(t.pot * [.5, .3, .2][i])) : Math.floor(t.pot * [.6, .3, .1][i]).toLocaleString('hr-HR') + ' 💰';
+    html += `<div class="t2hero ${money ? 'money' : ''}"><div class="t2top"><h3>${esc(t.name)}</h3><span class="tst">${status}</span>${t.test ? '<span class="demotag">🧪 DEMO NOVAC</span>' : ''}</div>
+      <div class="t2pot"><small>nagradni fond</small><b>${potTxt}</b><span>${t.status === 'open' ? `počinje ${until(t.start)} · ${fmtT(t.start)}` : fmtT(t.start)}</span></div>
+      <div class="t2prizes">${['🥇', '🥈', '🥉'].map((e, i) => `<div class="p${i + 1}"><span>${e}</span><b>${prize(i)}</b><small>${['1. mjesto', '2. mjesto', '3. mjesto'][i]}</small></div>`).join('')}</div>
+      <div class="t2meta"><span>👥 <b>${t.players.length}/${t.max}</b>${money ? ` (min. ${minP})` : ''}</span><span>🎟️ <b>${money ? (t.stake ? `${t.stake.min}–${t.stake.max} € po izboru` : fmtEur(t.eur)) : '● ' + t.fee}</b></span>${!money && t.bonus ? `<span>➕ admin ${t.bonus.toLocaleString('hr-HR')}</span>` : ''}</div>
+      ${t.stake ? '<details class="t2how"><summary>ℹ️ Kako se dijeli fond kad svatko uloži koliko želi</summary><p>Od svakog igrača možeš osvojiti najviše onoliko koliko si i sam uložio. Tko uloži više, može više i osvojiti. Svaka razina uloga dijeli se 50 / 30 / 20 % među najboljima od onih koji su toliko uložili, a dio koji nitko nije pratio vraća se na karticu.</p><p class="hint">Primjer: Ana 5 €, Bo 10 €, Cy 50 €, poredak Bo, Cy, Ana. Bo dobiva 13,75 €, Cy 8,25 € (+ 40 € povrata), Ana 3 €.</p></details>' : money ? '<p class="hint" style="margin:0">Prva tri mjesta dijele fond 50 / 30 / 20 %. Ako se ne skupi dovoljno igrača, novac se vraća na karticu. Samo za punoljetne.</p>' : ''}
+    </div>`;
+    // the registration
+    if (t.status === 'open') {
+      let reg = '';
+      if (!profile) reg = '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>';
+      else if (inT) reg = `<p class="t2ok">✅ Prijavljen si${money && t.stakes && t.stakes[me] ? ` · ulog ${fmtEur(t.stakes[me])}` : ''}. Budi online ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (${money ? 'novac se vraća na karticu' : 'vraća se ' + t.fee})</button>`;
+      else if (money && !tourPayOn) reg = '<p class="hint">Plaćanje još nije uključeno.</p>';
+      else if (money && !t.test && !profile.pinHash) reg = '<p class="hint">Za turnir s pravim novcem prvo postavi <b>PIN</b> (Profil → uredi).</p><button class="btn ghost" type="button" id="tPin">Postavi PIN</button>';
+      else if (t.players.length >= t.max) reg = '<p class="hint">Turnir je pun.</p>';
+      else if (t.stake) { const v0 = Math.min(t.stake.max, Math.max(t.stake.min, 10)), chips = [...new Set([t.stake.min, 10, 20, 50, t.stake.max])].filter(v => v >= t.stake.min && v <= t.stake.max).sort((a, b) => a - b);
+        reg = `<label class="t2stake">Tvoj ulog <span class="row"><input type="number" id="tAmt" min="${t.stake.min}" max="${t.stake.max}" step="1" value="${v0}"> €</span></label><div class="t2chips">${chips.map(v => `<button type="button" class="chip" data-amt="${v}">${v} €</button>`).join('')}</div><p class="t2best">Ako pobijediš: do <b id="tBest">${fmtEur(bestCase(t, me, v0))}</b></p><button class="btn t2pay" type="button" id="tPay">💳 Uplati <span id="tPayAmt">${fmtEur(v0)}</span> i prijavi se</button>`; }
+      else if (money) reg = `<button class="btn t2pay" type="button" id="tPay">💳 Uplati ${fmtEur(t.eur)} i prijavi se</button>`;
+      else reg = enough ? `<button class="btn t2pay" type="button" id="tJoin">Prijavi se · ● ${t.fee}</button>` : `<p class="hint">Imaš ● ${profile.coins}. Za kotizaciju fali još <b>${TOUR_FEE - profile.coins}</b> zlatnika.</p>`;
+      html += `<div class="t2reg"><h4>📝 Prijava</h4>${reg}${money && t.test && profile && !inT ? `<p class="hint" style="margin:6px 0 0">🧪 Demo: kartica <b>${DEMO_CARD.n}</b> · ${DEMO_CARD.d} · CVC ${DEMO_CARD.c}</p>` : money && !inT ? '<p class="hint" style="margin:6px 0 0">Kartica, Google Pay ili Apple Pay preko Stripea. Igra ne vidi podatke kartice.</p>' : ''}</div>`;
+    }
+    html += `<div class="tcard">`;
+    html += `<h4>👥 Igrači</h4><div class="tplayers">${t.players.map(p => `<span class="onp" data-player="${esc(p.slug)}">${esc(p.name)}${money && t.stakes && t.stakes[p.slug] ? ` <span class="st">💶 ${fmtEur(t.stakes[p.slug])}</span>` : ''}${t.points[p.slug] != null ? ` <span class="st">${t.points[p.slug]} b</span>` : ''}</span>`).join('') || '<span class="hint">Još nitko. Budi prvi!</span>'}</div>`;
     if (t.rounds.length) {
       const stand = [...t.players].sort((a, b) => (t.points[b.slug] || 0) - (t.points[a.slug] || 0));
       html += `<h4>🏅 Poredak</h4><table class="board"><tbody>${stand.map((p, i) => `<tr data-player="${esc(p.slug)}"${p.slug === me ? ' style="color:var(--amber)"' : ''}><td>${i + 1}.</td><td style="text-align:left">${esc(p.name)}${i < 5 && t.status === 'running' ? ' <small class="hint">→ finale</small>' : ''}</td><td>${t.points[p.slug] || 0} b</td></tr>`).join('')}</tbody></table>`;
@@ -1977,27 +2044,31 @@ function renderTour() {
     }
     if (t.final) { const f = t.final, mine = f.players.includes(me); html += `<h4>🔥 Finale</h4><div class="ttable ${mine ? 'mine' : ''}">${(f.result || f.players).map((s, i) => `${f.result ? ['🥇', '🥈', '🥉'][i] || (i + 1) + '.' : ''} ${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(' · ')}${mine && !f.result ? `<a class="btn" href="${tableUrl(t, 0, f)}">▶ Uđi u finale</a>` : ''}</div>`; }
     if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>${money ? fmtEur(w.prize) : '+' + w.prize + ' 💰'}</small></div>`).join('')}</div>`;
-    if (money && t.payouts && t.payouts.length) html += `<div class="tpayouts"><b>💶 Isplate</b>${t.payouts.map(po => `<div class="tpo"><span>${['🥇', '🥈', '🥉'][po.place - 1]} ${esc(po.name)} · <b>${fmtEur(po.eur)}</b></span>${po.paid ? '<span class="ok">✓ isplaćeno</span>' : canBonus() ? `<button class="btn sm" type="button" data-paidout="${esc(po.slug)}">Označi isplaćeno</button>` : '<span class="hint">čeka isplatu</span>'}</div>`).join('')}</div>`;
-    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? `<button class="btn sm" type="button" id="tStart">Pokreni turnir${money ? ' (min. 6)' : ''}</button>` : ''}${canBonus() && !money ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (${money ? 'vrati novac na kartice' : 'vrati kotizacije'})</button></div>`;
+    if (money && t.payouts && t.payouts.length) html += `<div class="tpayouts"><b>💶 Isplate</b>${t.payouts.map(po => `<div class="tpo"><span>${['🥇', '🥈', '🥉'][po.place - 1] || po.place + '.'} ${esc(po.name)} · <b>${fmtEur(po.eur)}</b></span>${po.paid ? '<span class="ok">✓ isplaćeno</span>' : canBonus() ? `<button class="btn sm" type="button" data-paidout="${esc(po.slug)}">Označi isplaćeno</button>` : '<span class="hint">čeka isplatu</span>'}</div>`).join('')}${t.back && Object.keys(t.back).length ? `<small class="hint">Vraćeno na karticu (dio uloga koji nitko nije pratio): ${Object.entries(t.back).map(([s, v]) => `${esc(t.players.find(p => p.slug === s)?.name || s)} ${fmtEur(v)}`).join(', ')}</small>` : ''}</div>`;
+    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? `<button class="btn sm" type="button" id="tStart">Pokreni turnir${money ? ` (min. ${minP})` : ''}</button>` : ''}${canBonus() && !money ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (${money ? 'vrati novac na kartice' : 'vrati kotizacije'})</button></div>`;
     html += '</div>';
   }
-  if (myRole() === 'master') html += `<p class="treasury">🔒 Tvoja blagajna za turnire: <b id="trVal">…</b> zlatnika <small>(vidiš samo ti; iz nje ide dodatak u fond)</small></p>`;
-  if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].n : 'admin'})</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label>${canBonus() ? `<label>Vrsta <select id="tnKind"><option value="0">Za zlatnike (kotizacija ${TOUR_FEE})</option>${tourPayOn ? '<option value="5">💶 Pravi novac: 5 €</option><option value="10">💶 Pravi novac: 10 €</option><option value="15">💶 Pravi novac: 15 €</option>' : ''}</select></label>${tourPayOn ? '' : '<p class="hint" style="margin:0">Turniri za pravi novac pojavit će se ovdje kad se uključi Stripe.</p>'}<label id="tnBonusL">Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label>` : ''}<button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
+  // organising a tournament: the master's treasury of coins (for adding to a coin pot) is shown right here
+  if (isAdmin()) html += `<details class="tnew t2new"><summary>➕ Organiziraj novi turnir</summary>${myRole() === 'master' ? `<p class="treasury">🔒 Tvoja blagajna za turnire: <b id="trVal">…</b> zlatnika <small>(vidiš samo ti; iz nje ide dodatak u fond turnira za zlatnike)</small></p>` : ''}<label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label>${canBonus() ? `<label>Vrsta <select id="tnKind"><option value="coins">💰 Za zlatnike (kotizacija ${TOUR_FEE})</option>${tourPayOn ? `<option value="fixed">💶 ${tourTest ? 'Demo novac' : 'Pravi novac'}: fiksni ulog</option><option value="free">💶 ${tourTest ? 'Demo novac' : 'Pravi novac'}: ulog po izboru</option>` : ''}</select></label>${tourPayOn ? '' : '<p class="hint" style="margin:0">Turniri za novac pojavit će se ovdje kad se uključi Stripe.</p>'}<label id="tnFixedL" hidden>Ulog (€) <input type="number" id="tnEur" value="10" min="1" max="100"></label><span id="tnFreeL" class="row" hidden><label>Ulog od (€) <input type="number" id="tnMin" value="5" min="1" max="100"></label><label>do (€) <input type="number" id="tnMaxE" value="50" min="1" max="100"></label></span><label id="tnBonusL">Tvoj dodatak u fond (iz blagajne) <input type="number" id="tnBonus" value="0" min="0" step="100"></label>` : ''}<button class="btn" type="button" id="tnGo">Raspiši turnir</button></details>`;
   box.innerHTML = html;
   box.querySelectorAll('.tpk').forEach(b => b.onclick = () => { tourSel = b.dataset.id; renderTour(); });
   if ($('#trVal')) roleCall('treasury', {}).then(j => { if (j && $('#trVal')) $('#trVal').textContent = j.treasury; });
   const after = (j) => { if (j && j.tournament) { const i = tours.findIndex(x => x.id === j.tournament.id); const v = Object.assign({}, j.tournament, { pot: j.pot }); if (i >= 0) tours[i] = v; else tours.unshift(v); tourSel = v.id; renderTour(); } };
   if ($('#tLogin')) $('#tLogin').onclick = () => showLogin();
   if ($('#tJoin')) $('#tJoin').onclick = async () => { if (profile.coins < TOUR_FEE) return; if (!confirm(`Kotizacija je ${TOUR_FEE} zlatnika. Prijaviti se?`)) return; $('#tJoin').disabled = true; const j = await tourCall(t.id, 'join'); if (j && !j.already) { profile.coins -= TOUR_FEE; profile.spent = (profile.spent || 0) + TOUR_FEE; saveProfile(); toast('🏆 Prijavljen si na turnir!'); after(j); } };
-  if ($('#tLeave')) $('#tLeave').onclick = async () => { if (t.eur && !confirm(`Odjaviti se? ${fmtEur(t.eur)} vraća se na karticu (obično za 5 do 10 dana).`)) return; const j = await tourCall(t.id, 'leave'); if (j) { toast(t.eur ? 'Odjavljen si. Novac se vraća na tvoju karticu.' : 'Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); if (!t.eur) setTimeout(collectGifts, 1500); } };
+  if ($('#tLeave')) $('#tLeave').onclick = async () => { const mt = isMoneyT(t); if (mt && !confirm(`Odjaviti se? ${fmtEur((t.stakes && t.stakes[me]) || t.eur || 0)} vraća se na karticu (obično za 5 do 10 dana).`)) return; const j = await tourCall(t.id, 'leave'); if (j) { toast(mt ? 'Odjavljen si. Novac se vraća na tvoju karticu.' : 'Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); if (!mt) setTimeout(collectGifts, 1500); } };
   if ($('#tStart')) $('#tStart').onclick = async () => { if (!confirm('Pokrenuti turnir sada? Prijave se zatvaraju i kreće 1. kolo.')) return; after(await tourCall(t.id, 'start')); };
   if ($('#tBonus')) $('#tBonus').onclick = async () => { const a = Math.floor(Number($('#tBonusIn').value) || 0); if (a <= 0) return; after(await tourCall(t.id, 'bonus', { amount: a })); };
   $('#tab-tour').querySelectorAll('[data-close-table]').forEach(b => b.onclick = async () => { const [k, tid] = b.dataset.closeTable.split(':').map(Number); if (!confirm('Zaključiti ovaj stol bez odigranog meča? Igrači se rangiraju po redoslijedu sjedenja.')) return; after(await tourCall(t.id, 'result', { round: k, table: tid, ranking: [] })); });
   if ($('#tCancel')) $('#tCancel').onclick = async () => { if (!confirm('Otkazati turnir i vratiti kotizacije svima?')) return; after(await tourCall(t.id, 'cancel')); };
   if ($('#tnGo')) { const d = new Date(Date.now() + 3600000); d.setMinutes(0, 0, 0); $('#tnStart').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    if ($('#tnKind')) $('#tnKind').onchange = () => { const eur = Number($('#tnKind').value); if ($('#tnBonusL')) $('#tnBonusL').hidden = !!eur; if (eur && Number($('#tnMax').value) < 6) $('#tnMax').value = 8; };
-    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(), eur = $('#tnKind') ? Number($('#tnKind').value) : 0; if (eur && !confirm(`Raspisati turnir za pravi novac (kotizacija ${eur} €, min. 6 igrača)?`)) return; after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: !eur && $('#tnBonus') ? $('#tnBonus').value : 0, eur })); }; }
-  if ($('#tPay')) $('#tPay').onclick = () => payTour(t);
+    if ($('#tnKind')) $('#tnKind').onchange = () => { const k = $('#tnKind').value; $('#tnFixedL').hidden = k !== 'fixed'; $('#tnFreeL').hidden = k !== 'free'; if ($('#tnBonusL')) $('#tnBonusL').hidden = k !== 'coins'; if (k !== 'coins' && !tourTest && Number($('#tnMax').value) < 6) $('#tnMax').value = 8; };
+    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(), k = $('#tnKind') ? $('#tnKind').value : 'coins', body = { name: $('#tnName').value, start, max: $('#tnMax').value };
+      if (k === 'fixed') body.eur = Math.floor(Number($('#tnEur').value) || 0); else if (k === 'free') { body.stakeMin = Math.floor(Number($('#tnMin').value) || 0); body.stakeMax = Math.floor(Number($('#tnMaxE').value) || 0); if (body.stakeMax < body.stakeMin) { toast('„do” mora biti barem koliko „od”.'); return; } } else body.bonus = $('#tnBonus') ? $('#tnBonus').value : 0;
+      if (k !== 'coins' && !confirm(`Raspisati turnir za ${tourTest ? 'demo' : 'pravi'} novac (${k === 'fixed' ? 'ulog ' + body.eur + ' €' : 'ulog ' + body.stakeMin + '–' + body.stakeMax + ' € po izboru'}, min. ${tourTest ? 2 : 6} igrača)?`)) return;
+      after(await tourCall(null, null, body)); }; }
+  if ($('#tPay')) $('#tPay').onclick = () => payTour(t, $('#tAmt') ? $('#tAmt').value : t.eur);
+  if ($('#tAmt')) { const upd = () => { const v = Math.floor(Number($('#tAmt').value) || 0); $('#tPayAmt').textContent = fmtEur(v); $('#tBest').textContent = fmtEur(bestCase(t, me, v)); }; $('#tAmt').oninput = upd; box.querySelectorAll('[data-amt]').forEach(b => b.onclick = () => { $('#tAmt').value = b.dataset.amt; upd(); }); }
   if ($('#tPin')) $('#tPin').onclick = () => showRegister(true);
   box.querySelectorAll('[data-paidout]').forEach(b => b.onclick = async () => { if (!confirm('Označiti da je nagrada isplaćena?')) return; after(await tourCall(t.id, 'paidout', { winner: b.dataset.paidout })); });
 }
@@ -2221,13 +2292,13 @@ const PREMIUM = {
   bg_basket:   { e: '🏀', name: 'Arena: Košarkaški teren', d: 'UZORAK: parket s prozirnim linijama terena', price: 2000, bg: true },
   pr_room:     { e: '🔒', name: 'Privatna soba', d: 'Svoja soba s tajnom šifrom: ulaze samo oni kojima pošalješ link', price: 1500 },
   pr_vip:      { e: '💎', name: 'VIP paket', d: 'Zlatni chat, 5 ekskluzivnih emotikona i 10 % popusta na tragove, ikone i premium stvari', price: 4000 },
-  lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ: na početku svake runde helikopter te spusti u arenu na užetu, a svi vide „IME stiže helikopterom!”', price: 18000, lux: true },
-  lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ: kad pobijediš rundu, tvoja jahta s tvojim imenom proplovi arenom uz šampanjac', price: 20000, lux: true },
-  lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ: kad nekoga srušiš, preko ekrana se zavrti zlatni sat i padnu zlatnici: „TIK-TAK, IME!”', price: 15000, lux: true },
-  lx_fireworks:{ e: '🎆', name: 'Vatromet', d: 'LUKSUZ: kad osvojiš cijeli meč, iznad arene puca vatromet u tvojoj boji uz „IME JE PRVAK!”', price: 16000, lux: true },
-  lx_ferrari:  { e: '🏎️', name: 'Ferrari', d: 'LUKSUZ: kad u rundi prvi put pokupiš power-up, crveni Ferrari projuri arenom uz „BRRRM, IME!”', price: 17000, lux: true },
-  lx_crown:    { e: '👑', name: 'Dijamantna kruna', d: 'LUKSUZ: dijamantna kruna koja svjetluca lebdi iznad tvoje zmije cijelu rundu, da svi znaju tko je kralj', price: 22000, lux: true },
-  lx_jet:      { e: '✈️', name: 'Privatni avion', d: 'LUKSUZ: na početku svake runde tvoj privatni avion preleti arenom s transparentom „IME LETI PRIVATNO”', price: 25000, lux: true },
+  lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane i svi gledaju kako te helikopter spušta u arenu na užetu', price: 18000, lux: true },
+  lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti uploviš u arenu svojom jahtom uz šampanjac', price: 20000, lux: true },
+  lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, preko ekrana se zavrti zlatni Rolex i padaju zlatnici', price: 15000, lux: true },
+  lx_fireworks:{ e: '🎆', name: 'Vatromet', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a iznad arene puca vatromet u tvojoj boji', price: 16000, lux: true },
+  lx_ferrari:  { e: '🏎️', name: 'Ferrari', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti projuriš arenom crvenim Ferrarijem: „BRRRM!”', price: 17000, lux: true },
+  lx_crown:    { e: '👑', name: 'Dijamantna kruna', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a dijamantna kruna se s neba spusti na tvoju zmiju', price: 22000, lux: true },
+  lx_jet:      { e: '✈️', name: 'Privatni avion', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti preletiš arenom privatnim avionom s transparentom', price: 25000, lux: true },
   bg_live:     { e: '⛈️', name: 'Arena: Šibenik uživo', d: 'UŽIVO: arena prati pravo vrijeme u Šibeniku: kad pada kiša, kiša pada po areni; kad puše bura, nosi prašinu; noću zvijezde, danju sunce', price: 3000, bg: true },
   pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji veliki spomenik s tvojim imenom. Tko ga dotakne, vidi „Počivaj u miru” i tvoje ime', price: 1800 },
 };
@@ -2495,7 +2566,7 @@ function newRound() {
       jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [], tvH: [], portalCool: 0 });
   });
   hudDirty = true; showOverlay(null);
-  G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); if (hasLux(x, 'jet')) luxStart('jet', x); });
+  planIntro();
 }
 
 // ---------- effects ----------
@@ -3047,7 +3118,7 @@ function spawnPu() {
   }
 }
 function applyPu(p, k, silent) {
-  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); if (hasLux(p, 'ferrari') && p.ferrariRound !== G.round) { p.ferrariRound = G.round; luxStart('ferrari', p); } }
+  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); }
   const add = (q, kind, dur) => q.fx.push({ k: kind, until: G.gt + dur });
   const others = G.players.filter(q => q !== p && q.alive);
   switch (k) {
@@ -3111,11 +3182,10 @@ function announceDrop(d) {
 function endRound(winner) {
   G.phase = 'end'; G.phaseT = 0; G.players.forEach(p => flushTrail(p, false));
   if (winner) winner.wins++;
-  if (winner && hasLux(winner, 'yacht')) luxStart('yacht', winner);
   sfx.round(); if (winner && winner.vs) victoryFx(winner);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { if (sorted[0] && hasLux(sorted[0], 'fireworks')) luxStart('fireworks', sorted[0]); if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
+  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -3220,6 +3290,7 @@ function substep(lap) {
 function update(dt) {
   if (G.phase === 'run' && G.players.length && !G.players.some(p => p.alive)) { endRound(null); return; } // safety: a round with nobody alive can never hang
   if (G.phase === 'count') {
+    if (G.intro && G.introT < G.introLen) { G.introT += dt; runIntro(); return; } // a luxury entrance: everybody waits (a guest's clock is set again by every snapshot)
     G.phaseT += dt;
     const n = Math.ceil(countLen() - G.phaseT);
     if (n !== G.lastCount && n > 0) { G.lastCount = n; sfx.tick(); }
@@ -3351,7 +3422,6 @@ function render() {
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_centi' && p.alive) drawCentiHead(ctx, p.x, p.y, p.a, hr);
-    if (p.alive && hasLux(p, 'crown') && G.phase !== 'end') drawCrown(ctx, p.x, p.y - hr - 34, performance.now() / 1000);
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     { const pm = p.alive && net ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
     if (p.alive && G.phase === 'run') { const ids = pBadges(p).filter(id => liveB(BADGES[id]) || BADGES[id].anim); if (ids.length) { ctx.globalAlpha = 0.85; drawBadgeRow(ctx, ids, p.x, p.y - hr - 12, 10, p.color); ctx.globalAlpha = 1; } }
@@ -3410,7 +3480,8 @@ function render() {
     ctx.globalAlpha = 1 - k; ctx.fillStyle = G.toast.color; ctx.font = '600 18px "Barlow Semi Condensed", sans-serif';
     ctx.fillText(G.toast.text, G.toast.x, G.toast.y - 24 - k * 24); ctx.globalAlpha = 1;
   }
-  if (G.phase === 'count') {
+  drawIntroBanner(ctx);
+  if (G.phase === 'count' && !(G.intro && G.introT < G.introLen)) {
     const n = Math.ceil(countLen() - G.phaseT);
     ctx.font = `400 ${Math.min(W, H) * 0.16}px Bungee, Impact, sans-serif`;
     ctx.fillStyle = 'rgba(233,239,246,0.9)'; ctx.fillText(n > 0 ? String(n) : '', W / 2, H / 2);
@@ -3577,7 +3648,8 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
-  { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Najskuplje animacije koje vide svi u meču. Za svaku trebaju nivo i posebna postignuća (za krunu i avion i drugi luksuz). ℹ️ na svakoj pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
+  { id: 'tour-stakes', d: '2026-11-10', e: '🏆', t: 'Turniri: novi izgled i ulog po izboru', x: 'Tab Turniri ima veliki nagradni fond, nagrade za prva tri mjesta, statistiku odigranih turnira i prijavu na jednom mjestu. Na nekim turnirima svatko uloži koliko želi: tko uloži više, može više i osvojiti, a dio koji nitko nije pratio vraća se na karticu. Za sada se igra demo novcem.', go: 'tab:tour', b: 'Otvori turnire' },
+  { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Luksuz je tvoj dolazak u igru: na početku meča (ili kad zamijeniš bota) igra stane, svi gledaju tvoju animaciju i piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća. ℹ️ pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
   { id: 'live-pack', d: '2026-11-10', e: '🌍', t: 'Uživo: Hajduk, Dinamo i Šibenik, more, bura, tečaj…', x: 'Ikona kluba piše kad je sljedeća utakmica i protiv koga, a dok se igra svijetli zeleno s rezultatom uživo. Klik na ikonu otvara tablicu HNL-a. Dan nakon pobjede kluba navijači imaju duple nagrade. Tu su i more, bura alarm, zrak, tečaj, zlato, potresi, svemirska postaja i Formula 1.', go: 'shop:live', b: 'Pogledaj u trgovini', items: ['bd_fc_hajduk', 'bd_fc_dinamo', 'bd_fc_sibenik', 'bd_sea_sib', 'bd_sea_st', 'bd_sea_zd', 'bd_sea_du', 'bd_sea_pu', 'bd_bura', 'bd_uv', 'bd_air', 'bd_fx_usd', 'bd_fx_chf', 'bd_gold', 'bd_quake', 'bd_iss', 'bd_f1'] },
   { id: 'nameday-night', d: '2026-11-10', e: '🎉', t: 'Imendani i arena Šibenik uživo', x: 'Na naslovnoj piše tko danas slavi imendan; slavljenik dobije 🎉 uz ime i 200 zlatnika. Kad je noć u Šibeniku, arenom trepere zvijezde, a nova pozadina „Šibenik uživo” prati pravu kišu, buru i noćno nebo.', go: 'shop:bgs', b: 'Pozadine arene', items: ['bg_live'] },
   { id: 'wants', d: '2026-11-10', e: '🙋', t: 'Zahtjevi za kupnju na aukciji', x: 'Nešto je rasprodano? Na Aukciji otvori zahtjev i ponudi cijenu, a tko god tu stvar ima, proda ti je jednim klikom. U trgovini uz rasprodanu stvar stoji „Zatraži na aukciji”.', go: 'tab:auct', b: 'Otvori aukciju' },
@@ -3634,7 +3706,8 @@ function tellNews() {
   if (n) n.querySelector('[data-news]').onclick = () => { n.remove(); showNews(); };
 }
 setTimeout(tellNews, 7000);
-const LUX_WHEN = { lx_heli: 'na početku svake runde', lx_jet: 'na početku svake runde', lx_yacht: 'kad pobijediš rundu', lx_fireworks: 'kad osvojiš cijeli meč', lx_rolex: 'kad nekoga srušiš', lx_ferrari: 'kad u rundi prvi put pokupiš power-up', lx_crown: 'cijelu rundu, stalno' };
+const LUX_WHEN_ALL = 'kad uđeš u igru (početak meča ili kad zamijeniš bota); igra stoji dok se ne odvrti';
+const LUX_WHEN = new Proxy({}, { get: () => LUX_WHEN_ALL });
 let luxPrev = null;
 function showLuxPreview(id) {
   const it = PREMIUM[id]; if (!it || !it.lux) return; const type = id.slice(3);
@@ -3657,8 +3730,7 @@ function showLuxPreview(id) {
     c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(131,150,171,0.16)'; for (let gx = 25; gx < w; gx += 25) for (let gy = 25; gy < h; gy += 25) c.fillRect(gx - .8, gy - .8, 1.6, 1.6);
     c.strokeStyle = me.col; c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); for (let k = 0; k < trail.length; k += 2) { if (k === 0) c.moveTo(trail[k], trail[k + 1]); else c.lineTo(trail[k], trail[k + 1]); } c.stroke();
     c.fillStyle = me.col; c.beginPath(); c.arc(x, y, 7, 0, 6.283); c.fill();
-    if (type === 'crown') drawCrown(c, x, y - 36, tt);
-    else { if (!list.length && now >= next) { list.push({ type, t0: now, x, y, name: me.name, color: me.col }); } drawLux(c, list, w, h); if (!list.length && now > next) next = now + 900; }
+    if (!list.length && now >= next) { list.push({ type, t0: now, x, y, name: me.name, color: me.col }); } drawLux(c, list, w, h); if (!list.length && now > next) next = now + 900;
     luxPrev = requestAnimationFrame(loop);
   };
   luxPrev = requestAnimationFrame(loop);
@@ -4285,6 +4357,29 @@ function drawCrown(c, x, y, t) {
   for (let k = 0; k < 4; k++) { const a = t * 2 + k * 1.57, r = 18 + 3 * Math.sin(t * 5 + k), s2 = 1.5 + 1.5 * Math.max(0, Math.sin(t * 7 + k * 2)); c.fillStyle = k % 2 ? '#bff4ff' : '#ffffff'; c.beginPath(); c.moveTo(Math.cos(a) * r, Math.sin(a) * r * .6 - s2 * 2); c.lineTo(Math.cos(a) * r + s2, Math.sin(a) * r * .6); c.lineTo(Math.cos(a) * r, Math.sin(a) * r * .6 + s2 * 2); c.lineTo(Math.cos(a) * r - s2, Math.sin(a) * r * .6); c.closePath(); c.fill(); }
   c.restore();
 }
+const LUX_RANK = ['lx_jet', 'lx_crown', 'lx_yacht', 'lx_heli', 'lx_ferrari', 'lx_fireworks', 'lx_rolex']; // the dearest one owned is the entrance
+const LUX_DUR = { jet: 4.6, crown: 2.8, yacht: 5.5, heli: 3.6, ferrari: 2.4, fireworks: 4.2, rolex: 2.6 }, ENTER_BANNER = 1.4, INTRO_MAX = 3;
+function entranceOf(p) { for (const id of LUX_RANK) if (hasLux(p, id.slice(3))) return id.slice(3); return ''; }
+// who enters this round: everybody on the first round of the match, otherwise the players seated for this round
+function planIntro() {
+  G.intro = null; G.introT = 0; G.introLen = 0; G.introDone = {};
+  const who = G.players.filter(p => p.human && entranceOf(p) && (G.round === 1 || p.enterRound === G.round)).slice(0, INTRO_MAX);
+  if (!who.length) return;
+  let t = 0.3; G.intro = who.map(p => { const ty = entranceOf(p), e = { i: p.id, t: ty, s: +t.toFixed(2), d: LUX_DUR[ty] || 3 }; t += e.d + ENTER_BANNER; return e; }); G.introLen = +t.toFixed(2);
+}
+// play what is due (host and guests alike: a guest follows the host's clock)
+function runIntro() {
+  if (!G.intro) return; G.introDone = G.introDone || {};
+  for (const e of G.intro) if (!G.introDone[e.i + ':' + e.s] && G.introT >= e.s) { G.introDone[e.i + ':' + e.s] = 1; const p = G.players.find(x => x.id === e.i); if (p) { luxStart(e.t, p); const f = luxFx[luxFx.length - 1]; if (f) f.t0 = performance.now() - (G.introT - e.s) * 1000; } }
+}
+function drawIntroBanner(c) {
+  if (!G.intro || G.phase !== 'count') return;
+  for (const e of G.intro) { const a = G.introT - (e.s + e.d); if (a < 0 || a > ENTER_BANNER) continue; const p = G.players.find(x => x.id === e.i); if (!p) continue;
+    const k = Math.min(1, a / 0.25), fade = a > ENTER_BANNER - 0.3 ? (ENTER_BANNER - a) / 0.3 : 1; c.save(); c.globalAlpha = Math.max(0, fade); c.translate(W / 2, H / 2); c.scale(0.7 + 0.3 * k, 0.7 + 0.3 * k);
+    c.font = `400 ${Math.round(Math.min(W, H) * 0.075)}px Bungee, Impact, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 7; c.strokeStyle = 'rgba(0,0,0,.75)';
+    const t1 = p.name.toUpperCase(), t2 = 'JE UŠAO U IGRU! ✨'; c.strokeText(t1, 0, -28); c.fillStyle = p.color; c.fillText(t1, 0, -28);
+    c.font = `400 ${Math.round(Math.min(W, H) * 0.045)}px Bungee, Impact, sans-serif`; c.strokeText(t2, 0, 22); c.fillStyle = '#ffd23f'; c.fillText(t2, 0, 22); c.restore(); }
+}
 function luxStart(type, p) { luxFx.push({ type, t0: performance.now(), x: p.x, y: p.y, name: p.name, color: p.color }); if (luxFx.length > 6) luxFx.shift(); if (type === 'ferrari') { beep(140, .5, 'sawtooth', .05, 260); setTimeout(() => beep(220, .4, 'sawtooth', .05, 200), 250); } if (type === 'jet') beep(300, 1.4, 'sine', .025, -120); if (type === 'fireworks') [0, 550, 1100, 1650].forEach(d => setTimeout(() => beep(900 + Math.random() * 400, .15, 'triangle', .05, -700), d + 450)); if (type === 'rolex') { beep(1320, .08, 'square', .05); setTimeout(() => beep(1320, .08, 'square', .05), 160); } if (type === 'heli') beep(110, 1.2, 'sawtooth', .03, 20); }
 function luxLabel(c, t, y, size, w) { c.save(); c.font = `900 ${size}px "Barlow Semi Condensed", system-ui, sans-serif`; c.textAlign = 'center'; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(t, (w || W) / 2, y); c.fillStyle = '#ffd23f'; c.fillText(t, (w || W) / 2, y); c.restore(); }
 function drawLux(c, list, w, h) {
@@ -4306,8 +4401,16 @@ function drawLux(c, list, w, h) {
       c.fillStyle = 'rgba(30,90,140,.25)'; c.fillRect(0, h - 95, w, 95);
       for (let j = 1; j < 14; j++) { const wx = x - 40 - j * 14; c.strokeStyle = `rgba(220,245,255,${.6 - j * .04})`; c.lineWidth = 1.5; c.beginPath(); c.arc(wx, y + 16, 4 + j * 1.5, .5, 2.6); c.stroke(); }
       c.save(); c.translate(x, y); c.scale(-1, 1); c.font = `74px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🛥️', 0, 0); c.restore();
+      if (t > .5) luxLabel(c, `🛥️ ${f.name.toUpperCase()} UPLOVLJAVA`, 46, 24, w);
       c.fillStyle = f.color; c.fillRect(x - 4, y - 66, 58, 18); c.fillStyle = '#fff'; c.font = '800 12px system-ui'; c.textAlign = 'left'; c.fillText(f.name.slice(0, 8), x, y - 53); c.fillStyle = '#ddd'; c.fillRect(x - 6, y - 68, 2, 40);
       if (t > 1.2) for (let j = 0; j < 26; j++) { const a = (t - 1.2) - j / 30; if (a < 0 || a > 1.4) continue; const ang = -1.2 - (j % 7) * .08; c.fillStyle = j % 2 ? '#ffd23f' : '#fff6c0'; c.beginPath(); c.arc(x + 14 + Math.cos(ang) * a * 110, y - 36 + Math.sin(ang) * a * 110 + a * a * 90, 2.5, 0, 6.283); c.fill(); }
+    } else if (f.type === 'crown') {
+      if (t > 2.8) { list.splice(i, 1); continue; }
+      const k = Math.min(1, t / 1.3), y = -40 + (f.y - 40 + 40) * (1 - Math.pow(1 - k, 3)), x = f.x + Math.sin(t * 3) * 8 * (1 - k);
+      c.save(); c.strokeStyle = 'rgba(190,240,255,.5)'; c.lineWidth = 2; for (let j = 0; j < 6; j++) { c.beginPath(); c.moveTo(x + (j - 2.5) * 6, y - 20 - j * 6); c.lineTo(x + (j - 2.5) * 6, y - 60 - j * 10); c.stroke(); } c.restore();
+      drawCrown(c, x, y, t);
+      if (t > 1.3) { const b = t - 1.3; c.save(); c.globalAlpha = Math.max(0, 1 - b / 1.2); c.strokeStyle = '#bff4ff'; c.lineWidth = 3; c.beginPath(); c.arc(f.x, f.y - 40, 20 + b * 90, 0, 6.283); c.stroke(); c.restore(); }
+      if (t > .4) luxLabel(c, `👑 ${f.name.toUpperCase()} STIŽE S KRUNOM`, 46, 24, w);
     } else if (f.type === 'jet') {
       if (t > 4.6) { list.splice(i, 1); continue; }
       const x = -120 + t * (w + 360) / 4.6, y = h * 0.16 + 10 * Math.sin(t * 1.6);
@@ -4318,7 +4421,7 @@ function drawLux(c, list, w, h) {
       c.save(); c.translate(x, y); c.font = `54px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✈️', 0, 0); c.restore();
       if (t > .5 && t < 4) luxLabel(c, `${f.name.toUpperCase()} LETI PRIVATNO ✈️`, h - 36, 24, w);
     } else if (f.type === 'fireworks') {
-      if (t > 5.2) { list.splice(i, 1); continue; }
+      if (t > 4.2) { list.splice(i, 1); continue; }
       const cols = [f.color, '#ffd23f', '#ffffff', '#ff5d9e', '#4cc9f0'];
       for (let k = 0; k < 7; k++) {
         const t0 = k * 0.55, a = t - t0; if (a < 0 || a > 2.2) continue;
@@ -4328,14 +4431,14 @@ function drawLux(c, list, w, h) {
         for (let j = 0; j < 28; j++) { const ang = j / 28 * 6.283, r = e * 140, px = sx + Math.cos(ang) * r, py = sy + Math.sin(ang) * r + e * e * 60; c.fillStyle = cols[(j + k) % cols.length]; c.beginPath(); c.arc(px, py, 3, 0, 6.283); c.fill(); }
         c.restore();
       }
-      if (t > .6) luxLabel(c, `🎆 ${f.name.toUpperCase()} JE PRVAK! 🎆`, h * 0.12, 30, w);
+      if (t > .6) luxLabel(c, `🎆 STIŽE ${f.name.toUpperCase()}! 🎆`, h * 0.12, 30, w);
     } else if (f.type === 'ferrari') {
       if (t > 2.4) { list.splice(i, 1); continue; }
       const x = -140 + (t / 2.4) ** 1.3 * (w + 280), y = h - 70;
       c.save(); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; for (let k = 0; k < 5; k++) { c.beginPath(); c.moveTo(x - 60 - k * 22, y - 18 + k * 8); c.lineTo(x - 140 - k * 22, y - 18 + k * 8); c.stroke(); }
       for (let k = 0; k < 6; k++) { const a = (t * 6 + k) % 1.5; c.fillStyle = `rgba(180,180,180,${.35 * (1 - a / 1.5)})`; c.beginPath(); c.arc(x - 50 - a * 70, y + 14 - a * 10, 6 + a * 10, 0, 6.283); c.fill(); }
       c.translate(x, y); c.scale(-1, 1); c.font = `64px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🏎️', 0, 0); c.restore();
-      if (t > .2) luxLabel(c, `BRRRM, ${f.name.toUpperCase()}! 🏎️`, h - 120, 28, w);
+      if (t > .2) luxLabel(c, `BRRRM, STIŽE ${f.name.toUpperCase()}! 🏎️`, h - 120, 28, w);
     } else if (f.type === 'rolex') {
       if (t > 2.6) { list.splice(i, 1); continue; }
       const k = Math.min(1, t / .5), sc = (1 - Math.pow(1 - k, 3)) * .55, cx = w / 2, cy = h / 2 - 20, fade = t > 2.1 ? (2.6 - t) / .5 : 1;
@@ -4347,13 +4450,12 @@ function drawLux(c, list, w, h) {
       if (t > .5 && t < 1.5) { const sx = -150 + (t - .5) * 300; c.save(); c.beginPath(); c.arc(0, 0, 105, 0, 6.283); c.clip(); c.fillStyle = 'rgba(255,255,255,.45)'; c.beginPath(); c.moveTo(sx, -120); c.lineTo(sx + 30, -120); c.lineTo(sx - 30, 120); c.lineTo(sx - 60, 120); c.fill(); c.restore(); }
       c.restore();
       for (let j = 0; j < 16; j++) { const a = t - .4 - (j % 5) * .12; if (a < 0) continue; const x = w * (j + .5) / 16, y = -10 + a * a * 260 + (j % 3) * 18; if (y > h) continue; const gg = c.createRadialGradient(x - 3, y - 3, 1, x, y, 9); gg.addColorStop(0, '#fff6b0'); gg.addColorStop(1, '#c9961a'); c.fillStyle = gg; c.globalAlpha = fade; c.beginPath(); c.ellipse(x, y, 9 * Math.abs(Math.cos(a * 6 + j)) + 2, 9, 0, 0, 6.283); c.fill(); c.globalAlpha = 1; }
-      if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, ${f.name.toUpperCase()}! ⌚`, h - 40, 26, w); c.globalAlpha = 1; }
+      if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, STIŽE ${f.name.toUpperCase()}! ⌚`, h - 40, 26, w); c.globalAlpha = 1; }
     }
   }
 }
 function roar() { beep(90, .7, 'sawtooth', .1, -40); setTimeout(() => beep(70, .5, 'sawtooth', .08, -30), 200); }
 function onDeath(p, killerId) {
-  { const k = G.players.find(x => x.id === killerId); if (k && k !== p && hasLux(k, 'rolex')) luxStart('rolex', k); }
   { const k = G.players.find(x => x.id === killerId); if (k && k !== p && k.skin === 'sk_dragon') roar(); }
   if (p.pm && p.pm.includes('tomb')) (G.tombs ||= []).push({ x: p.x, y: p.y, name: p.name });
   const key = curMid() + ':' + p.id, b = bounties[key]; if (!b) return;
@@ -4939,14 +5041,14 @@ function seatQueuedHumans() {
       const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
       const c = used.has(want) ? bot.id : want;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, own ? { score: own.score || 0, kills: own.kills || 0, wins: own.wins || 0, picks: own.picks || 0, jumps: own.jumps || 0 } : (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players[G.players.indexOf(bot)] = np; fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
+      np.enterRound = G.round + 1; G.players[G.players.indexOf(bot)] = np; fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
     } else if (G.players.length < MAX_PLAYERS) { // free seat: join the running match from the next round
       const used = new Set(G.players.map(p => p.id));
       let c = want; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players.push(np); fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
+      np.enterRound = G.round + 1; G.players.push(np); fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi u meč`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč od ove runde`);
     } else break;
@@ -5071,7 +5173,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -5135,6 +5237,7 @@ function applyState(st, first) {
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
+  if (st.ix && st.ph === 'count') { const key = JSON.stringify(st.ix); if (G.introKey !== key) { G.introKey = key; G.intro = st.ix; G.introDone = {}; G.introLen = st.ix.reduce((a, e) => Math.max(a, e.s + e.d + ENTER_BANNER), 0); } G.introT = st.it || 0; runIntro(); } else if (st.ph !== 'count') { G.intro = null; G.introKey = ''; }
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
@@ -5151,7 +5254,6 @@ function applyState(st, first) {
     const wasAlive = p.alive;
     { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
-    if (q.pk > (p.picks || 0) && p.picks != null && hasLux(p, 'ferrari') && p.ferrariRound !== G.round) { p.ferrariRound = G.round; luxStart('ferrari', p); } // a guest sees the host's pick-up as the count going up
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.sl) p.slug = q.sl;
     if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && (q.nc || q.cx)) { net.colorTold = true; setTimeout(() => showIgMsg(colorNote(p)), 300); } else if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null, ig: 1, watch: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (net && G && net.myId != null && (G.round > 1 || G.phase !== 'count')) { const meP = G.players.find(x => x.id === net.myId); showIgMsg(meP && meP.alive && G.phase === 'run' ? '🎮 Ti si u meču! Upravljaš svojom zmijom.' : G.phase === 'count' ? '🎮 Ti si u meču! Runda kreće za koji trenutak.' : '🎮 U meču si – svojom zmijom upravljaš <b>od sljedeće runde</b>.'); } }, 0); } }
@@ -5195,8 +5297,8 @@ function applyState(st, first) {
     if (G.phase === 'run') sfx.go();
     if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
     if (st.dr) announceDrop(st.dr);
-    if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); if (hasLux(x, 'jet')) luxStart('jet', x); });
-    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { const champ = ranking()[0]; if (champ && hasLux(champ, 'fireworks')) luxStart('fireworks', champ); setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
+
+    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
     if (G.phase === 'count') { showOverlay(null); if (owner) owner.fill(0); }
   }
   if (first && G.phase === 'end') { if (G.over) setTimeout(() => { if (net && G && G.over) showResults(); }, 100); else showRoundBanner(); } // joining a finished match shows its results (Ready / Izađi), not a frozen arena
