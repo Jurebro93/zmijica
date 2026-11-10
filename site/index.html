@@ -459,8 +459,7 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
   #padsBottom .pad[data-k=R] { grid-column: 3; margin-right: env(safe-area-inset-right, 0px); }
   /* only a jump pad that sits directly in the bar takes the grid slot; inside .padmid it stacks over the tool row (the old rule pushed it half off-screen) */
   #padsBottom > .pad.jump, #padsBottom .padmid { grid-column: 3; grid-row: 2; align-self: start; justify-self: center; margin-top: 12px; margin-right: env(safe-area-inset-right, 0px); }
-  #padsBottom .padmid { width: 112px; } #padsBottom .padtools { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px; } #padsBottom .ptool { width: auto !important; height: 44px !important; border-radius: 12px !important; display: grid !important; grid-template-rows: 1fr auto; padding: 4px 0 !important; } #padsBottom .ptool .tl { display: block !important; font-size: 9px; } #padsBottom .jumpstrip { margin: 0 !important; height: 26px !important; order: 0 !important; font-size: 11px !important; }
-  #padsBottom.ps-c .pad.big { border-radius: 50%; } #padsBottom .padtools { justify-items: stretch !important; } #padsBottom .ptool .tg { font-size: 19px !important; } #padsBottom .jumpstrip .jt::before, #padsBottom .jumpstrip .jt::after { content: none !important; }
+  #padsBottom .padmid { width: 118px; height: 142px; } #padsBottom .ptool .tg { font-size: 19px; } #padsBottom .ptool .tl { font-size: 9px; } #padsBottom.ps-b .padtools { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); } #padsBottom.ps-c .padtools { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); } #padsBottom.ps-c .padmid { grid-template-rows: minmax(0, 1fr) 30px; } #padsBottom .qreact { gap: 4px; } #padsBottom .qreact button { font-size: 16px; }
   #padsBottom .padmid .pad.big { grid-row: auto; align-self: auto; margin-bottom: 0; } /* the big SKOK inside the tool column keeps DOM order: tools first, pad under them */
   #bnav button, #bnav a { font-size: 10px !important; padding: 2px 0 !important; } #bnav span { font-size: 16px !important; }
 }
@@ -499,33 +498,35 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .pad .cap { color: #e9eff6 !important; }
 .pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
 .pad.big { width: 92px; height: 92px; }
-.padmid { display: grid; gap: 8px; justify-items: stretch; align-content: center; min-width: 0; width: 100%; }
-.padtools { display: flex; gap: 6px; justify-content: center; }
-.pads { grid-template-columns: max-content minmax(0, 1fr) max-content !important; } .ptool { min-width: 0; } .ptool .tl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.ptool .tg { font-size: 20px; line-height: 1; } .ptool .tl { font: 700 10px/1 "Barlow Semi Condensed", sans-serif; letter-spacing: .03em; color: #e6dcff; }
-.jumpstrip { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 10px; height: 26px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--pc, var(--line)) 60%, var(--line)); background: var(--panel); color: var(--fg); font: 400 12px var(--display); letter-spacing: .08em; }
-.jumpstrip .jfill { position: absolute; inset: 0 auto 0 0; width: calc(var(--jr, 1) * 100%); background: color-mix(in srgb, var(--pc, #4cc9f0) 38%, transparent); }
-.jumpstrip > span { position: relative; } .jumpstrip .ja { color: var(--pc, var(--fg)); font-size: 11px; }
-.jumpstrip.cool { color: var(--muted); } .jumpstrip.go { animation: jgo .45s ease-out; }
-@keyframes jgo { 0% { transform: scale(1); } 35% { transform: scale(1.08); box-shadow: 0 0 18px 3px var(--pc, #4cc9f0); } 100% { transform: scale(1); box-shadow: none; } }
-/* design A: one row of four tools, spread over the whole middle */
-.pads.ps-a .padtools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
-.pads.ps-a .ptool { width: auto; height: 50px; border-radius: 14px; } .pads.ps-a .ptool .tl { display: none; } .pads.ps-a .ptool .tg { font-size: 25px; }
-/* design B: a 2 x 2 grid of wide tiles, the jump strip on top */
-.pads.ps-b .padmid { gap: 6px; } .pads.ps-b .jumpstrip { order: -1; height: 22px; }
-.pads.ps-b .padtools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.pads.ps-b .ptool { width: auto; height: 40px; border-radius: 12px; display: flex; gap: 4px; justify-content: center; align-items: center; padding: 0 5px; overflow: hidden; } .pads.ps-b .ptool .tl { font-size: 12px; } .pads.ps-b .ptool .tg { font-size: 18px; }
-/* design C: tall paddles left and right, round tools in the middle, a bridge between the paddles */
-.pads.ps-c { align-items: stretch; } .pads.ps-c .pad.big { width: 84px; height: 124px; border-radius: 28px; }
-.pads.ps-c .padtools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; justify-items: center; }
-.pads.ps-c .ptool { width: 40px; height: 40px; border-radius: 50%; } .pads.ps-c .ptool .tl { display: none; } .pads.ps-c .ptool .tg { font-size: 22px; }
-.pads.ps-c .jumpstrip { height: 34px; border-radius: 12px; font-size: 14px; margin: 0 -14px; border-width: 2px; } .pads.ps-c .jumpstrip .ja { font-size: 14px; }
-.pads.ps-c .jumpstrip .jt::before { content: '⇠ '; color: var(--muted); } .pads.ps-c .jumpstrip .jt::after { content: ' ⇢'; color: var(--muted); }
+.padmid { display: grid; gap: 6px; min-width: 0; width: 100%; height: calc(var(--pbig) + var(--ptl)); }
+/* the middle takes exactly the room the old tool row + SKOK button took, so LIJEVO and DESNO stay where they were */
+.pads { --pbig: 92px; --ptl: 44px; grid-template-columns: max-content minmax(0, 1fr) max-content !important; }
+@media (max-width: 400px) { .pads { --pbig: 82px; } }
+@media (max-height: 600px) and (max-width: 500px) { .pads { --pbig: 74px; } }
+@media (max-width: 340px) { .pads { --ptl: 40px; } }
+.padtools { display: grid; gap: 6px; min-height: 0; height: 100%; }
+.padmid .ptool { width: auto !important; height: auto !important; min-width: 0; min-height: 0; border-radius: 14px; display: grid; place-items: center; align-content: center; gap: 3px; padding: 2px; font-size: 22px; }
+.ptool .tg { font-size: 23px; line-height: 1; } .ptool .tl { font: 700 11px/1 "Barlow Semi Condensed", sans-serif; letter-spacing: .03em; color: #e6dcff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.pads.ps-a .padtools { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.pads.ps-b .padtools { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); } .pads.ps-b .ptool .tg { font-size: 20px; } .pads.ps-b .ptool .tl { font-size: 10px; }
+.pads.ps-c .padmid { grid-template-rows: minmax(0, 1fr) minmax(0, 0.75fr); } .pads.ps-c .padtools { grid-template-columns: repeat(4, minmax(0, 1fr)); } .pads.ps-c .ptool .tl { display: none; } .pads.ps-c .ptool .tg { font-size: 26px; }
+.qreact { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-height: 0; }
+.qreact button { min-width: 0; min-height: 0; border-radius: 999px; border: 2px solid color-mix(in srgb, var(--pc, var(--line)) 55%, var(--line)); background: var(--panel); font-size: 21px; line-height: 1; padding: 0; touch-action: manipulation; }
+.qreact button:active { transform: scale(.92); }
+.padhint { display: grid; place-items: center; align-content: center; gap: 4px; text-align: center; border: 1px dashed color-mix(in srgb, var(--pc, var(--line)) 50%, var(--line)); border-radius: 14px; color: var(--muted); font-size: 13px; line-height: 1.25; padding: 6px; }
+.padhint b { color: var(--fg); font: 400 14px var(--display); letter-spacing: .05em; }
+.pad.jumpgo { animation: jgo .45s ease-out; }
+@keyframes jgo { 0% { box-shadow: 0 0 0 0 var(--pc); } 40% { box-shadow: 0 0 22px 6px var(--pc); } 100% { box-shadow: none; } }
+/* the one-time notice for players used to the old SKOK button */
+.jumptip { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--padsH, 150px) + 10px); z-index: 40; width: min(92vw, 360px); box-sizing: border-box; background: color-mix(in srgb, var(--ink) 92%, transparent); border: 2px solid var(--amber); border-radius: 16px; padding: 12px 14px; display: grid; gap: 6px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.jumptip h4 { margin: 0; font: 400 18px var(--display); color: var(--amber); } .jumptip p { margin: 0; font-size: 15px; }
+.jumptip .hands { display: flex; justify-content: space-between; font-size: 30px; padding: 0 6px; } .jumptip .hands span { animation: tapit 1s ease-in-out infinite; } .jumptip .hands span + span { animation-delay: 0s; }
+@keyframes tapit { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+.jumptip button { justify-self: center; }
 .ptool { width: 38px; height: 38px; padding: 0; border-radius: 12px; border: 2px solid #b48cff; background: linear-gradient(180deg, #3a2a66, #221a3d); color: #fff; font-size: 19px; line-height: 1; display: grid; place-items: center; position: relative; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .ptool.chat.has::after { content: ''; position: absolute; top: -5px; right: -5px; width: 11px; height: 11px; border-radius: 50%; background: var(--amber); border: 2px solid var(--ink); }
 .ptool.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; }
-@media (max-width: 340px) { .ptool { width: 34px; height: 34px; font-size: 17px; } }
-@media (max-width: 340px) { .ptool .tl { display: none; } }
+@media (max-width: 340px) { .ptool .tl { font-size: 9px !important; } }
 .pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
 .pad.on { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc) 65%, var(--panel)), color-mix(in srgb, var(--pc) 30%, var(--panel)) 75%); transform: scale(.94); }
 .pad.cool { opacity: .45; }
@@ -2317,7 +2318,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'f74a01e55882';
+const BUILD = 'f8b9a305763d';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3815,6 +3816,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'jump-chord', d: '2026-11-10', e: '🦘', t: 'Mobitel: skok je sada LIJEVO + DESNO odjednom', x: 'Gumb SKOK u sredini je maknut. Za skok pritisni LIJEVO i DESNO u isto vrijeme, s oba palca. Strelice su ostale gdje su bile, a u sredini su sad velike tipke za zezalice, chat, glasovnu poruku i emotikone.', go: '', b: '' },
   { id: 'fun-lux3', d: '2026-11-10', e: '🐉', t: 'Novi luksuz, animirane i šaljive ikone', x: 'Pet novih dolazaka u igru: Zmaj, Crveni tepih, NLO, Raketa i Jednorog. Na svakoj kartici luksuza animacija se sad vrti sama. Šest novih animiranih ikona (raketa, spavač, bomba, disko kugla, plesač, duh) i cijela polica šaljivih ikona i natpisa: Klaun, Lijenčina, Krumpir, Fjaka, Pomalo…', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_dragon', 'lx_carpet', 'lx_ufo', 'lx_rocket', 'lx_unicorn', 'bd_a_rocket', 'bd_a_zzz', 'bd_a_bomb', 'bd_a_disco', 'bd_a_dance', 'bd_a_ghost', 'bd_clown', 'bd_sloth', 'bd_chicken', 'bd_potato', 'bd_duck', 'bd_goat', 'bd_brain', 'bd_coffee', 'bd_alien', 'bd_cool', 'bd_cactus', 'bd_snail', 'bd_pizza', 'bd_monkey', 'bd_raincloud', 'bd_lemon', 'bd_t_fjaka', 'bd_t_pomalo', 'bd_t_ajme', 'bd_t_madaj'] },
   { id: 'tour-stakes', d: '2026-11-10', e: '🏆', t: 'Turniri: novi izgled i ulog po izboru', x: 'Tab Turniri ima veliki nagradni fond, nagrade za prva tri mjesta, statistiku odigranih turnira i prijavu na jednom mjestu. Na nekim turnirima svatko uloži koliko želi: tko uloži više, može više i osvojiti, a dio koji nitko nije pratio vraća se na karticu. Za sada se igra demo novcem.', go: 'tab:tour', b: 'Otvori turnire' },
   { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Luksuz je tvoj dolazak u igru: na početku meča (ili kad zamijeniš bota) igra stane, svi gledaju tvoju animaciju i piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća. ℹ️ pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
@@ -4058,21 +4060,23 @@ function buildPads() {
       b.addEventListener('contextmenu', e => e.preventDefault());
       return b;
     };
-    // the middle: online, the four tools spread over it (pranks, chat, reactions, voice); under them the jump strip.
+    // the middle fills the room the old tool row + SKOK button took: pranks, chat, voice, emoji (+ extras by design).
     // There is no jump button any more: pressing LIJEVO and DESNO at the same moment jumps.
     box.classList.remove('ps-a', 'ps-b', 'ps-c'); box.classList.add('ps-' + PAD_STYLE);
     const mid = document.createElement('div'); mid.className = 'padmid';
     if (net && !watchingNow()) {
       const tools = document.createElement('div'); tools.className = 'padtools';
       const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
-      const openTab = (t) => (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
+      const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
       const zb = mkTool('prank', '😈', 'Zezalice', 'Zezalice'); zb.onclick = openTab('z');
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
-      const rb = mkTool('react', '😀', 'Reakcije', 'Reakcije'); rb.onclick = openTab('r');
       const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži i govori', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb); });
-      tools.append(zb, cb, rb, mb); mid.append(tools);
-    }
-    if (setup.jump) { const js = document.createElement('div'); js.className = 'jumpstrip'; js.dataset.pid = p.id; js.setAttribute('aria-label', 'Skok: pritisni lijevo i desno odjednom'); js.innerHTML = '<i class="jfill"></i><span class="ja">◀</span><span class="jt">SKOK</span><span class="ja">▶</span>'; mid.append(js); }
+      const rb = mkTool('react', '😀', 'Emotikoni', 'Emotikoni'); rb.onclick = openTab('r');
+      tools.append(zb, cb, mb, rb);
+      if (PAD_STYLE === 'b') { const qb = mkTool('quick', '⚡', 'Brze poruke: gg, bravo, revanš…', 'Brze'); qb.onclick = openTab('q'); const sb = mkTool('shot', '📸', 'Slikaj arenu i podijeli', 'Slikaj'); sb.onclick = (e) => { e.stopPropagation(); shareShot(); }; tools.append(qb, sb); }
+      mid.append(tools);
+      if (PAD_STYLE === 'c') { const q = document.createElement('div'); q.className = 'qreact'; q.innerHTML = QUICK_REACT.map(e => `<button type="button" data-e="${e}" aria-label="Pošalji ${e}">${e}</button>`).join(''); q.querySelectorAll('button').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendReaction(b.dataset.e); }); mid.append(q); }
+    } else if (setup.jump) { const h = document.createElement('div'); h.className = 'padhint'; h.innerHTML = '<b>◀ + ▶ = SKOK</b><span>za skok pritisni LIJEVO i DESNO odjednom</span>'; mid.append(h); }
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
     // the whole bar is one touch surface: the left half turns left, the right half turns right; both pressed at once jump.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
@@ -4082,7 +4086,7 @@ function buildPads() {
     // a jump: LIJEVO and DESNO pressed within CHORD_MS of each other (holding one side and pressing the other later only turns)
     const chord = () => { if (!setup.jump) return; let l = -1, r = -1; for (const [id, z] of ptr) { const t = downAt.get(id) || 0; if (z === 'L') l = Math.max(l, t); else if (z === 'R') r = Math.max(r, t); }
       if (l < 0 || r < 0 || Math.abs(l - r) > CHORD_MS || Math.max(l, r) <= box._chordAt) return; box._chordAt = Math.max(l, r);
-      localJump(G.players.find(x => x.id === pid) || p); const js = box.querySelector('.jumpstrip'); if (js) { js.classList.remove('go'); void js.offsetWidth; js.classList.add('go'); } };
+      localJump(G.players.find(x => x.id === pid) || p); chordLearned(); box.querySelectorAll('.pad.big').forEach(b => { b.classList.remove('jumpgo'); void b.offsetWidth; b.classList.add('jumpgo'); }); };
     const padAt = (x, y) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) - r.width / 2; if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
     const sideOf = (x) => { const r = box.getBoundingClientRect(); if (r.width < 10) return x < innerWidth / 2 ? 'L' : 'R'; let f = (x - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.5 ? 'L' : 'R'; };
     const sync = () => { const h = (touchHeld[pid] = { L: 0, R: 0 }); for (const z of ptr.values()) if (z !== 'J') h[z]++;
@@ -4109,8 +4113,29 @@ function buildPads() {
     box.oncontextmenu = (e) => e.preventDefault();
   };
   mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
+  if (humans.length && IS_TOUCH) setTimeout(showJumpTip, 600);
 }
 const CHORD_MS = 250;
+const QUICK_REACT = ['😂', '🔥', '👏', '😮'];
+const QUICK_MSG = ['gg 👏', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
+// players used to the old SKOK button: a notice over the pads for their first matches, until they have jumped the new way
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); toast('👍 Tako je! LIJEVO + DESNO odjednom = skok.'); } }
+function showJumpTip() {
+  if (!IS_TOUCH || !setup.jump || lsGet('vijuga-chordok')) return; const n = Number(lsGet('vijuga-jumptip') || 0); if (n >= 3) return; lsSet('vijuga-jumptip', String(n + 1));
+  document.querySelectorAll('.jumptip').forEach(x => x.remove()); const bar = $('#padsBottom'); if (bar && !bar.hidden) document.documentElement.style.setProperty('--padsH', Math.round(innerHeight - bar.getBoundingClientRect().top) + 'px');
+  const d = document.createElement('div'); d.className = 'jumptip'; d.setAttribute('role', 'status');
+  d.innerHTML = '<h4>🆕 Gumb SKOK je maknut</h4><p>Za skok sada pritisni <b>LIJEVO i DESNO odjednom</b>, s oba palca.</p><div class="hands"><span>👇</span><span>👇</span></div><button type="button" class="btn sm">Razumijem</button>';
+  d.querySelector('button').onclick = () => d.remove(); document.body.appendChild(d); setTimeout(() => d.remove(), 9000);
+}
+function jumpReminder() { if (IS_TOUCH && setup.jump && G && G.phase === 'run' && !lsGet('vijuga-chordok')) toast('💡 Skok je sada: LIJEVO i DESNO odjednom.'); }
+async function shareShot() {
+  const cv = $('#cv'); if (!cv) return;
+  try { const blob = await new Promise(r => cv.toBlob(r, 'image/png')); if (!blob) throw 0; const file = new File([blob], 'vijuga.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: 'Vijuga 🐍 ' + location.origin }); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'vijuga.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast('📸 Slika arene je spremljena.');
+  } catch (e) { if (e && e.name === 'AbortError') return; toast('Slikanje nije uspjelo.'); }
+}
 // which of the three designs of the bar (until the owner picks one): ?pads=a|b|c or localStorage vijuga-padstyle
 const PAD_STYLE = (() => { try { const v = new URLSearchParams(location.search).get('pads') || localStorage.getItem('vijuga-padstyle'); return ['a', 'b', 'c'].includes(v) ? v : 'a'; } catch (e) { return 'a'; } })();
 function localJump(p) { if (net && net.role === 'client') { net.jumpN = Math.max(net.jumpN + 1, Date.now()); clientInput(); } else tryJump(p); }
@@ -5109,7 +5134,7 @@ async function loadChatHistory(room) {
 }
 function plural(n, one, few, many) { const m10 = n % 10, m100 = n % 100; return n + ' ' + (m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many); }
 function fmtChatTime(at) { if (!at) return ''; const d = new Date(at), n = new Date(); const t = d.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }); return d.toDateString() === n.toDateString() ? t : d.toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric' }) + ' ' + t; }
-const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🖕', '👏', '🥳', '😈'];
+const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '👏', '🥳', '😈'];
 const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
 let chatOpen = !IS_TOUCH, unread = 0;
 let chatSeenAt = (() => { try { return Number(localStorage.getItem('vijuga-chat-seen')) || 0; } catch (e) { return 0; } })();
@@ -5923,7 +5948,13 @@ function renderTrollPop() {
   const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
   const inv = profile ? profile.inv : {}, cool = performance.now() - lastTrollSent < 5000;
   const owned = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0);
-  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpt ${trollTab === 'r' ? 'on' : ''}" data-t="r">😀 Reakcije</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpt ${trollTab === 'r' ? 'on' : ''}" data-t="r">😀 Emotikoni</button><button type="button" class="tpt ${trollTab === 'q' ? 'on' : ''}" data-t="q">⚡ Brze</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  if (trollTab === 'q') {
+    pop.innerHTML = tabs + `<div class="qchips">${QUICK_MSG.map(t => `<button type="button" class="qchip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}</div><p class="hint" style="margin:0">Jedan dodir i poruka ode svima u meču.</p>`;
+    pop.querySelectorAll('[data-q]').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendChat(b.dataset.q); pop.hidden = true; });
+    pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
+    return;
+  }
   if (trollTab === 'r') {
     const emo = REACTIONS.concat(isVip() ? VIP_REACTIONS : []);
     pop.innerHTML = tabs + `<div class="rrow2">${emo.map(e => `<button type="button" class="rbtn" data-e="${e}">${e}</button>`).join('')}</div><p class="hint" style="margin:0">Reakcija se pokaže pored tvog imena svima u meču.</p>`;
