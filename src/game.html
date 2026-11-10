@@ -566,7 +566,7 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .qchip:hover { border-color: var(--amber); }
 .matches { display: grid; gap: 6px; margin: 4px 0 8px; } .mrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--ink); font-size: 14px; }
 .mrow.mine { border-color: var(--amber); } .mrow .who { flex: 1; min-width: 120px; } .mrow .st { color: var(--muted); font-size: 12px; }
-.item.locked .prev, .item.locked b { opacity: .55; } .lvlock { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; } .lockbtn { opacity: .85; cursor: not-allowed; background: var(--ink) !important; color: var(--muted) !important; border: 1px dashed var(--line) !important; }
+.item.locked .prev, .item.locked b { opacity: .55; } .item.luxitem.locked .prev { opacity: 1; } .lvlock { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; } .lockbtn { opacity: .85; cursor: not-allowed; background: var(--ink) !important; color: var(--muted) !important; border: 1px dashed var(--line) !important; }
 /* audit quick wins: windows never wider than the screen, the lobby never scrolls sideways, no notes over a match or a window,
    the bottom bar out of the way of an open window, the PLAY pulse stops after a while */
 .modal form, .invite-card { box-sizing: border-box; }
@@ -577,7 +577,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 .tinfo-btn { display: block; margin: 6px auto 0; border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
 .tinfo-btn:hover { border-color: var(--amber); }
 .luxbox { border-color: color-mix(in srgb, #ffd23f 55%, var(--line)); background: linear-gradient(180deg, rgba(255,210,63,.10), transparent); }
-.item.luxitem .prev { height: auto; min-height: 84px; padding: 8px 0; } .item.luxitem .prev .ic { font-size: 44px !important; }
+.item.luxitem .prev { height: auto; min-height: 84px; padding: 8px 0; } .item.luxitem .prev canvas.luxdemo { width: 100%; height: auto; aspect-ratio: 16 / 10; border-radius: 6px; cursor: pointer; justify-self: stretch; } .item.luxitem .prev .ic { font-size: 44px !important; }
 .luxreq { display: grid; gap: 4px; margin-top: 4px; padding: 8px 10px; border: 1px dashed color-mix(in srgb, var(--amber) 55%, var(--line)); border-radius: 10px; font-size: 13px; } .luxreq b { font-size: 13px; color: var(--amber); }
 .luxreq span { position: relative; display: block; padding: 2px 6px; border-radius: 6px; overflow: hidden; } .luxreq span small { float: right; color: var(--muted); } .luxreq span i { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--amber); } .luxreq span.ok { color: var(--good); } .luxreq span.ok i { background: var(--good); } .trollhelp { margin: -4px 0 10px; }
 .tpv { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #101b27; } .tpv canvas { display: block; width: 100%; height: auto; }
@@ -688,7 +688,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span><button type="button" class="infob" data-info="coins" aria-label="Kako se zarađuju zlatnici">ℹ️ Kako zaraditi više</button></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
-        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>tvoj dolazak u igru: igra stane, svi gledaju tvoju animaciju, pa piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda. Ako imaš više, vrti se najskuplja</small></h2><div class="shop" id="shopLux"></div></div>
+        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>tvoj dolazak u igru: igra stane, svi gledaju tvoju animaciju, pa piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća. Na kartici se animacija vrti sama, ℹ️ je pokaže u velikom. Ako imaš više, vrti se najskuplja</small></h2><div class="shop" id="shopLux"></div></div>
         <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
@@ -698,7 +698,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Od svakog grada samo 3 komada; rasprodano možeš zatražiti na Aukciji 🔨</small></h2><div class="shop" id="shopWeather"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
-        <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
+        <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div><h2 style="margin-top:16px">😜 Šaljive ikone <small>za smijeh u predvorju i u meču</small></h2><div class="shop" id="shopFun"></div></div>
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
         <div data-cat="chatc"><h2>🎨 Boje slova u chatu <small>kričavo roza, neon, duga, disko: tvoje poruke svi vide u toj boji</small></h2><div class="shop" id="shopChat"></div></div>
@@ -906,6 +906,12 @@ const BADGES = {
   bd_a_wifi:  { g: '📶', anim: 'wifi',  premium: true, svg: ABD('wifi'),  name: 'WiFi koji radi', d: 'ANIMACIJA: signal se pali crtu po crtu. Rijetko ispadne iz kutije', price: 7000 },
   bd_a_load:  { g: '⏳', anim: 'load',  premium: true, svg: ABD('load'),  name: 'Loading', d: 'ANIMACIJA: kružić koji se vječno učitava. Rijetko ispadne iz kutije', price: 7500 },
   bd_a_ninja: { g: '🥷', anim: 'ninja', premium: true, svg: ABD('ninja'), name: 'Ninja koji nestaje', d: 'ANIMACIJA: ninja nestane u dimu i opet se stvori. Rijetko ispadne iz kutije', price: 8000 },
+  bd_a_rocket: { g: '🚀', anim: 'rocket', premium: true, svg: ABD('rocket'), name: 'Raketa', d: 'ANIMACIJA: raketa se trese u dimu, poleti i vrati se. Rijetko ispadne iz kutije', price: 7500 },
+  bd_a_zzz:    { g: '😴', anim: 'zzz',    premium: true, svg: ABD('zzz'),    name: 'Spavač', d: 'ANIMACIJA: hrče, a iznad njega lete Z-ovi. Za AFK legende. Rijetko ispadne iz kutije', price: 7000 },
+  bd_a_bomb:   { g: '💣', anim: 'bomb',   premium: true, svg: ABD('bomb'),   name: 'Bomba', d: 'ANIMACIJA: fitilj gori, gori… i BUM! Rijetko ispadne iz kutije', price: 8000 },
+  bd_a_disco:  { g: '🪩', anim: 'disco',  premium: true, svg: ABD('disco'),  name: 'Disko kugla', d: 'ANIMACIJA: kugla se vrti i baca šarene zrake. Rijetko ispadne iz kutije', price: 7500 },
+  bd_a_dance:  { g: '🕺', anim: 'dance',  premium: true, svg: ABD('dance'),  name: 'Plesač', d: 'ANIMACIJA: pleše u ritmu, a oko njega lete note. Rijetko ispadne iz kutije', price: 7000 },
+  bd_a_ghost:  { g: '👻', anim: 'ghost',  premium: true, svg: ABD('ghost'),  name: 'Duh', d: 'ANIMACIJA: lebdi, nestane… i BU! Rijetko ispadne iz kutije', price: 7500 },
   bd_bolt:  { g: '⚡', name: 'Munja', d: 'Za brze', price: 60 },
   bd_star:  { g: '★', name: 'Zvijezda', d: 'Klasik', price: 100 },
   bd_skull: { g: '☠', name: 'Lubanja', d: 'Za one koji ruše', price: 140 },
@@ -941,6 +947,27 @@ const BADGES = {
   bd_boat:  { g: '⛵', name: 'Brodić', d: 'Za mornare', price: 120 },
   bd_dog:   { g: '🐶', name: 'Psić', d: 'Najbolji prijatelj', price: 120 },
   bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
+  // funny icons and tags
+  bd_clown: { g: '🤡', fun: true, name: 'Klaun', d: 'ŠALJIVO: za one koji se zabiju sami u sebe', price: 250 },
+  bd_sloth: { g: '🦥', fun: true, name: 'Lijenčina', d: 'ŠALJIVO: najsporija zmija u gradu, ali stigne', price: 200 },
+  bd_chicken: { g: '🐔', fun: true, name: 'Kokoš', d: 'ŠALJIVO: bježi u kut čim netko priđe', price: 200 },
+  bd_potato: { g: '🥔', fun: true, name: 'Krumpir', d: 'ŠALJIVO: igra kao krumpir i ponosan je na to', price: 150 },
+  bd_duck: { g: '🦆', fun: true, name: 'Gumena patka', d: 'ŠALJIVO: kva! Ozbiljan igrač, neozbiljna ikona', price: 200 },
+  bd_goat: { g: '🐐', fun: true, name: 'Jarac (GOAT)', d: 'ŠALJIVO: najbolji svih vremena. Barem tako misli', price: 400 },
+  bd_brain: { g: '🧠', fun: true, name: 'Mozak', d: 'ŠALJIVO: svaki potez isplaniran (navodno)', price: 300 },
+  bd_coffee: { g: '☕', fun: true, name: 'Prva kava', d: 'ŠALJIVO: ne pričaj sa mnom prije kave', price: 200 },
+  bd_alien: { g: '👽', fun: true, name: 'Vanzemaljac', d: 'ŠALJIVO: nije s ovog svijeta', price: 300 },
+  bd_cool: { g: '😎', fun: true, name: 'Faca', d: 'ŠALJIVO: hladan kao špricer u kolovozu', price: 250 },
+  bd_cactus: { g: '🌵', fun: true, name: 'Kaktus', d: 'ŠALJIVO: ne diraj me', price: 200 },
+  bd_snail: { g: '🐌', fun: true, name: 'Puž', d: 'ŠALJIVO: pomalo, pomalo, pa prvi', price: 150 },
+  bd_pizza: { g: '🍕', fun: true, name: 'Pizza', d: 'ŠALJIVO: jednom rukom igra, drugom jede', price: 200 },
+  bd_monkey: { g: '🙈', fun: true, name: 'Ne gledam', d: 'ŠALJIVO: zatvori oči i nadaj se najboljem', price: 250 },
+  bd_raincloud: { g: '🌧️', fun: true, name: 'Oblak nad glavom', d: 'ŠALJIVO: kad baš ništa ne ide', price: 200 },
+  bd_lemon: { g: '🍋', fun: true, name: 'Kiseli', d: 'ŠALJIVO: kad izgubi, kiseo je cijeli dan', price: 200 },
+  bd_t_fjaka: { g: 'Fjaka', fun: true, tag: '#5b8def', svg: TAGB('Fjaka', '#5b8def'), name: 'Natpis: Fjaka', d: 'ŠALJIVO: natpis FJAKA uz ime i iznad zmije: igra se, ali bez žurbe', price: 500 },
+  bd_t_pomalo: { g: 'Pomalo', fun: true, tag: '#3a9d6b', svg: TAGB('Pomalo', '#3a9d6b'), name: 'Natpis: Pomalo', d: 'ŠALJIVO: natpis POMALO uz ime i iznad zmije: sve će doć na svoje', price: 500 },
+  bd_t_ajme: { g: 'Ajme', fun: true, tag: '#d0453b', svg: TAGB('Ajme', '#d0453b'), name: 'Natpis: Ajme', d: 'ŠALJIVO: natpis AJME uz ime i iznad zmije: za one koji se puno zabijaju', price: 500 },
+  bd_t_madaj: { g: 'Ma daj!', fun: true, tag: '#c77d1a', svg: TAGB('Ma daj!', '#c77d1a'), name: 'Natpis: Ma daj!', d: 'ŠALJIVO: natpis MA DAJ! uz ime i iznad zmije: kad te sruše u zadnjoj sekundi', price: 500 },
 };
 const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
 const STARTER_PRICE = { s: 110, o: 170 };
@@ -1633,6 +1660,7 @@ function openBox(kind, free) {
   return res;
 }
 // what a box really gives: the rare draw comes first, then one of item / coins / pranks (so the four add up to 100 %)
+const animIcons = () => Object.values(BADGES).filter(b => b.anim).map(b => b.g).join(' ');
 function boxOdds(B) { const k = 1 - B.pRare; return { rare: B.pRare, item: k * B.pItem, coins: k * B.pCoins, trolls: k * (1 - B.pItem - B.pCoins) }; }
 const plTroll = (n) => n + ' ' + (n === 1 ? 'zezalica' : n < 5 ? 'zezalice' : 'zezalica');
 function rareRange() { const p = Object.keys(BADGES).filter(k => BADGES[k].anim).map(itemPrice).filter(Boolean); return p.length ? (Math.min(...p) === Math.max(...p) ? String(Math.min(...p)) : Math.min(...p) + '–' + Math.max(...p)) : ''; }
@@ -1650,7 +1678,7 @@ function showBoxInfo(kind) {
   infoPop(`<h3>${B.e} ${esc(B.name)}</h3>
     <p class="hint" style="margin:0">Cijena <b>● ${B.price}</b>${lv > 1 ? ` · otključava se na <b>nivou ${lv}</b>` : ''} · najviše <b>${BOX_PER_DAY}</b> kutija dnevno (sve vrste zajedno)</p>
     <p style="margin:0">Kad otvoriš kutiju, dobiješ <b>jednu</b> od ovih nagrada:</p>
-    ${row('🌟', 'Rijetka animirana ikona', o.rare, `Animirana premium ikona koju još nemaš (🔥 ⛷️ 📈 📶 ⏳ 🥷)${rr ? `. U trgovini vrijedi ${rr} zlatnika` : ''}.`, 'rare')}
+    ${row('🌟', 'Rijetka animirana ikona', o.rare, `Animirana premium ikona koju još nemaš (${animIcons()})${rr ? `. U trgovini vrijedi ${rr} zlatnika` : ''}.`, 'rare')}
     ${row('🎨', 'Predmet', o.item, `Skin, ikona ili start-pojačanje koje još nemaš. ${B.picks > 1 ? `Kutija izvuče ${B.picks} predmeta i da ti <b>najvrjedniji</b>.` : 'Nasumičan predmet iz trgovine.'}`)}
     ${row('💰', 'Zlatnici', o.coins, `Od <b>${B.coins[0]}</b> do <b>${B.coins[1]}</b> zlatnika.${B.coins[0] >= B.price ? ' Uvijek barem koliko si platio.' : ''}`)}
     ${row('😈', 'Zezalice', o.trolls, `<b>${plTroll(B.trolls)}</b> nasumično (npr. ${tr}). U meču ih baciš na protivnika.`)}
@@ -1680,7 +1708,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest && e.targ
 function renderBoxes() {
   const box = $('#shopBoxes'); if (!box) return;
   const left = boxLeftToday();
-  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b>${(() => { const o = boxOdds(B); return `<ul class="bodds"><li><span>🎨 Predmet${B.picks > 1 ? ` <small>(najbolji od ${B.picks})</small>` : ''}</span><b>${pct(o.item)}</b></li><li><span>💰 ${B.coins[0]}–${B.coins[1]} zlatnika</span><b>${pct(o.coins)}</b></li><li><span>😈 ${plTroll(B.trolls)}</span><b>${pct(o.trolls)}</b></li><li class="rare"><span>🌟 Rijetka ikona</span><b>${pct(o.rare)}</b></li></ul>`; })()}<button type="button" class="infob" data-info="box:${k}" aria-label="Što je u kutiji: ${B.name}">ℹ️ Što je unutra?</button>${profile && myLevel() < (BOX_LV[k] || 1) ? `<button class="btn sm lockbtn" type="button" disabled>🔒 Nivo ${BOX_LV[k]}</button><span class="lvlock">${lockNote(BOX_LV[k])}</span>` : `<button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button>`}</div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (🔥 ⛷️ 📈 📶 ⏳ 🥷).</p>`;
+  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b>${(() => { const o = boxOdds(B); return `<ul class="bodds"><li><span>🎨 Predmet${B.picks > 1 ? ` <small>(najbolji od ${B.picks})</small>` : ''}</span><b>${pct(o.item)}</b></li><li><span>💰 ${B.coins[0]}–${B.coins[1]} zlatnika</span><b>${pct(o.coins)}</b></li><li><span>😈 ${plTroll(B.trolls)}</span><b>${pct(o.trolls)}</b></li><li class="rare"><span>🌟 Rijetka ikona</span><b>${pct(o.rare)}</b></li></ul>`; })()}<button type="button" class="infob" data-info="box:${k}" aria-label="Što je u kutiji: ${B.name}">ℹ️ Što je unutra?</button>${profile && myLevel() < (BOX_LV[k] || 1) ? `<button class="btn sm lockbtn" type="button" disabled>🔒 Nivo ${BOX_LV[k]}</button><span class="lvlock">${lockNote(BOX_LV[k])}</span>` : `<button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button>`}</div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (${animIcons()}).</p>`;
   box.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
 }
 function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
@@ -1752,12 +1780,13 @@ function renderShop() {
   make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun), 'badge');
+  make($('#shopFun'), Object.entries(BADGES).filter(([, it]) => it.fun), 'badge');
   make($('#shopWeather'), Object.entries(BADGES).filter(([, it]) => it.wx), 'badge');
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local && !it.tag), 'badge');
-  make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag), 'badge');
+  make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag && !it.fun), 'badge');
   make($('#shopCrypto'), Object.entries(BADGES).filter(([, it]) => it.crypto && !it.gold), 'badge');
   make($('#shopLive'), Object.entries(BADGES).filter(([, it]) => it.live || it.gold), 'badge');
   const prb = $('#shopPremium'), bgb = $('#shopBgs');
@@ -1771,7 +1800,7 @@ function renderShop() {
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${cost}`;
       const b = document.createElement('button'); b.type = 'button';
       const gate = it.lux && !owned && profile ? luxGate(id) : null, lockLv = gate ? (gate.ok ? 0 : -1) : lockedFor(id);
-      if (it.lux) { d.classList.add('luxitem'); d.querySelector('.prev').insertAdjacentHTML('beforeend', `<button type="button" class="tinfo-btn" data-lux="${id}">ℹ️ Pogledaj kako izgleda</button>`); d.querySelector('[data-lux]').onclick = () => showLuxPreview(id); }
+      if (it.lux) { d.classList.add('luxitem'); const pv = d.querySelector('.prev'); pv.innerHTML = `<canvas class="luxdemo" data-lx="${id.slice(3)}" width="320" height="200" aria-label="Demo: ${esc(it.name)}"></canvas><button type="button" class="tinfo-btn" data-lux="${id}">ℹ️ Pogledaj u velikom</button>`; d.querySelector('[data-lux]').onclick = () => showLuxPreview(id); pv.querySelector('canvas').onclick = () => showLuxPreview(id); startLuxDemos(); }
       if (gate && !gate.ok) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', luxReqHtml(id)); }
       else if (lockLv > 0) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', `<span class="lvlock">${lockNote(lockLv)}</span>`); }
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
@@ -2350,11 +2379,16 @@ const PREMIUM = {
   lx_fireworks:{ e: '🎆', name: 'Vatromet', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a iznad arene puca vatromet u tvojoj boji', price: 16000, lux: true },
   lx_ferrari:  { e: '🏎️', name: 'Ferrari', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti projuriš arenom crvenim Ferrarijem: „BRRRM!”', price: 17000, lux: true },
   lx_crown:    { e: '👑', name: 'Dijamantna kruna', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a dijamantna kruna se s neba spusti na tvoju zmiju', price: 22000, lux: true },
+  lx_unicorn:  { e: '🦄', name: 'Jednorog', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti dojašeš jednorogom koji za sobom ostavlja dugu', price: 17500, lux: true },
+  lx_rocket:   { e: '🚀', name: 'Raketa', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, odbroji se 3, 2, 1 i ti poletiš raketom preko arene', price: 19000, lux: true },
+  lx_ufo:      { e: '🛸', name: 'NLO', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, NLO se spusti nad arenu i zelenom zrakom te spusti na tvoje mjesto', price: 20500, lux: true },
+  lx_carpet:   { e: '📸', name: 'Crveni tepih', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, odmota se crveni tepih do tebe, a fotografi sijevaju bljeskalicama', price: 21000, lux: true },
+  lx_dragon:   { e: '🐉', name: 'Zmaj', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, zmaj preleti arenom i rigne vatru, a ti izađeš iz plamena', price: 24000, lux: true },
   lx_jet:      { e: '✈️', name: 'Privatni avion', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti preletiš arenom privatnim avionom s transparentom', price: 25000, lux: true },
   bg_live:     { e: '⛈️', name: 'Arena: Šibenik uživo', d: 'UŽIVO: arena prati pravo vrijeme u Šibeniku: kad pada kiša, kiša pada po areni; kad puše bura, nosi prašinu; noću zvijezde, danju sunce', price: 3000, bg: true },
   pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji veliki spomenik s tvojim imenom. Tko ga dotakne, vidi „Počivaj u miru” i tvoje ime', price: 1800 },
 };
-const PM_KEYS = ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex', 'lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'];
+const PM_KEYS = ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex', 'lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet', 'lx_unicorn', 'lx_rocket', 'lx_ufo', 'lx_carpet', 'lx_dragon'];
 const VIP_REACTIONS = ['🦄', '🍾', '🤑', '🧨', '👽'];
 function ownsSlug(slug, id) { if (profile && slug === profile.slug) return profile.owned.includes(id); const a = accounts.list.find(x => x.slug === slug); return !!(a && Array.isArray(a.owned) && a.owned.includes(id)); }
 function isVip() { return !!(profile && profile.owned.includes('pr_vip')); }
@@ -2963,6 +2997,7 @@ async function cryptoTick() {
 }
 setInterval(cryptoTick, 1000);
 // ---- animated premium icons: one routine per icon. x, y is the centre, s the side of the square, t seconds.
+function emoAt(c, ch, sz, x, y) { c.font = `${Math.max(6, Math.round(sz))}px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ch, x, y); }
 function drawAnim(c, kind, x, y, s, t) {
   const u = s / 2, TAU = 6.2832; c.save(); c.translate(x, y); c.lineCap = 'round'; c.lineJoin = 'round';
   if (kind === 'fire') { // three layered flames that flicker, sparks that rise
@@ -3004,6 +3039,40 @@ function drawAnim(c, kind, x, y, s, t) {
       c.fillStyle = '#ff3b4f'; c.fillRect(-u * 0.72, -u * 0.42, u * 1.44, u * 0.16);
       c.fillStyle = '#ffe0c2'; c.beginPath(); c.ellipse(0, -u * 0.06, u * 0.56, u * 0.2, 0, 0, TAU); c.fill();
       c.fillStyle = '#10141a'; const bl = (t * 0.7) % 1 > 0.94 ? 0.2 : 1; c.beginPath(); c.ellipse(-u * 0.24, -u * 0.06, u * 0.09, u * 0.1 * bl, 0, 0, TAU); c.ellipse(u * 0.24, -u * 0.06, u * 0.09, u * 0.1 * bl, 0, 0, TAU); c.fill(); }
+  } else if (kind === 'rocket') { // shakes on the pad in smoke, shoots off up and to the right, comes back
+    const ph = (t * 0.42) % 1;
+    for (let i = 0; i < 4; i++) { const a = (t * 1.4 + i / 4) % 1; c.globalAlpha = (1 - a) * 0.55; c.fillStyle = '#c8d0da'; c.beginPath(); c.arc(-u * 0.45 + (i - 1.5) * u * 0.2 * (1 + a), u * 0.78 - a * u * 0.2, u * (0.12 + a * 0.16), 0, TAU); c.fill(); }
+    let k = 0, sh = 0; if (ph < 0.4) sh = Math.sin(t * 60) * u * 0.05 * (ph / 0.4); else k = Math.min(1.6, Math.pow((ph - 0.4) / 0.45, 2) * 1.6);
+    const px = -u * 0.28 + k * u + sh, py = u * 0.28 - k * u, a = Math.max(0, 1 - Math.max(0, k - 0.9) / 0.5);
+    if (ph >= 0.3) for (let j = 1; j < 6; j++) { c.globalAlpha = a * Math.max(0, 0.9 - j * 0.16); c.fillStyle = j < 3 ? '#ffb347' : '#ff6b3d'; c.beginPath(); c.arc(px - u * (0.28 + j * 0.1), py + u * (0.28 + j * 0.1), u * Math.max(0.03, 0.13 - j * 0.015), 0, TAU); c.fill(); }
+    c.globalAlpha = a; emoAt(c, '🚀', u * 1.15, px, py);
+  } else if (kind === 'zzz') { // snores, the Zs float up
+    const b = Math.sin(t * 2.2); emoAt(c, '😴', u * 1.2 * (1 + b * 0.04), -u * 0.15, u * 0.18 + b * u * 0.04);
+    c.font = `900 ${Math.max(6, Math.round(u * 0.5))}px "Barlow Semi Condensed", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let i = 0; i < 3; i++) { const a = (t * 0.55 + i / 3) % 1; c.globalAlpha = Math.sin(a * Math.PI); c.fillStyle = '#cfe3f5'; c.save(); c.translate(u * 0.35 + a * u * 0.45, -u * 0.2 - a * u * 0.65); c.scale(0.6 + a * 0.7, 0.6 + a * 0.7); c.fillText('Z', 0, 0); c.restore(); }
+  } else if (kind === 'bomb') { // the fuse burns down, BOOM, a new bomb
+    const ph = (t * 0.4) % 1;
+    if (ph < 0.72) { const k = ph / 0.72; c.save(); c.rotate(Math.sin(t * 30) * 0.07 * k); emoAt(c, '💣', u * 1.25, -u * 0.05, u * 0.1); c.restore();
+      const fx = u * 0.4 - k * u * 0.1, fy = -u * 0.46 + k * u * 0.1; c.lineWidth = Math.max(1, u * 0.06);
+      for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + t * 20, r = u * (0.12 + 0.08 * ((i * 7 + Math.floor(t * 20)) % 3) / 2); c.strokeStyle = i % 2 ? '#ffd23f' : '#fff'; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + Math.cos(a) * r, fy + Math.sin(a) * r); c.stroke(); } }
+    else if (ph < 0.9) { const k = (ph - 0.72) / 0.18; c.globalAlpha = 0.9 - k * 0.5; c.fillStyle = '#fff3b0'; c.beginPath(); c.arc(0, 0, u * (0.3 + k * 0.7), 0, TAU); c.fill(); c.globalAlpha = 1; emoAt(c, '💥', u * (0.8 + k * 0.7), 0, 0); }
+    else { const k = (ph - 0.9) / 0.1; c.globalAlpha = k; emoAt(c, '💣', u * 1.25 * Math.max(0.2, k), -u * 0.05, u * 0.1); }
+  } else if (kind === 'disco') { // a mirror ball that turns and throws coloured beams
+    const cols = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#a06bff', '#ff9f43'];
+    for (let i = 0; i < 6; i++) { const a = t * 1.2 + i / 6 * TAU; c.globalAlpha = 0.3; c.fillStyle = cols[i]; c.beginPath(); c.moveTo(0, u * 0.05); c.lineTo(Math.cos(a - 0.13) * u * 1.15, u * 0.05 + Math.sin(a - 0.13) * u * 1.15); c.lineTo(Math.cos(a + 0.13) * u * 1.15, u * 0.05 + Math.sin(a + 0.13) * u * 1.15); c.closePath(); c.fill(); }
+    c.globalAlpha = 1; c.strokeStyle = '#9aa7b4'; c.lineWidth = Math.max(1, u * 0.05); c.beginPath(); c.moveTo(0, -u); c.lineTo(0, -u * 0.55); c.stroke();
+    const R = u * 0.62, cy = u * 0.06, rows = 6, cell = 2 * R / rows, off = (t * 0.7 * cell) % cell; c.save(); c.beginPath(); c.arc(0, cy, R, 0, TAU); c.clip(); c.fillStyle = '#4d5a68'; c.fillRect(-R, cy - R, 2 * R, 2 * R);
+    for (let r = 0; r < rows; r++) for (let q = -1; q <= rows; q++) { const lit = (Math.floor(t * 4) + r * 3 + q * 5 + 70) % 7; c.fillStyle = lit === 0 ? '#ffffff' : lit < 3 ? '#dfe7ef' : lit < 5 ? '#b8c4d0' : '#8d9aa8'; c.fillRect(-R + q * cell + off + 0.6, cy - R + r * cell + 0.6, cell - 1.2, cell - 1.2); }
+    c.restore(); c.globalAlpha = 0.55; c.fillStyle = '#fff'; c.beginPath(); c.arc(-R * 0.35, cy - R * 0.35, R * 0.18, 0, TAU); c.fill();
+  } else if (kind === 'dance') { // grooves left and right, notes fly
+    const sw = Math.sin(t * 6); c.save(); c.translate(sw * u * 0.12, -Math.abs(Math.cos(t * 6)) * u * 0.1); c.rotate(sw * 0.22); emoAt(c, '🕺', u * 1.25, 0, u * 0.08); c.restore();
+    c.font = `900 ${Math.max(6, Math.round(u * 0.48))}px system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let i = 0; i < 2; i++) { const a = (t * 0.7 + i / 2) % 1, side = i ? 1 : -1; c.globalAlpha = Math.sin(a * Math.PI); c.fillStyle = i ? '#ffd23f' : '#4cc9f0'; c.fillText(i ? '♫' : '♪', side * u * (0.62 + a * 0.2), u * 0.2 - a * u * 0.9); }
+  } else if (kind === 'ghost') { // floats, fades away, BOO!
+    const ph = (t * 0.35) % 1, fy = Math.sin(t * 2.4) * u * 0.1; let a = 1;
+    if (ph > 0.45 && ph < 0.6) a = 1 - (ph - 0.45) / 0.15; else if (ph >= 0.6 && ph < 0.72) a = 0; else if (ph >= 0.72 && ph < 0.8) a = (ph - 0.72) / 0.08;
+    c.globalAlpha = Math.max(0.04, a); emoAt(c, '👻', u * 1.2 * (ph >= 0.72 && ph < 0.86 ? 1.15 : 1), 0, u * 0.08 + fy);
+    if (ph >= 0.74 && ph < 0.92) { c.globalAlpha = 1; c.font = `900 ${Math.max(6, Math.round(u * 0.5))}px "Barlow Semi Condensed", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = Math.max(1, u * 0.1); c.strokeStyle = '#000'; c.strokeText('BU!', u * 0.5, -u * 0.62); c.fillStyle = '#fff'; c.fillText('BU!', u * 0.5, -u * 0.62); }
   }
   c.restore();
 }
@@ -3631,7 +3700,8 @@ function lvReq(id) {
   return p >= 15000 ? 12 : p >= 7000 ? 8 : p >= 4000 ? 6 : p >= 3000 ? 5 : p >= 2000 ? 4 : p >= 1200 ? 3 : p >= 900 ? 2 : 1;
 }
 // luxury is earned, not only bought: each needs a level and special achievements (the jet and the crown need other luxury first)
-const LUX_REQ = { lx_rolex: { lv: 8, ach: ['k100'] }, lx_fireworks: { lv: 10, ach: ['w50'] }, lx_ferrari: { lv: 10, ach: ['k250'] }, lx_heli: { lv: 12, ach: ['w50', 'm250', 'lux1'] }, lx_yacht: { lv: 12, ach: ['w100', 'lux1'] }, lx_crown: { lv: 15, ach: ['w100', 'lux3'] }, lx_jet: { lv: 18, ach: ['m500', 'h10', 'lux3'] } };
+const LUX_REQ = { lx_rolex: { lv: 8, ach: ['k100'] }, lx_fireworks: { lv: 10, ach: ['w50'] }, lx_ferrari: { lv: 10, ach: ['k250'] }, lx_heli: { lv: 12, ach: ['w50', 'm250', 'lux1'] }, lx_yacht: { lv: 12, ach: ['w100', 'lux1'] }, lx_crown: { lv: 15, ach: ['w100', 'lux3'] }, lx_jet: { lv: 18, ach: ['m500', 'h10', 'lux3'] },
+  lx_unicorn: { lv: 10, ach: ['t20', 'lux1'] }, lx_rocket: { lv: 12, ach: ['m100', 'h1', 'lux1'] }, lx_ufo: { lv: 13, ach: ['g10', 'm250', 'lux1'] }, lx_carpet: { lv: 14, ach: ['c15', 'r10k', 'lux1'] }, lx_dragon: { lv: 16, ach: ['k250', 'w100', 'lux3'] } };
 function luxGate(id, P) {
   P = P || profile; const q = LUX_REQ[id]; if (!q || !P) return { ok: true, rows: [] };
   const rows = [{ e: '⭐', n: 'Nivo ' + q.lv, have: levelOf(P).lv, need: q.lv }];
@@ -3700,6 +3770,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'fun-lux3', d: '2026-11-10', e: '🐉', t: 'Novi luksuz, animirane i šaljive ikone', x: 'Pet novih dolazaka u igru: Zmaj, Crveni tepih, NLO, Raketa i Jednorog. Na svakoj kartici luksuza animacija se sad vrti sama. Šest novih animiranih ikona (raketa, spavač, bomba, disko kugla, plesač, duh) i cijela polica šaljivih ikona i natpisa: Klaun, Lijenčina, Krumpir, Fjaka, Pomalo…', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_dragon', 'lx_carpet', 'lx_ufo', 'lx_rocket', 'lx_unicorn', 'bd_a_rocket', 'bd_a_zzz', 'bd_a_bomb', 'bd_a_disco', 'bd_a_dance', 'bd_a_ghost', 'bd_clown', 'bd_sloth', 'bd_chicken', 'bd_potato', 'bd_duck', 'bd_goat', 'bd_brain', 'bd_coffee', 'bd_alien', 'bd_cool', 'bd_cactus', 'bd_snail', 'bd_pizza', 'bd_monkey', 'bd_raincloud', 'bd_lemon', 'bd_t_fjaka', 'bd_t_pomalo', 'bd_t_ajme', 'bd_t_madaj'] },
   { id: 'tour-stakes', d: '2026-11-10', e: '🏆', t: 'Turniri: novi izgled i ulog po izboru', x: 'Tab Turniri ima veliki nagradni fond, nagrade za prva tri mjesta, statistiku odigranih turnira i prijavu na jednom mjestu. Na nekim turnirima svatko uloži koliko želi: tko uloži više, može više i osvojiti, a dio koji nitko nije pratio vraća se na karticu. Za sada se igra demo novcem.', go: 'tab:tour', b: 'Otvori turnire' },
   { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Luksuz je tvoj dolazak u igru: na početku meča (ili kad zamijeniš bota) igra stane, svi gledaju tvoju animaciju i piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća. ℹ️ pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
   { id: 'live-pack', d: '2026-11-10', e: '🌍', t: 'Uživo: Hajduk, Dinamo i Šibenik, more, bura, tečaj…', x: 'Ikona kluba piše kad je sljedeća utakmica i protiv koga, a dok se igra svijetli zeleno s rezultatom uživo. Klik na ikonu otvara tablicu HNL-a. Dan nakon pobjede kluba navijači imaju duple nagrade. Tu su i more, bura alarm, zrak, tečaj, zlato, potresi, svemirska postaja i Formula 1.', go: 'shop:live', b: 'Pogledaj u trgovini', items: ['bd_fc_hajduk', 'bd_fc_dinamo', 'bd_fc_sibenik', 'bd_sea_sib', 'bd_sea_st', 'bd_sea_zd', 'bd_sea_du', 'bd_sea_pu', 'bd_bura', 'bd_uv', 'bd_air', 'bd_fx_usd', 'bd_fx_chf', 'bd_gold', 'bd_quake', 'bd_iss', 'bd_f1'] },
@@ -3772,21 +3843,32 @@ function showLuxPreview(id) {
   const close = () => { ov.remove(); if (luxPrev) cancelAnimationFrame(luxPrev); luxPrev = null; }; ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
   document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1, true); } }, true);
   document.body.appendChild(ov);
-  const cv = ov.querySelector('#luxCv'), c = cv.getContext('2d'), w = cv.width, h = cv.height, T0 = performance.now();
-  const me = { col: profile ? COLORS[profile.color] || COLORS[0] : COLORS[0], name: profile ? profile.name : 'Ti' }, list = [], trail = [];
-  let next = T0 + 500;
-  const loop = () => {
-    if (!document.body.contains(cv)) { luxPrev = null; return; }
-    const now = performance.now(), tt = (now - T0) / 1000, a = tt * 0.8, x = w * .5 + Math.cos(a) * w * .28, y = h * .58 + Math.sin(a) * h * .22;
-    trail.push(x, y); if (trail.length > 300) trail.splice(0, 2);
-    c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(131,150,171,0.16)'; for (let gx = 25; gx < w; gx += 25) for (let gy = 25; gy < h; gy += 25) c.fillRect(gx - .8, gy - .8, 1.6, 1.6);
-    c.strokeStyle = me.col; c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); for (let k = 0; k < trail.length; k += 2) { if (k === 0) c.moveTo(trail[k], trail[k + 1]); else c.lineTo(trail[k], trail[k + 1]); } c.stroke();
-    c.fillStyle = me.col; c.beginPath(); c.arc(x, y, 7, 0, 6.283); c.fill();
-    if (!list.length && now >= next) { list.push({ type, t0: now, x, y, name: me.name, color: me.col }); } drawLux(c, list, w, h); if (!list.length && now > next) next = now + 900;
-    luxPrev = requestAnimationFrame(loop);
-  };
+  const cv = ov.querySelector('#luxCv'), c = cv.getContext('2d'), st = luxState(type);
+  const loop = () => { if (!document.body.contains(cv)) { luxPrev = null; return; } luxScene(c, st, performance.now(), cv.width, cv.height, 1); luxPrev = requestAnimationFrame(loop); };
   luxPrev = requestAnimationFrame(loop);
 }
+// one scene: the player's snake circles the arena and the entrance plays again and again (the preview and the shop cards)
+function luxState(type) { return { type, T0: performance.now(), next: performance.now() + 400, list: [], trail: [], me: { col: profile ? COLORS[profile.color] || COLORS[0] : COLORS[0], name: profile ? profile.name : 'Ti' } }; }
+function luxScene(c, st, now, w, h, k) {
+  const tt = (now - st.T0) / 1000, a = tt * 0.8, x = w * .5 + Math.cos(a) * w * .28, y = h * .58 + Math.sin(a) * h * .22;
+  st.trail.push(x, y); if (st.trail.length > 300) st.trail.splice(0, 2);
+  c.setTransform(k, 0, 0, k, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(131,150,171,0.16)'; for (let gx = 25; gx < w; gx += 25) for (let gy = 25; gy < h; gy += 25) c.fillRect(gx - .8, gy - .8, 1.6, 1.6);
+  c.strokeStyle = st.me.col; c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); for (let q = 0; q < st.trail.length; q += 2) { if (q === 0) c.moveTo(st.trail[q], st.trail[q + 1]); else c.lineTo(st.trail[q], st.trail[q + 1]); } c.stroke();
+  c.fillStyle = st.me.col; c.beginPath(); c.arc(x, y, 7, 0, 6.283); c.fill();
+  if (!st.list.length && now >= st.next) st.list.push({ type: st.type, t0: now, x, y, name: st.me.name, color: st.me.col });
+  drawLux(c, st.list, w, h); if (!st.list.length && now > st.next) st.next = now + 900;
+}
+// the shop cards: a small live demo per luxury, drawn about 30 times a second while it is on screen
+const luxDemoSt = new WeakMap(); let luxDemoRaf = 0, luxDemoLast = 0;
+function luxDemoTick(now) {
+  luxDemoRaf = 0; const cvs = document.querySelectorAll('canvas.luxdemo'); if (!cvs.length) return;
+  if (!document.hidden && now - luxDemoLast > 30) { luxDemoLast = now;
+    for (const cv of cvs) { if (cv.offsetParent === null) continue; const r = cv.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) continue;
+      let st = luxDemoSt.get(cv); if (!st) { st = luxState(cv.dataset.lx); luxDemoSt.set(cv, st); }
+      luxScene(cv.getContext('2d'), st, now, 640, 400, cv.width / 640); } }
+  luxDemoRaf = requestAnimationFrame(luxDemoTick);
+}
+function startLuxDemos() { if (!luxDemoRaf) luxDemoRaf = requestAnimationFrame(luxDemoTick); }
 function showClubTable(k) {
   if (!FC[k]) return; document.querySelectorAll('.clubov').forEach(x => x.remove());
   const c = clubOf(k) || {}, tb = k === 'sibenik' ? [] : ((liveNow.hnl || {}).table || []), admin = ['master', 'admin'].includes(myRole());
@@ -4409,8 +4491,8 @@ function drawCrown(c, x, y, t) {
   for (let k = 0; k < 4; k++) { const a = t * 2 + k * 1.57, r = 18 + 3 * Math.sin(t * 5 + k), s2 = 1.5 + 1.5 * Math.max(0, Math.sin(t * 7 + k * 2)); c.fillStyle = k % 2 ? '#bff4ff' : '#ffffff'; c.beginPath(); c.moveTo(Math.cos(a) * r, Math.sin(a) * r * .6 - s2 * 2); c.lineTo(Math.cos(a) * r + s2, Math.sin(a) * r * .6); c.lineTo(Math.cos(a) * r, Math.sin(a) * r * .6 + s2 * 2); c.lineTo(Math.cos(a) * r - s2, Math.sin(a) * r * .6); c.closePath(); c.fill(); }
   c.restore();
 }
-const LUX_RANK = ['lx_jet', 'lx_crown', 'lx_yacht', 'lx_heli', 'lx_ferrari', 'lx_fireworks', 'lx_rolex']; // the dearest one owned is the entrance
-const LUX_DUR = { jet: 4.6, crown: 2.8, yacht: 5.5, heli: 3.6, ferrari: 2.4, fireworks: 4.2, rolex: 2.6 }, ENTER_BANNER = 1.4, INTRO_MAX = 3;
+const LUX_RANK = ['lx_jet', 'lx_dragon', 'lx_crown', 'lx_carpet', 'lx_ufo', 'lx_yacht', 'lx_rocket', 'lx_heli', 'lx_unicorn', 'lx_ferrari', 'lx_fireworks', 'lx_rolex']; // the dearest one owned is the entrance
+const LUX_DUR = { jet: 4.6, crown: 2.8, yacht: 5.5, heli: 3.6, ferrari: 2.4, fireworks: 4.2, rolex: 2.6, unicorn: 3.6, rocket: 3.6, ufo: 4, carpet: 3.8, dragon: 4.2 }, ENTER_BANNER = 1.4, INTRO_MAX = 3;
 function entranceOf(p) { for (const id of LUX_RANK) if (hasLux(p, id.slice(3))) return id.slice(3); return ''; }
 // who enters this round: everybody on the first round of the match, otherwise the players seated for this round
 function planIntro() {
@@ -4432,7 +4514,14 @@ function drawIntroBanner(c) {
     const t1 = p.name.toUpperCase(), t2 = 'JE UŠAO U IGRU! ✨'; c.strokeText(t1, 0, -28); c.fillStyle = p.color; c.fillText(t1, 0, -28);
     c.font = `400 ${Math.round(Math.min(W, H) * 0.045)}px Bungee, Impact, sans-serif`; c.strokeText(t2, 0, 22); c.fillStyle = '#ffd23f'; c.fillText(t2, 0, 22); c.restore(); }
 }
-function luxStart(type, p) { luxFx.push({ type, t0: performance.now(), x: p.x, y: p.y, name: p.name, color: p.color }); if (luxFx.length > 6) luxFx.shift(); if (type === 'ferrari') { beep(140, .5, 'sawtooth', .05, 260); setTimeout(() => beep(220, .4, 'sawtooth', .05, 200), 250); } if (type === 'jet') beep(300, 1.4, 'sine', .025, -120); if (type === 'fireworks') [0, 550, 1100, 1650].forEach(d => setTimeout(() => beep(900 + Math.random() * 400, .15, 'triangle', .05, -700), d + 450)); if (type === 'rolex') { beep(1320, .08, 'square', .05); setTimeout(() => beep(1320, .08, 'square', .05), 160); } if (type === 'heli') beep(110, 1.2, 'sawtooth', .03, 20); }
+function luxSound(type) {
+  if (type === 'rocket') { [0, 400, 800].forEach(d => setTimeout(() => beep(660, .12, 'square', .04), d)); setTimeout(() => beep(110, 1.6, 'sawtooth', .04, 500), 1200); }
+  if (type === 'ufo') { beep(520, 1.2, 'sine', .03, 380); setTimeout(() => beep(900, 1, 'sine', .025, -500), 1300); }
+  if (type === 'carpet') [800, 1250, 1600, 2050, 2500, 2900].forEach(d => setTimeout(() => beep(2400, .04, 'square', .03), d));
+  if (type === 'unicorn') [0, 130, 260, 390].forEach((d, j) => setTimeout(() => beep([784, 988, 1175, 1568][j], .2, 'triangle', .045), d));
+  if (type === 'dragon') { roar(); setTimeout(roar, 1100); }
+}
+function luxStart(type, p) { luxSound(type); luxFx.push({ type, t0: performance.now(), x: p.x, y: p.y, name: p.name, color: p.color }); if (luxFx.length > 6) luxFx.shift(); if (type === 'ferrari') { beep(140, .5, 'sawtooth', .05, 260); setTimeout(() => beep(220, .4, 'sawtooth', .05, 200), 250); } if (type === 'jet') beep(300, 1.4, 'sine', .025, -120); if (type === 'fireworks') [0, 550, 1100, 1650].forEach(d => setTimeout(() => beep(900 + Math.random() * 400, .15, 'triangle', .05, -700), d + 450)); if (type === 'rolex') { beep(1320, .08, 'square', .05); setTimeout(() => beep(1320, .08, 'square', .05), 160); } if (type === 'heli') beep(110, 1.2, 'sawtooth', .03, 20); }
 function luxLabel(c, t, y, size, w) { c.save(); c.font = `900 ${size}px "Barlow Semi Condensed", system-ui, sans-serif`; c.textAlign = 'center'; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(t, (w || W) / 2, y); c.fillStyle = '#ffd23f'; c.fillText(t, (w || W) / 2, y); c.restore(); }
 function drawLux(c, list, w, h) {
   list = list || luxFx; w = w || W; h = h || H;
@@ -4503,6 +4592,55 @@ function drawLux(c, list, w, h) {
       c.restore();
       for (let j = 0; j < 16; j++) { const a = t - .4 - (j % 5) * .12; if (a < 0) continue; const x = w * (j + .5) / 16, y = -10 + a * a * 260 + (j % 3) * 18; if (y > h) continue; const gg = c.createRadialGradient(x - 3, y - 3, 1, x, y, 9); gg.addColorStop(0, '#fff6b0'); gg.addColorStop(1, '#c9961a'); c.fillStyle = gg; c.globalAlpha = fade; c.beginPath(); c.ellipse(x, y, 9 * Math.abs(Math.cos(a * 6 + j)) + 2, 9, 0, 0, 6.283); c.fill(); c.globalAlpha = 1; }
       if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, STIŽE ${f.name.toUpperCase()}! ⌚`, h - 40, 26, w); c.globalAlpha = 1; }
+    } else if (f.type === 'rocket') {
+      if (t > 3.6) { list.splice(i, 1); continue; }
+      const bx = w * 0.16, by = h - 56, fly = Math.max(0, t - 1.2), pos = (q) => { const e = Math.pow(q / 2.2, 1.7); return [bx + e * w * 0.95, by - e * h * 1.05]; }, [x, y] = pos(fly);
+      for (let j = 0; j < 7; j++) { const a = (t * 1.3 + j / 7) % 1; c.fillStyle = `rgba(200,208,218,${0.45 * (1 - a) * (fly > 0.8 ? Math.max(0, 1 - (fly - 0.8)) : 1)})`; c.beginPath(); c.arc(bx + (j - 3) * 10 * (1 + a), by + 22 - a * 14, 8 + a * 16, 0, 6.283); c.fill(); }
+      if (fly > 0) for (let j = 1; j < 18; j++) { const tb = fly - j * 0.05; if (tb < 0) break; const [px, py] = pos(tb); c.fillStyle = j < 4 ? `rgba(255,${150 + j * 25},60,${0.9 - j * 0.15})` : `rgba(210,215,225,${Math.max(0, 0.5 - j * 0.025)})`; c.beginPath(); c.arc(px - 14, py + 14, 4 + j * 1.6, 0, 6.283); c.fill(); }
+      const sh = t < 1.2 ? Math.sin(t * 70) * 2.5 * (t / 1.2) : 0;
+      c.save(); c.font = `58px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🚀', x + sh, y); c.restore();
+      if (t < 1.2) { const n = 3 - Math.floor(t / 0.4), k = (t % 0.4) / 0.4; c.save(); c.globalAlpha = 1 - k * 0.6; c.font = `400 ${Math.round(h * 0.26)}px Bungee, Impact, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 8; c.strokeStyle = 'rgba(0,0,0,.7)'; c.strokeText(String(n), w / 2, h * 0.42); c.fillStyle = '#ffd23f'; c.fillText(String(n), w / 2, h * 0.42); c.restore(); }
+      else luxLabel(c, `🚀 ${f.name.toUpperCase()} POLIJEĆE!`, 46, 26, w);
+    } else if (f.type === 'ufo') {
+      if (t > 4) { list.splice(i, 1); continue; }
+      const tx = f.x, ty = Math.max(48, f.y - 120); let ux, uy;
+      if (t < 1) { const k = 1 - Math.pow(1 - t, 3); ux = -60 + (tx + 60) * k; uy = -40 + (ty + 40) * k; }
+      else if (t < 3) { ux = tx + Math.sin(t * 3) * 6; uy = ty + Math.sin(t * 5) * 4; }
+      else { const k = (t - 3) * (t - 3); ux = tx + k * (w + 120); uy = ty - k * 260; }
+      if (t > 1 && t < 3) { const b = Math.min(1, (t - 1) / 0.3) * (t > 2.7 ? (3 - t) / 0.3 : 1); c.save(); c.globalAlpha = 0.45 * b; const g = c.createLinearGradient(0, uy, 0, f.y + 22); g.addColorStop(0, '#b8ff6a'); g.addColorStop(1, 'rgba(184,255,106,0.05)'); c.fillStyle = g; c.beginPath(); c.moveTo(ux - 14, uy + 12); c.lineTo(ux + 14, uy + 12); c.lineTo(f.x + 46, f.y + 22); c.lineTo(f.x - 46, f.y + 22); c.closePath(); c.fill();
+        c.globalAlpha = b; c.fillStyle = '#eaffd0'; for (let j = 0; j < 10; j++) { const a = (t * 0.9 + j / 10) % 1, py = f.y + 16 - a * (f.y + 4 - uy), px = f.x + (j % 5 - 2) * 9 * (1 - a) + (ux - f.x) * a; c.beginPath(); c.arc(px, py, 2.2, 0, 6.283); c.fill(); }
+        c.strokeStyle = `rgba(184,255,106,${0.8 * b})`; c.lineWidth = 3; const r = 16 + ((t * 40) % 24); c.beginPath(); c.ellipse(f.x, f.y + 6, r, r * 0.35, 0, 0, 6.283); c.stroke(); c.restore(); }
+      c.save(); c.font = `64px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🛸', ux, uy); c.restore();
+      if (t > .4) luxLabel(c, `👽 ${f.name.toUpperCase()} STIŽE IZ SVEMIRA`, h - 36, 24, w);
+    } else if (f.type === 'carpet') {
+      if (t > 3.8) { list.splice(i, 1); continue; }
+      const cy = Math.min(h - 70, Math.max(96, f.y)), k = 1 - Math.pow(1 - Math.min(1, t / 1.1), 3), end = 10 + (f.x + 20) * k, fade = t > 3.3 ? (3.8 - t) / 0.5 : 1;
+      c.save(); c.globalAlpha = fade;
+      c.fillStyle = '#9e1029'; c.fillRect(0, cy - 17, end, 34); c.fillStyle = '#d61f3d'; c.fillRect(0, cy - 13, end, 26); c.fillStyle = '#ffd23f'; c.fillRect(0, cy - 17, end, 2); c.fillRect(0, cy + 15, end, 2);
+      if (k < 1) { c.fillStyle = '#7a0c20'; c.beginPath(); c.arc(end, cy, 17 * (1 - k * 0.6) + 4, 0, 6.283); c.fill(); }
+      const posts = [0, 1, 2, 3, 4].map(j => 30 + j * (end - 30) / 4);
+      c.strokeStyle = '#7a1022'; c.lineWidth = 3; for (const dy of [-30, 30]) { c.beginPath(); for (let j = 0; j < 4; j++) { c.moveTo(posts[j], cy + dy); c.quadraticCurveTo((posts[j] + posts[j + 1]) / 2, cy + dy + 10, posts[j + 1], cy + dy); } c.stroke(); }
+      c.fillStyle = '#ffd23f'; for (const px of posts) for (const dy of [-30, 30]) { c.fillRect(px - 2, cy + dy - 10, 4, 18); c.beginPath(); c.arc(px, cy + dy - 11, 4, 0, 6.283); c.fill(); }
+      if (t > 0.7) for (let j = 0; j < 9; j++) { const ft = (t * 2.3 + j * 0.37) % 1; if (ft > 0.18) continue; const px = w * ((j * 0.29 + 0.07) % 0.95), py = j % 2 ? cy - 64 - (j % 3) * 14 : cy + 64 + (j % 3) * 12, a = 1 - ft / 0.18; c.globalAlpha = a * fade; c.fillStyle = '#fff'; c.beginPath(); for (let q = 0; q < 8; q++) { const r = q % 2 ? 5 : 20, ang = q / 8 * 6.283; c.lineTo(px + Math.cos(ang) * r, py + Math.sin(ang) * r); } c.closePath(); c.fill(); c.globalAlpha = a * 0.07 * fade; c.fillRect(0, 0, w, h); }
+      c.globalAlpha = fade; c.font = `22px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; for (let j = 0; j < 6; j++) c.fillText('📸', w * (0.1 + j * 0.16), h - 14);
+      c.restore();
+      if (t > .5) luxLabel(c, `📸 ${f.name.toUpperCase()} NA CRVENOM TEPIHU`, 40, 24, w);
+    } else if (f.type === 'unicorn') {
+      if (t > 3.6) { list.splice(i, 1); continue; }
+      const x = -100 + t * (w + 200) / 3.6, base = h * 0.72, y = base - Math.abs(Math.sin(t * 9)) * 16, cols = ['#ff5d5d', '#ff9f43', '#ffd23f', '#3ddc97', '#4cc9f0', '#a06bff'];
+      c.save(); c.lineCap = 'round'; c.globalAlpha = 0.85; c.lineWidth = 6;
+      cols.forEach((col, j) => { c.strokeStyle = col; c.beginPath(); let first = true; for (let px = Math.max(-20, x - 520); px <= x - 30; px += 12) { const py = base - 8 + (j - 2.5) * 6 + Math.sin(px / 40 + t * 3) * 5; if (first) { c.moveTo(px, py); first = false; } else c.lineTo(px, py); } c.stroke(); });
+      c.restore();
+      for (let j = 0; j < 12; j++) { const a = (t * 1.5 + j / 12) % 1, px = x - 40 - a * 200, py = base - 30 - ((j * 37) % 50) + a * 10; c.globalAlpha = 1 - a; c.fillStyle = j % 2 ? '#fff' : '#ffd23f'; c.beginPath(); for (let q = 0; q < 8; q++) { const r = q % 2 ? 1.5 : 5, ang = q / 8 * 6.283 + t; c.lineTo(px + Math.cos(ang) * r, py + Math.sin(ang) * r); } c.closePath(); c.fill(); } c.globalAlpha = 1;
+      c.save(); c.translate(x, y); c.scale(-1, 1); c.font = `60px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🦄', 0, 0); c.restore();
+      if (t > .4) luxLabel(c, `🦄 ${f.name.toUpperCase()} DOJAŠE NA JEDNOROGU`, 46, 24, w);
+    } else if (f.type === 'dragon') {
+      if (t > 4.2) { list.splice(i, 1); continue; }
+      const x = w + 90 - t * (w + 260) / 3, y = h * 0.2 + Math.sin(t * 5) * 10;
+      if (t > 1 && t < 2.4) { const mx = x, my = y + 22; for (let j = 0; j < 40; j++) { const a = (t * 2.2 + j / 40) % 1, px = mx + (f.x - mx) * a + Math.sin(j * 7.3) * 18 * a, py = my + (f.y - my) * a + Math.cos(j * 5.1) * 14 * a; c.globalAlpha = 0.85 * (1 - a * 0.6); c.fillStyle = ['#fff3a0', '#ffd23f', '#ff9f1c', '#ff4d1c'][j % 4]; c.beginPath(); c.arc(px, py, 3 + a * 9, 0, 6.283); c.fill(); } c.globalAlpha = 1; }
+      if (t > 1.6 && t < 3.6) { const b = t - 1.6, fade = b < 1.1 ? 1 : Math.max(0, 1 - (b - 1.1) / 0.9); for (let j = 0; j < 14; j++) { const ang = j / 14 * 6.283, fl = 1 + 0.35 * Math.sin(t * 14 + j * 2), r = 26 + b * 12, px = f.x + Math.cos(ang) * r, py = f.y + Math.sin(ang) * r * 0.6; c.globalAlpha = fade; c.fillStyle = j % 2 ? '#ff9f1c' : '#ff4d1c'; c.beginPath(); c.moveTo(px - 7, py); c.quadraticCurveTo(px, py - 26 * fl, px + 7, py); c.fill(); } c.globalAlpha = 1; }
+      c.save(); c.font = `78px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🐉', x, y); c.restore();
+      if (t > .3) luxLabel(c, t < 2.4 ? `🐉 ZMAJ DONOSI ${f.name.toUpperCase()}` : `🔥 ${f.name.toUpperCase()} IZLAZI IZ VATRE`, h - 36, 26, w);
     }
   }
 }
@@ -5781,6 +5919,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES };
 })();
 </script>
