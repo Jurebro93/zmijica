@@ -5,33 +5,23 @@
 // POST /api/pay/webhook  (Stripe)            -> a paid entry puts the player on the tournament; a late or extra payment
 //                                               (tournament full, closed, already entered) is refunded at once
 // GET  /api/pay/status                       -> {on}  whether payments are configured
+// The webhook changes the tournament through tournament.mts's updateTour (the one compare-and-swap every change uses).
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { stripe, stripeOn, stripeTest, refund, verifySignature, webhookSecret } from "./stripe.mts";
+import { updateTour, type Tour } from "./tournament.mts";
+import { authed } from "./guard.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
 const SLUG = /^[a-z0-9-]{1,40}$/, TOUR_ID = /^[a-z0-9]{4,20}$/;
 const GAME = "https://zmijica.onrender.com/";
 
-type Paid = { eur: number; pi: string; session: string; at: number; refunded?: number };
-type Tour = { id: string; name: string; status: string; max: number; eur?: number; stake?: { min: number; max: number }; players: { slug: string; name: string }[]; paid?: Record<string, Paid> };
 // what a tournament accepts as one entry, in cents
 const stakeOk = (t: Tour, cents: number) => t.eur ? cents === t.eur * 100 : !!t.stake && cents % 100 === 0 && cents >= t.stake.min * 100 && cents <= t.stake.max * 100;
 
 const tours = () => getStore({ name: "vijuga-tournaments", consistency: "strong" });
 async function account(slug: string) { return (await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(slug, { type: "json" })) as Record<string, unknown> | null; }
-
-// read-modify-write of one tournament that survives two writers at once (a webhook and a player's click)
-async function updateTour(id: string, fn: (t: Tour) => void | Promise<void>) {
-  const s = tours();
-  for (let i = 0; i < 6; i++) {
-    const cur = await s.getWithMetadata(id, { type: "json" }); if (!cur) return null;
-    const t = cur.data as Tour; await fn(t);
-    const w = await s.setJSON(id, t, { onlyIfMatch: cur.etag }); if (w.modified) return t;
-  }
-  throw new Error("busy");
-}
 
 async function onPaid(session: Record<string, unknown>) {
   const md = (session.metadata || {}) as Record<string, string>; const id = String(md.tour || ""), slug = String(md.slug || "");
@@ -44,9 +34,11 @@ async function onPaid(session: Record<string, unknown>) {
   const acc = await account(slug);
   const t = await updateTour(id, (t) => {
     t.paid = t.paid || {}; outcome = "joined";
-    if (t.paid[slug] && t.paid[slug].session === sid) { outcome = "duplicate"; return; }
-    const ok = (!!t.eur || !!t.stake) && t.status === "open" && t.players.length < t.max && !t.players.some((p) => p.slug === slug) && !!acc && stakeOk(t, cents);
-    if (!ok) { outcome = "refund"; return; }
+    const prev = t.paid[slug];
+    if (prev && prev.session === sid) { outcome = "duplicate"; return false; }
+    // an earlier payment of this player that is not fully back on the card yet is never overwritten: the new one goes back
+    const ok = (!!t.eur || !!t.stake) && t.status === "open" && t.players.length < t.max && !t.players.some((p) => p.slug === slug) && !!acc && stakeOk(t, cents) && !(prev && !prev.refunded);
+    if (!ok) { outcome = "refund"; return false; }
     t.players.push({ slug, name: String(acc!.name ?? slug).slice(0, 14) });
     t.paid[slug] = { eur: cents / 100, pi, session: sid, at: Date.now() };
   });
@@ -76,8 +68,8 @@ export default async (req: Request, context: Context) => {
     const b = (await req.json().catch(() => null)) as Record<string, unknown> | null; if (!b) return json({ error: "body missing" }, 400);
     const slug = String(b.slug ?? ""), id = String(b.tour ?? "");
     if (!SLUG.test(slug) || !TOUR_ID.test(id)) return json({ error: "bad request" }, 400);
-    const acc = await account(slug), demo = stripeTest();
-    if (!acc || (acc.pinHash && acc.pinHash !== b.auth)) return json({ error: "auth" }, 403);
+    const { acc, gate } = await authed(req, context, slug, b.auth), demo = stripeTest();
+    if (!acc || !gate.ok) return !gate.ok && gate.status === 429 ? json({ error: gate.error, wait: gate.wait }, 429) : json({ error: "auth" }, 403);
     if (!acc.pinHash && !demo) return json({ error: "pin needed" }, 403); // real money: only an account with a PIN (demo money: anyone)
     const t = (await tours().get(id, { type: "json" })) as Tour | null; if (!t || (!t.eur && !t.stake)) return json({ error: "not found" }, 404);
     const euros = t.eur || Math.floor(Number(b.amount)); if (!stakeOk(t, euros * 100)) return json({ error: "bad amount", min: t.stake?.min, max: t.stake?.max }, 400);

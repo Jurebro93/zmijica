@@ -1,27 +1,33 @@
 // Player profiles and leaderboard for Vijuga, kept in Netlify Blobs (one key per player).
-// GET  /api/accounts            -> all public profiles (no PIN hashes)
+// GET  /api/accounts            -> all public profiles (no PIN hashes, no private room codes), served from one index blob
+//                                  and cached by the CDN for 30 s
 // GET  /api/accounts/:slug      -> one public profile
-// POST /api/accounts/:slug/login {pinHash} -> full profile when the PIN matches
-// PUT  /api/accounts/:slug      {doc, auth} -> create, or update when auth matches the stored PIN hash
+// POST /api/accounts/:slug/login {pinHash} -> full profile when the PIN matches (wrong PINs limited per address+account)
+// PUT  /api/accounts/:slug      {doc, auth} -> create (limited per address), or update when auth matches the stored PIN hash
 // DELETE /api/accounts/:slug    {auth} -> remove a PIN-protected profile
+// Every PIN check goes through the shared failure limiter (guard.mts): 429 {error: "too many attempts", wait} while locked.
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { roleOf } from "./roles.mts";
+import { accountsIndex, cas, hit, ipKey, later, pinGate, publicView, sha256, type Gate } from "./guard.mts";
 
 const STORE = "vijuga-accounts";
 // SHA-256 of the maintenance key (same key as for matches); the key itself is not in the repository.
 const ADMIN_KEY_SHA256 = "f5200fc8e8b6f62b67cebbfb4087e15b344faffeb42fe51c14c4957ce940c306";
 const SLUG = /^[a-z0-9-]{1,40}$/;
+const HOUR = 3600000;
 const cors = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, PUT, POST, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, x-admin-key",
 };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
+const refused = (g: Gate, error = "wrong pin") => g.ok ? null : g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error }, 403);
 
 type Doc = Record<string, unknown> & { slug: string; name: string; pinHash?: string };
 
-function publicView(d: Doc) {
+// what the owner gets back after a save: everything but the PIN hash (the private room code included)
+function ownerView(d: Doc) {
   const { pinHash, ...rest } = d;
   return { ...rest, hasPin: !!pinHash };
 }
@@ -72,17 +78,18 @@ export default async (req: Request, context: Context) => {
 
   if (!slug) {
     if (req.method !== "GET") return json({ error: "method not allowed" }, 405);
-    const { blobs } = await store.list();
-    const docs = await Promise.all(blobs.map((b) => store.get(b.key, { type: "json" }) as Promise<Doc | null>));
-    const list = docs.filter((d): d is Doc => !!d).map(publicView);
-    list.sort((a, b) => Number((b as Record<string, unknown>).coins) - Number((a as Record<string, unknown>).coins));
-    return json({ accounts: list });
+    // one blob instead of one per player; every client polls this, so the CDN answers it for 30 s
+    // the order the old per-blob listing gave: by coins, equal coins by slug (the blob key order)
+    const bySlug = (a: Record<string, unknown>, b: Record<string, unknown>) => (String(a.slug) < String(b.slug) ? -1 : String(a.slug) > String(b.slug) ? 1 : 0);
+    const list = Object.values(await accountsIndex.read()).sort(bySlug);
+    list.sort((a, b) => Number(b.coins) - Number(a.coins));
+    return Response.json({ accounts: list }, { headers: { ...cors, "cache-control": "public, max-age=0, s-maxage=30", "netlify-cdn-cache-control": "public, s-maxage=30, stale-while-revalidate=30" } });
   }
 
   if (!SLUG.test(slug) || slug === "constructor") return json({ error: "bad slug" }, 400); // "constructor" would collide with a built-in property wherever players are keyed by slug
-  const existing = (await store.get(slug, { type: "json" })) as Doc | null;
 
   if (req.method === "GET") {
+    const existing = (await store.get(slug, { type: "json" })) as Doc | null;
     if (!existing) return json({ error: "not found" }, 404);
     return json({ account: publicView(existing) });
   }
@@ -90,27 +97,31 @@ export default async (req: Request, context: Context) => {
   if (req.method === "POST" && action === "reset") {
     // Admin only: remove a forgotten PIN; the player then logs in without one and sets a new PIN.
     const given = req.headers.get("x-admin-key") || "";
-    const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(given)))).map((b) => b.toString(16).padStart(2, "0")).join("");
     // allowed with the maintenance key, or for the master admin / an admin signed in with their PIN
-    let ok = !!given && digest === ADMIN_KEY_SHA256;
-    if (!ok) { const body = (await req.json().catch(() => ({}))) as { by?: string; auth?: string }; const by = String(body.by ?? ""); if (SLUG.test(by) && by !== slug) { const r = await roleOf(by); const who = (await store.get(by, { type: "json" })) as Doc | null; ok = (r === "master" || r === "admin") && !!who && !!who.pinHash && who.pinHash === body.auth && (await roleOf(slug)) !== "master"; } } // an account without a PIN proves nothing (anyone can act as it), and the master's PIN is not an admin's to remove
+    let ok = false;
+    if (given) { const g = await pinGate(req, context, "_admin", ADMIN_KEY_SHA256, await sha256(given)); if (g.ok) ok = true; else if (g.status === 429) return refused(g); }
+    if (!ok) {
+      const body = (await req.json().catch(() => ({}))) as { by?: string; auth?: string }; const by = String(body.by ?? "");
+      if (SLUG.test(by) && by !== slug) {
+        const r = await roleOf(by); const who = (await store.get(by, { type: "json" })) as Doc | null;
+        // an account without a PIN proves nothing (anyone can act as it), and the master's PIN is not an admin's to remove
+        if ((r === "master" || r === "admin") && who) { const g = await pinGate(req, context, by, who.pinHash, body.auth, { requirePin: true }); if (g.ok) ok = (await roleOf(slug)) !== "master"; else if (g.status === 429) return refused(g); }
+      }
+    }
     if (!ok) return json({ error: "forbidden" }, 403);
-    if (!existing) return json({ error: "not found" }, 404);
-    delete existing.pinHash; existing.updatedAt = Date.now();
-    await store.setJSON(slug, existing);
-    return json({ ok: true, account: publicView(existing) });
+    let found = true;
+    const doc = await cas<Doc>(store, slug, (cur) => { if (!cur) { found = false; return undefined; } delete cur.pinHash; cur.updatedAt = Date.now(); return cur; });
+    if (!found || !doc) return json({ error: "not found" }, 404);
+    await later(context, accountsIndex.put(slug, publicView(doc)));
+    return json({ ok: true, account: publicView(doc) });
   }
 
   if (req.method === "POST" && action === "login") {
+    const existing = (await store.get(slug, { type: "json" })) as Doc | null;
     if (!existing) return json({ error: "not found" }, 404);
     const body = (await req.json().catch(() => ({}))) as { pinHash?: string };
-    if (existing.pinHash) { // at most 5 wrong PINs per minute per account
-      const lim = getStore({ name: "vijuga-limits", consistency: "strong" }), key = `login/${slug}`;
-      const cur = ((await lim.get(key, { type: "json" })) as { n: number; t: number } | null) || { n: 0, t: 0 };
-      if (Date.now() - cur.t > 60000) { cur.n = 0; cur.t = Date.now(); }
-      if (cur.n >= 5) return json({ error: "too many attempts" }, 429);
-      if (body.pinHash !== existing.pinHash) { cur.n++; await lim.setJSON(key, cur); return json({ error: "wrong pin" }, 403); }
-    }
+    // wrong PINs are limited per address and account (and loosely per account), so a guesser cannot lock the owner out
+    const bad = refused(await pinGate(req, context, slug, existing.pinHash, body.pinHash)); if (bad) return bad;
     return json({ account: existing });
   }
 
@@ -118,23 +129,36 @@ export default async (req: Request, context: Context) => {
     const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string; basedOn?: number | null } | null;
     const doc = clean(body?.doc, slug);
     if (typeof doc === "string") return json({ error: doc }, 400);
-    if (existing && existing.pinHash && body?.auth !== existing.pinHash) return json({ error: "wrong pin" }, 403);
-    // a tab that holds an older copy of the profile must not overwrite what another device saved since
-    if (existing && body?.basedOn != null && existing.updatedAt && Number(body.basedOn) !== existing.updatedAt) return json({ error: "stale", account: publicView(existing) }, 409);
-    if (existing && existing.pinHash && !doc.pinHash) doc.pinHash = existing.pinHash;
-    if (existing && existing.created) doc.created = existing.created as number;
-    if (existing) doc.invitedBy = (existing.invitedBy as string | undefined) ?? doc.invitedBy;
-    if (!existing && !doc.created) doc.created = Date.now();
-    await store.setJSON(slug, doc);
-    return json({ account: publicView(doc) });
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const cur = await store.getWithMetadata(slug, { type: "json" });
+      const existing = cur ? (cur.data as Doc) : null;
+      if (existing) { const bad = refused(await pinGate(req, context, slug, existing.pinHash, body?.auth)); if (bad) return bad; }
+      else if (attempt === 0) { // a new account: at most 10 an hour and 30 a day from one address
+        const h = await hit("create/" + (await ipKey(req, context)), [[10, HOUR], [30, 24 * HOUR]]);
+        if (!h.ok) return json({ error: "too many accounts", wait: h.wait }, 429);
+      }
+      // a tab that holds an older copy of the profile must not overwrite what another device saved since
+      if (existing && body?.basedOn != null && existing.updatedAt && Number(body.basedOn) !== existing.updatedAt) return json({ error: "stale", account: ownerView(existing) }, 409);
+      const next: Doc = { ...doc };
+      if (existing && existing.pinHash && !next.pinHash) next.pinHash = existing.pinHash;
+      if (existing && existing.created) next.created = existing.created as number;
+      if (existing) next.invitedBy = (existing.invitedBy as string | undefined) ?? next.invitedBy;
+      if (!existing && !next.created) next.created = Date.now();
+      // two saves at the same moment: the second one sees the first (and its PIN) instead of silently replacing it
+      const w = await store.setJSON(slug, next, cur ? { onlyIfMatch: cur.etag } : { onlyIfNew: true });
+      if (w.modified) { await later(context, accountsIndex.put(slug, publicView(next))); return json({ account: ownerView(next) }); }
+    }
+    return json({ error: "busy" }, 503);
   }
 
   if (req.method === "DELETE") {
     // Only a PIN-protected profile can be removed, and only with its PIN.
+    const existing = (await store.get(slug, { type: "json" })) as Doc | null;
     if (!existing) return json({ ok: true });
     const body = (await req.json().catch(() => ({}))) as { auth?: string };
-    if (!existing.pinHash || body.auth !== existing.pinHash) return json({ error: "wrong pin" }, 403);
+    const bad = refused(await pinGate(req, context, slug, existing.pinHash, body.auth, { requirePin: true })); if (bad) return bad;
     await store.delete(slug);
+    await later(context, accountsIndex.put(slug, null));
     return json({ ok: true });
   }
 

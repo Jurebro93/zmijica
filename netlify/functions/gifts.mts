@@ -2,9 +2,13 @@
 // the receiver's game picks it up.
 // POST   /api/gifts            {to, from, item, auth}  -> stores a pending gift (giver's PIN checked)
 // GET    /api/gifts/:slug                              -> pending gifts for that player
-// DELETE /api/gifts/:slug/:id  {auth}                  -> receiver marks one as collected
+// DELETE /api/gifts/:slug/:id  {auth}                  -> receiver collects one: 200 {ok} exactly once per gift;
+//                                                         404 {error: "gone"} when it does not exist or was collected
+// PIN checks go through the shared failure limiter (429 {error: "too many attempts", wait} while locked). A gift that does
+// not exist answers "gone" before any PIN is looked at, so a made-up gift id tells nothing about a PIN.
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { account, pinGate } from "./guard.mts";
 
 const cors = {
   "access-control-allow-origin": "*",
@@ -14,10 +18,6 @@ const cors = {
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
 const SLUG = /^[a-z0-9-]{1,40}$/;
 const ITEM = /^[a-zA-Z0-9_]{2,20}$/;
-
-async function account(slug: string) {
-  return (await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(slug, { type: "json" })) as Record<string, unknown> | null;
-}
 
 export default async (req: Request, context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
@@ -29,7 +29,8 @@ export default async (req: Request, context: Context) => {
     if (!SLUG.test(to) || !SLUG.test(from) || !ITEM.test(item) || to === from) return json({ error: "bad request" }, 400);
     const [giver, receiver] = await Promise.all([account(from), account(to)]);
     if (!giver || !receiver) return json({ error: "unknown player" }, 404);
-    if (giver.pinHash && giver.pinHash !== b?.auth) return json({ error: "wrong pin" }, 403);
+    const g = await pinGate(req, context, from, giver.pinHash, b?.auth);
+    if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "wrong pin" }, 403);
     const { blobs } = await store.list({ prefix: to + "/" });
     if (blobs.length >= 30) return json({ error: "too many pending gifts" }, 429);
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -45,10 +46,17 @@ export default async (req: Request, context: Context) => {
   if (req.method === "DELETE") {
     const id = context.params.id;
     if (!id || !/^[a-z0-9]{4,20}$/.test(id)) return json({ error: "bad id" }, 400);
-    const acc = await account(slug);
+    const gone = () => json({ error: "gone" }, 404);
+    // no such gift: the same answer whoever asks and with whatever PIN
+    if (!(await store.get(`${slug}/${id}`))) return gone();
+    const acc = await account(slug); if (!acc) return gone();
     const b = (await req.json().catch(() => ({}))) as { auth?: string };
-    if (acc && acc.pinHash && acc.pinHash !== b.auth) return json({ error: "wrong pin" }, 403);
-    await store.delete(`${slug}/${id}`);
+    const g = await pinGate(req, context, slug, acc.pinHash, b.auth);
+    if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "wrong pin" }, 403);
+    // two tabs collecting the same gift at once: only the one that writes the claim first gets it
+    const claim = await getStore({ name: "vijuga-gift-claims", consistency: "strong" }).setJSON(`${slug}/${id}`, { at: Date.now() }, { onlyIfNew: true });
+    await store.delete(`${slug}/${id}`); // (also tidies up a gift whose claim was written by a request that died before this)
+    if (!claim.modified) return gone();
     return json({ ok: true });
   }
   return json({ error: "method not allowed" }, 405);
