@@ -1139,10 +1139,11 @@ function mergeOntoServer(srv, loc, base) {
 }
 // A change the server has already made to this account (a gift collected, a fee or a bid paid, a thing put up for sale):
 // the same change here and on the base the next save is compared with, so that save neither repeats nor undoes it.
-// An older server that made no change (no rev in its answer) leaves it to the save, as before.
+// An older server that made no change (no `rev` in its answer) leaves it to the save, as before; rev null: the server made
+// the change but something else changed the account too, so the next save is merged instead of taking the revision.
 function srvChanged(j, fn) {
   if (!profile) return; fn(profile);
-  if (j && j.rev) { if (profile._base) fn(profile._base); if (j.prev == null || j.prev === profile._rev) profile._rev = j.rev; localSave(profile); }
+  if (j && 'rev' in j) { if (profile._base) fn(profile._base); if (j.rev && (j.prev == null || j.prev === profile._rev)) profile._rev = j.rev; localSave(profile); }
   else saveProfile();
 }
 // server calls that change the account wait for this device's save in flight, and the next save waits for them
@@ -1160,7 +1161,7 @@ async function saveProfileNow() {
     catch (e) { profileStore = 'local';
       if (!e || !e.status) refreshLocalList(); // the server is unreachable: the device copy is what we show
       if (e && e.status === 409 && e.account && profile) { const pin = profile.pinHash, loc = profile, base = loc._base; let srvDoc = normalize(e.account); const srvBase = syncBase(srvDoc); const merged = !!base; if (merged) srvDoc = mergeOntoServer(srvDoc, loc, base); srvDoc.pinHash = pin; srvDoc._authHash = pin || ''; srvDoc._rev = srvDoc.updatedAt || null; profile = applyBonus(srvDoc); profile._base = srvBase; localSave(profile); renderMe(); renderShop(); toast(merged ? '🔄 Profil je usklađen s drugim uređajem (tvoj napredak s ovog uređaja je sačuvan).' : '🔄 Profil je osvježen s drugog uređaja/kartice.'); if (merged) savePending = true; return; }
-      if (e && e.status === 403 && e.error === 'claim' && profile) { profile.pinHash = profile._authHash || ''; localSave(profile); savePending = true; notify('🔒 PIN za ovaj profil može postaviti samo uređaj na kojem je profil napravljen. Napredak se i dalje sprema, bez PIN-a.', { warn: true, ms: 12000 }); return; }
+      if (e && e.status === 403 && e.error === 'claim' && profile) { profile.pinHash = profile._authHash || ''; localSave(profile); savePending = true; notify('🔒 PIN za ovaj profil može postaviti samo uređaj na kojem je profil napravljen. Napredak se i dalje sprema, bez PIN-a. Ako je to tvoj profil, admin ti može resetirati PIN pa ga postaviš ovdje.', { warn: true, ms: 14000 }); return; }
       if (e && e.status === 403) { dbWritable = false; if (!window.__pinWarned) { window.__pinWarned = true; notify('⚠️ <b>Napredak se ne sprema na server</b>: PIN na ovom uređaju ne odgovara (promijenjen drugdje?). Odjavi se i prijavi ponovno s ispravnim PIN-om.', { warn: true, ms: 0 }); } } }
   }
   if (!dbNs) refreshLocalList();
@@ -1364,9 +1365,9 @@ function showGift(P) {
     b.disabled = true;
     try {
       const sent = await srvOp(async () => {
-        const r = await fetch(GIFTS_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ to: P.slug, from: profile.slug, item: o.id, auth: profile.pinHash || '' }) });
+        const r = await fetch(GIFTS_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ to: P.slug, from: profile.slug, item: o.id, auth: profile.pinHash || '', claim: claimOf(profile.slug), w: 1 }) });
         const j = await r.json().catch(() => ({}));
-        if (!r.ok) { $('#giftErr').textContent = j.error === 'not enough coins' ? 'Na poslužitelju nemaš dovoljno zlatnika (spremanje još nije stiglo?). Pokušaj za minutu.' : 'Poklon nije poslan (' + (j.error || r.status) + ').'; b.disabled = false; return false; }
+        if (!r.ok) { $('#giftErr').textContent = ({ 'not enough coins': 'Na poslužitelju nemaš dovoljno zlatnika (spremanje još nije stiglo?). Pokušaj za minutu.', 'already owned': `${P.name} to već ima.`, limited: 'Ograničene stvari mijenjaju vlasnika samo na aukciji.', 'pin needed': 'Za poklone s ovog uređaja treba PIN (Profil → uredi).', update: 'Osvježi stranicu: igra je ažurirana.' })[j.error] || 'Poklon nije poslan (' + (j.error || r.status) + ').'; b.disabled = false; return false; }
         const n = Number(j.charged) || o.price; srvChanged(j, p => { p.coins = Math.max(0, (Number(p.coins) || 0) - n); p.spent = (Number(p.spent) || 0) + n; p.purchases = (Number(p.purchases) || 0) + 1; }); renderMe(); renderShop(); return true;
       });
       if (!sent) return;
@@ -1383,15 +1384,15 @@ async function collectGifts() {
     let got = 0;
     await srvOp(async () => { for (const g of gifts) {
       // the gift is credited only once the server has removed it, otherwise a failed DELETE would credit it again on every load
-      const del = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '' }) }).catch(() => null);
+      const del = await fetch(GIFTS_API + '/' + encodeURIComponent(profile.slug) + '/' + encodeURIComponent(g.id), { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ auth: profile.pinHash || '', w: 1 }) }).catch(() => null);
       if (!del || !del.ok) continue;
       got++;
       const j = await del.json().catch(() => ({}));
       // the server credits the gift itself and says what it credited (a thing already owned comes as its price in coins)
-      const c = j && j.rev && j.credit ? j.credit : null;
+      const c = j && 'rev' in j && j.credit && typeof j.credit === 'object' ? j.credit : null;
       if (c) {
         srvChanged(j, p => { if (c.coins) p.coins = (Number(p.coins) || 0) + Number(c.coins); if (c.inv) p.inv[c.inv] = (Number(p.inv[c.inv]) || 0) + 1; if (c.item && !p.owned.includes(c.item)) p.owned.push(c.item); });
-        if (c.had) notify(`🎁 <b>${esc(g.fromName || g.from)}</b> ti je poklonio <b>${esc(itemName(c.had))}</b>, ali to već imaš: dobio si ● ${fmtN(c.coins)}.`, { ms: 9000 });
+        if (c.had) notify(`🎁 <b>${esc(g.fromName || g.from)}</b>: <b>${esc(itemName(c.had))}</b> već imaš, pa ti druga ne treba.`, { ms: 9000 });
         else if (c.coins) notify(`💰 <b>${esc(g.fromName || 'Turnir')}</b>: +${fmtN(c.coins)} zlatnika`, { ms: 9000 });
         else if (c.inv || c.item) notify(`🎁 <b>${esc(g.fromName || g.from)}</b> ti je poklonio: <b>${esc(itemName(g.item))}</b>`, { ms: 8000 });
         continue;
@@ -2216,8 +2217,8 @@ async function loadTours() {
 }
 async function tourCall(id, action, extra) {
   if (!profile) { showLogin(); return null; }
-  try { const r = await fetch(TOUR_API + (id ? '/' + id + (action ? '/' + action : '') : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'need players': `Za ovaj turnir treba barem ${j.min} igrača.`, 'bad stake': 'Ulog mora biti od 1 do 100 €.', 'payments off': 'Plaćanje (Stripe) još nije uključeno.', 'refund failed': 'Povrat novca nije uspio, pokušaj ponovno.', 'too many attempts': `Previše pokušaja. Pokušaj ponovno za ${Math.ceil((Number(j.wait) || 60) / 60)} min.`, 'pin needed': 'Za ovo moraš imati PIN (Profil → uredi).', 'confirm a report': 'Za ovaj stol su stigli rezultati: potvrdi jedan od njih.', 'too early': 'Prerano: stol se može zaključiti tek nakon što se kolo moglo odigrati.', 'own table': 'Ne možeš potvrditi stol za kojim i sam igraš.', 'no such report': 'Taj izvještaj više ne postoji.', closed: 'Turnir je zatvoren.', 'not enough coins': 'Na poslužitelju nemaš dovoljno zlatnika (spremanje još nije stiglo?). Pokušaj za minutu.', 'payment required': 'Za ovaj turnir se prijavljuje plaćanjem.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
+  try { const r = await fetch(TOUR_API + (id ? '/' + id + (action ? '/' + action : '') : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '', claim: claimOf(profile.slug), w: 1 }, extra || {})) });
+    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ update: 'Osvježi stranicu: igra je ažurirana.', 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'need players': `Za ovaj turnir treba barem ${j.min} igrača.`, 'bad stake': 'Ulog mora biti od 1 do 100 €.', 'payments off': 'Plaćanje (Stripe) još nije uključeno.', 'refund failed': 'Povrat novca nije uspio, pokušaj ponovno.', 'too many attempts': `Previše pokušaja. Pokušaj ponovno za ${Math.ceil((Number(j.wait) || 60) / 60)} min.`, 'pin needed': 'Za ovo moraš imati PIN (Profil → uredi).', 'confirm a report': 'Za ovaj stol su stigli rezultati: potvrdi jedan od njih.', 'too early': 'Prerano: stol se može zaključiti tek nakon što se kolo moglo odigrati.', 'own table': 'Ne možeš potvrditi stol za kojim i sam igraš.', 'no such report': 'Taj izvještaj više ne postoji.', closed: 'Turnir je zatvoren.', 'not enough coins': 'Na poslužitelju nemaš dovoljno zlatnika (spremanje još nije stiglo?). Pokušaj za minutu.', 'payment required': 'Za ovaj turnir se prijavljuje plaćanjem.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
   catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
 }
 function splitPotC(st, ranking, shares = [0.5, 0.3, 0.2]) {
@@ -2357,8 +2358,8 @@ async function loadAuct() {
 setTimeout(loadAuct, 2000);
 async function auctCall(path, extra) {
   if (!profile) { showLogin(); return null; }
-  try { const r = await fetch(AUCT_API + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) }); const j = await r.json().catch(() => ({}));
-    if (!r.ok) { toast({ 'too low': `Premalo. Najmanja ponuda je ${j.min}.`, 'not owned': 'Poslužitelj još ne vidi da imaš tu stvar. Pričekaj minutu.', 'already listed': 'Tu stvar već prodaješ.', 'own lot': 'Ne možeš licitirati na svoje.', 'has bids': 'Već ima ponuda, ne možeš povući. Prihvati ili pričekaj kraj.', closed: 'Već je završeno (netko je bio brži ili je isteklo).', 'already own': 'Tu stvar već imaš.', 'already wanted': 'Za tu stvar već imaš otvoren zahtjev.', 'too many wants': 'Najviše 5 otvorenih zahtjeva odjednom.', 'bad price': 'Ponuda mora biti od 10 do 1.000.000 zlatnika.', 'own want': 'To je tvoj zahtjev.', 'not buyer': 'To nije tvoj zahtjev.', 'not enough coins': 'Na poslužitelju nemaš dovoljno zlatnika (spremanje još nije stiglo?). Pokušaj za minutu.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; }
+  try { const r = await fetch(AUCT_API + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '', claim: claimOf(profile.slug), w: 1 }, extra || {})) }); const j = await r.json().catch(() => ({}));
+    if (!r.ok) { toast({ 'too low': `Premalo. Najmanja ponuda je ${j.min}.`, 'not owned': 'Poslužitelj još ne vidi da imaš tu stvar. Pričekaj minutu.', 'already listed': 'Tu stvar već prodaješ.', 'own lot': 'Ne možeš licitirati na svoje.', 'has bids': 'Već ima ponuda, ne možeš povući. Prihvati ili pričekaj kraj.', closed: 'Već je završeno (netko je bio brži ili je isteklo).', 'already own': 'Tu stvar već imaš.', 'already wanted': 'Za tu stvar već imaš otvoren zahtjev.', 'too many wants': 'Najviše 5 otvorenih zahtjeva odjednom.', 'bad price': 'Ponuda mora biti od 10 do 1.000.000 zlatnika.', 'own want': 'To je tvoj zahtjev.', 'not buyer': 'To nije tvoj zahtjev.', 'not enough coins': 'Na poslužitelju nemaš dovoljno zlatnika (spremanje još nije stiglo?). Pokušaj za minutu.', 'pin needed': 'Za aukciju s ovog uređaja treba PIN (Profil → uredi).', update: 'Osvježi stranicu: igra je ažurirana.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; }
     return j; } catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
 }
 function itemIcon(id) { const b = BADGES[id]; if (b) return `<span class="ic">${badgeGlyph(id) || b.g}</span>`; if (SKINS[id]) return '<span class="ic">〰️</span>'; return ''; }
@@ -2439,7 +2440,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '344ed21069cc';
+const BUILD = '8b029b390dfa';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -5951,7 +5952,7 @@ function makeApiAccounts() {
     doc(path) { const slug = path.split('/').pop(); return {
       async get() { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { cache: 'no-store' }); if (r.status === 404) return { exists: false, data: () => undefined }; if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); return { exists: true, data: () => j.account }; },
       // auth is the PIN hash the server knows; a changed PIN travels inside doc
-      async set(doc) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc, auth: doc._authHash || doc.pinHash || '', basedOn: doc._rev == null ? null : doc._rev, claim: claimOf(slug) }) }); if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; try { const j = await r.json(); if (j && j.account) e.account = j.account; if (j && j.error) e.error = j.error; } catch (er) {} throw e; } poll(); try { const j = await r.json(); if (j && j.claim) keepClaim(slug, j.claim); if (j && j.account && Array.isArray(j.cut) && j.cut.length) j.account._cut = j.cut; return j && j.account; } catch (er) { return null; } },
+      async set(doc) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ doc, auth: doc._authHash || doc.pinHash || '', basedOn: doc._rev == null ? null : doc._rev, claim: claimOf(slug), w: 1 }) }); if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; try { const j = await r.json(); if (j && j.account) e.account = j.account; if (j && j.error) e.error = j.error; } catch (er) {} throw e; } poll(); try { const j = await r.json(); if (j && j.claim) keepClaim(slug, j.claim); if (j && j.account && Array.isArray(j.cut) && j.cut.length) j.account._cut = j.cut; return j && j.account; } catch (er) { return null; } },
       async login(pinHashValue) { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(slug) + '/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pinHash: pinHashValue }) }); if (r.status === 429) { const jj = await r.json().catch(() => ({})); const er = new Error('locked'); er.wait = Number(jj.wait) || 900; throw er; } if (r.status === 403) return null; if (!r.ok) throw new Error('HTTP ' + r.status); return (await r.json()).account; },
     }; },
     collection() { return { onSnapshot(c, e) { cb = c; errCb = e; poll(); const t = setInterval(() => { if (!document.hidden && !(G && !G.over && !$('#game').hidden)) poll(); }, 30000); document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); }); return () => clearInterval(t); } }; },

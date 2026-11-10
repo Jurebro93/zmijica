@@ -114,7 +114,7 @@ export default async (req: Request, context: Context) => {
     }
     if (!ok) return json({ error: "forbidden" }, 403);
     let found = true;
-    const doc = await cas<Doc>(store, slug, (cur) => { if (!cur) { found = false; return undefined; } delete cur.pinHash; cur.updatedAt = Date.now(); return cur; });
+    const doc = await cas<Doc>(store, slug, (cur) => { if (!cur) { found = false; return undefined; } delete cur.pinHash; delete cur.claimHash; cur.updatedAt = Date.now(); return cur; }); // (and the device claim: the next save from the owner's game takes a new one)
     if (!found || !doc) return json({ error: "not found" }, 404);
     await later(context, accountsIndex.put(slug, publicView(doc)));
     return json({ ok: true, account: publicView(doc) });
@@ -126,11 +126,12 @@ export default async (req: Request, context: Context) => {
     const body = (await req.json().catch(() => ({}))) as { pinHash?: string };
     // wrong PINs are limited per address and account (and loosely per account), so a guesser cannot lock the owner out
     const bad = refused(await pinGate(req, context, slug, existing.pinHash, body.pinHash)); if (bad) return bad;
-    return json({ account: existing });
+    const { wal, claimHash, ...acc } = existing; // (the day's wallet counters and the device claim stay on the server)
+    return json({ account: acc });
   }
 
   if (req.method === "PUT") {
-    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string; basedOn?: number | null; claim?: string } | null;
+    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string; basedOn?: number | null; claim?: string; w?: number } | null;
     const doc = clean(body?.doc, slug);
     if (typeof doc === "string") return json({ error: doc }, 400);
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -154,7 +155,7 @@ export default async (req: Request, context: Context) => {
       if (existing && !existing.pinHash && existing.claimHash) {
         if (next.pinHash && (await sha256(String(body?.claim || ""))) !== existing.claimHash) return json({ error: "claim" }, 403);
         if (!next.pinHash) next.claimHash = existing.claimHash;
-      } else if (!next.pinHash && !(existing && existing.pinHash)) { claim = newClaim(); next.claimHash = await sha256(claim); }
+      } else if (!next.pinHash && !(existing && existing.pinHash) && body?.w) { claim = newClaim(); next.claimHash = await sha256(claim); } // (only a game that keeps it)
       // coins and things: what a save from the game may change (wallet.mts); anything over is cut and noted
       const cut = guardSave(existing, next, await ownersFor(existing, next));
       // two saves at the same moment: the second one sees the first (and its PIN) instead of silently replacing it

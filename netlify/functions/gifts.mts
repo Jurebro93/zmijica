@@ -1,6 +1,7 @@
 // Gifts between Vijuga players. The giver pays in their own profile; the gift waits here until
 // the receiver's game picks it up.
-// POST   /api/gifts            {to, from, item, auth}  -> stores a pending gift (giver's PIN checked)
+// POST   /api/gifts            {to, from, item, auth, w, claim?}  -> the giver pays (on the server) and the gift waits;
+//                                                         a PIN-less giver proves ownership with its device claim
 // GET    /api/gifts/:slug                              -> pending gifts for that player
 // DELETE /api/gifts/:slug/:id  {auth}                  -> receiver collects one: 200 {ok} exactly once per gift;
 //                                                         404 {error: "gone"} when it does not exist or was collected
@@ -9,7 +10,7 @@
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { account, pinGate } from "./guard.mts";
-import { applyGift, bump, isThing, priceOf } from "./wallet.mts";
+import { applyGift, bump, invPriceOf, isThing, limitOf, owns, priceOf, transit } from "./wallet.mts";
 
 const cors = {
   "access-control-allow-origin": "*",
@@ -32,10 +33,16 @@ export default async (req: Request, context: Context) => {
     if (!giver || !receiver) return json({ error: "unknown player" }, 404);
     const g = await pinGate(req, context, from, giver.pinHash, b?.auth);
     if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "wrong pin" }, 403);
+    // a page from before the server wallet would take the price a second time in its own copy: it is asked to reload
+    if (!b?.w) return json({ error: "update" }, 409);
+    if (!(await owns(giver, b?.claim))) return json({ error: "pin needed" }, 403);
     const { blobs } = await store.list({ prefix: to + "/" });
     if (blobs.length >= 30) return json({ error: "too many pending gifts" }, 429);
-    // a player gives a thing from the shop and pays its price here (not in the game's own copy of the profile)
-    const price = priceOf(item); if (!isThing(item) || !price) return json({ error: "bad item" }, 400);
+    // a player gives a thing from the shop (or a prank, a shield) and pays its price here, not in the game's own copy
+    const inv = invPriceOf(item), price = isThing(item) ? priceOf(item) : inv ?? 0;
+    if (!price) return json({ error: "bad item" }, 400);
+    if (limitOf(item)) return json({ error: "limited" }, 400); // limited things change hands only at the auction
+    if (isThing(item) && Array.isArray(receiver.owned) && (receiver.owned as string[]).includes(item)) return json({ error: "already owned" }, 409);
     const paid = await bump(from, (d) => { if ((Number(d.coins) || 0) < price) return false; d.coins -= price; d.spent = (Number(d.spent) || 0) + price; d.purchases = (Number(d.purchases) || 0) + 1; });
     if (!paid) return json({ error: "not enough coins" }, 409);
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -56,16 +63,21 @@ export default async (req: Request, context: Context) => {
     // no such gift: the same answer whoever asks and with whatever PIN
     const gift = (await store.get(`${slug}/${id}`, { type: "json" })) as { item?: string } | null; if (!gift) return gone();
     const acc = await account(slug); if (!acc) return gone();
-    const b = (await req.json().catch(() => ({}))) as { auth?: string };
+    const b = (await req.json().catch(() => ({}))) as { auth?: string; w?: number };
     const g = await pinGate(req, context, slug, acc.pinHash, b.auth);
     if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "wrong pin" }, 403);
+    if (!b.w) return json({ error: "update" }, 409); // a page from before the server wallet would credit it a second time
     // two tabs collecting the same gift at once: only the one that writes the claim first gets it
     const claim = await getStore({ name: "vijuga-gift-claims", consistency: "strong" }).setJSON(`${slug}/${id}`, { at: Date.now() }, { onlyIfNew: true });
     await store.delete(`${slug}/${id}`); // (also tidies up a gift whose claim was written by a request that died before this)
     if (!claim.modified) return gone();
-    // credited here, on the server's copy of the account; the game shows the same and moves its base along
-    let credit: Record<string, unknown> = {};
-    const acc2 = await bump(slug, (d) => { credit = applyGift(d, String(gift.item || "")); });
+    // credited here, on the server's copy of the account; the game shows the same and moves its base along. If that
+    // fails, the gift goes back where it was (it can be collected again)
+    let credit: Record<string, unknown> = {}, acc2: Awaited<ReturnType<typeof bump>> = null;
+    const item = String(gift.item || "");
+    try { acc2 = await bump(slug, (d) => { credit = applyGift(d, item); }); }
+    catch (e) { await store.setJSON(`${slug}/${id}`, gift).catch(() => {}); await getStore({ name: "vijuga-gift-claims", consistency: "strong" }).delete(`${slug}/${id}`).catch(() => {}); return json({ error: "busy" }, 503); }
+    await transit(item, `g/${slug}/${id}`, false).catch(() => {});
     return json({ ok: true, credit, rev: acc2 ? acc2.updatedAt : null, prev: acc2 ? acc2._prev : null });
   }
   return json({ error: "method not allowed" }, 405);
