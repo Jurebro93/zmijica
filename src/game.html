@@ -517,6 +517,8 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .chatsheet .chatrow input { padding: 11px 12px; font-size: 16px; } .chatsheet .chatrow button { padding: 0 16px; } .chatsheet .micbtn { padding: 0 14px; font-size: 21px; background: color-mix(in srgb, var(--amber) 14%, var(--ink)); border-color: var(--amber); }
 .qchips { display: flex; gap: 6px; flex-wrap: wrap; } .qchip { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 5px 11px; font-size: 13px; }
 .qchip:hover { border-color: var(--amber); }
+.matches { display: grid; gap: 6px; margin: 4px 0 8px; } .mrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--ink); font-size: 14px; }
+.mrow.mine { border-color: var(--amber); } .mrow .who { flex: 1; min-width: 120px; } .mrow .st { color: var(--muted); font-size: 12px; }
 .allgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .allcard { display: grid; justify-items: center; gap: 2px; padding: 12px 4px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); text-decoration: none; text-align: center; cursor: pointer; }
 .allcard span { font-size: 26px; line-height: 1.15; } .allcard b { font-size: 14px; } .allcard small { color: var(--muted); font-size: 11px; line-height: 1.2; }
@@ -1844,11 +1846,30 @@ function renderAuct() {
 }
 // one-time announcement about unique items and the auction house
 function announceUnique() {
+  if (!$('#game').hidden) { setTimeout(announceUnique, 20000); return; } // never over a running match
   try { if (localStorage.getItem('vijuga-ann-unique')) return; localStorage.setItem('vijuga-ann-unique', '1'); } catch (e) { return; }
   const n = notify('🆕 <b>Unikati u trgovini!</b> Stranke (HDZ, SDP, Možemo…) i zastave (LGBT, Q+, trans…): od svake postoji <b>samo 1</b>. Tko prvi kupi, jedini ga ima, a ostali ga mogu dobiti samo na novoj <b>Aukciji 🔨</b>.', { ms: 20000, actions: '<button class="pingbtn" type="button" data-go-shop="1">Pogledaj</button>' });
   if (n) n.querySelector('[data-go-shop]').onclick = () => { n.remove(); showTab('shop'); const u = $('.uniquebox'); if (u) u.scrollIntoView({ behavior: 'smooth' }); };
 }
 setTimeout(announceUnique, 5000);
+// ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
+// The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
+// going on the page reloads by itself (once per version), otherwise it offers a button.
+const BUILD = '__BUILD__';
+async function checkVersion() {
+  if (BUILD.charAt(0) === '_') return; // the bare source, not a build
+  try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
+}
+function newVersion(v) {
+  const idle = $('#game').hidden && $('#regModal').hidden && $('#inviteModal').hidden && !net && !myPres.ok && !recState && !(document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+  let tried = ''; try { tried = sessionStorage.getItem('vijuga-reloaded') || ''; } catch (e) { tried = v; }
+  if (idle && tried !== v) { try { sessionStorage.setItem('vijuga-reloaded', v); } catch (e) {} location.reload(); return; }
+  if (newVersion.shown) return; newVersion.shown = true;
+  const n = notify('🆕 Izašla je <b>nova verzija</b> igre. Osvježi da igraš po istim pravilima kao ostali.', { ms: 0, actions: '<button class="pingbtn" type="button" data-reload="1">Osvježi</button>' });
+  if (n) { n.querySelector('[data-reload]').onclick = () => location.reload(); n.querySelector('.x').addEventListener('click', () => { setTimeout(() => { newVersion.shown = false; }, 10 * 60000); }); }
+}
+setTimeout(checkVersion, 45000); setInterval(checkVersion, 4 * 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(checkVersion, 1500); });
 function showTab(t) {
   curTab = t;
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
@@ -3134,7 +3155,7 @@ function toMenu() {
   if (net && net.role === 'client' && net.myId != null) netPresence({ vis: 0 });
   netPresence({ ig: null, pl: null, sp: null, watch: null }); followHost(null); trollFx.length = 0; resetCanvasFx(); $('#specBar').hidden = true;
   if (profile && profileDirty) { profileDirty = false; saveProfile(); }
-  if (net) { try { if (net.role === 'client' && net.mid) localStorage.setItem('vijuga-left', net.mid); } catch (e) {} if (net.role === 'host') netPresence({ st: null, pls: null, pmid: null, hm: null, hb: null, ho: null }); net = null; }
+  if (net) { try { if (net.role === 'client' && net.mid) localStorage.setItem('vijuga-left', net.mid); } catch (e) {} if (net.role === 'host') netPresence({ st: null, pls: null, pn: null, nj: null, pmid: null, hm: null, hb: null, ho: null }); net = null; }
   netPresence({ ok: null, again: null });
   $('#game').hidden = true; $('#menu').hidden = false; showOverlay(null); $('#gchat').hidden = true; $('#reactPop').hidden = true;
   renderPlayers(); renderMe(); renderShop(); pvStart(); if (curTab === 'online') renderNet();
@@ -3348,6 +3369,7 @@ function renderOnbar() {
   const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
   const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
     : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
+    : !host && liveHosts().some(h => !hostOver(h)) ? 'Meč koji se igra je pun. Ne moraš čekati: kreni odmah, a ostali ti se pridruže.'
     : inLobby ? `${inLobby} ${inLobby >= 2 && inLobby <= 4 ? 'čekaju' : 'čeka'} u predvorju. Uđi i krenite!`
     : 'Uđi u predvorje i pozovi ih, puno je zabavnije od botova.';
   const label = n === 0 ? 'Samo ti si online' : n === 1 ? '1 igrač online uz tebe' : `${n} igrača online uz tebe`;
@@ -3494,7 +3516,8 @@ function watchingNow() { return !!(net && net.role === 'client' && (net.spectate
 function queueList() {
   const inMatch = new Set(G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   if (net && net.role === 'client' && net.hostPeer) inMatch.add(net.hostPeer);
-  return roomState.peers.filter(p => p.presence && p.presence.rd && p.presence.ok && !p.presence.hs && !kickedSlug(p.presence.sl) && !inMatch.has(p.peer) && !(p.presence.again && net && p.presence.again === net.mid)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
+  const hp = net ? (net.role === 'host' ? roomState.me : net.hostPeer) : null; // with several matches in the room, only those who follow this one queue for it
+  return roomState.peers.filter(p => p.presence && p.presence.rd && p.presence.ok && !p.presence.hs && !kickedSlug(p.presence.sl) && !inMatch.has(p.peer) && (!hp || p.presence.fol === hp || (p.presence.fol == null && liveHosts().length <= 1)) && !(p.presence.again && net && p.presence.again === net.mid)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
 }
 // people who follow this match without a seat (online match), or who watch my own game with bots
 function spectators() {
@@ -3765,7 +3788,7 @@ function tryWatchSlug() {
   const pe = roomState.peers.find(p => p.presence && p.presence.sl === WATCH_SLUG && !(p.isMe && p.sameTab));
   if (pe && canWatch(pe.presence)) { tryWatchSlug.done = true; startSpectate(pe.peer); return; }
   // a guest in an online match: watch that match through its host
-  if (pe && pe.presence.ig) { const h = findHost(); if (h && !(h.isMe && h.sameTab)) { tryWatchSlug.done = true; startSpectate(h.peer); } }
+  if (pe && pe.presence.ig) { const h = hostOfSlug(WATCH_SLUG) || findHost(); if (h && !(h.isMe && h.sameTab)) { tryWatchSlug.done = true; startSpectate(h.peer); } }
 }
 setTimeout(() => { if (WATCH_SLUG && !tryWatchSlug.done) { tryWatchSlug.done = true; notify('Taj igrač trenutno ne igra. Pogledaj tko je online gore.', { warn: true }); } }, 9000);
 function joinLobby(ready) { if (ready && iAmKicked(true)) ready = false; roomState.ready = ready; netPresence(Object.assign(myLobbyPres(), { in: 0, j: 0 }, ready ? {} : { ok: null })); renderNet(); renderOnbar(); }
@@ -3791,11 +3814,12 @@ setInterval(inviteTick, 1000);
 // ---- "everyone presses Ready": the match starts by itself when every player in the lobby is ready
 function lobbyPlayers() {
   // one entry per account: this tab for me, otherwise the connection that spoke last (a stale duplicate must never hold a flag)
-  const by = new Map();
+  const by = new Map(), taken = splitSeated();
   for (const p of roomState.peers) {
     if (p.kind !== 'viewer' || !p.presence || !p.presence.rd || !p.presence.nm || p.presence.pg === 'stats' || p.presence.obs) continue;
     if (p.presence.ig) continue; // someone playing (with bots, or still in a match) is not waiting in the lobby
     if (kickedSlug(p.presence.sl)) continue;
+    if (taken.has(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
     const k = p.presence.sl || p.peer, o = by.get(k);
     if (!o || (p.isMe && p.sameTab) || (!(o.isMe && o.sameTab) && (p.updatedAt || 0) > (o.updatedAt || 0))) by.set(k, p);
   }
@@ -3865,26 +3889,67 @@ function hostStale(p) {
   return now - r.at > HOST_STALE_MS;
 }
 function hostOver(h) { return !!(h && h.presence && Number(h.presence.ho) >= REMATCH_HOLD_S); }
-function findHost() {
-  const ov = (h) => (Number(h.presence.ho) > 0 ? 1 : 0); // a running match always comes before a finished one
-  const hosts = roomState.peers.filter(p => p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs) && !hostStale(p)).sort((a, b) => (ov(a) - ov(b)) || ((b.presence.hm || 0) - (a.presence.hm || 0)) || (a.peer < b.peer ? -1 : 1));
-  return hosts[0] || null;
+function isHosting(p) { return !!(p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs)); }
+// Every match being played in the room, a running match before a finished one.
+function liveHosts() {
+  const ov = (h) => (Number(h.presence.ho) > 0 ? 1 : 0);
+  return roomState.peers.filter(p => isHosting(p) && !hostStale(p)).sort((a, b) => (ov(a) - ov(b)) || ((b.presence.hm || 0) - (a.presence.hm || 0)) || (a.peer < b.peer ? -1 : 1));
 }
-// I host and somebody else hosts too: returns the other host when I am the one who has to step down. A running match
-// comes before a finished one, a host that took a match over before the original, then the lower peer id; a host whose
-// own game stood still (hidden tab) yields to any running match.
+// Seats an outsider can still get in a match: a bot's seat or an empty one. A match that started as one of several (nj)
+// is closed for a moment, so the rest of the lobby forms its own match instead of queueing for this one.
+function hostRoom(h) {
+  const q = h.presence || {}; if (q.nj) return 0;
+  if (!Array.isArray(q.pn)) return 1; // an older host does not say: assume there is room
+  const humans = Number(q.pn[0]) || 0, bots = Number(q.pn[1]) || 0;
+  return bots + Math.max(0, MAX_PLAYERS - humans - bots);
+}
+function hostHumans(h) { const q = h.presence || {}; return Array.isArray(q.pn) ? Number(q.pn[0]) || 0 : Array.isArray(q.pls) ? q.pls.length : 0; }
+function seatedAt(h, slug) { return !!(slug && h && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(slug)); }
+function hostOfSlug(slug) { return liveHosts().find(h => seatedAt(h, slug)) || null; }
+// players already seated in a match that has just started as one of several: they are no longer waiting in the lobby
+function splitSeated() { const set = new Set(); for (const h of liveHosts()) if (!(h.isMe && h.sameTab) && h.presence.nj && Array.isArray(h.presence.pls)) for (const sl of h.presence.pls) set.add(sl); return set; }
+// The match that concerns me: the one I host or have a seat in, then the one I picked from the list, otherwise the one
+// with room that has the most people in it. Null when every match is full: then the lobby may start another one.
+function pickHost(hosts) {
+  if (!hosts.length) return null;
+  const sl = profile ? profile.slug : null;
+  const mine = hosts.find(h => h.isMe && h.sameTab) || hosts.find(h => seatedAt(h, sl)); if (mine) return mine;
+  const open = hosts.filter(h => hostRoom(h) > 0); if (!open.length) return null;
+  const want = roomState.wantHost && open.find(h => h.peer === roomState.wantHost); if (want) return want;
+  const ov = (h) => (Number(h.presence.ho) > 0 ? 1 : 0);
+  return open.map((h, i) => ({ h, i })).sort((a, b) => (ov(a.h) - ov(b.h)) || (hostHumans(b.h) - hostHumans(a.h)) || (a.i - b.i))[0].h;
+}
+function findHost() { return pickHost(liveHosts()); }
+// Several matches may run side by side, so another host is not a conflict by itself. I host and have to step down
+// (the returned host stays) only when: we are the same match (same id), we each count the other as a player (two people
+// started from the same lobby at once), the other is an older client that knows one match per room - a running match
+// then comes before a finished one, a host that took a match over before the original, then the lower peer id - or my
+// brand-new match has nobody else in it while another match has room (two quick starts at once fold into one).
 function hostConflict() {
   if (!net || net.role !== 'host') return null;
-  const others = roomState.peers.filter(p => !(p.isMe && p.sameTab) && p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs) && !hostStale(p));
-  if (!others.length) return null;
-  const rank = (over, hm, peer) => (over ? '1' : '0') + (hm ? '0' : '1') + peer;
-  const best = others.map(o => ({ o, r: rank(Number(o.presence.ho) > 0, o.presence.hm, o.peer) })).sort((a, b) => (a.r < b.r ? -1 : 1))[0];
-  const mine = rank(!!(G && G.over), net.migrated || myPres.hm, roomState.me || '~');
-  if (net.wasStale && performance.now() - net.wasStale < 6000 && best.r[0] === '0') return best.o;
-  return best.r < mine ? best.o : null;
+  const hosts = roomState.peers.filter(p => !(p.isMe && p.sameTab) && isHosting(p) && !hostStale(p));
+  if (!hosts.length) return null;
+  const mySl = profile ? profile.slug : null, myPls = Array.isArray(myPres.pls) ? myPres.pls : [];
+  const midOf = (o) => { const q = o.presence; return (q.st && typeof q.st === 'object' && q.st.mid) || q.pmid || ''; };
+  const hard = hosts.filter(o => { const q = o.presence; return midOf(o) === net.mid || !Array.isArray(q.pls) || !Array.isArray(q.pn) || seatedAt(o, mySl) || (!!q.sl && myPls.includes(q.sl)); });
+  if (hard.length) {
+    const rank = (over, hm, peer) => (over ? '1' : '0') + (hm ? '0' : '1') + peer;
+    const best = hard.map(o => ({ o, r: rank(Number(o.presence.ho) > 0, o.presence.hm, o.peer) })).sort((a, b) => (a.r < b.r ? -1 : 1))[0];
+    const mine = rank(!!(G && G.over), net.migrated || myPres.hm, roomState.me || '~');
+    if (net.wasStale && performance.now() - net.wasStale < 6000 && best.r[0] === '0') return best.o;
+    if (best.r < mine) return best.o;
+  }
+  if (net.startedAt && !net.migrated && performance.now() - net.startedAt < 8000 && myPls.length <= 1 && !(G && G.over) && !TMODE) {
+    const t = (m) => parseInt(m, 36) || 0, mt = t(net.mid);
+    const o = hosts.find(o => !(Number(o.presence.ho) > 0) && Array.isArray(o.presence.pn) && hostRoom(o) > 0 && (hostHumans(o) >= 2 || t(midOf(o)) < mt || (t(midOf(o)) === mt && o.peer < (roomState.me || '~'))));
+    if (o) { net.fold = true; return o; }
+  }
+  // a match that has been sitting on its results for a long time makes way as soon as another match is being played
+  if (G && G.over && net.overAt && performance.now() - net.overAt >= REMATCH_HOLD_S * 1000) { const o = hosts.find(o => !(Number(o.presence.ho) > 0)); if (o) return o; }
+  return null;
 }
-// the host of a match one can still join (not one that has been sitting on its results for a long time)
-function liveHost() { const h = findHost(); return h && !hostOver(h) ? h : null; }
+// the match I could still join: the one that concerns me, unless it has been sitting on its results for a long time
+function liveHost() { return pickHost(liveHosts().filter(h => !hostOver(h))); }
 function renderNet() {
   const box = $('#net'); if (!box) return;
   if (!roomNs && roomState.resolved) {
@@ -3900,7 +3965,13 @@ function renderNet() {
   const readyPeers = peers.filter(p => p.presence && p.presence.rd);
   const html = [];
   html.push(`<div class="status"><span class="led ${roomState.connected ? 'on' : ''}"></span>${roomState.connected ? 'Povezano' : 'Nema veze'} · ${readyPeers.length} u predvorju · ${readyPeers.filter(p => p.presence.ok).length} spremno${roomState.ready && !host ? (lobbyLeft() >= 0 ? ' · <b>meč kreće za <span class="lobbycd">' + lobbyLeft() + '</span> s</b>' : ' · meč kreće čim su svi spremni, ili 10 s nakon što su spremna barem dva igrača') : ''}</div>`);
-  if (host) {
+  const matches = liveHosts().filter(h => !hostOver(h) && !(h.isMe && h.sameTab));
+  if (matches.length > 1 || (matches.length === 1 && !host)) {
+    const nameOf = (sl) => { const pe = roomState.peers.find(q => q.presence && q.presence.sl === sl); return pe ? String(pe.presence.nm || sl) : sl; };
+    html.push(`<div class="matches"><span class="label">Mečevi u tijeku</span>${matches.map((h, i) => { const q = h.presence, room = hostRoom(h), bots = Array.isArray(q.pn) ? Number(q.pn[1]) || 0 : 0, who = (Array.isArray(q.pls) && q.pls.length ? q.pls.map(nameOf) : [String(q.nm || 'netko')]).map(n => esc(String(n).slice(0, 14))).join(', '); return `<div class="mrow${h === host ? ' mine' : ''}"><b>Meč ${i + 1}</b><span class="who">${who}${bots ? ' + ' + plural(bots, 'bot', 'bota', 'botova') : ''}</span><span class="st">${Number(q.ho) > 0 ? 'upravo završio' : room > 0 ? plural(room, 'slobodno mjesto', 'slobodna mjesta', 'slobodnih mjesta') : 'pun'}</span>${room > 0 || seatedAt(h, profile.slug) ? `<button class="btn sm" type="button" data-joinh="${esc(h.peer)}">Uđi</button>` : ''}<button class="btn sm ghost" type="button" data-watchh="${esc(h.peer)}">👀 Gledaj</button></div>`; }).join('')}</div>`);
+    if (!host) html.push(`<div class="notice">${matches.length > 1 ? 'Svi mečevi su puni' : 'Meč koji se igra je pun'}. Ne moraš čekati: stisni <b>Spreman</b> ili <b>Kreni odmah</b> i kreće novi meč${setup.netBots ? ' (s botovima dok se ostali ne pridruže)' : ''}.</div>`);
+  }
+  if (host && matches.length <= 1) {
     html.push(`<div class="notice">${Number(host.presence.ho) > 0 ? 'Meč je upravo završio (igrači dogovaraju novi)' : 'Meč je u tijeku'}, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netReadyRun" style="margin-left:8px">✅ Uđi u meč (od sljedeće runde)</button><button class="btn sm ghost" id="netWatch" style="margin-left:8px">👀 Samo gledaj</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn ${myPres.ok ? 'ghost' : ''}" id="netStart">${myPres.ok ? '⏳ Spreman · odustani' : '✅ Spreman za meč'}</button>` : ''}${roomState.ready && !host && lobbyState().canGo ? `<button class="btn" id="netGo" title="Meč kreće odmah s onima koji su spremni; ostali ulaze od sljedeće runde">▶ Kreni odmah${readyCount() < 2 ? ' s botovima' : ''}</button>` : ''}${roomState.ready && !host && myRole() === 'master' ? `<button class="btn ghost sm" id="netForce" title="Admin: pokreni bez čekanja">▶ Pokreni odmah</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
@@ -3919,6 +3990,8 @@ function renderNet() {
   if ($('#netStart')) $('#netStart').onclick = toggleReady;
   if ($('#netReadyRun')) $('#netReadyRun').onclick = () => { roomState.onlyWatch = false; if (!myPres.ok) toggleReady(); else { const h = liveHost(); if (h) joinHost(h); } };
   if ($('#netForce')) $('#netForce').onclick = () => { if (!net) hostStart(); };
+  box.querySelectorAll('[data-joinh]').forEach(b => b.onclick = () => { const h = roomState.peers.find(p => p.peer === b.dataset.joinh); if (!h || net || iAmKicked(true)) return; roomState.onlyWatch = false; roomState.wantHost = h.peer; if (!roomState.ready) joinLobby(true); if (!myPres.ok) netPresence({ ok: 1 }); joinHost(h); toast('Ulaziš u meč od sljedeće runde (umjesto bota ili na slobodno mjesto).'); });
+  box.querySelectorAll('[data-watchh]').forEach(b => b.onclick = () => { const h = roomState.peers.find(p => p.peer === b.dataset.watchh); if (!h || net) return; roomState.watching = true; roomState.onlyWatch = true; if (myPres.ok) netPresence({ ok: null }); joinHost(h); });
   if ($('#netGo')) $('#netGo').onclick = () => startNow();
   wireKick(box);
   if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; roomState.onlyWatch = true; if (myPres.ok) netPresence({ ok: null }); joinHost(host); };
@@ -4095,8 +4168,9 @@ function dropDeparted() {
   G.goneStats = G.goneStats || {}; for (const p of gone) if (p.slug && !p.kicked) G.goneStats[p.slug] = { score: p.score, kills: p.kills, wins: p.wins, picks: p.picks, jumps: p.jumps };
   for (const p of gone) showIgMsg(`👋 <b>${esc(p.name)}</b> je napustio meč`);
   if (setup.netBots && !TMODE) { const used = new Set(G.players.map(p => p.id)); while (G.players.length < 2) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); G.players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'teško', skin: 'sk_none', badge: 'bd_none', starter: '', score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }); } }
-  G.plDirty = true; hudDirty = true; netPresence({ pls: G.players.filter(x => x.human && x.slug).map(x => x.slug) });
+  G.plDirty = true; hudDirty = true; netPresence(hostSeats());
 }
+function hostSeats() { return { pls: G.players.filter(x => x.human && x.slug).map(x => x.slug), pn: [G.players.filter(x => x.human).length, G.players.filter(x => !x.human).length] }; }
 function seatQueuedHumans() {
   if (!net || net.role !== 'host' || TMODE || !G || G.over) return;
   const bots = G.players.filter(p => !p.human);
@@ -4108,14 +4182,14 @@ function seatQueuedHumans() {
       const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
       const c = used.has(want) ? bot.id : want;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1; G.plDirty = true; netPresence({ pls: G.players.filter(x => x.human && x.slug).map(x => x.slug) });
+      G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
     } else if (G.players.length < MAX_PLAYERS) { // free seat: join the running match from the next round
       const used = new Set(G.players.map(p => p.id));
       let c = want; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players.push(np); G.joinRound = G.round + 1; G.plDirty = true; netPresence({ pls: G.players.filter(x => x.human && x.slug).map(x => x.slug) });
+      G.players.push(np); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi u meč`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč od ove runde`);
     } else break;
@@ -4129,11 +4203,17 @@ function hostStart(rematch) {
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
   const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && ((p.isMe && p.sameTab) || (rematch ? (p.presence.again === lastMid || (p.presence.rd && p.presence.ok && !p.presence.again)) : (p.presence.rd && p.presence.ok))) && !invitePending(p.peer) && !kickedSlug(p.presence.sl));
   { const bySl = {}; for (const c of [...cand].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))) { const sl = c.presence.sl; if (sl) { if (bySl[sl]) c._dup = true; else bySl[sl] = c; } } }
-  const cand2 = cand.filter(c => !c._dup); cand.length = 0; cand.push(...cand2);
+  // not somebody who already sits in (or queues for) another match
+  const taken = splitSeated(), others = new Set(liveHosts().filter(h => !(h.isMe && h.sameTab)).map(h => h.peer));
+  const cand2 = cand.filter(c => !c._dup && ((c.isMe && c.sameTab) || (!taken.has(c.presence.sl) && !(c.presence.fol && c.presence.fol !== roomState.me && others.has(c.presence.fol))))); cand.length = 0; cand.push(...cand2);
   const meP = cand.find(p => p.isMe && p.sameTab);
   const queue = cand.filter(p => p !== meP && !lastIds.has(p.peer)).sort((a, b) => (Number(a.presence.rq) || 9e15) - (Number(b.presence.rq) || 9e15) || (a.peer < b.peer ? -1 : 1));
   const prev = cand.filter(p => p !== meP && lastIds.has(p.peer)).sort((a, b) => order.indexOf(a.peer) - order.indexOf(b.peer));
-  const peers = [meP, ...queue, ...prev].filter(Boolean).slice(0, MAX_PLAYERS);
+  // more ready players than one match holds: several even matches instead of one full match and a queue (8 -> 4 + 4).
+  // I take my share; the others see my match closed (nj) and start theirs from the lobby a moment later.
+  const all = [meP, ...queue, ...prev].filter(Boolean);
+  const nMatches = !rematch && !TMODE ? Math.ceil(all.length / MAX_PLAYERS) : 1;
+  const peers = all.slice(0, nMatches > 1 ? Math.ceil(all.length / nMatches) : MAX_PLAYERS);
   if (!peers.length) return;
   const used = new Set(); const players = [];
   peers.forEach((pr, i) => {
@@ -4144,8 +4224,10 @@ function hostStart(rematch) {
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'teško', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') { net.rematching = false; net.firstReadyAt = 0; } else toast('Trebaju barem 2 igrača u predvorju, ili uključi botove.'); return; }
   { const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 1).filter(r => r > 0.3 && r < 3); netRatio = Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / Math.max(1, rs.length)))); }
-  net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36) };
-  netPresence({ again: null, ok: null, rd: 1, pls: players.filter(p => p.human && p.slug).map(p => p.slug), pmid: net.mid, hb: Date.now() }); roomState.ready = true;
+  net = { role: 'host', lastSend: 0, myId: (players.find(p => p.mine) || {}).id, supa: !!window.__supaMode, mid: Date.now().toString(36), startedAt: rematch ? 0 : performance.now() };
+  { const mid = net.mid; if (nMatches > 1) setTimeout(() => { if (net && net.role === 'host' && net.mid === mid && myPres.nj) netPresence({ nj: null }); }, 15000); }
+  roomState.wantHost = null;
+  netPresence({ again: null, ok: null, rd: 1, pls: players.filter(p => p.human && p.slug).map(p => p.slug), pn: [players.filter(p => p.human).length, players.filter(p => !p.human).length], nj: nMatches > 1 ? 1 : null, pmid: net.mid, hb: Date.now() }); roomState.ready = true;
   if (!net || net.role !== 'host') return; // another host with precedence is already running: I stepped down while announcing mine
   $('#menu').hidden = true; $('#game').hidden = false;
   G = { players: players.filter(p => p.mine) }; buildPads();
@@ -4336,7 +4418,7 @@ function takeOverHost2() {
   Object.assign(G, { pz: null, parts: G.parts || [], pus: G.pus || [], nextPu: G.gt + 3, tombs: G.tombs || [], kx: G.kx || {}, wrapAllUntil: G.wrapAllUntil || 0, inset: G.inset || 0, clr: G.clr || 0, target: G.target || roundsFor(), speedMul: G.speedMul || 1, lastCount: 4, plDirty: true });
   if (G.arena && typeof stampArena === 'function') { try { stampArena(); } catch (e) {} }
   T = Math.max(T, 100000); // every stamp received so far counts as old (no self-grace on them)
-  netPresence({ rd: 1, hs: 1, hm: 1, st: buildSnap(true), pls: G.players.filter(p => p.human && p.slug).map(p => p.slug), pmid: net.mid, hb: Date.now() }); roomState.ready = true;
+  netPresence(Object.assign({ rd: 1, hs: 1, hm: 1, st: buildSnap(true), pmid: net.mid, hb: Date.now(), nj: null }, hostSeats())); roomState.ready = true;
   if (myPres.fol) netPresence({ fol: roomState.me });
   buildPads(); hudDirty = true; showOverlay(null); net.lastSend = 0;
   showIgMsg('👑 Domaćin je otišao – <b>ti</b> vodiš meč dalje'); toast('Preuzeo si vođenje meča');
@@ -4616,7 +4698,7 @@ async function initCapabilities() {
       roomState.peers = ch.peers;
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
       collectChat(); collectSocial(); collectDirect(); collectKicks(); tryWatchSlug(); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
-      if (net && net.role === 'host') { const h = hostConflict(); if (h) { const same = h.presence.st && typeof h.presence.st === 'object' && h.presence.st.mid === net.mid; net = null; netPresence({ st: null, pls: null, pmid: null, hm: null, hb: null, ho: null }); if (same) { followHost(h.peer); clientBegin(h); if (net) net.deadHosts = new Set(); showIgMsg('Dva domaćina istog meča – nastavljaš kao igrač.'); } else toMenu(); } } // net is dropped first: toMenu's own presence patch re-enters this handler
+      if (net && net.role === 'host') { const h = hostConflict(); if (h) { const same = h.presence.st && typeof h.presence.st === 'object' && h.presence.st.mid === net.mid, fold = !!net.fold, playing = !(G && G.over) || (net.startedAt && performance.now() - net.startedAt < 8000); net = null; netPresence({ st: null, pls: null, pn: null, nj: null, pmid: null, hm: null, hb: null, ho: null }); if (same) { followHost(h.peer); clientBegin(h); if (net) net.deadHosts = new Set(); showIgMsg('Dva domaćina istog meča – nastavljaš kao igrač.'); } else { toMenu(); if ((fold || playing) && profile && !iAmKicked()) { if (!roomState.ready) joinLobby(true); netPresence({ ok: 1 }); joinHost(h); toast('Drugi meč je krenuo u isto vrijeme – spajam te s njim.'); } } } } // whoever was starting or playing goes on in the match that stays, instead of being left in the menu // net is dropped first: toMenu's own presence patch re-enters this handler
       if (!net && roomState.ready && myPres.ok && $('#game').hidden) { const h = liveHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
       else if (!net && $('#game').hidden && profile && !iAmKicked()) { const h = findHost(); let leftMid = ''; try { leftMid = localStorage.getItem('vijuga-left') || ''; } catch (e) {} if (h && !(h.isMe && h.sameTab) && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(profile.slug) && h.presence.pmid && h.presence.pmid !== leftMid) { if (!roomState.ready) joinLobby(true); joinHost(h); } }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();
@@ -4726,6 +4808,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, findHost, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
