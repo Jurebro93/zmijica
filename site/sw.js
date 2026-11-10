@@ -1,4 +1,4 @@
-// Vijuga service worker: shows push notifications (invites, meeting reminders) and opens the game on tap.
+// Vijuga service worker: shows push notifications (invites, pokes, news) and opens the game on tap.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', (e) => {

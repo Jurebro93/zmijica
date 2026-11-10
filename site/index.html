@@ -117,6 +117,10 @@ button:disabled { cursor: default; opacity: .5; }
 .meetbar .mt { flex: 1 1 220px; min-width: 0; font-size: 15px; }
 .meetbar .ms { color: var(--muted); }
 .meetbar .ms b { color: var(--amber); }
+.newsbar { border-color: color-mix(in srgb, var(--amber) 45%, var(--line)); } .nbadge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 9px; background: #ff5d73; color: #fff; font-style: normal; font-size: 12px; font-weight: 800; }
+.newtag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #ff5d73; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; vertical-align: .15em; }
+.newscard .nlist { display: grid; gap: 10px; } .newscard .nitem { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); }
+.newscard .nitem.unseen { border-color: var(--amber); } .newscard .ne { font-size: 28px; line-height: 1.1; } .newscard .nx b { font-size: 16px; } .newscard .nd { display: block; color: var(--muted); font-size: 12px; } .newscard .nx p { margin: 4px 0 6px; font-size: 14px; line-height: 1.35; } .newscard .row { display: flex; gap: 6px; flex-wrap: wrap; }
 .btn.wa { background: #25d366; color: #062b14; text-decoration: none; display: inline-flex; align-items: center; }
 .mday { display: grid; gap: 6px; }
 .mchips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
@@ -1193,7 +1197,7 @@ async function enablePush() {
     if (!r.ok) { toast('Obavijesti nisu spremljene (' + r.status + ').'); return false; }
     try { localStorage.setItem('vijuga-push-on', profile.slug); } catch (e) {}
     if (!profile.owned.includes('x_pushbonus')) { profile.owned.push('x_pushbonus'); profile.coins += PUSH_BONUS; saveProfile(); toast(`🔔 Obavijesti uključene. Nagrada: +${PUSH_BONUS} zlatnika! Prijatelji te sad mogu bocnuti 👉`); }
-    else toast('🔔 Obavijesti uključene: pozivi, bocanja i podsjetnik 15 min prije termina.');
+    else toast('🔔 Obavijesti uključene: pozivi, bocanja i novosti u igri.');
     renderOnbar(); renderPushNag(); return true;
   } catch (e) { toast('Obavijesti nisu uspjele: ' + (e && e.message || e)); return false; }
 }
@@ -1287,12 +1291,12 @@ async function grantAll() {
 // every section is reachable from everywhere: the bottom bar, the top menu and the "Sve" sheet all go through here
 function navGo(g) {
   closeModal(); const im = $('#inviteModal'); if (im && !im.hidden && !social.pendingFrom) im.hidden = true;
-  if (g === 'play') showPlayChooser(); else if (g === 'me') showProfile(); else if (g === 'chat') openChat(); else if (g === 'all') openAll(); else if (g === 'invite') { if (profile) shareInvite(); else showLogin(); }
+  if (g === 'play') showPlayChooser(); else if (g === 'me') showProfile(); else if (g === 'chat') openChat(); else if (g === 'all') openAll(); else if (g === 'news') showNews(); else if (g === 'invite') { if (profile) shareInvite(); else showLogin(); }
   else { showTab(g); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 }
 function openAll() {
   const m = $('#regModal'), n = chatUnseen(); m.hidden = false;
-  const items = [['online', '🌐', 'Online', 'igraj s ljudima'], ['local', '🤖', 'S botovima', 'kreće odmah'], ['chat', '💬', 'Chat', n ? plural(n, 'nova poruka', 'nove poruke', 'novih poruka') : 'piši i snimaj glasovne'], ['shop', '🛒', 'Trgovina', 'ikone, tragovi, kutije'], ['tour', '🏆', 'Turnir', 'natjecanja'], ['auct', '🔨', 'Aukcija', 'unikati na dražbi'], ['board', '🥇', 'Ljestvica', 'tko vodi'], ['stats', '📊', 'Statistika', 'mečevi i brojke'], ['help', '❓', 'Pravila', 'kako se igra'], ['me', '👤', 'Profil', 'izgled i postavke'], ['invite', '🎁', 'Pozovi prijatelja', '+' + REF_COINS + ' zlatnika'], ['play', '▶', 'Igraj', 'odaberi način']];
+  const items = [['online', '🌐', 'Online', 'igraj s ljudima'], ['local', '🤖', 'S botovima', 'kreće odmah'], ['chat', '💬', 'Chat', n ? plural(n, 'nova poruka', 'nove poruke', 'novih poruka') : 'piši i snimaj glasovne'], ['shop', '🛒', 'Trgovina', 'ikone, tragovi, kutije'], ['tour', '🏆', 'Turnir', 'natjecanja'], ['auct', '🔨', 'Aukcija', 'unikati na dražbi'], ['board', '🥇', 'Ljestvica', 'tko vodi'], ['stats', '📊', 'Statistika', 'mečevi i brojke'], ['help', '❓', 'Pravila', 'kako se igra'], ['me', '👤', 'Profil', 'izgled i postavke'], ['invite', '🎁', 'Pozovi prijatelja', '+' + REF_COINS + ' zlatnika'], ['news', '🆕', 'Što je novo', newsUnseen().length ? newsUnseen().length + ' novo' : 'zadnje novosti'], ['play', '▶', 'Igraj', 'odaberi način']];
   m.innerHTML = `<form class="profile allsheet" novalidate onsubmit="return false"><h3>Sve na jednom mjestu</h3><div class="allgrid">${items.map(([go, ic, t, d]) => go === 'stats' ? `<a class="allcard" href="stats.html"><span>${ic}</span><b>${t}</b><small>${d}</small></a>` : `<button type="button" class="allcard" data-go="${go}"><span>${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div></form>`;
   m.querySelector('.allgrid').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) navGo(b.dataset.go); };
 }
@@ -1384,7 +1388,7 @@ function showProfile() {
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && (TROLLS[k] || k === 'shield')).map(([k, v]) => `<span style="padding:4px 9px;border:1px solid var(--line);border-radius:9px;font-size:13px">${(TROLLS[k] || { e: '🛡️' }).e} ${(TROLLS[k] || { name: 'Štit' }).name} ×${v}</span>`).join('') || '<span class="hint">ništa – kupi u Trgovini → Zezalice ili otvori kutiju</span>'}</div>
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
-    ${pushOn() ? '<p style="margin:0">🔔 Obavijesti su uključene na ovom uređaju: prijatelji te mogu bocnuti 👉 kad krene meč.</p>' : `<div class="refbox pushbox"><b>🔔 Uključi obavijesti${P.owned.includes('x_pushbonus') ? '' : ` i dobij ${PUSH_BONUS} zlatnika`}</b><span>Kad te netko <b>bocne 👉</b> ili pozove na meč, dobiješ poruku na mobitel, čak i kad Vijuga nije otvorena. Bez reklama, samo pozivi i podsjetnici za turnir.</span><div class="row"><button class="btn sm" type="button" id="profPush">🔔 Uključi obavijesti</button></div></div>`}
+    ${pushOn() ? '<p style="margin:0">🔔 Obavijesti su uključene na ovom uređaju: prijatelji te mogu bocnuti 👉 kad krene meč.</p>' : `<div class="refbox pushbox"><b>🔔 Uključi obavijesti${P.owned.includes('x_pushbonus') ? '' : ` i dobij ${PUSH_BONUS} zlatnika`}</b><span>Kad te netko <b>bocne 👉</b> ili pozove na meč, dobiješ poruku na mobitel, čak i kad Vijuga nije otvorena. Bez reklama: samo pozivi, bocanja i kad izađe nešto novo.</span><div class="row"><button class="btn sm" type="button" id="profPush">🔔 Uključi obavijesti</button></div></div>`}
     ${myRole() === 'master' ? '<div class="rolepick"><b>Master</b><button type="button" id="profGrantAll">💰 Pokloni zlatnike svim igračima</button></div>' : ''}
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
@@ -1679,7 +1683,7 @@ function renderShop() {
       else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${badgeGlyph(id) || '—'}</span>`; if (it.big || it.anim) d.classList.add('pic'); }
       else { const P = POWERUPS[id]; prev.innerHTML = `<i class="pu" style="border:0;padding:0"><i class="${P.t}" style="width:32px;height:32px;font-size:18px">${P.g}</i></i>`; }
       d.appendChild(prev);
-      d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`);
+      d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}${newTag(id)}</b><small>${esc(it.d)}</small></div>`);
       const act = document.createElement('div'); act.className = 'act';
       const price = document.createElement('span'); price.className = 'price'; const disc = dailyOffer() === id && !owned ? Math.round(it.price * 0.7) : 0; const cost = vipCost(disc || it.price);
       price.innerHTML = it.price ? (cost !== it.price ? `<s style="opacity:.6">● ${it.price}</s> ● ${cost}` : `● ${it.price}`) : 'besplatno';
@@ -1712,7 +1716,7 @@ function renderShop() {
     Object.entries(PREMIUM).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = it.bg && profile && profile.eq.bg === id, cost = vipCost(it.price);
       const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; d.dataset.premium = '1';
-      d.innerHTML = `<div class="prev">${it.bg ? `<canvas class="bgprev" data-bg="${id}" width="300" height="88"></canvas>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
+      d.innerHTML = `<div class="prev">${it.bg ? `<canvas class="bgprev" data-bg="${id}" width="300" height="88"></canvas>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}${newTag(id)}</b><small>${esc(it.d)}</small></div>`;
       if (it.bg) d.classList.add('pic');
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${cost}`;
       const b = document.createElement('button'); b.type = 'button';
@@ -1735,7 +1739,7 @@ function renderShop() {
     Object.entries(EFFECTS).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = profile && profile.eq[it.kind] === id;
       const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0';
-      d.innerHTML = `<div class="prev">${it.kind === 'cc' ? `<span class="ccs"><span${ccAttr(id)}>Bok ekipa! 👋</span></span>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
+      d.innerHTML = `<div class="prev">${it.kind === 'cc' ? `<span class="ccs"><span${ccAttr(id)}>Bok ekipa! 👋</span></span>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}${newTag(id)}</b><small>${esc(it.d)}</small></div>`;
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${it.price}`;
       const b = document.createElement('button'); b.type = 'button';
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
@@ -2130,7 +2134,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'f074ef0a6809';
+const BUILD = 'bdce0ccfd847';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3562,6 +3566,66 @@ const ACH = [
 function achOf(P) { return ACH.filter(a => { try { return a.t(P); } catch (e) { return false; } }); }
 // the profile shows one button; the full list opens in its own window on top
 function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e).join(''); return `<button type="button" class="achbtn"><span class="ai">🏅</span><span class="at"><b>Postignuća</b><small>${got.length} od ${ACH.length}${last ? ' · ' + last : ''}</small></span><span class="ar">›</span></button>`; }
+// ---- what's new: the latest additions, newest first. Every release adds an entry here; the front page shows the
+// newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
+// new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
+const NEWS = [
+  { id: 'live-pack', d: '2026-11-10', e: '🌍', t: 'Uživo: Hajduk, Dinamo i Šibenik, more, bura, tečaj…', x: 'Ikona kluba piše kad je sljedeća utakmica i protiv koga, a dok se igra svijetli zeleno s rezultatom uživo. Klik na ikonu otvara tablicu HNL-a. Dan nakon pobjede kluba navijači imaju duple nagrade. Tu su i more, bura alarm, zrak, tečaj, zlato, potresi, svemirska postaja i Formula 1.', go: 'shop:live', b: 'Pogledaj u trgovini', items: ['bd_fc_hajduk', 'bd_fc_dinamo', 'bd_fc_sibenik', 'bd_sea_sib', 'bd_sea_st', 'bd_sea_zd', 'bd_sea_du', 'bd_sea_pu', 'bd_bura', 'bd_uv', 'bd_air', 'bd_fx_usd', 'bd_fx_chf', 'bd_gold', 'bd_quake', 'bd_iss', 'bd_f1'] },
+  { id: 'nameday-night', d: '2026-11-10', e: '🎉', t: 'Imendani i arena Šibenik uživo', x: 'Na naslovnoj piše tko danas slavi imendan; slavljenik dobije 🎉 uz ime i 200 zlatnika. Kad je noć u Šibeniku, arenom trepere zvijezde, a nova pozadina „Šibenik uživo” prati pravu kišu, buru i noćno nebo.', go: 'shop:bgs', b: 'Pozadine arene', items: ['bg_live'] },
+  { id: 'wants', d: '2026-11-10', e: '🙋', t: 'Zahtjevi za kupnju na aukciji', x: 'Nešto je rasprodano? Na Aukciji otvori zahtjev i ponudi cijenu, a tko god tu stvar ima, proda ti je jednim klikom. U trgovini uz rasprodanu stvar stoji „Zatraži na aukciji”.', go: 'tab:auct', b: 'Otvori aukciju' },
+  { id: 'weather', d: '2026-11-10', e: '🌦️', t: 'Vremenske ikone', x: 'Pravo vrijeme u sedam gradova uz tvoje ime: temperatura, kiša i bura. Od svakog grada samo 3 komada.', go: 'shop:weather', b: 'Pogledaj', items: ['bd_w_sib', 'bd_w_zg', 'bd_w_st', 'bd_w_ri', 'bd_w_zd', 'bd_w_os', 'bd_w_du'] },
+  { id: 'icons4', d: '2026-11-10', e: '⭐', t: 'Do 4 ikone odjednom', x: 'Nosi do četiri ikone poredane uz ime. Kad pobijediš rundu, sve iskoče velike iznad krune. Biraš ih u Profilu.', go: 'me', b: 'Moj profil' },
+  { id: 'trails5', d: '2026-11-10', e: '〰️', t: 'Pet novih tragova', x: 'Svjetleće crtice, Pali-gasi (lampice se stvarno pale i gase), Božićni s Djedom Božićnjakom, Prdonja i Stonoga.', go: 'shop:skins', b: 'Tragovi', items: ['sk_glowdash', 'sk_blink', 'sk_xmas', 'sk_fart', 'sk_centi'] },
+  { id: 'chatcolors', d: '2026-11-10', e: '🎨', t: 'Boje slova u chatu', x: 'Kričavo roza, neon, lava, zlatna, vatrena, duga i disko: tvoje poruke svi vide u toj boji.', go: 'shop:chatc', b: 'Boje chata', items: ['cc_pink', 'cc_neon', 'cc_cyan', 'cc_lava', 'cc_uv', 'cc_gold', 'cc_fire', 'cc_rainbow', 'cc_disco'] },
+  { id: 'poke', d: '2026-11-10', e: '👉', t: 'Bocni prijatelja', x: 'Na svakom profilu je tipka Bocni: prijatelj dobije obavijest na mobitel da se vrati u igru. Uključi obavijesti i dobiješ 300 zlatnika.', go: 'push', b: '🔔 Uključi obavijesti' },
+  { id: 'colors', d: '2026-11-10', e: '🖍️', t: 'Nema više istih boja', x: 'Ako dvije zmije u meču izgledaju isto (npr. zlatni trag i žuta zmija), boju mijenja igrač s nižim nivoom. Zlatni trag više nije mutan.' },
+  { id: 'btc', d: '2026-11-10', e: '₿', t: 'Bitcoin uživo', x: 'Cijena Bitcoina i Ethereuma stoji na naslovnoj i tiho u kutu arene. Kripto ikone su ograničene: od svake samo 5 komada.', go: 'shop:crypto', b: 'Kripto ikone' },
+  { id: 'ach', d: '2026-11-10', e: '🏅', t: 'Postignuća i spomenik', x: '34 postignuća u jednom prozoru (Profil → Postignuća). Nadgrobni spomenik je velik, a tko ga dotakne vidi „Počivaj u miru”.', go: 'me', b: 'Moj profil' },
+];
+const NEWS_NEW_DAYS = 14;
+function newsSeen() { try { const v = JSON.parse(localStorage.getItem('vijuga-news-seen') || 'null'); return Array.isArray(v) ? v : null; } catch (e) { return null; } }
+function newsUnseen() { const seen = newsSeen() || []; return NEWS.filter(n => !seen.includes(n.id)); }
+function newsMarkSeen() { try { localStorage.setItem('vijuga-news-seen', JSON.stringify(NEWS.map(n => n.id))); } catch (e) {} }
+// an item from a recent entry gets a NOVO tag in the shop
+const NEW_ITEMS = new Set(NEWS.filter(n => n.items && Date.now() - Date.parse(n.d + 'T00:00:00Z') < NEWS_NEW_DAYS * 864e5).flatMap(n => n.items));
+const newTag = (id) => NEW_ITEMS.has(id) ? '<span class="newtag">NOVO</span>' : '';
+function newsGo(go) {
+  document.querySelectorAll('.newsov').forEach(x => x.remove()); renderOnbar();
+  if (!go) return;
+  if (go === 'push') { enablePush(); return; }
+  if (go === 'me') { navGo('me'); return; }
+  if (go.startsWith('tab:')) { closeModal(); showTab(go.slice(4)); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (go.startsWith('shop:')) { closeModal(); showTab('shop'); const b = document.querySelector(`#shopCats [data-c="${go.slice(5)}"]`); if (b) b.click(); }
+}
+function showNews() {
+  document.querySelectorAll('.newsov').forEach(x => x.remove());
+  const unseen = new Set(newsUnseen().map(n => n.id)), master = myRole() === 'master';
+  const ago = (d) => { const days = Math.floor((Date.now() - Date.parse(d + 'T12:00:00Z')) / 864e5); return days <= 0 ? 'danas' : days === 1 ? 'jučer' : `prije ${days} d`; };
+  const ov = document.createElement('div'); ov.className = 'achov newsov';
+  ov.innerHTML = `<div class="achcard newscard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>🆕 Što je novo</h3><p class="hint" style="margin:0">Najnovije stvari u igri. Dodirni tipku da ih odmah isprobaš.</p>
+    <div class="nlist">${NEWS.map(n => `<div class="nitem ${unseen.has(n.id) ? 'unseen' : ''}"><span class="ne">${n.e}</span><div class="nx"><b>${esc(n.t)}${unseen.has(n.id) ? ' <span class="newtag">NOVO</span>' : ''}</b><small class="nd">${ago(n.d)}</small><p>${esc(n.x)}</p>${n.go || master ? `<div class="row">${n.go ? `<button type="button" class="btn sm" data-ngo="${n.go}">${esc(n.b || 'Pogledaj')}</button>` : ''}${master ? `<button type="button" class="btn sm ghost" data-nbc="${n.id}" title="Pošalji ovu novost kao obavijest na mobitel svima koji su uključili obavijesti">📣 Javi svima</button>` : ''}</div>` : ''}</div></div>`).join('')}</div></div>`;
+  const close = () => { ov.remove(); renderOnbar(); }; ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
+  document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1, true); } }, true);
+  ov.querySelectorAll('[data-ngo]').forEach(b => b.onclick = () => newsGo(b.dataset.ngo));
+  ov.querySelectorAll('[data-nbc]').forEach(b => b.onclick = async () => {
+    const n = NEWS.find(x => x.id === b.dataset.nbc); if (!n || !profile) return;
+    if (!confirm(`Poslati obavijest na mobitel svima koji su uključili obavijesti?\n\n🆕 ${n.t}`)) return;
+    try { const r = await fetch(PUSH_API + '/broadcast', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', id: n.id, title: '🆕 Novo u Vijugi: ' + n.t, body: n.x.slice(0, 160) }) }); const j = await r.json().catch(() => ({}));
+      if (r.ok) toast(`📣 Poslano na ${j.sent || 0} ${j.sent === 1 ? 'uređaj' : 'uređaja'} (${j.players || 0} igrača).`); else toast(r.status === 429 ? 'Obavijest svima može ići najviše jednom u sat.' : r.status === 409 ? 'Ova novost je već poslana.' : 'Nije poslano (' + r.status + ').');
+    } catch (e) { toast('Nema veze s poslužiteljem.'); } });
+  document.body.appendChild(ov); newsMarkSeen(); renderOnbar();
+}
+// a returning player is told once about what came out since the last visit; a first visit only shows the number
+function tellNews() {
+  if (!$('#game').hidden) { setTimeout(tellNews, 20000); return; }
+  const seen = newsSeen(); if (!seen) { try { localStorage.setItem('vijuga-news-seen', '[]'); } catch (e) {} return; }
+  const fresh = newsUnseen(); if (!fresh.length) return;
+  let told = []; try { told = JSON.parse(localStorage.getItem('vijuga-news-told') || '[]'); } catch (e) {} if (fresh.every(n => told.includes(n.id))) return;
+  try { localStorage.setItem('vijuga-news-told', JSON.stringify(NEWS.map(n => n.id))); } catch (e) {}
+  const n = notify(`🆕 <b>Novo u igri:</b> ${esc(fresh[0].t)}${fresh.length > 1 ? ` <small>i još ${fresh.length - 1}</small>` : ''}`, { ms: 15000, actions: '<button class="pingbtn" type="button" data-news="1">Pogledaj</button>' });
+  if (n) n.querySelector('[data-news]').onclick = () => { n.remove(); showNews(); };
+}
+setTimeout(tellNews, 7000);
 function showClubTable(k) {
   if (!FC[k]) return; document.querySelectorAll('.clubov').forEach(x => x.remove());
   const c = clubOf(k) || {}, tb = k === 'sibenik' ? [] : ((liveNow.hnl || {}).table || []), admin = ['master', 'admin'].includes(myRole());
@@ -3915,83 +3979,12 @@ function recentPlayers(onlineSlugs) {
   const me = profile ? profile.slug : '', week = Date.now() - 7 * 86400000;
   return accounts.list.filter(a => a.slug && a.slug !== me && !onlineSlugs.has(a.slug) && Number(a.updatedAt) > week).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
 }
-// ---------- "when do we meet?" poll ----------
-const MEET_API = 'https://vijuga.netlify.app/api/meet';
+// ---------- weekly player and fun facts ----------
 let weekly = null, funFacts = [];
 async function loadWeekly() { try { const r = await fetch('https://vijuga.netlify.app/api/stats', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); weekly = j.weekly || null; funFacts = j.facts || []; renderOnbar(); } } catch (e) {} }
 setTimeout(loadWeekly, 2500); setInterval(loadWeekly, 600000);
-const MEET_HOURS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-const meet = { votes: {}, loaded: false, timers: {} };
 const zDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb' }).format(t);
 const zHour = () => Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zagreb', hour: '2-digit', hour12: false }).format(Date.now())) % 24;
-function meetDays() { return [zDay(Date.now()), zDay(Date.now() + 86400000)]; }
-async function loadMeet() {
-  try { const r = await fetch(MEET_API + '?days=' + meetDays().join(','), { cache: 'no-store' }); if (!r.ok) return; const j = await r.json(); meet.votes = j.votes || {}; meet.loaded = true; renderOnbar(); if (!$('#regModal').hidden && $('#meetForm')) showMeet(); } catch (e) {}
-}
-setTimeout(loadMeet, 1500); setInterval(loadMeet, 60000);
-function meetCounts(day) {
-  const c = {}; for (const v of meet.votes[day] || []) for (const h of v.slots || []) (c[h] ||= []).push(v);
-  return c;
-}
-function meetBest() {
-  const [today, tomorrow] = meetDays(), now = zHour();
-  for (const [day, label] of [[today, 'danas'], [tomorrow, 'sutra']]) {
-    const c = meetCounts(day); let best = null;
-    for (const h of MEET_HOURS) { if (day === today && h < now) continue; const n = (c[h] || []).length; if (n && (!best || n > best.n)) best = { h, n, who: c[h], day, label }; }
-    if (best) return best;
-  }
-  return null;
-}
-const MEET_JOKES = [
-  (t, w) => `🐍 Vijuga ${t}! ${w} Tko zakasni, dobiva 💩 kakice na ekran. Glasaj kad ti paše:`,
-  (t, w) => `⚡ Službeni poziv na Vijugu ${t}. ${w} Ne dođeš li, bot preuzima tvoje ime i sramoti te 🤖`,
-  (t, w) => `📯 TUUUT! Zmije se sudaraju ${t}. ${w} Ponesi živce i zlatnike za zezancije:`,
-  (t, w) => `🙃 ${t} igramo Vijugu. ${w} Tko ne dođe, gleda arenu naglavačke cijeli tjedan:`,
-  (t, w) => `🌑 Mrak pada ${t}, a s njim i tvoj rezultat. ${w} Dođi na Vijugu:`,
-];
-function meetShareText(best) {
-  const t = best ? `${best.label} u ${best.h}:00` : 'večeras';
-  const w = best ? `Već nas je ${best.n}: ${best.who.map(v => v.name).join(', ')}.` : 'Reci kad si slobodan!';
-  return MEET_JOKES[Math.floor(Math.random() * MEET_JOKES.length)](t, w) + ' ' + GAME_URL;
-}
-function meetWaLink(best) { return 'https://wa.me/?text=' + encodeURIComponent(meetShareText(best)); }
-function myMeetSlots(day) { const v = (meet.votes[day] || []).find(x => profile && x.slug === profile.slug); return v ? v.slots.slice() : []; }
-function toggleMeet(day, h) {
-  if (!profile) { showLogin(); return; }
-  const list = (meet.votes[day] ||= []); let v = list.find(x => x.slug === profile.slug);
-  if (!v) { v = { slug: profile.slug, name: profile.name, color: profile.color, slots: [], at: Date.now() }; list.push(v); }
-  v.slots = v.slots.includes(h) ? v.slots.filter(x => x !== h) : [...v.slots, h].sort((a, b) => a - b);
-  if (!v.slots.length) meet.votes[day] = list.filter(x => x !== v);
-  showMeet(); renderOnbar();
-  clearTimeout(meet.timers[day]);
-  meet.timers[day] = setTimeout(async () => {
-    try { const r = await fetch(MEET_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, day, slots: myMeetSlots(day), auth: profile.pinHash || '' }) }); if (!r.ok) toast('Glas nije spremljen. Pokušaj ponovno.'); else toast('Glas spremljen ✓'); } catch (e) { toast('Nema veze, glas nije spremljen.'); }
-  }, 700);
-}
-function showMeet() {
-  if (!profile) { showLogin(); return; }
-  const m = $('#regModal'); m.hidden = false;
-  const [today, tomorrow] = meetDays(), now = zHour(), best = meetBest();
-  const dayBlock = (day, label) => {
-    const c = meetCounts(day), mine = myMeetSlots(day);
-    const chips = MEET_HOURS.map(h => { const past = day === today && h < now, who = c[h] || [], on = mine.includes(h);
-      return `<button type="button" class="mchip ${on ? 'on' : ''}" data-day="${day}" data-h="${h}" ${past ? 'disabled' : ''} title="${esc(who.map(v => v.name).join(', '))}"><b>${h}h</b><span class="mdots">${who.slice(0, 5).map(v => `<i style="background:${COLORS[Number(v.color)] || COLORS[0]}"></i>`).join('')}</span><small>${who.length ? who.length : ''}</small></button>`; }).join('');
-    const people = (meet.votes[day] || []).map(v => `<span class="mwho"><i style="background:${COLORS[Number(v.color)] || COLORS[0]}"></i>${esc(v.name)} <small>${v.slots.map(h => h + 'h').join(', ')}</small></span>`).join('');
-    return `<div class="mday"><span class="label">${label}</span><div class="mchips">${chips}</div>${people ? `<div class="mpeople">${people}</div>` : ''}</div>`;
-  };
-  m.innerHTML = `<form class="profile" id="meetForm" novalidate onsubmit="return false">
-    <h3>Kad ćemo se naći?</h3>
-    <p class="hint" style="margin:0">Dodirni sate u kojima si slobodan (možeš više). Svi vide glasove, pa se lakše dogovorite.</p>
-    ${dayBlock(today, 'Danas')}${dayBlock(tomorrow, 'Sutra')}
-    ${pushOn() ? '<p class="hint" style="margin:0">🔔 Dobit ćeš obavijest 15 minuta prije termina koje si označio.</p>' : '<button class="btn ghost" type="button" id="meetPush">🔔 Podsjeti me 15 min prije (obavijest na mobitel)</button>'}
-    <div class="meetbest">${best ? `Najviše glasova: <b>${best.label} u ${best.h}:00</b> (${best.n}: ${esc(best.who.map(v => v.name).join(', '))})` : 'Još nitko nije glasao. Budi prvi!'}</div>
-    <div class="row"><a class="btn wa" id="meetWa" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Šaljiva pozivnica na WhatsApp</a><button class="btn ghost" type="button" id="meetClose">Zatvori</button></div>
-  </form>`;
-  m.querySelectorAll('.mchip').forEach(b => b.onclick = () => toggleMeet(b.dataset.day, Number(b.dataset.h)));
-  $('#meetClose').onclick = () => { m.hidden = true; };
-  if ($('#meetPush')) $('#meetPush').onclick = async () => { if (await enablePush()) showMeet(); };
-  $('#meetWa').onclick = () => { setTimeout(() => { const a = $('#meetWa'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
-}
 function renderOnbar() {
   renderPushNag();
   const bar = $('#onbar'); if (!bar) return;
@@ -4014,14 +4007,12 @@ function renderOnbar() {
   const second = `<button class="btn go-bots" type="button" id="heroBots">🤖 S botovima</button>${!n ? '<button class="linkbtn" type="button" id="heroInvite">📲 Pozovi prijatelje</button>' : ''}`;
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
   const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))}${badgeOf(a)} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
-  const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
   const tourHtml = TMODE && tourTable ? `<div class="weekbar">🏆 <b>${esc(tourTable.t.name)}</b> · ${TMODE.k ? 'kolo ' + TMODE.k + ', stol ' + TMODE.s : 'FINALE'} <span class="ms">Za stolom: ${tourTable.tb.players.map(s => esc(tourTable.t.players.find(p => p.slug === s)?.name || s)).join(', ')}. Meč kreće kad svi stignu (najkasnije 2 min).</span></div>` : '';
   const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
-  const meetHtml = `<div class="meetbar"><span class="mt">🗓️ <b>Kad ćemo se naći?</b> <span class="ms">${best ? `${best.label} u <b>${best.h}:00</b> · ${best.n} ${best.n === 1 ? 'igrač' : 'igrača'} (${esc(best.who.slice(0, 4).map(v => v.name).join(', '))}${best.n > 4 ? '…' : ''})` : meet.loaded ? 'još nitko nije glasao' : 'učitavam…'}${voters > (best ? best.n : 0) ? ` · glasalo ${voters}` : ''}</span></span><button type="button" class="btn sm" id="meetBtn">Glasaj</button>${profile && !pushOn() ? '<button type="button" class="btn sm ghost" id="pushBtn">🔔 Podsjeti me</button>' : ''}<a class="btn sm wa" id="meetShare" href="${meetWaLink(best)}" target="_blank" rel="noopener">📲 Pozovi</a></div>`;
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${tourHtml}${weekHtml}${meetHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
-  $('#meetBtn').onclick = () => showMeet();
-  if ($('#pushBtn')) $('#pushBtn').onclick = () => enablePush();
-  $('#meetShare').onclick = () => { setTimeout(() => { const a = $('#meetShare'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
+  const nw = NEWS[0], unseen = newsUnseen().length;
+  const newsHtml = nw ? `<div class="meetbar newsbar"><span class="mt">🆕 <b>Što je novo</b> <span class="ms">${esc(nw.t)}${NEWS.length > 1 ? ' i još ' + (NEWS.length - 1) : ''}</span></span><button type="button" class="btn sm" id="newsBtn">Pogledaj${unseen ? ` <i class="nbadge">${unseen}</i>` : ''}</button></div>` : '';
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${tourHtml}${weekHtml}${newsHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  if ($('#newsBtn')) $('#newsBtn').onclick = () => showNews();
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
   if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (net) return; toggleReady(); };

@@ -1,11 +1,14 @@
-// Web push for Vijuga (invites and meeting reminders).
+// Web push for Vijuga (invites, pokes and news).
 // GET  /api/push/key                         -> VAPID public key (created once, kept in Blobs)
 // POST /api/push/subscribe {slug, auth, sub} -> save this device for the player (PIN checked)
 // POST /api/push/invite {from, to, auth, kind?} -> notify a player that a friend calls them to play (kind "poke": a nudge to come back)
 // GET  /api/push/has?slugs=a,b               -> which of these players can get notifications
+// POST /api/push/broadcast {slug, auth, id, title, body} -> the master tells every subscribed phone about something new
+//                                               (once per news id, at most once an hour)
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import webpush from "web-push";
+import { MASTER } from "./roles.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -73,6 +76,18 @@ export default async (req: Request, context: Context) => {
       ? { title: `👉 ${who} te bocnuo!`, body: "Vrati se u igru, čekamo te za meč 🐍 Dodirni da uđeš.", url: GAME, tag: "poke-" + from }
       : { title: `🐍 ${who} te zove na Vijugu!`, body: "Dođi, čekamo te za meč. Dodirni da uđeš.", url: GAME, tag: "invite-" + from });
     return sent ? json({ ok: true, sent }) : json({ error: "no devices" }, 404);
+  }
+  if (action === "broadcast") {
+    const slug = String(b.slug ?? ""); const acc = slug === MASTER ? await account(slug) : null;
+    if (!acc || !acc.pinHash || acc.pinHash !== b.auth) return json({ error: "master only" }, 403);
+    const id = String(b.id ?? "").replace(/[^a-z0-9-]/gi, "").slice(0, 40), title = String(b.title ?? "").slice(0, 80), body = String(b.body ?? "").slice(0, 200);
+    if (!title) return json({ error: "bad request" }, 400);
+    if (id && (await store.get("broadcast/sent/" + id))) return json({ error: "already sent" }, 409);
+    const last = Number(await store.get("broadcast/last")) || 0; if (Date.now() - last < 3600000) return json({ error: "wait" }, 429);
+    await store.set("broadcast/last", String(Date.now())); if (id) await store.set("broadcast/sent/" + id, String(Date.now()));
+    const { blobs } = await store.list({ prefix: "subs/" }); let sent = 0, players = 0;
+    for (const x of blobs) { const n = await sendTo(x.key.slice(5), { title, body, url: GAME, tag: "news-" + (id || Date.now()) }); sent += n; if (n) players++; }
+    return json({ ok: true, sent, players });
   }
   return json({ error: "unknown action" }, 404);
 };
