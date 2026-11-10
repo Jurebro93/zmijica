@@ -141,9 +141,13 @@ button:disabled { cursor: default; opacity: .5; }
 .betrow button { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 4px 12px; font-weight: 700; }
 .betrow button.bntb { border-color: #ff5d73; background: rgba(255,93,115,.12); }
 .betrow button:disabled { opacity: .4; } .betrow .sep { width: 10px; }
-.tptabs { display: flex; gap: 6px; align-items: center; } .tpt { flex: 1; border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 9px; padding: 7px 4px; font-weight: 700; font-size: 13px; } .tpt.on { color: #fff; border-color: #b48cff; background: #2b2050; } .tpx { border: 0; background: none; color: var(--muted); font-size: 20px; padding: 0 6px; }
+.tptabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .tptabs .tpx { margin-left: auto; } .tpt { flex: 1 1 auto; min-width: 0; border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 9px; padding: 7px 4px; font-weight: 700; font-size: 13px; } .tpt.on { color: #fff; border-color: #b48cff; background: #2b2050; } .tpx { border: 0; background: none; color: var(--muted); font-size: 20px; padding: 0 6px; }
 .micbtn { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 9px; padding: 0 10px; font-size: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
 .micbtn.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; } @keyframes recp { 50% { opacity: .6; } }
+#voiceHint { position: fixed; left: 50%; top: max(64px, 14%); z-index: 80; transform: translate(-50%, -6px); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; display: flex; gap: 10px; align-items: center; min-width: min(86vw, 250px); max-width: 92vw; box-sizing: border-box; padding: 10px 14px 12px; border-radius: 16px; border: 2px solid var(--amber); background: color-mix(in srgb, var(--ink) 94%, transparent); box-shadow: 0 10px 28px rgba(0,0,0,.5); overflow: hidden; }
+#voiceHint.show { opacity: 1; transform: translate(-50%, 0); } #voiceHint.v-rec { border-color: #ff5d73; } #voiceHint.v-short { border-color: var(--muted); }
+#voiceHint .ve { font-size: 26px; line-height: 1; } #voiceHint.v-rec .ve { animation: recp .8s infinite; } #voiceHint b { display: block; font-size: 16px; } #voiceHint small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+#voiceHint .vbar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: #ff5d73; animation: vbar linear forwards; } @keyframes vbar { to { width: 100%; } }
 .vplay { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
 #replayBox { position: fixed; inset: 0; z-index: 60; background: rgba(5,9,14,.9); display: grid; place-items: center; padding: 12px; }
 #replayBox[hidden] { display: none; }
@@ -405,7 +409,7 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 #gchat .chatlog { max-height: 96px; font-size: 13px; }
 .iconbtn { position: relative; }
 .unread { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
-#trollPop { position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; max-height: calc(100% - 16px); overflow-y: auto; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 8px; width: min(340px, calc(100% - 20px)); }
+#trollPop { box-sizing: border-box; grid-template-columns: minmax(0, 1fr); position: absolute; top: 8px; right: max(10px, env(safe-area-inset-right, 0px)); z-index: 4; max-height: calc(100% - 16px); overflow-y: auto; background: color-mix(in srgb, var(--ink) 94%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 8px; width: min(340px, calc(100% - 20px)); }
 #trollPop[hidden] { display: none; }
 #trollPop .tp-t { display: flex; gap: 6px; flex-wrap: wrap; }
 #trollPop .trolls { grid-template-columns: repeat(4, 1fr); }
@@ -518,11 +522,11 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .pad.jumpgo { animation: jgo .45s ease-out; }
 @keyframes jgo { 0% { box-shadow: 0 0 0 0 var(--pc); } 40% { box-shadow: 0 0 22px 6px var(--pc); } 100% { box-shadow: none; } }
 /* the one-time notice for players used to the old SKOK button */
-.jumptip { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--padsH, 150px) + 10px); z-index: 40; width: min(92vw, 360px); box-sizing: border-box; background: color-mix(in srgb, var(--ink) 92%, transparent); border: 2px solid var(--amber); border-radius: 16px; padding: 12px 14px; display: grid; gap: 6px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
-.jumptip h4 { margin: 0; font: 400 18px var(--display); color: var(--amber); } .jumptip p { margin: 0; font-size: 15px; }
-.jumptip .hands { display: flex; justify-content: space-between; font-size: 30px; padding: 0 6px; } .jumptip .hands span { animation: tapit 1s ease-in-out infinite; } .jumptip .hands span + span { animation-delay: 0s; }
-@keyframes tapit { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
-.jumptip button { justify-self: center; }
+.jumptip { position: fixed; left: 50%; transform: translateX(-50%); z-index: 40; width: min(94vw, 380px); box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 7px 34px 7px 10px; border-radius: 999px; border: 2px solid var(--amber); background: color-mix(in srgb, var(--ink) 92%, transparent); box-shadow: 0 6px 18px rgba(0,0,0,.45); pointer-events: auto; }
+.jumptip p { margin: 0; flex: 1; text-align: center; font-size: 14px; line-height: 1.2; } .jumptip b { color: var(--amber); }
+.jumptip .hands { font-size: 20px; animation: tapit 1s ease-in-out infinite; }
+@keyframes tapit { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+.jumptip .jx { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font-size: 16px; line-height: 1; padding: 0; }
 .ptool { width: 38px; height: 38px; padding: 0; border-radius: 12px; border: 2px solid #b48cff; background: linear-gradient(180deg, #3a2a66, #221a3d); color: #fff; font-size: 19px; line-height: 1; display: grid; place-items: center; position: relative; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .ptool.chat.has::after { content: ''; position: absolute; top: -5px; right: -5px; width: 11px; height: 11px; border-radius: 50%; background: var(--amber); border: 2px solid var(--ink); }
 .ptool.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; }
@@ -778,7 +782,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
             <ol class="rules">
               <li>Podijeli ovu stranicu s prijateljima (gumb Share, pozivnica e-poštom).</li>
               <li>Svatko otvori karticu Online i pritisne „Uđi u predvorje”.</li>
-              <li>Jedan igrač pritisne „Pokreni meč” i postaje domaćin. Njegov uređaj vodi igru, ostali šalju svoje poteze.</li>
+              <li>Meč kreće kad su svi u predvorju spremni (ili nakon 10 s kad su spremna barem dvojica), a „Kreni odmah” ga pokreće s botovima. Uređaj jednog igrača vodi igru, ostali šalju svoje poteze.</li>
               <li>Tko uđe kasnije, gleda do kraja runde; ako u meču igra bot, ulazi umjesto njega već od sljedeće runde, inače čeka revanš.</li>
               <li>Između rundi ima 10 sekundi za poruke u chatu, zatim nova runda kreće sama.</li>
             </ol>
@@ -1378,7 +1382,7 @@ function openAll() {
   m.querySelector('.allgrid').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) navGo(b.dataset.go); };
 }
 // the chat, reachable from anywhere in the menu: text, quick lines and voice messages
-const CHAT_QUICK = ['Ajmo partiju! 🎮', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
+const CHAT_QUICK = ['Ajmo partiju! 🎮', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂', '🔊 Pojačajte zvuk da čujete glasovne!'];
 function openChat() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -1952,7 +1956,7 @@ function renderSettings() {
   add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
-  add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑, a na mobitelu LIJEVO i DESNO odjednom: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave i traka SKOK pokazuju punjenje.');
+  add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑, a na mobitelu LIJEVO i DESNO odjednom: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
   add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima točno toliko rundi. Na kraju pobjeđuje tko ima najviše bodova (kod istog broja odlučuju rušenja), svi dobiju zlatnike po plasmanu i biraju novu igru.');
 }
@@ -2318,7 +2322,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'f8b9a305763d';
+const BUILD = 'e5e3b7d93ee8';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3700,13 +3704,7 @@ function renderHud() {
   });
   $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
 }
-function updatePads() {
-  document.querySelectorAll('.jumpstrip').forEach(b => {
-    const p = G.players.find(q => q.id === Number(b.dataset.pid));
-    b.classList.toggle('cool', !p || !p.alive || G.gt < p.jumpReady || G.phase !== 'run');
-    const v = (!p || G.phase !== 'run' ? 1 : Math.max(0, Math.min(1, 1 - (p.jumpReady - G.gt) / JUMP_CD))).toFixed(2); if (b._jr !== v) { b._jr = v; b.style.setProperty('--jr', v); }
-  });
-}
+function updatePads() {} // the jump button and its strip are gone; jump readiness is the ring around the head
 
 // ---------- loop ----------
 let frameN = 0;
@@ -4070,7 +4068,7 @@ function buildPads() {
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
       const zb = mkTool('prank', '😈', 'Zezalice', 'Zezalice'); zb.onclick = openTab('z');
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
-      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži i govori', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb); });
+      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb, e.pointerId); });
       const rb = mkTool('react', '😀', 'Emotikoni', 'Emotikoni'); rb.onclick = openTab('r');
       tools.append(zb, cb, mb, rb);
       if (PAD_STYLE === 'b') { const qb = mkTool('quick', '⚡', 'Brze poruke: gg, bravo, revanš…', 'Brze'); qb.onclick = openTab('q'); const sb = mkTool('shot', '📸', 'Slikaj arenu i podijeli', 'Slikaj'); sb.onclick = (e) => { e.stopPropagation(); shareShot(); }; tools.append(qb, sb); }
@@ -4093,7 +4091,7 @@ function buildPads() {
       box.querySelectorAll('.pad').forEach(btn => btn.classList.toggle('on', btn.dataset.k === 'J' ? [...ptr.values()].includes('J') : h[btn.dataset.k] > 0)); clientInput(); };
     box._sync = sync;
     const onTouch = (e) => {
-      if (e.target && e.target.closest && e.target.closest('.padtools')) return; // the tool buttons above the jump pad are ordinary buttons
+      if (e.target && e.target.closest && e.target.closest('.padtools, .qreact')) return; // the tool buttons in the middle are ordinary buttons
       if (e.type === 'touchstart') { for (const t of e.changedTouches) { const z = padAt(t.clientX, t.clientY); if (z) { ptr.set(t.identifier, z); downAt.set(t.identifier, performance.now()); } } chord(); }
       else if (e.type === 'touchmove') { for (const t of e.changedTouches) { const z = ptr.get(t.identifier); if (z && z !== 'J') { const sd = sideOf(t.clientX); if (sd !== z) ptr.set(t.identifier, sd); } } }
       else { for (const t of e.changedTouches) { ptr.delete(t.identifier); downAt.delete(t.identifier); } }
@@ -4106,7 +4104,7 @@ function buildPads() {
     box._onTouch = onTouch;
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.addEventListener(ev, onTouch, { passive: false });
     // mouse / pen (desktop): one button at a time
-    box.onpointerdown = (e) => { if (e.pointerType === 'touch' || (e.target.closest && e.target.closest('.padtools'))) return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); downAt.set('m' + e.pointerId, performance.now()); chord(); sync(); };
+    box.onpointerdown = (e) => { if (e.pointerType === 'touch' || (e.target.closest && e.target.closest('.padtools, .qreact'))) return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); downAt.set('m' + e.pointerId, performance.now()); chord(); sync(); };
     box.onpointermove = (e) => { if (e.pointerType === 'touch') return; const k = 'm' + e.pointerId; const z = ptr.get(k); if (z && z !== 'J') { const sd = sideOf(e.clientX); if (sd !== z) { ptr.set(k, sd); sync(); } } };
     const upM = (e) => { if (e.pointerType === 'touch') return; downAt.delete('m' + e.pointerId); if (ptr.delete('m' + e.pointerId)) sync(); };
     box.onpointerup = upM; box.onpointercancel = upM; box.onlostpointercapture = upM;
@@ -4116,17 +4114,26 @@ function buildPads() {
   if (humans.length && IS_TOUCH) setTimeout(showJumpTip, 600);
 }
 const CHORD_MS = 250;
-const QUICK_REACT = ['😂', '🔥', '👏', '😮'];
-const QUICK_MSG = ['gg 👏', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
+const QUICK_REACT = ['😂', '🔥', '👏', '🥳']; // must be in REACTIONS, the others drop anything else
+const QUICK_MSG = ['🔊 Pojačajte zvuk da čujete glasovne!', 'gg 👏', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
 // players used to the old SKOK button: a notice over the pads for their first matches, until they have jumped the new way
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); toast('👍 Tako je! LIJEVO + DESNO odjednom = skok.'); } }
+let jumpTipAt = 0;
 function showJumpTip() {
-  if (!IS_TOUCH || !setup.jump || lsGet('vijuga-chordok')) return; const n = Number(lsGet('vijuga-jumptip') || 0); if (n >= 3) return; lsSet('vijuga-jumptip', String(n + 1));
-  document.querySelectorAll('.jumptip').forEach(x => x.remove()); const bar = $('#padsBottom'); if (bar && !bar.hidden) document.documentElement.style.setProperty('--padsH', Math.round(innerHeight - bar.getBoundingClientRect().top) + 'px');
-  const d = document.createElement('div'); d.className = 'jumptip'; d.setAttribute('role', 'status');
-  d.innerHTML = '<h4>🆕 Gumb SKOK je maknut</h4><p>Za skok sada pritisni <b>LIJEVO i DESNO odjednom</b>, s oba palca.</p><div class="hands"><span>👇</span><span>👇</span></div><button type="button" class="btn sm">Razumijem</button>';
-  d.querySelector('button').onclick = () => d.remove(); document.body.appendChild(d); setTimeout(() => d.remove(), 9000);
+  if (!IS_TOUCH || !setup.jump || lsGet('vijuga-chordok')) return;
+  if (performance.now() - jumpTipAt < 15000) return; // the pads are built more than once per start: one notice per match
+  const n = Number(lsGet('vijuga-jumptip') || 0); if (n >= 3) return; lsSet('vijuga-jumptip', String(n + 1)); jumpTipAt = performance.now();
+  document.querySelectorAll('.jumptip').forEach(x => x.remove());
+  // measure the arrows themselves: in landscape the bar is display:contents and has no box of its own
+  const tops = [...document.querySelectorAll('#padsBottom .pad.big')].map(b => b.getBoundingClientRect()).filter(r => r.height > 0).map(r => r.top);
+  const top = tops.length ? Math.min(...tops) : innerHeight - 150;
+  const fresh = !profile || !(profile.matches > 0); // a brand-new player never knew the old button
+  const d = document.createElement('div'); d.className = 'jumptip'; d.setAttribute('role', 'status'); d.style.bottom = Math.max(8, Math.round(innerHeight - top + 8)) + 'px';
+  d.innerHTML = `<span class="hands">👇</span><p>${fresh ? '' : '<b>Novo:</b> '}skok je <b>LIJEVO + DESNO odjednom</b></p><span class="hands">👇</span><button type="button" class="jx" aria-label="Zatvori">×</button>`;
+  d.querySelector('.jx').onclick = () => d.remove(); document.body.appendChild(d);
+  const end = () => { if (!document.body.contains(d)) return; if (!G || G.phase !== 'count') { d.remove(); return; } setTimeout(end, 250); };
+  setTimeout(end, 400); setTimeout(() => d.remove(), 8000);
 }
 function jumpReminder() { if (IS_TOUCH && setup.jump && G && G.phase === 'run' && !lsGet('vijuga-chordok')) toast('💡 Skok je sada: LIJEVO i DESNO odjednom.'); }
 async function shareShot() {
@@ -4164,6 +4171,7 @@ function startGame() {
   newMatch(); buildPads(); enterGame();
 }
 function toMenu() {
+  document.querySelectorAll('.jumptip').forEach(x => x.remove());
   cancelAnimationFrame(raf); paused = false; G = null;
   if (net && net.savedSetup) { Object.assign(setup, net.savedSetup); net.savedSetup = null; } // my own settings come back after a match run on the host's rules (also after I took the match over)
   if (net && net.role === 'client' && net.myId != null) netPresence({ vis: 0 });
@@ -4857,7 +4865,7 @@ function showTrollPreview(id) {
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile trollprev" novalidate onsubmit="return false"><h3>${t.e} ${esc(t.name)}</h3>
     <p class="hint" style="margin:0">Ovako to vidi igrač kojem je pošalješ (traje ${(t.ms / 1000).toLocaleString('hr-HR')} s${t.ms >= 10000 ? '' : ', pa kreće ispočetka'}):</p>
-    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🐸</span><span class="j">SKOK</span><span>🐸</span></div>' : ''}</div>
+    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🐸</span><span class="j">◀ + ▶</span><span>🐸</span></div>' : ''}</div>
     <p style="margin:0">${esc(TROLL_HOW[id] || t.d)}</p>
     <p class="hint" style="margin:0">Kad je pošalješ, svi u meču iznad njegove zmije vide ${t.e} dok traje, a njemu piše tko ga je zezao. 🛡️ Štit je odbija.</p>
     <div class="go"><button class="btn ghost" type="button" id="tpvSound">🔊 Čuj zvuk</button><button class="btn" type="button" id="tpvOk">Zatvori</button></div></form>`;
@@ -5177,7 +5185,9 @@ function chatAutoHide() {
   if (!G) return; const ph = G.phase; if (ph === chatPhase) return; chatPhase = ph;
   if (ph === 'run' && chatOpen && IS_TOUCH && document.activeElement && document.activeElement.id !== 'gchatIn') setChatOpen(false);
 }
-function playVoice(src) { try { const au = new Audio(src); au.play().catch(() => {}); } catch (e) {} }
+function playVoice(src) { try { const au = new Audio(src); au.volume = 1; au.play().catch(() => toast('🔊 Dodirni ▶ u chatu da čuješ glasovnu poruku.')); } catch (e) {} }
+let volumeHinted = false;
+function volumeHint() { if (volumeHinted) return; volumeHinted = true; toast('🔊 Stigla je glasovna poruka. Pojačaj zvuk tipkama sa strane mobitela da je čuješ.'); }
 function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; if (net) markChatSeen(); } updateUnread(); }
 function updateUnread() { document.querySelectorAll('.ptool.chat').forEach(b => b.classList.toggle('has', !!unread && !chatOpen)); const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
@@ -5189,32 +5199,46 @@ function sendChat(text) {
   const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
 }
 let recState = null;
-async function startVoice(btn) {
-  voiceWanted = true;
+// what the microphone is doing, in one bubble: hold while talking, release to send (and why nothing was sent)
+const VOICE_MAX = 5000;
+function voiceHint(state, note) {
+  let el = $('#voiceHint'); if (!el) { el = document.createElement('div'); el.id = 'voiceHint'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
+  clearTimeout(el._h); if (!state) { el.className = ''; return; }
+  const T = { wait: ['🎙️', 'Drži dok govoriš', 'pusti za slanje'], perm: ['🎙️', 'Dopusti mikrofon', 'pa drži 🎤 dok govoriš i pusti za slanje'], rec: ['🔴', 'Snimam… drži dok govoriš', 'pusti za slanje · najviše 5 s'], send: ['📤', 'Šaljem…', ''], sent: ['✅', 'Poslano svima', 'neka pojačaju zvuk 🔊 da te čuju'], short: ['✋', 'Prekratko', 'drži 🎤 dok govoriš, pa pusti za slanje'], ready: ['✅', 'Mikrofon je uključen', 'sad drži 🎤 dok govoriš, pa pusti za slanje'] }[state];
+  el.innerHTML = `<span class="ve">${T[0]}</span><div><b>${T[1]}</b>${note || T[2] ? `<small>${note || T[2]}</small>` : ''}</div>${state === 'rec' ? `<i class="vbar" style="animation-duration:${VOICE_MAX}ms"></i>` : ''}`;
+  el.className = 'show v-' + state;
+  if (state === 'sent' || state === 'short' || state === 'ready') el._h = setTimeout(() => { el.className = ''; }, state === 'ready' ? 3500 : 2200);
+}
+async function startVoice(btn, ptrId) {
+  voiceWanted = true; voicePtr = ptrId == null ? null : ptrId;
   if (profile && mutedUntil(profile.slug)) { voiceWanted = false; toast('🔇 Utišan si.'); return; }
   if (recState || !navigator.mediaDevices || !window.MediaRecorder) { if (!window.MediaRecorder) toast('Ovaj preglednik ne snima zvuk.'); return; }
+  voiceHint('wait'); const asked = performance.now();
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true } });
+    if (!voiceWanted || recState) { // let go before the microphone was ready: the first time that is the browser asking for permission
+      stream.getTracks().forEach(t => t.stop()); if (!recState) voiceHint(performance.now() - asked > 700 ? 'ready' : 'short'); return; }
     const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
     const mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 16000 } : { audioBitsPerSecond: 16000 });
     const chunks = []; mr.ondataavailable = e => e.data.size && chunks.push(e.data);
     mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' }); const ms = performance.now() - recState.t0; recState = null; btn.classList.remove('rec');
-      if (ms < 400) { toast('Drži 🎤 dok govoriš.'); return; }
-      const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 400000) { toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); const me = roomState.peers.find(p => p.isMe && p.sameTab); collectChat(); toast('🎤 Poslano'); }; fr.readAsDataURL(blob); };
-    recState = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), 5000) }; mr.start(); btn.classList.add('rec'); beep(880, .06, 'sine', .04);
-    if (!voiceWanted) setTimeout(() => stopVoice(), 50);
-  } catch (e) { toast('Mikrofon nije dopušten.'); recState = null; }
+      if (ms < 400) { voiceHint('short'); return; }
+      voiceHint('send');
+      const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 400000) { voiceHint(null); toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint('sent'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(blob); };
+    recState = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), VOICE_MAX) }; mr.start(); btn.classList.add('rec'); voiceHint('rec'); beep(880, .06, 'sine', .04);
+  } catch (e) { voiceHint(null); toast('Mikrofon nije dopušten. Dopusti ga u postavkama preglednika (lokot pored adrese).'); recState = null; }
 }
-let voiceWanted = false;
-function stopVoice() { voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } }
-// the lobby redraws its chat often, so a release anywhere ends the recording
-document.addEventListener('pointerup', () => { if (voiceWanted || recState) stopVoice(); });
-document.addEventListener('pointercancel', () => { if (voiceWanted || recState) stopVoice(); });
+let voiceWanted = false, voicePtr = null;
+function stopVoice() { const was = voiceWanted; voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } else if (was && !recState) { const el = $('#voiceHint'); if (el && el.classList.contains('v-wait')) voiceHint('perm'); } }
+// the lobby redraws its chat often, so a release anywhere ends the recording, but only the finger that holds the mic:
+// in a match the other thumb keeps steering, and letting go of LIJEVO / DESNO must not cut the message
+const voiceUp = (e) => { if (!(voiceWanted || recState)) return; if (voicePtr != null && e.pointerId !== voicePtr) return; stopVoice(); };
+document.addEventListener('pointerup', voiceUp); document.addEventListener('pointercancel', voiceUp);
 function wireChat(inSel, btnSel) {
   const i = $(inSel), b = $(btnSel); if (!i) return;
   if (b && !b.parentNode.querySelector('.micbtn')) {
-    const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'micbtn'; mic.textContent = '🎤'; mic.title = 'Drži i govori (do 5 s)'; mic.setAttribute('aria-label', 'Glasovna poruka');
-    mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(mic); }); mic.addEventListener('contextmenu', e => e.preventDefault());
+    const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'micbtn'; mic.textContent = '🎤'; mic.title = 'Drži dok govoriš, pusti za slanje (do 5 s)'; mic.setAttribute('aria-label', 'Glasovna poruka');
+    mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(mic, e.pointerId); }); mic.addEventListener('contextmenu', e => e.preventDefault());
     b.parentNode.insertBefore(mic, b);
   }
   const go = () => { sendChat(i.value); i.value = ''; if (!$('#game').hidden) i.blur(); }; // in a match the keys must steer again right after sending
@@ -5231,7 +5255,7 @@ function collectChat() {
     // only a plain base64 audio data URL is accepted: it is placed into HTML attributes, so no other characters may get through
     const audio = typeof m[3] === 'string' && /^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 420000 ? m[3] : null;
     if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, cc: typeof m[4] === 'string' && EFFECTS[m[4]] && EFFECTS[m[4]].kind === 'cc' ? m[4] : '', me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
-    if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio);
+    if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) { playVoice(audio); volumeHint(); }
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
   for (const p of roomState.peers) {
@@ -5979,7 +6003,7 @@ function renderTrollPop() {
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
-document.addEventListener('pointerdown', (e) => { const p = $('#trollPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'trollBtn' && !(e.target.closest && e.target.closest('.padtools'))) p.hidden = true; }); // the pad buttons toggle the panel themselves
+document.addEventListener('pointerdown', (e) => { const p = $('#trollPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'trollBtn' && !(e.target.closest && e.target.closest('.padtools, .qreact'))) p.hidden = true; }); // the pad buttons toggle the panel themselves
 $('#gchatX').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.remove('big'); setChatOpen(false); };
 $('#gchatBig').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.toggle('big'); renderChat(); };
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
