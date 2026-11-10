@@ -550,6 +550,22 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 body:has(#game:not([hidden])) #notes, body:has(#regModal:not([hidden])) #notes { display: none; }
 body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #bnav { display: none !important; }
 #bnav .bplay { animation-iteration-count: 6; }
+.tinfo-btn { display: block; margin: 6px auto 0; border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+.tinfo-btn:hover { border-color: var(--amber); } .trollhelp { margin: -4px 0 10px; }
+.tpv { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #101b27; } .tpv canvas { display: block; width: 100%; height: auto; }
+.tpvpads { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: space-between; padding: 0 12px; pointer-events: none; }
+.tpvpads span { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: rgba(255,93,115,.25); border: 2px solid #ff5d73; } .tpvpads .j { font-size: 12px; font-weight: 800; color: #fff; }
+.troll .tq { font-style: normal; font-size: 12px; margin-left: 4px; opacity: .8; }
+.tmoney { border: 1px solid #2f9e6b; background: rgba(61,220,151,.08); border-radius: 10px; padding: 8px 10px; font-size: 14px; margin: 6px 0; }
+.tpayouts { display: grid; gap: 6px; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; } .tpo { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .tpo .ok { color: var(--good); font-weight: 700; }
+.achbtn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); background: color-mix(in srgb, var(--amber) 6%, var(--ink)); color: var(--fg); text-align: left; cursor: pointer; }
+.achbtn .ai { font-size: 24px; } .achbtn .at { flex: 1; display: grid; } .achbtn .at small { color: var(--muted); } .achbtn .ar { font-size: 22px; color: var(--amber); }
+.achov { position: fixed; inset: 0; z-index: 60; background: rgba(5,9,14,.72); display: grid; place-items: center; padding: 16px; }
+.achcard { position: relative; box-sizing: border-box; width: min(100%, 460px); max-height: calc(100dvh - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; }
+.achcard h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; } .achcard .mclose { position: absolute; top: 10px; right: 10px; margin: 0; }
+.alist { display: grid; gap: 6px; } .arow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--ink); opacity: .75; }
+.arow.on { opacity: 1; border-color: var(--amber); background: rgba(255,181,71,.08); } .arow .ae { font-size: 24px; width: 30px; text-align: center; } .arow .ax { flex: 1; display: grid; gap: 2px; } .arow .ax small { color: var(--muted); font-size: 12px; }
+.arow .as { font-size: 16px; } .arow.on .as { color: var(--amber); font-weight: 800; } .abar { display: block; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; } .abar i { display: block; height: 100%; background: var(--amber); }
 .allgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .allcard { display: grid; justify-items: center; gap: 2px; padding: 12px 4px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); text-decoration: none; text-align: center; cursor: pointer; }
 .allcard span { font-size: 26px; line-height: 1.15; } .allcard b { font-size: 14px; } .allcard small { color: var(--muted); font-size: 11px; line-height: 1.2; }
@@ -637,7 +653,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
-        <div data-cat="trolls"><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><div class="shop" id="shopTrolls"></div></div>
+        <div data-cat="trolls"><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><p class="hint trollhelp">Zezalica je mala šala koju u online meču pošalješ drugom igraču: njemu se nakratko nešto dogodi na ekranu (trese se, zamrači, okrene, padaju kakice…). Ti i ostali iznad njegove zmije vidite znak zezalice dok traje. Stisni <b>ℹ️ Kako izgleda</b> na svakoj da vidiš što točno dobije. 🛡️ Štit odbija jednu zezanciju.</p><div class="shop" id="shopTrolls"></div></div>
         <div class="notice" id="shopEmpty" hidden>Ovdje nema ničega za odabrani filtar ili pretragu. <button type="button" class="btn sm" id="shopEmptyAll" style="margin-left:8px">Prikaži sve</button></div>
       </div>
 
@@ -1049,7 +1065,7 @@ function showPlayer(slug) {
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${nameHtml(P.slug, P.name)} ${badgeOf(P)} ${roleTag(P.slug)}</h3><span class="hint">${mutedUntil(P.slug) ? '🔇 utišan do ' + new Date(mutedUntil(P.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + ' · ' : ''}${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
     ${levelHtml(P)}
-    <h4>Postignuća <small>${achOf(P).length} od ${ACH.length}</small></h4>${achHtml(P)}
+    ${achBtnHtml(P)}
     <h4>Kolekcija <small>✓ = trenutno koristi</small></h4>
     <span class="label">Tragovi</span><div class="wrow">${skins.map(k => chip(P.eq.skin === k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('') || none}</div>
     <span class="label">Ikone</span><div class="wrow">${badges.map(k => chip(P.eq.badge === k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('') || none}</div>
@@ -1064,6 +1080,7 @@ function showPlayer(slug) {
     <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${!online && profile ? '<button class="btn ghost" type="button" id="pPush">🔔 Pozovi obaviješću</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
+  { const ab = m.querySelector('.achbtn'); if (ab) ab.onclick = (e) => { e.preventDefault(); showAchievements(P); }; }
   $('#pClose').onclick = () => { m.hidden = true; };
   if ($('#pWatch')) $('#pWatch').onclick = () => { m.hidden = true; startSpectate(pe.peer); };
   if ($('#pPing')) $('#pPing').onclick = () => { m.hidden = true; sendPing(pe.peer); };
@@ -1269,7 +1286,7 @@ function showProfile() {
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
     <div class="refbox"><b>📲 Pozovi igrača i zaradi ${REF_COINS} zlatnika</b><span>Pošalji svoj link. Za <b>svakog</b> tko se preko njega registrira i odigra prvi meč dobivaš <b>${REF_COINS}</b> zlatnika. Dosad pozvano: <b>${refInvited().length}</b> · isplaćeno: <b>${refPaid()}</b>.</span><div class="row"><button class="btn sm" type="button" id="profInvite">📲 Podijeli svoj link</button><button class="btn sm ghost" type="button" id="profCopy">Kopiraj link</button></div></div>
     ${levelHtml(P)}
-    <h4>Postignuća <small>${achOf(P).length} od ${ACH.length}</small></h4>${achHtml(P)}
+    ${achBtnHtml(P)}
     <h4>Garderoba <small>dodirni da promijeniš</small></h4>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
@@ -1282,6 +1299,7 @@ function showProfile() {
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
+  { const ab = m.querySelector('.achbtn'); if (ab) ab.onclick = (e) => { e.preventDefault(); showAchievements(P); }; }
   m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { const sc = m.querySelector('.profile'), y = sc ? sc.scrollTop : 0; profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; }); // stay where you were, only the choice changes
   $('#profClose').onclick = () => { m.hidden = true; };
   if ($('#profGrantAll')) $('#profGrantAll').onclick = () => grantAll();
@@ -1416,8 +1434,8 @@ function drawDildoHead(c, x, y, a, r) {
   c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.ellipse(r * 2.4, -r * 0.5, r * 0.7, r * 0.35, 0, 0, 6.283); c.fill();
   c.restore();
 }
-function badgeOf(p) { const b = BADGES[p && p.eq && p.eq.badge]; return b && b.g ? `<span class="badge" aria-hidden="true">${b.svg || b.g}</span>` : ''; }
-function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; return b.svg && !text ? b.svg : b.g; }
+function badgeOf(p) { const id = p && p.eq && p.eq.badge, b = BADGES[id]; return b && b.g ? `<span class="badge" aria-hidden="true">${badgeGlyph(id)}</span>` : ''; }
+function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
 // diagonal black/orange stripes (Šibenski Funcuti); one pattern per canvas context
 const scarfPats = new WeakMap();
 function scarfPattern(c) {
@@ -1629,7 +1647,8 @@ function renderShop() {
     Object.entries(TROLLS).forEach(([id, t]) => {
       const have = profile ? (profile.inv[id] || 0) : 0;
       const d = document.createElement('div'); d.className = 'item' + (have ? ' eq' : '');
-      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${t.e}</span></div><div><b>${esc(t.name)}</b><small>${esc(t.d)}${have ? ` · <b style="color:var(--amber)">imaš ${have}</b>` : ''}</small></div>`;
+      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${t.e}</span><button type="button" class="tinfo-btn" data-tinfo="${id}" aria-label="Kako izgleda ${esc(t.name)}">ℹ️ Kako izgleda</button></div><div><b>${esc(t.name)}</b><small>${esc(t.d)}${have ? ` · <b style="color:var(--amber)">imaš ${have}</b>` : ''}</small></div>`;
+      d.querySelector('[data-tinfo]').onclick = (e) => { e.preventDefault(); e.stopPropagation(); showTrollPreview(id); };
       const act = document.createElement('div'); act.className = 'act';
       const price = document.createElement('span'); price.className = 'price'; price.textContent = `● ${t.price}`;
       const b = document.createElement('button'); b.type = 'button';
@@ -1715,7 +1734,38 @@ let curTab = 'online'; // the game always opens on the online tab
 // ================= tournaments =================
 const TOUR_API = 'https://vijuga.netlify.app/api/tournament', TOUR_FEE = 500;
 const TMODE = (() => { try { const q = new URLSearchParams(location.search); const id = q.get('turnir'); return id && /^[a-z0-9]{4,20}$/.test(id) ? { id, k: Number(q.get('kolo')) || 0, s: Number(q.get('stol')) || 0 } : null; } catch (e) { return null; } })();
-let tours = [], tourSel = null, tourTimer = 0;
+let tours = [], tourSel = null, tourTimer = 0, tourPayOn = false;
+const PAY_API = 'https://vijuga.netlify.app/api/pay';
+const fmtEur = (v) => (Math.round(Number(v) * 100) / 100).toLocaleString('hr-HR', { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 }) + ' €';
+// real money: the player goes to Stripe's payment page (card, Google Pay, Apple Pay) and comes back with ?placeno=<tournament>
+async function payTour(t) {
+  if (!profile) { showLogin(); return; }
+  if (!profile.pinHash) { toast('Za turnir s pravim novcem prvo postavi PIN (Profil → uredi).'); return; }
+  if (!confirm(`Kotizacija ${fmtEur(t.eur)}. Prva tri mjesta dijele nagradni fond (50 % / 30 % / 20 %). Ako se ne skupi 6 igrača, novac se vraća. Nastaviti na plaćanje?`)) return;
+  try {
+    const r = await fetch(PAY_API + '/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', tour: t.id }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.url) { toast({ 'payments off': 'Plaćanje još nije uključeno. Javi adminu.', 'pin needed': 'Za turnir s pravim novcem prvo postavi PIN (Profil → uredi).', auth: 'Prijava nije uspjela (PIN).', full: 'Turnir je pun.', 'registration closed': 'Prijave su zatvorene.', 'already in': 'Već si prijavljen.' }[j.error] || 'Plaćanje nije uspjelo (' + (j.error || r.status) + ').'); return; }
+    try { sessionStorage.setItem('vijuga-paying', t.id); } catch (e) {}
+    location.href = j.url;
+  } catch (e) { toast('Nema veze s poslužiteljem.'); }
+}
+// back from Stripe: wait until the payment has put me on the tournament
+(function paidReturn() {
+  let v = ''; try { v = new URLSearchParams(location.search).get('placeno') || ''; } catch (e) { return; }
+  if (!v) return;
+  try { const u = new URL(location.href); u.searchParams.delete('placeno'); history.replaceState(null, '', u.toString()); } catch (e) {}
+  if (v === 'odustao') { setTimeout(() => toast('Plaćanje je otkazano, ništa nije naplaćeno.'), 1500); return; }
+  if (!/^[a-z0-9]{4,20}$/.test(v)) return;
+  let tries = 0;
+  const check = async () => {
+    tries++;
+    if (curTab !== 'tour') showTab('tour');
+    try { const r = await fetch(TOUR_API + '/' + v, { cache: 'no-store' }); const j = await r.json(); const t = j.tournament; if (t && profile && t.players.some(p => p.slug === profile.slug)) { notify(`🏆 <b>Plaćeno i upisan si</b> na turnir „${esc(t.name)}”. Budi online na početku!`, { ms: 12000 }); loadTours(); return; } } catch (e) {}
+    if (tries < 15) setTimeout(check, 3000); else notify('Plaćanje je primljeno, ali upis još nije potvrđen. Osvježi turnire za minutu; ako te nema, javi adminu.', { warn: true, ms: 0 });
+  };
+  setTimeout(() => { notify('✅ Plaćanje primljeno, upisujem te na turnir…', { ms: 6000 }); check(); }, 1500);
+})();
 // ---- roles: master admin gives roles; see ROLE_INFO for what each one can do
 const ROLES_API = 'https://vijuga.netlify.app/api/roles';
 const ROLE_INFO = {
@@ -1792,14 +1842,14 @@ function rolesHelpHtml() {
   return `<h2>Uloge</h2><p class="hint">Uloge dodjeljuje master admin na kartici igrača (klikni ime igrača → „Uloga”). Oznaka uloge vidi se uz ime.</p>${Object.entries(ROLE_INFO).map(([k, r]) => `<p><span class="rtag rt-${k}">${r.tag}</span> <b>${r.n}</b>: ${r.d}</p>`).join('')}<p><b>Igrač</b> (bez oznake): igra, kupuje, sudjeluje u turnirima, gleda i zeza druge.</p>`;
 }
 async function loadTours() {
-  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
+  try { const r = await fetch(TOUR_API, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); tours = j.tournaments || []; tourPayOn = !!j.payments; } catch (e) { const b = $('#tour'); if (b) b.innerHTML = '<p class="hint">Poslužitelj turnira se ne javlja. Pokušaj za minutu.</p>'; return; }
   if (!tourSel || !tours.some(t => t.id === tourSel)) tourSel = (tours.find(t => t.status !== 'done' && t.status !== 'cancelled') || tours[0] || {}).id || null;
   renderTour(); clearTimeout(tourTimer); if (curTab === 'tour' && !$('#menu').hidden) tourTimer = setTimeout(loadTours, 20000);
 }
 async function tourCall(id, action, extra) {
   if (!profile) { showLogin(); return null; }
   try { const r = await fetch(TOUR_API + (id ? '/' + id + (action ? '/' + action : '') : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
+    const j = await r.json().catch(() => ({})); if (!r.ok) { toast({ 'registration closed': 'Prijave su zatvorene.', full: 'Turnir je pun.', 'already started': 'Turnir je već počeo.', 'need 2 players': 'Trebaju barem 2 igrača.', 'need 6 players': 'Za turnir s pravim novcem treba barem 6 igrača.', 'payments off': 'Plaćanje (Stripe) još nije uključeno.', 'refund failed': 'Povrat novca nije uspio, pokušaj ponovno.', 'payment required': 'Za ovaj turnir se prijavljuje plaćanjem.', treasury: 'Nema dovoljno zlatnika u blagajni (' + (j.treasury ?? '?') + ').', 'admin only': 'Samo admin.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || ('Greška: ' + (j.error || r.status))); return null; } return j; }
   catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
 }
 function tableUrl(t, k, tb) { return GAME_URL + `?soba=t${t.id}-k${k}-s${tb.id}&turnir=${t.id}&kolo=${k}&stol=${tb.id}`; }
@@ -1808,40 +1858,47 @@ function renderTour() {
   const t = tours.find(x => x.id === tourSel), me = profile && profile.slug;
   const fmtT = ms => new Date(ms).toLocaleString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
   const pick = tours.length > 1 ? `<div class="tpick">${tours.map(x => `<button type="button" class="tpk ${x.id === tourSel ? 'on' : ''}" data-id="${x.id}">${esc(x.name)} <small>${{ open: 'prijave', running: 'u tijeku', final: 'finale', done: 'gotov', cancelled: 'otkazan' }[x.status]}</small></button>`).join('')}</div>` : '';
-  let html = `<div class="thead"><span class="tcup">🏆</span><div><h2 style="margin:0">Turniri</h2><p class="hint" style="margin:0">Kotizacija <b>${TOUR_FEE}</b> zlatnika, pa ih prvo zaradi u mečevima. 3 kola po stolovima (bodovi 10/6/3/1/0), 5 najboljih ide u finale. Fond: 🥇 60 % · 🥈 30 % · 🥉 10 %.</p></div></div>${pick}`;
+  let html = `<div class="thead"><span class="tcup">🏆</span><div><h2 style="margin:0">Turniri</h2><p class="hint" style="margin:0">3 kola po stolovima (bodovi 10/6/3/1/0), 5 najboljih ide u finale. <b>Za zlatnike:</b> kotizacija ${TOUR_FEE}, fond 🥇 60 % · 🥈 30 % · 🥉 10 %. <b>💶 Za pravi novac:</b> kotizacija 5, 10 ili 15 €, plaćanje karticom ili Google Payem, najmanje 6 igrača, prva tri dijele fond 🥇 50 % · 🥈 30 % · 🥉 20 %.</p></div></div>${pick}`;
   if (!t) html += '<p class="hint">Trenutno nema turnira. Admin ga raspisuje ovdje, a ti ćeš dobiti mjesto čim se otvore prijave.</p>';
   else {
-    const inT = t.players.some(p => p.slug === me), enough = profile && profile.coins >= TOUR_FEE;
+    const inT = t.players.some(p => p.slug === me), enough = profile && profile.coins >= TOUR_FEE, money = !!t.eur;
     const status = { open: '📝 Prijave otvorene', running: `⚔️ Kolo ${t.rounds.length} od 3`, final: '🔥 Finale', done: '🏁 Gotov', cancelled: '✖ Otkazan' }[t.status];
     html += `<div class="tcard"><div class="trow1"><h3>${esc(t.name)}</h3><span class="tst">${status}</span></div>
-      <div class="tinfo"><div><b>${fmtT(t.start)}</b><span>početak</span></div><div><b class="gold">💰 ${t.pot}</b><span>fond${t.bonus ? ` (admin +${t.bonus})` : ''}</span></div><div><b>${t.players.length}/${t.max}</b><span>prijavljeno</span></div><div><b>${t.fee}</b><span>kotizacija</span></div></div>`;
-    if (t.status === 'open') html += !profile ? '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>' : inT ? `<p>✅ Prijavljen si. Budi online u ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (vraća ${t.fee})</button>` : enough ? `<button class="btn" type="button" id="tJoin">Prijavi se · ● ${t.fee}</button>` : `<p class="hint">Imaš ● ${profile.coins}. Zaradi još <b>${TOUR_FEE - profile.coins}</b> zlatnika u mečevima za kotizaciju.</p>`;
-    html += `<div class="tplayers">${t.players.map(p => `<span class="onp" data-player="${esc(p.slug)}">${esc(p.name)}${t.points[p.slug] != null ? ` <span class="st">${t.points[p.slug]} b</span>` : ''}</span>`).join('') || '<span class="hint">Još nitko.</span>'}</div>`;
+      <div class="tinfo"><div><b>${fmtT(t.start)}</b><span>početak</span></div><div><b class="gold">${money ? '💶 ' + fmtEur(t.pot) : '💰 ' + t.pot}</b><span>${money ? 'nagradni fond' : 'fond'}${t.bonus ? ` (admin +${t.bonus})` : ''}</span></div><div><b>${t.players.length}/${t.max}</b><span>prijavljeno${money ? ' (min. 6)' : ''}</span></div><div><b>${money ? fmtEur(t.eur) : t.fee}</b><span>kotizacija</span></div></div>`;
+    if (money) html += `<div class="tmoney"><b>💶 Turnir za pravi novac.</b> Plaća se karticom ili Google Payem (preko Stripea). Fond: 🥇 ${fmtEur(t.pot * .5)} · 🥈 ${fmtEur(t.pot * .3)} · 🥉 ${fmtEur(t.pot * .2)}. Ako se do sat vremena nakon početka ne skupi 6 igrača, turnir se otkazuje i novac se vraća na karticu. Odjava prije početka također vraća novac. Samo za punoljetne.</div>`;
+    if (money && t.status === 'open') html += !profile ? '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>' : inT ? `<p>✅ Plaćeno i prijavljen si. Budi online u ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (novac se vraća na karticu)</button>` : !profile.pinHash ? `<p class="hint">Za turnir s pravim novcem prvo postavi <b>PIN</b> (Profil → uredi), da nitko drugi ne može igrati pod tvojim imenom.</p><button class="btn ghost" type="button" id="tPin">Postavi PIN</button>` : !tourPayOn ? '<p class="hint">Plaćanje još nije uključeno.</p>' : t.players.length >= t.max ? '<p class="hint">Turnir je pun.</p>' : `<button class="btn" type="button" id="tPay">💳 Plati ${fmtEur(t.eur)} i prijavi se</button><p class="hint" style="margin:4px 0 0">Google Pay, Apple Pay ili kartica. Plaćanje ide preko Stripea; igra ne vidi podatke tvoje kartice.</p>`;
+    else if (t.status === 'open') html += !profile ? '<button class="btn" type="button" id="tLogin">Prijavi se u igru</button>' : inT ? `<p>✅ Prijavljen si. Budi online u ${fmtT(t.start)}.</p><button class="btn ghost sm" type="button" id="tLeave">Odjavi se (vraća ${t.fee})</button>` : enough ? `<button class="btn" type="button" id="tJoin">Prijavi se · ● ${t.fee}</button>` : `<p class="hint">Imaš ● ${profile.coins}. Zaradi još <b>${TOUR_FEE - profile.coins}</b> zlatnika u mečevima za kotizaciju.</p>`;
+    html += `<div class="tplayers">${t.players.map(p => `<span class="onp" data-player="${esc(p.slug)}">${money && (t.paidSlugs || []).includes(p.slug) ? '💶 ' : ''}${esc(p.name)}${t.points[p.slug] != null ? ` <span class="st">${t.points[p.slug]} b</span>` : ''}</span>`).join('') || '<span class="hint">Još nitko.</span>'}</div>`;
     if (t.rounds.length) {
       const stand = [...t.players].sort((a, b) => (t.points[b.slug] || 0) - (t.points[a.slug] || 0));
       html += `<h4>🏅 Poredak</h4><table class="board"><tbody>${stand.map((p, i) => `<tr data-player="${esc(p.slug)}"${p.slug === me ? ' style="color:var(--amber)"' : ''}><td>${i + 1}.</td><td style="text-align:left">${esc(p.name)}${i < 5 && t.status === 'running' ? ' <small class="hint">→ finale</small>' : ''}</td><td>${t.points[p.slug] || 0} b</td></tr>`).join('')}</tbody></table>`;
       for (const r of [...t.rounds].reverse()) html += `<h4>Kolo ${r.k}</h4><div class="ttables">${r.tables.map(tb => { const mine = tb.players.includes(me); return `<div class="ttable ${mine ? 'mine' : ''}"><b>Stol ${tb.id}</b> ${tb.result ? '✓' : '⏳'}${!tb.result && isAdmin() ? ` <button class="btn sm ghost" type="button" data-close-table="${r.k}:${tb.id}" title="Zaključi stol bez meča (forfeit)">⚑ zaključi</button>` : ''}<div>${(tb.result || tb.players).map((s, i) => `${tb.result ? (i + 1) + '. ' : ''}${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(tb.result ? ' · ' : ', ')}</div>${mine && !tb.result && t.status === 'running' && r.k === t.rounds.length ? `<a class="btn" href="${tableUrl(t, r.k, tb)}">▶ Uđi za svoj stol</a>` : ''}</div>`; }).join('')}</div>`;
     }
     if (t.final) { const f = t.final, mine = f.players.includes(me); html += `<h4>🔥 Finale</h4><div class="ttable ${mine ? 'mine' : ''}">${(f.result || f.players).map((s, i) => `${f.result ? ['🥇', '🥈', '🥉'][i] || (i + 1) + '.' : ''} ${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(' · ')}${mine && !f.result ? `<a class="btn" href="${tableUrl(t, 0, f)}">▶ Uđi u finale</a>` : ''}</div>`; }
-    if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>+${w.prize} 💰</small></div>`).join('')}</div>`;
-    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? '<button class="btn sm" type="button" id="tStart">Pokreni turnir</button>' : ''}${canBonus() ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (vrati kotizacije)</button></div>`;
+    if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>${money ? fmtEur(w.prize) : '+' + w.prize + ' 💰'}</small></div>`).join('')}</div>`;
+    if (money && t.payouts && t.payouts.length) html += `<div class="tpayouts"><b>💶 Isplate</b>${t.payouts.map(po => `<div class="tpo"><span>${['🥇', '🥈', '🥉'][po.place - 1]} ${esc(po.name)} · <b>${fmtEur(po.eur)}</b></span>${po.paid ? '<span class="ok">✓ isplaćeno</span>' : canBonus() ? `<button class="btn sm" type="button" data-paidout="${esc(po.slug)}">Označi isplaćeno</button>` : '<span class="hint">čeka isplatu</span>'}</div>`).join('')}</div>`;
+    if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? `<button class="btn sm" type="button" id="tStart">Pokreni turnir${money ? ' (min. 6)' : ''}</button>` : ''}${canBonus() && !money ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (${money ? 'vrati novac na kartice' : 'vrati kotizacije'})</button></div>`;
     html += '</div>';
   }
   if (myRole() === 'master') html += `<p class="treasury">🔒 Tvoja blagajna za turnire: <b id="trVal">…</b> zlatnika <small>(vidiš samo ti; iz nje ide dodatak u fond)</small></p>`;
-  if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].n : 'admin'})</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label>${canBonus() ? '<label>Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label>' : ''}<button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
+  if (isAdmin()) html += `<details class="tnew"><summary>➕ Raspiši novi turnir (${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].n : 'admin'})</summary><label>Naziv <input type="text" id="tnName" maxlength="40" value="Subotnji turnir"></label><label>Početak <input type="datetime-local" id="tnStart"></label><label>Najviše igrača <input type="number" id="tnMax" value="16" min="2" max="40"></label>${canBonus() ? `<label>Vrsta <select id="tnKind"><option value="0">Za zlatnike (kotizacija ${TOUR_FEE})</option>${tourPayOn ? '<option value="5">💶 Pravi novac: 5 €</option><option value="10">💶 Pravi novac: 10 €</option><option value="15">💶 Pravi novac: 15 €</option>' : ''}</select></label>${tourPayOn ? '' : '<p class="hint" style="margin:0">Turniri za pravi novac pojavit će se ovdje kad se uključi Stripe.</p>'}<label id="tnBonusL">Tvoj dodatak u fond <input type="number" id="tnBonus" value="0" min="0" step="100"></label>` : ''}<button class="btn" type="button" id="tnGo">Raspiši</button></details>`;
   box.innerHTML = html;
   box.querySelectorAll('.tpk').forEach(b => b.onclick = () => { tourSel = b.dataset.id; renderTour(); });
   if ($('#trVal')) roleCall('treasury', {}).then(j => { if (j && $('#trVal')) $('#trVal').textContent = j.treasury; });
   const after = (j) => { if (j && j.tournament) { const i = tours.findIndex(x => x.id === j.tournament.id); const v = Object.assign({}, j.tournament, { pot: j.pot }); if (i >= 0) tours[i] = v; else tours.unshift(v); tourSel = v.id; renderTour(); } };
   if ($('#tLogin')) $('#tLogin').onclick = () => showLogin();
   if ($('#tJoin')) $('#tJoin').onclick = async () => { if (profile.coins < TOUR_FEE) return; if (!confirm(`Kotizacija je ${TOUR_FEE} zlatnika. Prijaviti se?`)) return; $('#tJoin').disabled = true; const j = await tourCall(t.id, 'join'); if (j && !j.already) { profile.coins -= TOUR_FEE; profile.spent = (profile.spent || 0) + TOUR_FEE; saveProfile(); toast('🏆 Prijavljen si na turnir!'); after(j); } };
-  if ($('#tLeave')) $('#tLeave').onclick = async () => { const j = await tourCall(t.id, 'leave'); if (j) { toast('Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); setTimeout(collectGifts, 1500); } };
+  if ($('#tLeave')) $('#tLeave').onclick = async () => { if (t.eur && !confirm(`Odjaviti se? ${fmtEur(t.eur)} vraća se na karticu (obično za 5 do 10 dana).`)) return; const j = await tourCall(t.id, 'leave'); if (j) { toast(t.eur ? 'Odjavljen si. Novac se vraća na tvoju karticu.' : 'Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); if (!t.eur) setTimeout(collectGifts, 1500); } };
   if ($('#tStart')) $('#tStart').onclick = async () => { if (!confirm('Pokrenuti turnir sada? Prijave se zatvaraju i kreće 1. kolo.')) return; after(await tourCall(t.id, 'start')); };
   if ($('#tBonus')) $('#tBonus').onclick = async () => { const a = Math.floor(Number($('#tBonusIn').value) || 0); if (a <= 0) return; after(await tourCall(t.id, 'bonus', { amount: a })); };
   $('#tab-tour').querySelectorAll('[data-close-table]').forEach(b => b.onclick = async () => { const [k, tid] = b.dataset.closeTable.split(':').map(Number); if (!confirm('Zaključiti ovaj stol bez odigranog meča? Igrači se rangiraju po redoslijedu sjedenja.')) return; after(await tourCall(t.id, 'result', { round: k, table: tid, ranking: [] })); });
   if ($('#tCancel')) $('#tCancel').onclick = async () => { if (!confirm('Otkazati turnir i vratiti kotizacije svima?')) return; after(await tourCall(t.id, 'cancel')); };
   if ($('#tnGo')) { const d = new Date(Date.now() + 3600000); d.setMinutes(0, 0, 0); $('#tnStart').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(); after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: $('#tnBonus') ? $('#tnBonus').value : 0 })); }; }
+    if ($('#tnKind')) $('#tnKind').onchange = () => { const eur = Number($('#tnKind').value); if ($('#tnBonusL')) $('#tnBonusL').hidden = !!eur; if (eur && Number($('#tnMax').value) < 6) $('#tnMax').value = 8; };
+    $('#tnGo').onclick = async () => { const start = new Date($('#tnStart').value).getTime(), eur = $('#tnKind') ? Number($('#tnKind').value) : 0; if (eur && !confirm(`Raspisati turnir za pravi novac (kotizacija ${eur} €, min. 6 igrača)?`)) return; after(await tourCall(null, null, { name: $('#tnName').value, start, max: $('#tnMax').value, bonus: !eur && $('#tnBonus') ? $('#tnBonus').value : 0, eur })); }; }
+  if ($('#tPay')) $('#tPay').onclick = () => payTour(t);
+  if ($('#tPin')) $('#tPin').onclick = () => showRegister(true);
+  box.querySelectorAll('[data-paidout]').forEach(b => b.onclick = async () => { if (!confirm('Označiti da je nagrada isplaćena?')) return; after(await tourCall(t.id, 'paidout', { winner: b.dataset.paidout })); });
 }
 // ---- playing a tournament table (opened from "Uđi za svoj stol")
 let tourTable = null, tourReported = false, tourArrived = 0;
@@ -1923,7 +1980,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '97a574fa4e84';
+const BUILD = 'e78a4c8b76cc';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -2026,7 +2083,7 @@ const PREMIUM = {
   lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ: na početku svake runde helikopter te spusti u arenu na užetu, a svi vide „IME stiže helikopterom!”', price: 18000, lux: true },
   lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ: kad pobijediš rundu, tvoja jahta s tvojim imenom proplovi arenom uz šampanjac', price: 20000, lux: true },
   lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ: kad nekoga srušiš, preko ekrana se zavrti zlatni sat i padnu zlatnici: „TIK-TAK, IME!”', price: 15000, lux: true },
-  pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji spomenik s tvojim imenom', price: 1800 },
+  pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji veliki spomenik s tvojim imenom. Tko ga dotakne, vidi „Počivaj u miru” i tvoje ime', price: 1800 },
 };
 const VIP_REACTIONS = ['🦄', '🍾', '🤑', '🧨', '👽'];
 function ownsSlug(slug, id) { if (profile && slug === profile.slug) return profile.owned.includes(id); const a = accounts.list.find(x => x.slug === slug); return !!(a && Array.isArray(a.owned) && a.owned.includes(id)); }
@@ -2043,7 +2100,7 @@ const EFFECTS = {
   ds_confetti: { kind: 'ds', e: '🎊', name: 'Konfeti', d: 'Kad ispadneš, pršte konfeti', price: 150 },
   ds_ghost:  { kind: 'ds', e: '👻', name: 'Duh odlazi', d: 'Kad ispadneš, duh se diže prema nebu', price: 170 },
   ds_poop:   { kind: 'ds', e: '💩', name: 'Kakica', d: 'Kad ispadneš, ostane kakica', price: 150 },
-  ds_boom:   { kind: 'ds', e: '💣', name: 'Velika eksplozija', d: 'Kad ispadneš, sve zatrese', price: 200 },
+  ds_boom:   { kind: 'ds', e: '💣', name: 'Velika eksplozija', d: 'Kad ispadneš, velika eksplozija 💥 i cijeli ekran se zatrese', price: 200 },
   vs_fanfare:{ kind: 'vs', e: '🎺', name: 'Fanfare', d: 'Zvuk kad pobijediš rundu', price: 140 },
   vs_fart:   { kind: 'vs', e: '💨', name: 'Prdac', d: 'Zvuk kad pobijediš rundu', price: 120 },
   vs_horn:   { kind: 'vs', e: '📯', name: 'Zračna truba', d: 'Zvuk kad pobijediš rundu', price: 160 },
@@ -2053,8 +2110,21 @@ function playVictory(vs) {
   if (vs === 'vs_fanfare') [523, 659, 784, 1047, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, i > 3 ? .3 : .12, 'square', .06), i * 120));
   else if (vs === 'vs_fart') { beep(110, .55, 'sawtooth', .09, -60); setTimeout(() => beep(85, .35, 'sawtooth', .08, -40), 300); }
   else if (vs === 'vs_horn') [0, 260, 520].forEach(t => setTimeout(() => beep(370, .22, 'square', .09, 30), t));
-  else if (vs === 'vs_laugh') [0, 160, 320, 480, 640].forEach((t, i) => setTimeout(() => beep(i % 2 ? 520 : 600, .1, 'triangle', .07, -120), t));
+  else if (vs === 'vs_laugh') [0, 150, 300, 450, 600, 780, 960].forEach((t, i) => setTimeout(() => { beep(390 - i * 22, .12, 'sawtooth', .12, -90); beep(780 - i * 44, .1, 'square', .045, -170); }, t)); // "ha-ha-ha-ha", falling
 }
+// the round winner's victory effect: its sound plus a bubble above the snake, so it shows even with the sound off
+const VS_TEXT = { vs_fanfare: '🎺 TA-DAAA!', vs_fart: '💨 PRRRT!', vs_horn: '📯 TUTUUU!', vs_laugh: '😂 HA HA HA!' };
+let vsShow = null;
+function victoryFx(p) { if (!p || !EFFECTS[p.vs]) return; vsShow = { id: p.id, txt: VS_TEXT[p.vs] || EFFECTS[p.vs].e, t0: performance.now() + 350 }; setTimeout(() => playVictory(p.vs), 350); }
+function drawVictoryFx(c) {
+  if (!vsShow || !G) return; const age = performance.now() - vsShow.t0; if (age < 0) return; if (age > 2600) { vsShow = null; return; }
+  const p = G.players.find(q => q.id === vsShow.id); if (!p) return;
+  const sz = Math.round(Math.max(20, Math.min(W, H) * 0.045)) * (1 + 0.12 * Math.sin(age / 90) * Math.max(0, 1 - age / 900));
+  c.save(); c.globalAlpha = age > 2100 ? (2600 - age) / 500 : 1; c.font = `400 ${Math.round(sz)}px Bungee, Impact, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const y = p.y - 46 - Math.min(22, age / 40); c.lineWidth = 5; c.strokeStyle = 'rgba(11,18,27,.85)'; c.strokeText(vsShow.txt, p.x, y); c.fillStyle = '#ffd23f'; c.fillText(vsShow.txt, p.x, y); c.restore();
+}
+// a big explosion (death effect "Velika eksplozija"): shock waves, a growing 💥, flying sparks, the screen shakes
+let fxShakeUntil = 0;
 const tparts = [];
 function trailFx(p, now) {
   if (!p.te || !p.alive || !p.drawing || Math.random() > 0.55) return;
@@ -2070,19 +2140,20 @@ function deathFx(p) {
   if (p.ds === 'ds_confetti') { const cs = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff']; for (let i = 0; i < 60; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 160; tparts.push({ t: 'r', x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, g: 120, life: 1.4, born: now, c: cs[i % cs.length], r: 3 }); } }
   else if (p.ds === 'ds_ghost') tparts.push({ t: 'e', e: '👻', x: p.x, y: p.y, vx: 0, vy: -45, life: 1.8, born: now, r: 28 });
   else if (p.ds === 'ds_poop') tparts.push({ t: 'e', e: '💩', x: p.x, y: p.y, vx: 0, vy: 0, life: 2.5, born: now, r: 30 });
-  else if (p.ds === 'ds_boom') { for (let i = 0; i < 3; i++) burst(p.x, p.y, ['#ffb547', '#ff5d2e', '#fff'][i]); tparts.push({ t: 'ring', x: p.x, y: p.y, life: .6, born: now, r: 10 }); }
+  else if (p.ds === 'ds_boom') { for (let i = 0; i < 5; i++) burst(p.x, p.y, ['#ffb547', '#ff5d2e', '#fff', '#ffd23f', '#ff5d2e'][i]); for (let i = 0; i < 3; i++) tparts.push({ t: 'ring', x: p.x, y: p.y, vx: 0, vy: 0, life: .5 + i * .25, born: now + i * 90, r: 10, big: 1 }); tparts.push({ t: 'boom', x: p.x, y: p.y, vx: 0, vy: 0, life: .9, born: now, r: 30 }); fxShakeUntil = now + 550; beep(70, .55, 'sawtooth', .14, -45); setTimeout(() => beep(48, .45, 'square', .1, -20), 60); try { navigator.vibrate && navigator.vibrate([90, 40, 120]); } catch (e) {} }
   else burst(p.x, p.y, p.color);
 }
 function drawTparts(c) {
   const now = performance.now();
   for (let i = tparts.length - 1; i >= 0; i--) {
-    const q = tparts[i], age = (now - q.born) / 1000; if (age > q.life) { tparts.splice(i, 1); continue; }
+    const q = tparts[i], age = (now - q.born) / 1000; if (age > q.life) { tparts.splice(i, 1); continue; } if (age < 0) continue;
     const k = age / q.life, x = q.x + q.vx * age, y = q.y + q.vy * age + (q.g ? q.g * age * age / 2 : 0);
     c.globalAlpha = 1 - k;
     if (q.t === 'c' || q.t === 'r') { c.fillStyle = q.c; if (q.t === 'r') c.fillRect(x - 2, y - 2, 4, 4); else { c.beginPath(); c.arc(x, y, q.r * (1 - k * .6), 0, 6.283); c.fill(); } }
     else if (q.t === 'b') { c.strokeStyle = 'rgba(180,230,255,.9)'; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, q.r, 0, 6.283); c.stroke(); }
     else if (q.t === 'e') { c.font = `${q.r}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(q.e, x, y); }
-    else if (q.t === 'ring') { c.strokeStyle = '#ffb547'; c.lineWidth = 4 * (1 - k); c.beginPath(); c.arc(x, y, 10 + k * 90, 0, 6.283); c.stroke(); }
+    else if (q.t === 'ring') { if (age < 0) continue; c.strokeStyle = '#ffb547'; c.lineWidth = (q.big ? 7 : 4) * (1 - k); c.beginPath(); c.arc(x, y, 10 + k * (q.big ? 170 : 90), 0, 6.283); c.stroke(); }
+    else if (q.t === 'boom') { const sz = 30 + 150 * Math.min(1, k * 2.2); c.font = `${Math.round(sz)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💥', x, y); }
   }
   if (tparts.length > 600) tparts.splice(0, tparts.length - 600);
   c.globalAlpha = 1;
@@ -2689,7 +2760,7 @@ function endRound(winner) {
   G.phase = 'end'; G.phaseT = 0; G.players.forEach(p => flushTrail(p, false));
   if (winner) winner.wins++;
   if (winner && hasLux(winner, 'yacht')) luxStart('yacht', winner);
-  sfx.round(); if (winner && winner.vs) setTimeout(() => playVictory(winner.vs), 350);
+  sfx.round(); if (winner && winner.vs) victoryFx(winner);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
   if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
@@ -2892,7 +2963,24 @@ function render() {
     ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.sx, p.sy); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.shadowBlur = 0; ctx.setLineDash([]); ctx.globalAlpha = 1;
   }
   if (innerWidth < 760 || (net && G.players.length > 4)) drawBoard(ctx);
-  if (G.tombs) for (const t of G.tombs) { ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🪦', t.x, t.y); ctx.font = '700 11px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText('R.I.P. ' + t.name, t.x, t.y + 18); ctx.restore(); }
+  if (G.tombs) { const now = performance.now(), m = Math.min(W, H), big = Math.round(Math.max(40, m * 0.1)), lab = Math.round(Math.max(13, m * 0.03)), rf = Math.round(Math.max(17, m * 0.042)); // sized to the arena, so it reads on a phone too
+    for (const t of G.tombs) {
+      // a snake that touches the grave (or drives over it) wakes the inscription for a moment
+      for (const q of G.players) if (q.alive && Math.hypot(q.x - t.x, q.y - t.y) < big * 0.6) { if (!t.rip || now - t.rip > 2600) { t.rip = now; if (q.mine || (net && q.id === net.myId)) beep(196, .35, 'sine', .04, -40); } else t.rip = Math.max(t.rip, now - 1200); }
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 8;
+      ctx.font = big + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.fillText('🪦', t.x, t.y);
+      ctx.shadowBlur = 0; ctx.font = `700 ${lab}px "Barlow Semi Condensed", sans-serif`; ctx.lineWidth = Math.max(3, lab / 4); ctx.strokeStyle = 'rgba(11,18,27,.85)'; ctx.fillStyle = '#e9eff6';
+      ctx.strokeText('R.I.P. ' + t.name, t.x, t.y + big * 0.62 + lab / 2); ctx.fillText('R.I.P. ' + t.name, t.x, t.y + big * 0.62 + lab / 2);
+      const age = t.rip ? now - t.rip : 1e9;
+      if (age < 2600) {
+        const a = age < 150 ? age / 150 : age > 2000 ? (2600 - age) / 600 : 1, txt = '✝ Počivaj u miru, ' + t.name, y = t.y - big * 0.75 - rf / 2 - Math.min(rf * .6, age / 120);
+        ctx.globalAlpha = Math.max(0, a); ctx.font = `700 ${rf}px "Barlow Semi Condensed", sans-serif`;
+        const w = ctx.measureText(txt).width + rf, hh = rf * 1.6; ctx.fillStyle = 'rgba(11,18,27,.85)'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(t.x - w / 2, y - hh / 2, w, hh, hh / 2); else ctx.rect(t.x - w / 2, y - hh / 2, w, hh); ctx.fill();
+        ctx.fillStyle = '#f4e6c8'; ctx.fillText(txt, t.x, y + 1);
+      }
+      ctx.restore();
+    } }
   if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
     ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
@@ -2911,6 +2999,7 @@ function render() {
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
     else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
+    { const pm = p.alive && net ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
     if (p.alive && G.phase === 'run' && BADGES[p.badge] && BADGES[p.badge].crypto) { ctx.globalAlpha = 0.85; drawBadge(ctx, p.badge, p.x, p.y - hr - 11, 10, p.color); ctx.globalAlpha = 1; }
     if (p.alive && G.phase === 'run' && BADGES[p.badge] && BADGES[p.badge].anim) { ctx.globalAlpha = 0.9; drawAnim(ctx, BADGES[p.badge].anim, p.x, p.y - hr - 12, 17, performance.now() / 1000); ctx.globalAlpha = 1; }
     // the survivor of the round rides a victory lap with a crown above the head (and their own icon above the crown)
@@ -2959,7 +3048,8 @@ function render() {
   }
   for (const q of G.parts) { ctx.globalAlpha = Math.max(0, q.life); ctx.fillStyle = q.c; ctx.fillRect(q.x - 1.6, q.y - 1.6, 3.2, 3.2); }
   ctx.globalAlpha = 1;
-  if (trollFx.length || ($('#cv').style.transform)) drawTrolls(ctx);
+  if (trollFx.length || fxShakeUntil > performance.now() || ($('#cv').style.transform)) drawTrolls(ctx);
+  drawVictoryFx(ctx);
   ctx.globalAlpha = 1;
   if (G.toast && G.gt - G.toast.t < 1.2 && G.gt >= G.toast.t) {
     const k = (G.gt - G.toast.t) / 1.2;
@@ -3069,16 +3159,60 @@ function lockNote(need) { const L = profile ? levelOf(profile) : null; const xp 
 function unlocksAt(lv) { const n = [...Object.keys(SKINS), ...Object.keys(BADGES), ...Object.keys(PREMIUM)].filter(id => lvReq(id) === lv).length + Object.values(BOX_LV).filter(x => x === lv).length; return n; }
 function xpOf(P) { return Math.round((P.matches || 0) * 10 + (P.wins || 0) * 25 + (P.kills || 0) * 3 + (P.playMs || 0) / 60000 * 2 + (P.trollsSent || 0) * 2); }
 function levelOf(P) { const xp = xpOf(P), lv = Math.floor(Math.sqrt(xp / 40)) + 1, a = 40 * (lv - 1) ** 2, b = 40 * lv ** 2; return { lv, xp, pct: Math.max(0, Math.min(100, Math.round(100 * (xp - a) / (b - a)))), next: b - xp }; }
+// achievements: id (kept forever: the device remembers which ones it has announced), emoji, name, how to get it,
+// and the number that counts towards it
+const achNum = (P, k) => Number(P && P[k]) || 0;
+const achOwned = (P, f) => (P.owned || []).filter(f).length;
+const streakDays = P => Math.max(0, ...(P.owned || []).map(x => /^x_s:\d{4}-\d\d-\d\d:(\d)$/.exec(x)).filter(Boolean).map(m => Number(m[1])));
+const refCount = P => Math.max(0, ...(P.owned || []).map(x => /^x_ref:(\d+)$/.exec(x)).filter(Boolean).map(m => Number(m[1])));
+const A = (id, e, n, d, val, goal) => ({ id, e, n, d, val, goal, t: P => val(P) >= goal });
 const ACH = [
-  { id: 'w1', e: '🥇', n: 'Prva pobjeda', t: P => P.wins >= 1 }, { id: 'w10', e: '🏆', n: '10 pobjeda', t: P => P.wins >= 10 }, { id: 'w50', e: '👑', n: '50 pobjeda', t: P => P.wins >= 50 },
-  { id: 'm10', e: '🎮', n: '10 mečeva', t: P => P.matches >= 10 }, { id: 'm100', e: '🕹️', n: '100 mečeva', t: P => P.matches >= 100 },
-  { id: 'k25', e: '💥', n: '25 rušenja', t: P => P.kills >= 25 }, { id: 'k100', e: '☠️', n: '100 rušenja', t: P => P.kills >= 100 },
-  { id: 't1', e: '😈', n: 'Prva zezancija', t: P => (P.trollsSent || 0) >= 1 }, { id: 't20', e: '🤡', n: 'Zezator (20)', t: P => (P.trollsSent || 0) >= 20 },
-  { id: 'g10', e: '🎯', n: 'Meta (zezan 10×)', t: P => (P.trollsGot || 0) >= 10 }, { id: 'c5', e: '🧺', n: 'Kolekcionar (5 stvari)', t: P => (P.owned || []).filter(x => itemPrice(x) > 0).length >= 5 },
-  { id: 'r2k', e: '💰', n: 'Bogataš (2000 zlatnika)', t: P => P.coins >= 2000 }, { id: 'h1', e: '⏱️', n: 'Sat u igri', t: P => (P.playMs || 0) >= 3600000 },
-  { id: 'rare', e: '💎', n: 'Vlasnik rijetkosti', t: P => (P.owned || []).some(x => (SKINS[x] || BADGES[x] || {}).limit) },
+  A('w1', '🥇', 'Prva pobjeda', 'Pobijedi u jednom meču.', P => achNum(P, 'wins'), 1),
+  A('w10', '🏆', '10 pobjeda', 'Pobijedi u 10 mečeva.', P => achNum(P, 'wins'), 10),
+  A('w50', '👑', '50 pobjeda', 'Pobijedi u 50 mečeva.', P => achNum(P, 'wins'), 50),
+  A('w100', '🏰', '100 pobjeda', 'Pobijedi u 100 mečeva.', P => achNum(P, 'wins'), 100),
+  A('m10', '🎮', '10 mečeva', 'Odigraj 10 mečeva.', P => achNum(P, 'matches'), 10),
+  A('m100', '🕹️', '100 mečeva', 'Odigraj 100 mečeva.', P => achNum(P, 'matches'), 100),
+  A('m250', '🎖️', '250 mečeva', 'Odigraj 250 mečeva.', P => achNum(P, 'matches'), 250),
+  A('m500', '🗿', 'Legenda (500 mečeva)', 'Odigraj 500 mečeva.', P => achNum(P, 'matches'), 500),
+  A('k25', '💥', '25 rušenja', 'Sruši druge 25 puta (netko udari u tvoj trag).', P => achNum(P, 'kills'), 25),
+  A('k100', '☠️', '100 rušenja', 'Sruši druge 100 puta.', P => achNum(P, 'kills'), 100),
+  A('k250', '💀', 'Kosac (250 rušenja)', 'Sruši druge 250 puta.', P => achNum(P, 'kills'), 250),
+  A('lv5', '⭐', 'Nivo 5', 'Dođi do nivoa 5 (XP se skuplja igranjem).', P => levelOf(P).lv, 5),
+  A('lv10', '🌟', 'Nivo 10', 'Dođi do nivoa 10.', P => levelOf(P).lv, 10),
+  A('lv20', '💫', 'Nivo 20', 'Dođi do nivoa 20.', P => levelOf(P).lv, 20),
+  A('h1', '⏱️', 'Sat u igri', 'Provedi sat vremena igrajući.', P => Math.floor(achNum(P, 'playMs') / 60000), 60),
+  A('h10', '⏳', '10 sati u igri', 'Provedi 10 sati igrajući.', P => Math.floor(achNum(P, 'playMs') / 60000), 600),
+  A('s7', '🔥', 'Tjedan zaredom', 'Prijavi se 7 dana zaredom.', streakDays, 7),
+  A('t1', '😈', 'Prva zezancija', 'Pošalji nekome zezalicu u meču.', P => achNum(P, 'trollsSent'), 1),
+  A('t20', '🤡', 'Zezator (20)', 'Pošalji 20 zezalica.', P => achNum(P, 'trollsSent'), 20),
+  A('t50', '🃏', 'Majstor zezancije (50)', 'Pošalji 50 zezalica.', P => achNum(P, 'trollsSent'), 50),
+  A('g10', '🎯', 'Meta (zezan 10×)', 'Neka te drugi zezaju 10 puta.', P => achNum(P, 'trollsGot'), 10),
+  A('g50', '🪀', 'Omiljena meta (50×)', 'Neka te drugi zezaju 50 puta.', P => achNum(P, 'trollsGot'), 50),
+  A('c5', '🧺', 'Kolekcionar (5 stvari)', 'Imaj 5 kupljenih stvari.', P => achOwned(P, x => itemPrice(x) > 0), 5),
+  A('c15', '🧳', 'Sakupljač (15 stvari)', 'Imaj 15 kupljenih stvari.', P => achOwned(P, x => itemPrice(x) > 0), 15),
+  A('c30', '🏛️', 'Muzej (30 stvari)', 'Imaj 30 kupljenih stvari.', P => achOwned(P, x => itemPrice(x) > 0), 30),
+  A('r2k', '💰', 'Bogataš (2000 zlatnika)', 'Imaj 2000 zlatnika odjednom.', P => achNum(P, 'coins'), 2000),
+  A('r10k', '🤑', 'Milijunaš (10 000 zlatnika)', 'Imaj 10 000 zlatnika odjednom.', P => achNum(P, 'coins'), 10000),
+  A('sp5k', '🛍️', 'Šoping (potrošeno 5000)', 'Potroši ukupno 5000 zlatnika u trgovini.', P => achNum(P, 'spent'), 5000),
+  A('rare', '💎', 'Vlasnik rijetkosti', 'Imaj stvar koje postoji samo nekoliko komada.', P => achOwned(P, x => !!(SKINS[x] || BADGES[x] || {}).limit), 1),
+  A('anim', '✨', 'Živa ikona', 'Imaj animiranu premium ikonu.', P => achOwned(P, x => !!(BADGES[x] && BADGES[x].anim)), 1),
+  A('kripto', '₿', 'Kripto ulagač', 'Imaj kripto ikonu sa živom cijenom.', P => achOwned(P, x => !!(BADGES[x] && BADGES[x].crypto)), 1),
+  A('fan', '⚽', 'Pravi navijač', 'Imaj navijački trag ili grb (Funcuti, Hajduk, Dinamo).', P => achOwned(P, x => !!(SKINS[x] && SKINS[x].fan) || ['bd_hajduk', 'bd_dinamo', 'bd_funcut'].includes(x)), 1),
+  A('inv1', '📲', 'Doveo prijatelja', 'Pozovi igrača svojim linkom (i neka odigra meč).', refCount, 1),
+  A('inv5', '📣', 'Ambasador (5 pozvanih)', 'Dovedi 5 igrača svojim linkom.', refCount, 5),
 ];
 function achOf(P) { return ACH.filter(a => { try { return a.t(P); } catch (e) { return false; } }); }
+// the profile shows one button; the full list opens in its own window on top
+function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e).join(''); return `<button type="button" class="achbtn"><span class="ai">🏅</span><span class="at"><b>Postignuća</b><small>${got.length} od ${ACH.length}${last ? ' · ' + last : ''}</small></span><span class="ar">›</span></button>`; }
+function showAchievements(P) {
+  const got = new Set(achOf(P).map(a => a.id)); const ov = document.createElement('div'); ov.className = 'achov';
+  const rows = [...ACH].sort((a, b) => (got.has(b.id) - got.has(a.id))).map(a => { const v = Math.max(0, Math.min(a.goal, Math.floor(a.val(P) || 0))), on = got.has(a.id); return `<div class="arow ${on ? 'on' : ''}"><span class="ae">${a.e}</span><span class="ax"><b>${esc(a.n)}</b><small>${esc(a.d)}</small>${on ? '' : `<span class="abar"><i style="width:${Math.round(100 * v / a.goal)}%"></i></span><small class="anum">${v} / ${a.goal}</small>`}</span><span class="as">${on ? '✓' : '🔒'}</span></div>`; }).join('');
+  ov.innerHTML = `<div class="achcard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>🏅 Postignuća</h3><p class="hint" style="margin:0">${esc(P.name || '')}: <b>${got.size}</b> od ${ACH.length}</p><div class="alist">${rows}</div></div>`;
+  const close = () => ov.remove(); ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
+  document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1, true); } }, true);
+  document.body.appendChild(ov);
+}
 function achHtml(P) { const got = new Set(achOf(P).map(a => a.id)); return `<div class="achs">${ACH.map(a => `<span class="ach ${got.has(a.id) ? 'on' : ''}" title="${esc(a.n)}">${a.e}<small>${esc(a.n)}</small></span>`).join('')}</div>`; }
 function levelHtml(P) { const L = levelOf(P); return `<div class="lvl"><b>Nivo ${L.lv}</b><span class="bar"><i style="width:${L.pct}%"></i></span><small>${L.xp} XP · još ${L.next} do nivoa ${L.lv + 1}</small></div>`; }
 let achKnown = null;
@@ -3807,9 +3941,9 @@ function sendTroll(peer, id) {
   lastTrollSent = performance.now(); trollN++;
   if (stocked) profile.inv[id]--; else { profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; }
   profile.trollsSent = (profile.trollsSent || 0) + 1; dailyCount({ t: 1 }); saveProfile(); checkAchievements();
-  netPresence({ tr: [peer, id, trollN, Date.now()] });
+  netPresence({ tr: [peer, id, trollN, Date.now()] }); markPrank(peer, id);
   { const pe = roomState.peers.find(q => q.peer === peer); const to = pe && pe.presence && pe.presence.sl; if (to && to !== profile.slug) fetch(API_BASE + '/troll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, auth: profile.pinHash || '', to, id }) }).catch(() => {}); }
-  toast(`${t.e} ${t.name} poslano!${stocked ? ` (ostalo ${profile.inv[id]})` : ` (−${t.price})`}`); beep(520, .08); renderSpecBar(); renderTrollPop(); setTimeout(() => { renderSpecBar(); renderTrollPop(); }, 5100);
+  toast(`${t.e} ${t.name} poslano! ${TROLL_HOW[id] ? TROLL_HOW[id].split('.')[0] + '.' : ''}${stocked ? ` (ostalo ${profile.inv[id]})` : ` (−${t.price})`}`); beep(520, .08); renderSpecBar(); renderTrollPop(); setTimeout(() => { renderSpecBar(); renderTrollPop(); }, 5100);
 }
 function receiveTroll(id, fromName, fromPeer) {
   const t = TROLLS[id]; if (!t) return;
@@ -3824,9 +3958,7 @@ function receiveTroll(id, fromName, fromPeer) {
   if ($('#game').hidden || !G) { notify(`${t.e} <b>${esc(fromName)}</b> te pokušao zezati (${t.name}), ali nisi bio u igri.`, { warn: true, ms: 6000 }); return; }
   const fx = { id, start: now, until: now + t.ms, from: fromName, seed: Math.random() * 1000 };
   trollFx.push(fx); if (trollFx.length > 4) trollFx.shift();
-  if (id === 'horn') { beep(220, .5, 'sawtooth', .09, 120); setTimeout(() => beep(330, .6, 'sawtooth', .09, 160), 250); }
-  else if (id === 'flash') beep(1400, .15, 'square', .05);
-  else beep(300, .2, 'triangle', .06, -120);
+  trollSound(id); if (roomState.me) markPrank(roomState.me, id);
   try { navigator.vibrate && navigator.vibrate(id === 'shake' ? [80, 40, 80, 40, 120] : 60); } catch (e) {}
   showIgMsg(`${t.e} ${esc(fromName)} ti šalje: ${t.name}`, true);
 }
@@ -3837,55 +3969,116 @@ function showIgMsg(html, warn) {
   setTimeout(() => el.remove(), 5000);
 }
 function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; c.style.transition = ''; c.style.filter = ''; } }
+// paints one prank effect over an arena of size w x h (the real match, or the shop's preview); returns what has to
+// happen to the canvas element itself (shake / flip transform, blur, colour shift)
+function paintTroll(c, f, now, w, h, me, label) {
+  const k = Math.min(1, (now - f.start) / (f.until - f.start)); let tf = '', blur = 0, hue = 0;
+  c.save(); c.textAlign = 'center'; c.textBaseline = 'middle';
+  if (f.id === 'flash') { c.globalAlpha = Math.max(0, 1 - k) * 0.95; c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); }
+  else if (f.id === 'dark') {
+    const fade = k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1; c.globalAlpha = 0.96 * fade; const rr = Math.min(w, h) / 600;
+    const g = me ? c.createRadialGradient(me.x, me.y, 30 * Math.max(.4, rr), me.x, me.y, 120 * Math.max(.4, rr)) : null;
+    if (g) { g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,1)'); c.fillStyle = g; } else c.fillStyle = '#000';
+    c.fillRect(0, 0, w, h);
+  }
+  else if (f.id === 'poop' || f.id === 'hearts') {
+    const n = 22, e = f.id === 'poop' ? '💩' : '💖';
+    c.font = `${Math.round(Math.min(w, h) * 0.06)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    c.globalAlpha = k > .85 ? (1 - k) / .15 : 1;
+    for (let i = 0; i < n; i++) { const r1 = Math.sin(f.seed + i * 12.9898) * 43758.5453, rx = r1 - Math.floor(r1), r2 = Math.sin(f.seed + i * 78.233) * 12345.678, ry = r2 - Math.floor(r2); const y = f.id === 'poop' ? ((ry + k * 1.3) % 1.2 - .1) * h : h - ((ry + k * 1.2) % 1.2 - .1) * h; c.fillText(e, rx * w, y); }
+  }
+  else if (f.id === 'horn') { const sc = 1 + 0.15 * Math.sin(k * 40); c.globalAlpha = k > .8 ? (1 - k) / .2 : 1; c.font = `400 ${Math.round(Math.min(w, h) * 0.12 * sc)}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('TUUUUT! 📯', w / 2, h / 2); }
+  else if (f.id === 'shake') { const a = 14 * (1 - k); tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * 0.15}deg)`; }
+  else if (f.id === 'flip') { tf = 'rotate(180deg)'; }
+  else if (f.id === 'mirror') { c.globalAlpha = k > .85 ? (1 - k) / .15 : 0.9; c.font = `400 ${Math.round(Math.max(13, Math.min(26, w / 24)))}px Bungee, Impact, sans-serif`; c.fillStyle = '#7df9ff'; c.fillText('🪞 ZRCALO: ← → zamijenjeni!', w / 2, h - Math.min(40, h * .12)); }
+  else if (f.id === 'colors') { hue = 90 + 180 * k; }
+  else if (f.id === 'fakepu' && me) {
+    const d = Math.min(90, w * .2), fx = me.x + Math.cos(me.a) * d, fy = me.y + Math.sin(me.a) * d;
+    if (!f.pos) f.pos = [fx, fy];
+    const gone = Math.hypot(me.x - f.pos[0], me.y - f.pos[1]) < 18 || k > .95;
+    if (gone && !f.popped) { f.popped = now; }
+    if (!f.popped) { c.globalAlpha = 1; drawPuIcon(c, 'fastS', f.pos[0], f.pos[1], PU_R); }
+    else if (now - f.popped < 1400) { c.globalAlpha = 1 - (now - f.popped) / 1400; c.font = `400 ${Math.round(Math.max(14, Math.min(28, w / 20)))}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('😜 PREVAREN!', f.pos[0], f.pos[1] - 20); }
+  }
+  else if (f.id === 'fog') { blur = 7 * (k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1); }
+  else if (f.id === 'sticker' && me) {
+    const STK = ['🤡', '🍆', '🍑', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(w, h) * 0.2);
+    c.globalAlpha = k > .85 ? (1 - k) / .15 : 1; c.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    c.fillText(e, me.x + Math.cos(me.a) * sz * 0.75, me.y + Math.sin(me.a) * sz * 0.75);
+  }
+  if (label) { c.globalAlpha = 1; c.font = '700 16px "Barlow Semi Condensed", sans-serif'; c.fillStyle = '#ffb547'; c.fillText(`${TROLLS[f.id].e} od ${f.from}`, w / 2, 20); } // who did it
+  c.restore();
+  return { tf, blur, hue };
+}
+function applyTrollStyle(cvs, tf, blur, hue) {
+  if (!cvs) return;
+  const fl = [blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : '', hue ? `hue-rotate(${hue.toFixed(0)}deg) saturate(2.2)` : ''].filter(Boolean).join(' '); if (cvs.style.filter !== fl) cvs.style.filter = fl;
+  if (tf) { cvs.style.transition = tf.startsWith('rotate(180') ? 'transform .35s' : ''; cvs.style.transform = tf; } else if (cvs.style.transform) { cvs.style.transition = 'transform .35s'; cvs.style.transform = ''; }
+}
 function drawTrolls(c) {
   const now = performance.now();
   for (let i = trollFx.length - 1; i >= 0; i--) if (trollFx[i].until < now) trollFx.splice(i, 1);
   let tf = '', blur = 0, hue = 0;
-  for (const f of trollFx) {
-    const k = (now - f.start) / (f.until - f.start);
-    const me = G.players.find(p => p.mine) || (net && net.myId != null ? G.players.find(p => p.id === net.myId) : null);
-    c.save(); c.textAlign = 'center'; c.textBaseline = 'middle';
-    if (f.id === 'flash') { c.globalAlpha = Math.max(0, 1 - k) * 0.95; c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); }
-    else if (f.id === 'dark') {
-      const fade = k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1; c.globalAlpha = 0.96 * fade;
-      const g = me ? c.createRadialGradient(me.x, me.y, 30, me.x, me.y, 120) : null;
-      if (g) { g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,1)'); c.fillStyle = g; } else c.fillStyle = '#000';
-      c.fillRect(0, 0, W, H);
-    }
-    else if (f.id === 'poop' || f.id === 'hearts') {
-      const n = 22, e = f.id === 'poop' ? '💩' : '💖';
-      c.font = `${Math.round(Math.min(W, H) * 0.06)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
-      c.globalAlpha = k > .85 ? (1 - k) / .15 : 1;
-      for (let i = 0; i < n; i++) { const r1 = Math.sin(f.seed + i * 12.9898) * 43758.5453, rx = r1 - Math.floor(r1), r2 = Math.sin(f.seed + i * 78.233) * 12345.678, ry = r2 - Math.floor(r2); const y = f.id === 'poop' ? ((ry + k * 1.3) % 1.2 - .1) * H : H - ((ry + k * 1.2) % 1.2 - .1) * H; c.fillText(e, rx * W, y); }
-    }
-    else if (f.id === 'horn') { const s = 1 + 0.15 * Math.sin(k * 40); c.globalAlpha = k > .8 ? (1 - k) / .2 : 1; c.font = `400 ${Math.round(Math.min(W, H) * 0.12 * s)}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('TUUUUT! 📯', W / 2, H / 2); }
-    else if (f.id === 'shake') { const a = 14 * (1 - k); tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * 0.15}deg)`; }
-    else if (f.id === 'flip') { tf = 'rotate(180deg)'; }
-    else if (f.id === 'mirror') { c.globalAlpha = k > .85 ? (1 - k) / .15 : 0.9; c.font = '400 26px Bungee, Impact, sans-serif'; c.fillStyle = '#7df9ff'; c.fillText('🪞 ZRCALO: ← → zamijenjeni!', W / 2, H - 40); }
-    else if (f.id === 'colors') { hue = 90 + 180 * k; }
-    else if (f.id === 'fakepu' && me) {
-      const d = 90, fx = me.x + Math.cos(me.a) * d, fy = me.y + Math.sin(me.a) * d;
-      if (!f.pos) f.pos = [fx, fy];
-      const gone = Math.hypot(me.x - f.pos[0], me.y - f.pos[1]) < 18 || k > .95;
-      if (gone && !f.popped) { f.popped = now; }
-      if (!f.popped) { c.globalAlpha = 1; drawPuIcon(c, 'fastS', f.pos[0], f.pos[1], PU_R); }
-      else if (now - f.popped < 1400) { c.globalAlpha = 1 - (now - f.popped) / 1400; c.font = '400 28px Bungee, Impact, sans-serif'; c.fillStyle = '#ffb547'; c.fillText('😜 PREVAREN!', f.pos[0], f.pos[1] - 20); }
-    }
-    else if (f.id === 'fog') { blur = Math.max(blur, 7 * (k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1)); }
-    else if (f.id === 'sticker' && me) {
-      const STK = ['🤡', '🍆', '🍑', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(W, H) * 0.2);
-      c.globalAlpha = k > .85 ? (1 - k) / .15 : 1; c.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
-      c.fillText(e, me.x + Math.cos(me.a) * sz * 0.75, me.y + Math.sin(me.a) * sz * 0.75);
-    }
-    // who did it
-    c.globalAlpha = 1; c.font = '700 16px "Barlow Semi Condensed", sans-serif'; c.fillStyle = '#ffb547';
-    c.fillText(`${TROLLS[f.id].e} od ${f.from}`, W / 2, 20);
-    c.restore();
-  }
-  const cvs = $('#cv');
-  if (cvs) { const fl = [blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : '', hue ? `hue-rotate(${hue.toFixed(0)}deg) saturate(2.2)` : ''].filter(Boolean).join(' '); if (cvs.style.filter !== fl) cvs.style.filter = fl; }
-  if (cvs) { if (tf) { cvs.style.transition = tf.startsWith('rotate(180') ? 'transform .35s' : ''; cvs.style.transform = tf; } else if (cvs.style.transform) { cvs.style.transition = 'transform .35s'; cvs.style.transform = ''; } }
+  const me = G.players.find(p => p.mine) || (net && net.myId != null ? G.players.find(p => p.id === net.myId) : null);
+  for (const f of trollFx) { const r = paintTroll(c, f, now, W, H, me, true); if (r.tf) tf = r.tf; blur = Math.max(blur, r.blur); if (r.hue) hue = r.hue; }
+  if (!tf && fxShakeUntil > now) { const a = 16 * (fxShakeUntil - now) / 550; tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px)`; }
+  applyTrollStyle($('#cv'), tf, blur, hue);
 }
+function trollSound(id) {
+  if (id === 'horn') { beep(220, .5, 'sawtooth', .09, 120); setTimeout(() => beep(330, .6, 'sawtooth', .09, 160), 250); }
+  else if (id === 'flash') beep(1400, .15, 'square', .05);
+  else beep(300, .2, 'triangle', .06, -120);
+}
+// ---- what a prank looks like: a small live arena where it plays on "your" snake, on a loop
+const TROLL_HOW = {
+  hearts: 'Preko cijele arene mu padaju srčeka. Ne smeta igri, samo je slatko.', horn: 'Glasna truba i veliki natpis TUUUUT preko sredine ekrana.',
+  poop: 'Kakice mu padaju preko arene i prekrivaju tragove.', shake: 'Cijeli ekran mu se trese, a mobitel zavibrira.',
+  sticker: 'Veliki emotikon (🤡 🍆 🍑 💩 👻 🐔) mu sjedne točno ispred glave i prati ga kamo god krene.', flash: 'Ekran mu na trenutak zabljesne potpuno bijelo.',
+  fog: 'Cijela arena mu se zamuti, kao da gleda kroz maglu.', dark: 'Sve mu se zamrači, vidi samo mali krug oko svoje glave.',
+  flip: 'Arena mu se okrene naglavačke, gore je dolje.', mirror: 'Lijevo i desno su mu zamijenjeni: kad stisne lijevo, skrene desno.',
+  fakepu: 'Ispred njega se pojavi power-up. Kad ga pokupi, dočeka ga natpis PREVAREN!', colors: 'Boje svih zmija i arene mu se izmiješaju.',
+  pads: 'Njegove strelice za upravljanje postanu 🍆, 🍑, 🍒 ili 💩 na cijelu minutu.',
+};
+let trollPrev = null;
+function showTrollPreview(id) {
+  const t = TROLLS[id]; if (!t) return;
+  const m = $('#regModal'); m.hidden = false;
+  m.innerHTML = `<form class="profile trollprev" novalidate onsubmit="return false"><h3>${t.e} ${esc(t.name)}</h3>
+    <p class="hint" style="margin:0">Ovako to vidi igrač kojem je pošalješ (traje ${(t.ms / 1000).toLocaleString('hr-HR')} s${t.ms >= 10000 ? '' : ', pa kreće ispočetka'}):</p>
+    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🍆</span><span class="j">SKOK</span><span>🍆</span></div>' : ''}</div>
+    <p style="margin:0">${esc(TROLL_HOW[id] || t.d)}</p>
+    <p class="hint" style="margin:0">Kad je pošalješ, svi u meču iznad njegove zmije vide ${t.e} dok traje, a njemu piše tko ga je zezao. 🛡️ Štit je odbija.</p>
+    <div class="go"><button class="btn ghost" type="button" id="tpvSound">🔊 Čuj zvuk</button><button class="btn" type="button" id="tpvOk">Zatvori</button></div></form>`;
+  const cv = $('#tpvCv'), c = cv.getContext('2d'), w = cv.width, h = cv.height;
+  const snakes = [{ col: '#ff5d73', a: 0, cx: w * .5, cy: h * .55, R: h * .26, sp: .9, me: true }, { col: '#4cc9f0', a: 2, cx: w * .3, cy: h * .4, R: h * .18, sp: -1.2 }, { col: '#3ddc97', a: 4, cx: w * .72, cy: h * .38, R: h * .2, sp: 1.1 }];
+  const trails = snakes.map(() => []);
+  const T0 = performance.now(); let fx = { id, start: T0 + 600, until: T0 + 600 + Math.min(t.ms, 6000), from: 'Netko', seed: Math.random() * 1000 };
+  if (trollPrev) cancelAnimationFrame(trollPrev);
+  const loop = () => {
+    if (!document.body.contains(cv)) { trollPrev = null; applyTrollStyle(cv, '', 0, 0); return; }
+    const now = performance.now(), tt = (now - T0) / 1000;
+    if (now > fx.until + 900) fx = { id, start: now + 300, until: now + 300 + Math.min(t.ms, 6000), from: 'Netko', seed: Math.random() * 1000 };
+    c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(131,150,171,0.16)'; for (let x = 25; x < w; x += 25) for (let y = 25; y < h; y += 25) c.fillRect(x - .8, y - .8, 1.6, 1.6);
+    let me = null;
+    snakes.forEach((sn, i) => { const a = sn.a + tt * sn.sp, x = sn.cx + Math.cos(a) * sn.R, y = sn.cy + Math.sin(a) * sn.R * .8; const tr = trails[i]; tr.push(x, y); if (tr.length > 260) tr.splice(0, 2);
+      c.strokeStyle = sn.col; c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); for (let k = 0; k < tr.length; k += 2) { if ((k / 2) % 60 > 52) { c.stroke(); c.beginPath(); continue; } if (k === 0 || (k / 2) % 60 === 53) c.moveTo(tr[k], tr[k + 1]); else c.lineTo(tr[k], tr[k + 1]); } c.stroke();
+      c.fillStyle = sn.col; c.beginPath(); c.arc(x, y, 6, 0, 6.283); c.fill();
+      if (sn.me) { me = { x, y, a: a + Math.PI / 2 * Math.sign(sn.sp) }; c.fillStyle = '#ffb547'; c.font = '700 18px "Barlow Semi Condensed", sans-serif'; c.textAlign = 'center'; c.fillText('ti', x, y - 18); } });
+    let r = { tf: '', blur: 0, hue: 0 };
+    if (now >= fx.start && now <= fx.until) r = paintTroll(c, fx, now, w, h, me, true);
+    else if (now < fx.start) { fx.pos = null; fx.popped = 0; }
+    applyTrollStyle(cv, r.tf, r.blur, r.hue);
+    trollPrev = requestAnimationFrame(loop);
+  };
+  trollPrev = requestAnimationFrame(loop);
+  $('#tpvSound').onclick = () => trollSound(id);
+  $('#tpvOk').onclick = () => closeModal();
+}
+// everybody in the match sees which snake is being pranked right now: the prank's emoji above its head
+const prankMarks = {};
+function markPrank(peer, id) { const t = TROLLS[id]; if (!peer || !t) return; prankMarks[peer] = { e: t.e, until: performance.now() + Math.min(t.ms, 8000) }; }
+function prankMarkOf(p) { const k = peerOfPlayer(p) || p.peerId || p.remote; const m = k && prankMarks[k]; return m && m.until > performance.now() ? m : null; }
 function collectDirect() {
   const me = roomState.me; if (!me) return;
   for (const p of roomState.peers) {
@@ -3893,7 +4086,7 @@ function collectDirect() {
     const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
     if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
     if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000 && (Number(pr.tr[3]) || 0) > PAGE_T0 - 1500) receiveTroll(pr.tr[1], from, p.peer); } }
-    else if (Array.isArray(pr.tr) && !(p.isMe && p.sameTab) && G && !$('#game').hidden) { const key = 'w:' + p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; const tgt = roomState.peers.find(q => q.peer === pr.tr[0]); const t = TROLLS[pr.tr[1]]; if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) showIgMsg(`${t.e} <b>${esc(from)}</b> → <b>${esc(String((tgt.presence && tgt.presence.nm) || 'igrač'))}</b>: ${t.name}`); } }
+    else if (Array.isArray(pr.tr) && !(p.isMe && p.sameTab) && G && !$('#game').hidden) { const key = 'w:' + p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; const tgt = roomState.peers.find(q => q.peer === pr.tr[0]); const t = TROLLS[pr.tr[1]]; if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) markPrank(pr.tr[0], pr.tr[1]); if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) showIgMsg(`${t.e} <b>${esc(from)}</b> → <b>${esc(String((tgt.presence && tgt.presence.nm) || 'igrač'))}</b>: ${t.name}`); } }
     if (Array.isArray(pr.bt)) { const key = p.peer + ':' + pr.bt[3]; if (!seenBt[key]) { seenBt[key] = 1; if (Date.now() - (Number(pr.bt[4]) || 0) < 600000 && pr.bt[0] === curMid()) { const amt = Math.max(0, Math.min(5000, Number(pr.bt[2]) || 0)); addBounty(pr.bt[0] + ':' + pr.bt[1], amt, from); if (!$('#game').hidden) showIgMsg(`🎯 ${esc(from)} je stavio ucjenu ${amt} na ${esc(String(pr.bt[5] || '').slice(0, 14))}!`, true); } } }
     if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
   }
@@ -4558,7 +4751,7 @@ function applyState(st, first) {
     if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
     if (st.dr) announceDrop(st.dr);
     if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
-    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) setTimeout(() => playVictory(wnr.vs), 350); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
+    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
     if (G.phase === 'count') { showOverlay(null); if (owner) owner.fill(0); }
   }
   if (first && G.phase === 'end') { if (G.over) setTimeout(() => { if (net && G && G.over) showResults(); }, 100); else showRoundBanner(); } // joining a finished match shows its results (Ready / Izađi), not a frozen arena
@@ -4958,12 +5151,12 @@ function renderTrollPop() {
   }
   pop.innerHTML = tabs + `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
-    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}</b><small>imaš ${inv[id]}</small></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
     ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
-  pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendTroll(trollPick, b.dataset.id); });
+  pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); });
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
@@ -4989,7 +5182,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
 
