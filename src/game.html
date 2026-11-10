@@ -319,6 +319,17 @@ button.pu:hover { border-color: var(--line); }
 .wxcard { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 100%; padding: 0 10px; background: linear-gradient(135deg, #12324d, #0d2133); color: #e6f6ff; }
 .wxcard .wi { font-size: 40px; line-height: 1; } .wxcard .wt { font: 700 34px/1 "Barlow Semi Condensed", sans-serif; color: #fff; }
 .wxcard .wd { display: grid; gap: 2px; min-width: 0; } .wxcard .wd b { font-size: 15px; } .wxcard .wd small { font-size: 12px; color: #a9d8f5; white-space: nowrap; }
+.item.pic .prev:has(.livecard) { height: auto; min-height: 84px; } .livecard { padding: 10px; min-height: 84px; } .livecard .wd { text-align: center; } .livecard .wd b { font-size: 15px; } .livecard .lv { font: 700 19px/1.15 "Barlow Semi Condensed", sans-serif; color: #fff; overflow-wrap: anywhere; }
+.livecard .lv.live { color: #3ddc97; } .livecard .lv.alarm { color: #ff8a8a; }
+.lbd.live { --cc: #3ddc97 !important; box-shadow: 0 0 0 1px #3ddc97 inset; } .lbd.live .cg::before { content: ""; display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: #3ddc97; margin-right: .3em; vertical-align: .05em; animation: livePulse 1.2s infinite; }
+.lbd.alarm { --cc: #ff6b6b !important; animation: lbdShake .4s infinite; } @keyframes lbdShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
+.lbd[data-l^="club:"] { cursor: pointer; }
+.gticker .tk.l b, .ticker .tk.l b { color: #4cc9f0; } .ticker .tk.live b, .gticker .tk.live b { color: #3ddc97; }
+.todayline { text-align: center; font-size: 13px; color: var(--muted); margin-top: -4px; } .todayline b { color: var(--fg); font-weight: 600; }
+.ndglow { color: #ffd23f; text-shadow: 0 0 8px rgba(255,210,63,.7); font-weight: 700; }
+.clubcard .ctab { width: 100%; border-collapse: collapse; font-size: 14px; } .clubcard .ctab td, .clubcard .ctab th { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--line); } .clubcard .ctab td:nth-child(2), .clubcard .ctab th:nth-child(2) { text-align: left; }
+.clubcard .ctab tr.mine td { background: color-mix(in srgb, var(--good) 22%, transparent); font-weight: 700; } .clubcard .cnext { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--ink); }
+.clubcard .cnext.live { border-color: #3ddc97; box-shadow: 0 0 0 1px #3ddc97 inset; } .clubcard .cbig { font: 700 28px/1.1 "Barlow Semi Condensed", sans-serif; } .clubcard .cadm { display: grid; gap: 6px; border-top: 1px dashed var(--line); padding-top: 10px; } .clubcard .cadm .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; } .clubcard .cadm input { background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; color: var(--fg); }
 .lot.want { border-color: color-mix(in srgb, var(--good) 50%, var(--line)); } .lot.want.can { border-color: var(--good); box-shadow: 0 0 0 1px var(--good) inset; } .wchip em .wbd { font-size: 15px; }
 .item .prev canvas.bgprev { width: 100%; height: 84px; display: block; }
 .item.pic .prev { height: 84px; } .item.pic .prev .ic { font-size: 56px; line-height: 1; }
@@ -595,6 +606,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       </header>
       <div class="onhero" id="onbar" aria-live="polite"></div>
       <div class="ticker" id="ticker" aria-label="Kripto i vrijeme uživo"></div>
+      <div class="todayline" id="todayLine" hidden></div>
       <div class="pushnag" id="pushNag" hidden></div>
       <button type="button" class="chatteaser" id="chatTeaser" data-go="chat"><span class="cti">💬</span><span class="ctx"><b>Chat <i class="cunread" hidden></i></b><span id="chatTeaserTxt">Pozdravi ekipu: napiši prvu poruku ili snimi glasovnu 🎤</span></span><span class="ctgo">Piši</span></button>
       <canvas id="preview" aria-hidden="true"></canvas>
@@ -640,7 +652,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       </div>
 
       <div class="tab" id="tab-shop" hidden>
-        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
+        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
         <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
@@ -650,6 +662,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
         <div class="localbox" data-cat="tags"><h2>🏷️ Tagovi mjesta <small>natpis tvog mjesta uz ime (Grebaštica, Bilice, Žaborić, Brodarica, Šibenik), svaki samo 2 komada</small></h2><div class="shop" id="shopTags"></div></div>
         <div class="premiumbox" data-cat="crypto"><h2>₿ Kripto ikone <small>ograničeno: od svake samo 5 komada. Živa cijena (USD) stoji uz tvoje ime u predvorju, na ploči i iznad zmije dok igraš</small></h2><div class="shop" id="shopCrypto"></div></div>
+        <div class="premiumbox" data-cat="live"><h2>🌍 Uživo <small>pravi podaci svaki dan: klubovi (sljedeća utakmica, rezultat uživo, tablica), more, bura, zrak, tečaj, zlato, potresi, svemirska postaja, Formula 1</small></h2><div class="shop" id="shopLive"></div></div>
         <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Od svakog grada samo 3 komada; rasprodano možeš zatražiti na Aukciji 🔨</small></h2><div class="shop" id="shopWeather"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
@@ -830,12 +843,30 @@ const WX = {
 };
 const WBD = (k) => '<span class="cbd wbd" data-w="' + k + '" style="--cc:#7fd4ff"><span class="cg">' + WX[k].n + '</span><span class="cp">…</span></span>';
 const WXB = (k, price) => ({ g: WX[k].n, wx: k, col: '#7fd4ff', svg: WBD(k), name: 'Vrijeme: ' + WX[k].n, d: `VRIJEME, OGRANIČENO: prava temperatura, kiša i vjetar u gradu ${WX[k].n} uz tvoje ime, uživo. Samo 3 komada`, price, limit: 3 });
+// live icons fed by our /api/live (one cached answer for everybody): sea, bura, UV, air, exchange rates, earthquakes, ISS,
+// Formula 1 and the clubs (next match, live score, table)
+const LBD = (k, label, col) => '<span class="cbd lbd" data-l="' + k + '" style="--cc:' + col + '"><span class="cg">' + label + '</span><span class="cp">…</span></span>';
+const LVB = (k, label, col, name, d, price, extra) => Object.assign({ g: label, live: k, col, svg: LBD(k, label, col), name, d, price }, extra || {});
+const SEA_N = { sib: 'Šibenik', st: 'Split', zd: 'Zadar', du: 'Dubrovnik', pu: 'Pula' };
+const FC = { hajduk: { n: 'Hajduk', col: '#e8eef5', lg: 'SuperSport HNL' }, dinamo: { n: 'Dinamo', col: '#5b9bff', lg: 'SuperSport HNL' }, sibenik: { n: 'Šibenik', col: '#ff7a1a', lg: 'Prva NL' } };
+const FCB = (k) => LVB('club:' + k, '⚽ ' + FC[k].n, FC[k].col, FC[k].n + ' uživo', `NAVIJAČKI UŽIVO: kad je sljedeća utakmica i protiv koga, a dok se igra zeleni signal i rezultat uživo. Klik na ikonu otvara tablicu${k === 'sibenik' ? '' : ' HNL-a'}. Kad ${FC[k].n} pobijedi, taj dan duple nagrade za meč. Samo 10 komada`, 1500, { limit: 10, club: k });
 const BADGES = {
   bd_none:  { g: '', name: 'Bez ikone', d: '', price: 0 },
   bd_c_btc: { g: '₿', crypto: 'BTC', col: '#f7931a', svg: CBD('BTC', '₿', '#f7931a'), name: 'Bitcoin (BTC)', d: 'KRIPTO, OGRANIČENO: živa cijena Bitcoina uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 2500 },
   bd_c_eth: { g: 'Ξ', crypto: 'ETH', col: '#7b8ff7', svg: CBD('ETH', 'Ξ', '#7b8ff7'), name: 'Ethereum (ETH)', d: 'KRIPTO, OGRANIČENO: živa cijena Ethereuma uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 2000 },
   bd_c_xrp: { g: '✕', crypto: 'XRP', col: '#28b7f0', svg: CBD('XRP', '✕', '#28b7f0'), name: 'XRP', d: 'KRIPTO, OGRANIČENO: živa cijena XRP-a uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 1500 },
   bd_c_sol: { g: '◎', crypto: 'SOL', col: '#14f195', svg: CBD('SOL', '◎', '#14f195'), name: 'Solana (SOL)', d: 'KRIPTO, OGRANIČENO: živa cijena Solane uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 1800 },
+  bd_fc_hajduk: FCB('hajduk'), bd_fc_dinamo: FCB('dinamo'), bd_fc_sibenik: FCB('sibenik'),
+  ...Object.fromEntries(Object.entries(SEA_N).map(([k, n]) => ['bd_sea_' + k, LVB('sea:' + k, '🌊 ' + n, '#4cc9f0', 'More: ' + n, `UŽIVO: temperatura mora i visina valova kod grada ${n}. Samo 3 komada`, 900, { limit: 3 })])),
+  bd_bura: LVB('bura', '💨 Bura', '#9fdcff', 'Bura alarm', 'UŽIVO: najjači udar vjetra (Senj, Split, Šibenik). Iznad 60 km/h ikona trese i svijetli crveno. Samo 5 komada', 1200, { limit: 5 }),
+  bd_uv: LVB('uv', '☀️ UV', '#ffd23f', 'UV indeks', 'UŽIVO: UV indeks u Šibeniku, da znaš treba li krema', 600),
+  bd_air: LVB('air', '🌬️ Zrak', '#3ddc97', 'Zrak i pelud', 'UŽIVO: kvaliteta zraka i pelud u Zagrebu', 700),
+  bd_fx_usd: LVB('fx:USD', '€→$', '#7ee08a', 'Tečaj euro/dolar', 'UŽIVO: koliko dolara vrijedi euro (tečaj Europske centralne banke)', 800),
+  bd_fx_chf: LVB('fx:CHF', '€→CHF', '#ff8a8a', 'Tečaj euro/franak', 'UŽIVO: euro u švicarskim francima, za naše u Švicarskoj', 800),
+  bd_gold: { g: '🥇', crypto: 'PAXG', gold: true, col: '#ffd700', svg: CBD('PAXG', '🥇', '#ffd700'), name: 'Zlato (unca)', d: 'UŽIVO: cijena unce zlata u dolarima. Samo 5 komada', price: 1500, limit: 5 },
+  bd_quake: LVB('quake', '🌍 Potres', '#ff9f43', 'Potresi', 'UŽIVO: zadnji potres u Hrvatskoj i okolici: jačina i prije koliko', 900),
+  bd_iss: LVB('iss', '🛰️ ISS', '#c3a6ff', 'Svemirska postaja', 'UŽIVO: koliko je svemirska postaja daleko od nas; kad preleti iznad Hrvatske, ikona zasvijetli. Samo 5 komada', 1200, { limit: 5 }),
+  bd_f1: LVB('f1', '🏎️ F1', '#ff4d4d', 'Formula 1', 'UŽIVO: sljedeća utrka i za koliko dana; za vrijeme utrke piše UŽIVO', 1000),
   bd_w_sib: WXB('sib', 900), bd_w_zg: WXB('zg', 900), bd_w_st: WXB('st', 900), bd_w_ri: WXB('ri', 900), bd_w_zd: WXB('zd', 900), bd_w_os: WXB('os', 900), bd_w_du: WXB('du', 900),
   bd_a_fire:  { g: '🔥', anim: 'fire',  premium: true, svg: ABD('fire'),  name: 'Vatra koja gori', d: 'ANIMACIJA: plamen gori uz tvoje ime i iznad zmije. Rijetko ispadne iz kutije', price: 7000 },
   bd_a_ski:   { g: '⛷️', anim: 'ski',   premium: true, svg: ABD('ski'),   name: 'Skijaš skakač', d: 'ANIMACIJA: skijaš se spušta zaletištem i leti. Rijetko ispadne iz kutije', price: 7500 },
@@ -1443,7 +1474,8 @@ function coinMult() { const humans = G ? G.players.filter(q => q.human).length :
 function awardCoins(place, kills, won) {
   if (!profile) return 0;
   const mult = coinMult();
-  const n = Math.round((PLACE_COINS[place] || 12) * mult) + kills * KILL_COINS;
+  const fan = fanBonus(); // the day after my club won: double rewards
+  const n = Math.round((PLACE_COINS[place] || 12) * mult * (fan ? 2 : 1)) + kills * KILL_COINS;
   const lv0 = levelOf(profile).lv;
   profile.coins += n; profile.matches++; profile.kills += kills; if (won) profile.wins++;
   dailyCount({ m: 1, w: won ? 1 : 0, k: kills, top3: place < 3 ? 1 : 0 });
@@ -1478,8 +1510,8 @@ function wearBadge(id) {
   ids.push(id); setBadges(ids);
 }
 const unwearBadge = (id) => setBadges(badgeIds(profile.eq, profile.owned).filter(x => x !== id));
-const liveB = (b) => !!(b && (b.crypto || b.wx));
-function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); if (b.wx && !text) return b.svg.replace('<span class="cp">', `<span class="cp" title="${esc(wxTitle(b.wx))}">`).replace('…', weatherText(b.wx)); return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
+const liveB = (b) => !!(b && (b.crypto || b.wx || b.live));
+function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); if (b.wx && !text) return b.svg.replace('<span class="cp">', `<span class="cp" title="${esc(wxTitle(b.wx))}">`).replace('…', weatherText(b.wx)); if (b.live && !text) return b.svg.replace('class="cbd lbd"', 'class="cbd lbd' + liveCls(b.live) + '"').replace('…', esc(liveText(b.live))); return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
 // diagonal black/orange stripes (Šibenski Funcuti); one pattern per canvas context
 const scarfPats = new WeakMap();
 function scarfPattern(c) {
@@ -1619,6 +1651,7 @@ function renderShop() {
       const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
       const prev = document.createElement('div'); prev.className = 'prev';
       if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
+      else if (kind === 'badge' && it.live) { prev.innerHTML = `<div class="wxcard livecard" data-l="${it.live}">${liveCardInner(it.live)}</div>`; d.classList.add('pic'); }
       else if (kind === 'badge' && it.wx) { prev.innerHTML = `<div class="wxcard" data-wx="${it.wx}">${wxCardInner(it.wx)}</div>`; d.classList.add('pic'); }
       else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${badgeGlyph(id) || '—'}</span>`; if (it.big || it.anim) d.classList.add('pic'); }
       else { const P = POWERUPS[id]; prev.innerHTML = `<i class="pu" style="border:0;padding:0"><i class="${P.t}" style="width:32px;height:32px;font-size:18px">${P.g}</i></i>`; }
@@ -1642,13 +1675,14 @@ function renderShop() {
   make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live), 'badge');
   make($('#shopWeather'), Object.entries(BADGES).filter(([, it]) => it.wx), 'badge');
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local && !it.tag), 'badge');
   make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag), 'badge');
-  make($('#shopCrypto'), Object.entries(BADGES).filter(([, it]) => it.crypto), 'badge');
+  make($('#shopCrypto'), Object.entries(BADGES).filter(([, it]) => it.crypto && !it.gold), 'badge');
+  make($('#shopLive'), Object.entries(BADGES).filter(([, it]) => it.live || it.gold), 'badge');
   const prb = $('#shopPremium'), bgb = $('#shopBgs');
   if (prb) {
     prb.innerHTML = ''; if (bgb) bgb.innerHTML = '';
@@ -2176,6 +2210,7 @@ const PREMIUM = {
   lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ: na početku svake runde helikopter te spusti u arenu na užetu, a svi vide „IME stiže helikopterom!”', price: 18000, lux: true },
   lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ: kad pobijediš rundu, tvoja jahta s tvojim imenom proplovi arenom uz šampanjac', price: 20000, lux: true },
   lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ: kad nekoga srušiš, preko ekrana se zavrti zlatni sat i padnu zlatnici: „TIK-TAK, IME!”', price: 15000, lux: true },
+  bg_live:     { e: '⛈️', name: 'Arena: Šibenik uživo', d: 'UŽIVO: arena prati pravo vrijeme u Šibeniku: kad pada kiša, kiša pada po areni; kad puše bura, nosi prašinu; noću zvijezde, danju sunce', price: 3000, bg: true },
   pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji veliki spomenik s tvojim imenom. Tko ga dotakne, vidi „Počivaj u miru” i tvoje ime', price: 1800 },
 };
 const VIP_REACTIONS = ['🦄', '🍾', '🤑', '🧨', '👽'];
@@ -2183,7 +2218,7 @@ function ownsSlug(slug, id) { if (profile && slug === profile.slug) return profi
 function isVip() { return !!(profile && profile.owned.includes('pr_vip')); }
 function vipCost(n) { return isVip() ? Math.round(n * 0.9) : n; }
 function titleOf(slug) { const a = profile && slug === profile.slug ? profile : accounts.list.find(x => x.slug === slug); return a && ownsSlug(slug, 'pr_title') && a.title ? String(a.title).slice(0, 24) : ''; }
-function nameHtml(slug, name) { const gold = slug && ownsSlug(slug, 'pr_goldname'); const t = slug ? titleOf(slug) : ''; return `<span class="${gold ? 'goldname' : ''}">${esc(name)}</span>${t ? `<span class="ptitle">${esc(t)}</span>` : ''}`; }
+function nameHtml(slug, name) { const gold = slug && ownsSlug(slug, 'pr_goldname'); const t = slug ? titleOf(slug) : ''; return `<span class="${gold ? 'goldname' : ''}${isNameday(name) ? ' ndglow' : ''}">${esc(name)}${isNameday(name) ? ' 🎉' : ''}</span>${t ? `<span class="ptitle">${esc(t)}</span>` : ''}`; }
 function myRoomLink() { if (!profile) return ''; let code = profile.room || ''; if (!code) { try { code = localStorage.getItem('vijuga-room-' + profile.slug) || ''; } catch (e) {} } if (!code) code = Math.random().toString(36).slice(2, 8); if (profile.room !== code) { profile.room = code; saveProfile(); } return GAME_URL + '?soba=p-' + profile.slug.slice(0, 10) + '-' + code; }
 const EFFECTS = {
   te_fire:   { kind: 'te', e: '🔥', name: 'Vatreni trag', d: 'Iza tebe lete plamičci', price: 220 },
@@ -2370,6 +2405,7 @@ function bgImage(id) {
 function paintBg(c, bg, w, h) {
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const fill = (col) => { c.fillStyle = col; c.fillRect(0, 0, w, h); }, dots = (col) => { c.fillStyle = col; for (let x = 25; x < w; x += 25) for (let y = 25; y < h; y += 25) c.fillRect(x - .8, y - .8, 1.6, 1.6); };
+  if (bg === 'bg_live') { const night = isNight(), g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, night ? '#050b1c' : '#14324f'); g.addColorStop(1, night ? '#0b1630' : '#1d4a6b'); c.fillStyle = g; c.fillRect(0, 0, w, h); if (night) for (let i = 0; i < 120; i++) { c.fillStyle = `rgba(255,255,255,${.25 + rnd() * .6})`; const r = rnd() < .9 ? .8 : 1.5; c.fillRect(rnd() * w, rnd() * h, r, r); } else dots('rgba(200,230,255,.14)'); return true; }
   if (bg === 'bg_space') { const g = c.createRadialGradient(w * .7, h * .3, 10, w * .5, h * .5, w * .8); g.addColorStop(0, '#2a1d5c'); g.addColorStop(1, '#070a18'); c.fillStyle = g; c.fillRect(0, 0, w, h); for (let i = 0; i < 220; i++) { c.fillStyle = `rgba(255,255,255,${.3 + rnd() * .7})`; const r = rnd() * 1.4 + .3; c.fillRect(rnd() * w, rnd() * h, r, r); } }
   else if (bg === 'bg_lava') { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1c0a07'); g.addColorStop(1, '#3d0f06'); c.fillStyle = g; c.fillRect(0, 0, w, h); for (let i = 0; i < 14; i++) { const x = rnd() * w, y = rnd() * h, r = 30 + rnd() * 80, gg = c.createRadialGradient(x, y, 0, x, y, r); gg.addColorStop(0, 'rgba(255,90,20,.35)'); gg.addColorStop(1, 'rgba(255,90,20,0)'); c.fillStyle = gg; c.fillRect(x - r, y - r, r * 2, r * 2); } }
   else if (bg === 'bg_sea') { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#06263d'); g.addColorStop(1, '#0a4a63'); c.fillStyle = g; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(160,230,255,.12)'; c.lineWidth = 2; for (let y = 30; y < h; y += 38) { c.beginPath(); for (let x = 0; x <= w; x += 10) c.lineTo(x, y + Math.sin(x / 40 + y) * 5); c.stroke(); } }
@@ -2416,6 +2452,7 @@ function drawBg() {
   if (bg && paintBg(bctx, bg, W, H)) return;
   bctx.fillStyle = 'rgba(131,150,171,0.16)';
   for (let x = 25; x < W; x += 25) for (let y = 25; y < H; y += 25) bctx.fillRect(x - .8, y - .8, 1.6, 1.6);
+  if (isNight()) { let sd = 11; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 45; i++) { bctx.fillStyle = `rgba(255,255,255,${.12 + r() * .25})`; bctx.fillRect(r() * W, r() * H, 1.2, 1.2); } } // night in Šibenik: a few quiet stars
 }
 
 function rand(a, b) { return a + Math.random() * (b - a); }
@@ -2640,7 +2677,7 @@ function skinAfter(c, skin, pts, r, p) {
 }
 // ---- live crypto prices (USD) for the crypto icons. Fetched only while such an icon is on screen, from the first
 // public source that answers; the last known prices are kept on the device so something shows at once.
-const CRYPTO = { BTC: { bin: 'BTCUSDT', gecko: 'bitcoin' }, ETH: { bin: 'ETHUSDT', gecko: 'ethereum' }, XRP: { bin: 'XRPUSDT', gecko: 'ripple' }, SOL: { bin: 'SOLUSDT', gecko: 'solana' } };
+const CRYPTO = { BTC: { bin: 'BTCUSDT', gecko: 'bitcoin' }, ETH: { bin: 'ETHUSDT', gecko: 'ethereum' }, XRP: { bin: 'XRPUSDT', gecko: 'ripple' }, SOL: { bin: 'SOLUSDT', gecko: 'solana' }, PAXG: { bin: 'PAXGUSDT', gecko: 'pax-gold' } }; // PAXG: a token that follows one ounce of gold
 const cryptoPx = (() => { try { const o = JSON.parse(localStorage.getItem('vijuga-crypto') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } })();
 let cryptoAt = 0, cryptoBusy = false;
 function cryptoText(sym) { const v = Number(cryptoPx[sym]); if (!v) return '…'; return '$' + (v >= 1000 ? Math.round(v).toLocaleString('en-US') : v >= 100 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toFixed(4)); }
@@ -2668,21 +2705,114 @@ async function wxFetch() {
     const o = {}; ks.forEach((k, i) => { const c = j[i] && j[i].current; if (c && Number.isFinite(c.temperature_2m)) o[k] = { t: c.temperature_2m, p: Number(c.precipitation) || 0, c: c.weather_code, w: Number(c.wind_speed_10m) || 0, d: c.is_day ? 1 : 0, at: Date.now() }; }); return o;
   } catch (e) { return null; } finally { clearTimeout(t); }
 }
+// ---- everyday live data (our /api/live: one cached answer for everybody), fetched every minute while the page is open
+const LIVE_API = 'https://vijuga.netlify.app/api/live';
+var liveNow = (() => { try { const o = JSON.parse(localStorage.getItem('vijuga-live') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } })();
+let liveAt = 0, liveBusy = false;
+async function liveFetch() {
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), 12000);
+  try { const r = await fetch(LIVE_API, { cache: 'no-store', signal: ac.signal }); if (!r.ok) return; const j = await r.json(); if (!j || typeof j !== 'object') return;
+    const before = liveNow; liveNow = j; try { localStorage.setItem('vijuga-live', JSON.stringify(j)); } catch (e) {} hudDirty = true; clubNews(before, j); greetNameday();
+  } catch (e) {} finally { clearTimeout(t); }
+}
+const nf = (v, d) => String(Number(v).toFixed(d)).replace('.', ',');
+const agoText = (ms) => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? `prije ${m} min` : m < 2880 ? `prije ${Math.round(m / 60)} h` : `prije ${Math.round(m / 1440)} d`; };
+const untilText = (ms) => { const h = ms / 3600e3; return h < 1 ? `za ${Math.max(1, Math.round(ms / 60000))} min` : h < 48 ? `za ${Math.round(h)} h` : `za ${Math.round(h / 24)} d`; };
+function whenText(at) { const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zagreb', weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(at).map(x => [x.type, x.value])); return `${{ Sun: 'ned', Mon: 'pon', Tue: 'uto', Wed: 'sri', Thu: 'čet', Fri: 'pet', Sat: 'sub' }[p.weekday] || ''} ${p.day}.${p.month}. ${p.hour}:${p.minute}`; }
+function matchMin(at, now) { const el = (now - at) / 60000; return el < 0 ? 0 : el < 46 ? Math.ceil(el) : el < 61 ? 'HT' : el < 112 ? Math.min(90, Math.ceil(el - 15)) : '90+'; }
+const minText = (m) => m === 'HT' ? 'poluvrijeme' : m === '90+' ? "90+'" : m + "'";
+const clubOf = (k) => (liveNow.clubs || {})[k] || null;
+function clubText(k) {
+  const c = clubOf(k); if (!c) return '…';
+  if (c.live) return `${c.live.gf == null ? '–' : c.live.gf}:${c.live.ga == null ? '–' : c.live.ga} ${c.live.opp} · ${minText(matchMin(c.live.at, Date.now()))}`;
+  if (c.next) return `${whenText(c.next.at)} · ${c.next.opp} (${c.next.home ? 'd' : 'g'})`;
+  if (c.last) return `${c.last.gf}:${c.last.ga} ${c.last.opp}`;
+  return c.pos ? `${c.pos}. mjesto` : 'raspored uskoro';
+}
+function issKm() { const s = liveNow.iss; if (!s || s.lat == null) return Infinity; const R = Math.PI / 180, a = Math.sin((s.lat - 43.735) * R / 2) ** 2 + Math.cos(43.735 * R) * Math.cos(s.lat * R) * Math.sin((s.lon - 15.895) * R / 2) ** 2; return 12742 * Math.asin(Math.min(1, Math.sqrt(a))); }
+function buraTop() { const w = liveNow.wind || {}; let best = null; for (const [p, n] of [['senj', 'Senj'], ['st', 'Split'], ['sib', 'Šibenik']]) if (w[p] && w[p].g != null && (!best || w[p].g > best.g)) best = { g: w[p].g, n }; return best; }
+function liveText(k) {
+  const L = liveNow || {}, i = k.indexOf(':'), t = i < 0 ? k : k.slice(0, i), a = i < 0 ? '' : k.slice(i + 1);
+  if (t === 'sea') { const v = L.sea && L.sea[a]; return v ? `${nf(v.t, 1)}°${v.wave != null ? ' · val ' + nf(v.wave, 1) + ' m' : ''}` : '…'; }
+  if (t === 'bura') { const b = buraTop(); return b ? `${b.n} ${Math.round(b.g)} km/h` : '…'; }
+  if (t === 'uv') { const v = L.air && L.air.sib && L.air.sib.uv; return v != null ? nf(v, 1) : '…'; }
+  if (t === 'air') { const z = L.air && L.air.zg; if (!z || z.aqi == null) return '…'; return `${z.aqi <= 20 ? 'odličan' : z.aqi <= 40 ? 'dobar' : z.aqi <= 60 ? 'srednji' : z.aqi <= 80 ? 'loš' : 'jako loš'} ${z.aqi}${z.pollen > 10 ? ' · 🌼 ' + z.pollen : ''}`; }
+  if (t === 'fx') { const v = L.fx && L.fx[a]; return v ? nf(v, 4) : '…'; }
+  if (t === 'quake') { const q = L.quake; return q && q.mag != null ? `M${nf(q.mag, 1)} · ${agoText(Date.now() - q.at)}` : '…'; }
+  if (t === 'iss') { const d = issKm(); return d === Infinity ? '…' : d < 1500 ? 'iznad nas! ✨' : `${Math.round(d).toLocaleString('hr-HR')} km`; }
+  if (t === 'f1') { const f = L.f1; if (!f || !f.at) return '…'; const dt = f.at - Date.now(); return dt < 0 && dt > -2.5 * 3600e3 ? `${f.city || f.country} UŽIVO` : dt < 0 ? 'čeka se raspored' : `${f.city || f.country} · ${untilText(dt)}`; }
+  if (t === 'club') return clubText(a);
+  return '…';
+}
+// a club playing right now (green pulse), or something worth a flash: a strong bura, the ISS overhead, a race on, a strong quake
+function liveCls(k) {
+  if (k.startsWith('club:')) { const c = clubOf(k.slice(5)); return c && c.live ? ' live' : ''; }
+  if (k === 'bura') { const b = buraTop(); return b && b.g >= 60 ? ' alarm' : ''; }
+  if (k === 'iss') return issKm() < 1500 ? ' alarm' : '';
+  if (k === 'f1') { const f = liveNow.f1, dt = f && f.at ? f.at - Date.now() : 1; return dt < 0 && dt > -2.5 * 3600e3 ? ' live' : ''; }
+  if (k === 'quake') { const q = liveNow.quake; return q && q.mag >= 4 && Date.now() - q.at < 6 * 3600e3 ? ' alarm' : ''; }
+  return '';
+}
+const myClubs = () => profile ? badgeIds(profile.eq, profile.owned).map(id => BADGES[id] && BADGES[id].club).filter(Boolean) : [];
+// a goal, a kick-off or the final whistle for a club I wear: told in the arena or on the page
+function clubNews(before, now) {
+  for (const k of myClubs()) {
+    const a = before && before.clubs && before.clubs[k], b = now.clubs && now.clubs[k]; if (!b) continue; const n = FC[k].n;
+    let msg = '';
+    if (b.live && !(a && a.live)) msg = `🟢 <b>${n}</b> igra UŽIVO protiv: ${esc(b.live.opp)}`;
+    else if (b.live && a && a.live && (b.live.gf !== a.live.gf || b.live.ga !== a.live.ga)) msg = `${b.live.gf > (a.live.gf || 0) ? '⚽ GOL za ' + n + '!' : '😬 Gol protivnika'} <b>${n} ${b.live.gf}:${b.live.ga} ${esc(b.live.opp)}</b> (${minText(matchMin(b.live.at, Date.now()))})`;
+    else if (!b.live && a && a.live && b.last) msg = `🏁 Kraj: <b>${n} ${b.last.gf}:${b.last.ga} ${esc(b.last.opp)}</b>${b.last.res === 'W' ? ' · pobjeda! Danas duple nagrade za meč 🎉' : ''}`;
+    if (msg) { if (!$('#game').hidden) showIgMsg(msg); else notify(msg, { ms: 9000 }); }
+  }
+}
+// supporters' bonus: the day after a win of a club I wear, match rewards are doubled
+function fanBonus() { for (const k of myClubs()) { const c = clubOf(k); if (c && c.last && c.last.res === 'W' && Date.now() - c.last.at < 26 * 3600e3) return FC[k].n; } return ''; }
+// ---- name days: today's names on the front page; a player celebrating gets a glow by the name and a small gift once a year
+const ndNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+function ndNames() { const d = liveNow.day; if (!d || !d.names || d.date !== new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb' }).format(Date.now())) return []; return d.names.split(',').map(x => x.trim().split(/\s+/)[0]).filter(Boolean); }
+function isNameday(name) { const f = ndNorm(String(name || '').trim().split(/\s+/)[0]); return !!f && f.length > 1 && ndNames().some(n => ndNorm(n) === f); }
+function greetNameday() {
+  if (!profile || !isNameday(profile.name)) return; const flag = 'x_nd:' + new Date().getFullYear(); if (profile.owned.includes(flag)) return;
+  profile.owned.push(flag); profile.coins += 200; saveProfile(); notify(`🎉 <b>Sretan imendan, ${esc(profile.name)}!</b> Poklon: +200 zlatnika. Danas ti uz ime svijetli 🎉.`, { ms: 12000 });
+}
+function renderToday() {
+  const el = $('#todayLine'); if (!el) return; const d = liveNow.day || {}, names = ndNames();
+  const h = (names.length ? `🎉 Imendan: <b>${esc(d.names)}</b>` : '') + (d.holiday ? `${names.length ? ' · ' : ''}🇭🇷 <b>${esc(d.holiday)}</b>` : '') + (profile && isNameday(profile.name) ? ` · <span class="ndglow">Sretan imendan, ${esc(profile.name)}!</span>` : '');
+  if (el.dataset.h !== h) { el.dataset.h = h; el.innerHTML = h; el.hidden = !h; }
+}
+// ---- night in Šibenik: the plain arena gets a few stars; "Šibenik uživo" follows the real weather
+function isNight() {
+  const s = liveNow.sun, p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zagreb', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(Date.now()).map(x => [x.type, x.value])), hm = p.hour + ':' + p.minute;
+  if (s && s.rise && s.set) return hm < s.rise.slice(11, 16) || hm >= s.set.slice(11, 16);
+  return +p.hour < 7 || +p.hour >= 17;
+}
+function drawLiveSky(c) {
+  const t = performance.now() / 1000, w = wxNow.sib || {}, wind = ((liveNow.wind || {}).sib || {}).g || 0, rain = (w.p || 0) > 0 || [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(Number(w.c));
+  c.save();
+  if (rain) { c.strokeStyle = 'rgba(170,210,255,.28)'; c.lineWidth = 1.2; c.beginPath(); const n = 70, slant = Math.min(12, wind / 6); for (let i = 0; i < n; i++) { const x = ((i * 137.5 + t * 30 * (1 + slant / 10)) % (W + 40)) - 20, y = ((i * 89.3 + t * 520) % (H + 40)) - 20; c.moveTo(x, y); c.lineTo(x - slant, y + 14); } c.stroke(); }
+  if (wind >= 40) { c.strokeStyle = 'rgba(220,235,255,.18)'; c.lineWidth = 1; c.beginPath(); const n = Math.min(40, Math.round(wind / 3)); for (let i = 0; i < n; i++) { const y = (i * 61.7) % H, x = ((i * 211 + t * (120 + wind * 4)) % (W + 120)) - 60; c.moveTo(x, y); c.lineTo(x + 26, y + 2); } c.stroke(); }
+  if (!rain && !isNight()) { const g = c.createRadialGradient(W * .85, H * .1, 4, W * .85, H * .1, Math.min(W, H) * .35); g.addColorStop(0, 'rgba(255,220,120,.16)'); g.addColorStop(1, 'rgba(255,220,120,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+  c.restore();
+}
 // a quiet line with Bitcoin, Ethereum and the weather: on the front page, and in a corner of the arena while playing
 function tickerHtml(ids) {
   const it = (cls, g, v, title) => `<span class="tk ${cls}"${title ? ` title="${esc(title)}"` : ''}><b>${g}</b> ${v}</span>`;
-  return ids.map(id => { const b = BADGES[id]; return b.crypto ? it('c', b.g, cryptoText(b.crypto)) : it('w', b.g, weatherText(b.wx), wxTitle(b.wx)); }).join('');
+  return ids.map(id => { const b = BADGES[id]; return b.crypto ? it('c', b.g, cryptoText(b.crypto)) : b.live ? it('l' + liveCls(b.live), b.g, esc(liveText(b.live))) : it('w', b.g, weatherText(b.wx), wxTitle(b.wx)); }).join('');
 }
 function renderTickers() {
-  const home = $('#ticker'); if (home && !$('#menu').hidden) { const h = tickerHtml(['bd_c_btc', 'bd_c_eth', 'bd_w_sib', 'bd_w_zg']); if (home.dataset.h !== h) { home.dataset.h = h; home.innerHTML = '<span class="tl">Uživo</span>' + h; } }
+  const home = $('#ticker'); if (home && !$('#menu').hidden) { const h = tickerHtml(['bd_c_btc', 'bd_c_eth', 'bd_w_sib', 'bd_sea_sib', 'bd_w_zg']); if (home.dataset.h !== h) { home.dataset.h = h; home.innerHTML = '<span class="tl">Uživo</span>' + h; } }
   const gt = $('#gTicker'); if (gt && G && G.players && !$('#game').hidden) {
     const worn = []; for (const p of G.players) for (const id of pBadges(p)) if (liveB(BADGES[id]) && !worn.includes(id)) worn.push(id);
     const ids = ['bd_c_btc', ...worn.filter(x => x !== 'bd_c_btc')].slice(0, 4), h = tickerHtml(ids); if (gt.dataset.h !== h) { gt.dataset.h = h; gt.innerHTML = h; }
   }
 }
 async function cryptoTick() {
-  document.querySelectorAll('.wxcard').forEach(el => { const h = wxCardInner(el.dataset.wx); if (el.dataset.h !== h) { el.dataset.h = h; el.innerHTML = h; } });
-  document.querySelectorAll('.cbd').forEach(el => { const b = el.querySelector('.cp'), t = el.dataset.w ? weatherText(el.dataset.w) : cryptoText(el.dataset.c); if (b && b.textContent !== t) { b.textContent = t; if (el.dataset.w) b.title = wxTitle(el.dataset.w); } });
+  if (!liveBusy && !document.hidden && Date.now() - liveAt > 60000) { liveBusy = true; liveAt = Date.now(); liveFetch().finally(() => { liveBusy = false; }); }
+  document.querySelectorAll('.lbd').forEach(el => { const k = el.dataset.l, b = el.querySelector('.cp'), t = liveText(k), cls = 'cbd lbd' + liveCls(k); if (b && b.textContent !== t) b.textContent = t; if (el.className !== cls) el.className = cls; });
+  document.querySelectorAll('.livecard').forEach(el => { const h = liveCardInner(el.dataset.l); if (el.dataset.h !== h) { el.dataset.h = h; el.innerHTML = h; } });
+  renderToday();
+  document.querySelectorAll('.wxcard[data-wx]').forEach(el => { const h = wxCardInner(el.dataset.wx); if (el.dataset.h !== h) { el.dataset.h = h; el.innerHTML = h; } });
+  document.querySelectorAll('.cbd:not(.lbd)').forEach(el => { const b = el.querySelector('.cp'), t = el.dataset.w ? weatherText(el.dataset.w) : cryptoText(el.dataset.c); if (b && b.textContent !== t) { b.textContent = t; if (el.dataset.w) b.title = wxTitle(el.dataset.w); } });
   renderTickers();
   if (!wxBusy && !document.hidden && Date.now() - wxAt > 10 * 60000) { wxBusy = true; wxAt = Date.now(); wxFetch().then(o => { if (o) { Object.assign(wxNow, o); try { localStorage.setItem('vijuga-wx', JSON.stringify(wxNow)); } catch (e) {} hudDirty = true; } }).finally(() => { wxBusy = false; }); }
   if (cryptoBusy || !cryptoWanted() || Date.now() - cryptoAt < 30000) return;
@@ -2748,11 +2878,12 @@ function badgeImage(id, color) {
   badgeImgCache[key] = img; return img;
 }
 // the weather card in the shop: big sky, big temperature, then rain and wind
+function liveCardInner(k) { const id = Object.keys(BADGES).find(x => BADGES[x].live === k), b = BADGES[id] || {}; return `<span class="wd"><b>${esc(b.g || '')}</b><span class="lv${liveCls(k)}">${esc(liveText(k))}</span></span>`; }
 function wxCardInner(k) {
   const w = wxNow[k]; if (!w || !Number.isFinite(w.t)) return `<span class="wi">⏳</span><span class="wd"><b>${esc(WX[k].n)}</b><small>vrijeme se učitava…</small></span>`;
   return `<span class="wi">${wxIcon(w.c, w.d)}</span><span class="wt">${Math.round(w.t)}°</span><span class="wd"><b>${esc(WX[k].n)}</b><small>💧 ${String(w.p).replace('.', ',')} mm · 💨 ${Math.round(w.w)} km/h</small></span>`;
 }
-function liveLabel(b) { return b.crypto ? b.g + ' ' + cryptoText(b.crypto) : b.g + ' ' + weatherText(b.wx); }
+function liveLabel(b) { return b.crypto ? b.g + ' ' + cryptoText(b.crypto) : b.live ? b.g + ' ' + liveText(b.live) : b.g + ' ' + weatherText(b.wx); }
 function badgeWidth(c, id, size) {
   const b = BADGES[id]; if (!b || !b.g) return 0;
   if (b.anim) return size * 1.7;
@@ -2770,7 +2901,9 @@ function drawBadgeRow(c, ids, x, y, size, color) {
 function drawBadge(c, id, x, y, size, color) {
   const b = BADGES[id]; if (!b || !b.g) return;
   if (b.anim) { drawAnim(c, b.anim, x, y, size * 1.7, performance.now() / 1000); return; }
-  if (liveB(b)) { c.save(); const t = liveLabel(b), fs = Math.max(7, Math.round(size * 0.8)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.9, h = fs * 1.5; c.fillStyle = 'rgba(11,18,27,.82)'; c.strokeStyle = b.col; c.lineWidth = 1; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.stroke(); c.fillStyle = b.wx ? '#e6f6ff' : b.col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
+  if (liveB(b)) { c.save(); const t = liveLabel(b), fs = Math.max(7, Math.round(size * 0.8)), lc = b.live ? liveCls(b.live) : '', now = performance.now() / 1000;
+    if (lc === ' alarm' && b.live === 'bura') x += Math.sin(now * 40) * 1.5; c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.9, h = fs * 1.5; c.fillStyle = 'rgba(11,18,27,.82)'; c.strokeStyle = b.col; c.lineWidth = 1; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); if (lc) { c.strokeStyle = lc === ' live' ? '#3ddc97' : '#ff5d73'; c.lineWidth = 1.5; } c.stroke(); c.fillStyle = b.wx ? '#e6f6ff' : lc === ' live' ? '#bff5dc' : b.col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06);
+    if (lc === ' live') { const a = 0.55 + 0.45 * Math.sin(now * 6); c.globalAlpha *= a; c.fillStyle = '#3ddc97'; c.beginPath(); c.arc(x - w / 2 - fs * 0.55, y, fs * 0.38, 0, 6.283); c.fill(); } c.restore(); return; }
   if (b.tag) { c.save(); const t = b.g.toUpperCase(), fs = Math.max(7, Math.round(size * 0.74)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.95, h = fs * 1.5; c.fillStyle = b.tag; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
   const img = badgeImage(id, color);
   if (img && b.big) { const s2 = size * 1.5; if (img.complete && img.naturalWidth) c.drawImage(img, x - s2 / 2, y - s2 / 2, s2, s2); return; }
@@ -3103,6 +3236,7 @@ function render() {
   ctx.drawImage(trail, 0, 0, cv.width, cv.height);
   ctx.setTransform(s, 0, 0, s, 0, 0);
   drawLights(ctx);
+  if (G.bg === 'bg_live') drawLiveSky(ctx);
   const bd = bounds();
   if (G.inset > 0.5) {
     ctx.fillStyle = 'rgba(11,18,27,0.72)';
@@ -3348,7 +3482,7 @@ const BOX_LV = { basic: 1, silver: 3, gold: 5, diamond: 8 };
 function lvReq(id) {
   const it = SKINS[id] || BADGES[id] || PREMIUM[id] || EFFECTS[id]; if (!it) return 1;
   if (it.lv) return it.lv;
-  const special = it.premium || it.anim || it.crypto || it.wx || it.limit || it.unique || it.fan || it.bg || PREMIUM[id];
+  const special = it.premium || it.anim || it.crypto || it.wx || it.live || it.limit || it.unique || it.fan || it.bg || PREMIUM[id];
   if (!special) return 1;
   const p = Number(it.price) || 0;
   return p >= 15000 ? 12 : p >= 7000 ? 8 : p >= 4000 ? 6 : p >= 3000 ? 5 : p >= 2000 ? 4 : p >= 1200 ? 3 : p >= 900 ? 2 : 1;
@@ -3405,6 +3539,34 @@ const ACH = [
 function achOf(P) { return ACH.filter(a => { try { return a.t(P); } catch (e) { return false; } }); }
 // the profile shows one button; the full list opens in its own window on top
 function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e).join(''); return `<button type="button" class="achbtn"><span class="ai">🏅</span><span class="at"><b>Postignuća</b><small>${got.length} od ${ACH.length}${last ? ' · ' + last : ''}</small></span><span class="ar">›</span></button>`; }
+function showClubTable(k) {
+  if (!FC[k]) return; document.querySelectorAll('.clubov').forEach(x => x.remove());
+  const c = clubOf(k) || {}, tb = k === 'sibenik' ? [] : ((liveNow.hnl || {}).table || []), admin = ['master', 'admin'].includes(myRole());
+  const ov = document.createElement('div'); ov.className = 'achov clubov';
+  const lv = c.live, nx = c.next, la = c.last;
+  const head = lv ? `<div class="cnext live"><span class="hint">🟢 UŽIVO · ${minText(matchMin(lv.at, Date.now()))}</span><span class="cbig">${lv.home ? FC[k].n : esc(lv.opp)} ${lv.home ? lv.gf : lv.ga} : ${lv.home ? lv.ga : lv.gf} ${lv.home ? esc(lv.opp) : FC[k].n}</span></div>`
+    : nx ? `<div class="cnext"><span class="hint">Sljedeća utakmica · ${untilText(nx.at - Date.now())}</span><b style="font-size:18px">${nx.home ? FC[k].n + ' – ' + esc(nx.opp) : esc(nx.opp) + ' – ' + FC[k].n}</b><span>${whenText(nx.at)}${nx.venue ? ' · ' + esc(nx.venue) : ''}${nx.round ? ' · ' + nx.round + '. kolo' : ''}</span></div>` : `<div class="cnext"><span class="hint">Sljedeća utakmica još nije upisana.</span></div>`;
+  const last = la ? `<p class="hint" style="margin:0">Zadnja: ${la.home ? FC[k].n + ' ' + la.gf + ':' + la.ga + ' ' + esc(la.opp) : esc(la.opp) + ' ' + la.ga + ':' + la.gf + ' ' + FC[k].n} · ${{ W: 'pobjeda ✅', D: 'neriješeno', L: 'poraz' }[la.res] || ''}</p>` : '';
+  const table = tb.length ? `<table class="ctab"><tr><th>#</th><th>Klub</th><th>Ut</th><th>P</th><th>N</th><th>I</th><th>GR</th><th>Bod</th></tr>${tb.map(r => `<tr class="${r.club === FC[k].n ? 'mine' : ''}"><td>${r.pos}.</td><td>${esc(r.club)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gd > 0 ? '+' : ''}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table><p class="hint" style="margin:0">Izvor: hnl.hr, osvježava se svakih pola sata (svake minute dok se igra).</p>`
+    : `<p style="margin:0">${c.pos ? `<b style="font-size:20px">${c.pos}. mjesto</b> u ligi ${esc(c.league || FC[k].lg)}` : `Liga: ${esc(c.league || FC[k].lg)}`}</p><p class="hint" style="margin:0">Za ${esc(c.league || FC[k].lg)} nema otvorenog izvora podataka, pa utakmicu i rezultat upisuje admin.</p>`;
+  const adm = admin && k === 'sibenik' ? `<div class="cadm"><b>Admin: ${FC[k].n}</b><div class="row"><input type="datetime-local" id="caAt"><input id="caOpp" placeholder="protivnik" maxlength="30" style="width:130px"><label><input type="checkbox" id="caHome" checked> doma</label><button class="btn sm" type="button" id="caNext">Spremi sljedeću</button></div>
+      <div class="row"><input type="number" id="caPos" min="1" max="30" placeholder="mjesto" style="width:80px" value="${c.pos || ''}"><button class="btn sm ghost" type="button" id="caPosGo">Spremi mjesto</button></div>
+      <div class="row">${lv ? `<button class="btn sm" type="button" data-ca="gf">+1 ${FC[k].n}</button><button class="btn sm" type="button" data-ca="ga">+1 protivnik</button><button class="btn sm ghost" type="button" data-ca="end">⏹ Kraj utakmice</button>` : `<button class="btn sm" type="button" data-ca="start" ${nx ? '' : 'disabled'}>▶ Počni uživo (sljedeća)</button>`}</div></div>` : '';
+  ov.innerHTML = `<div class="achcard clubcard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>⚽ ${FC[k].n}</h3><p class="hint" style="margin:0">${esc(c.league || FC[k].lg)}${c.pos ? ` · ${c.pos}. mjesto${c.pts != null ? ', ' + c.pts + ' bodova' : ''}` : ''}</p>${head}${last}${table}${adm}</div>`;
+  const close = () => ov.remove(); ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
+  document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1, true); } }, true);
+  document.body.appendChild(ov);
+  const send = async (patch) => { try { const r = await fetch(LIVE_API + '/club', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '', club: k }, patch)) }); if (!r.ok) { toast('Nije spremljeno (' + r.status + ').'); return; } liveAt = 0; await liveFetch(); showClubTable(k); toast('✅ Spremljeno, svi vide za minutu.'); } catch (e) { toast('Nema veze s poslužiteljem.'); } };
+  const q = (id) => ov.querySelector(id);
+  if (q('#caNext')) q('#caNext').onclick = () => { const v = q('#caAt').value, opp = q('#caOpp').value.trim(); if (!v || !opp) { toast('Upiši datum, sat i protivnika.'); return; } const [d, t] = v.split('T'), [y, mo, da] = d.split('-').map(Number), [h, mi] = t.split(':').map(Number); const guess = Date.UTC(y, mo - 1, da, h, mi), p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zagreb', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(guess).map(x => [x.type, x.value])); const at = guess - (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - guess); send({ next: { at, opp, home: q('#caHome').checked } }); };
+  if (q('#caPosGo')) q('#caPosGo').onclick = () => send({ pos: q('#caPos').value });
+  ov.querySelectorAll('[data-ca]').forEach(b => b.onclick = () => { const a = b.dataset.ca;
+    if (a === 'start' && nx) send({ live: { at: Math.min(Date.now(), nx.at), opp: nx.opp, home: nx.home, gf: 0, ga: 0 }, next: null });
+    else if (lv && (a === 'gf' || a === 'ga')) send({ live: Object.assign({}, lv, { [a]: (lv[a] || 0) + 1 }) });
+    else if (lv && a === 'end') send({ live: null, last: { at: lv.at, opp: lv.opp, home: lv.home, gf: lv.gf || 0, ga: lv.ga || 0 } }); });
+}
+// a club icon anywhere in the page opens its window
+document.addEventListener('click', (e) => { const el = e.target.closest && e.target.closest('.lbd[data-l^="club:"]'); if (!el || el.closest('.wchip')) return; e.preventDefault(); e.stopPropagation(); showClubTable(el.dataset.l.slice(5)); }, true);
 function showAchievements(P) {
   const got = new Set(achOf(P).map(a => a.id)); const ov = document.createElement('div'); ov.className = 'achov';
   const rows = [...ACH].sort((a, b) => (got.has(b.id) - got.has(a.id))).map(a => { const v = Math.max(0, Math.min(a.goal, Math.floor(a.val(P) || 0))), on = got.has(a.id); return `<div class="arow ${on ? 'on' : ''}"><span class="ae">${a.e}</span><span class="ax"><b>${esc(a.n)}</b><small>${esc(a.d)}</small>${on ? '' : `<span class="abar"><i style="width:${Math.round(100 * v / a.goal)}%"></i></span><small class="anum">${v} / ${a.goal}</small>`}</span><span class="as">${on ? '✓' : '🔒'}</span></div>`; }).join('');
@@ -5378,6 +5540,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight };
 })();
 </script>
