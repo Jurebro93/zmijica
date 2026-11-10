@@ -315,7 +315,11 @@ button.pu:hover { border-color: var(--line); }
 .item .prev { height: 44px; border-radius: 6px; background: var(--slate); display: grid; place-items: center; overflow: hidden; }
 .item .prev canvas { width: 100%; height: 44px; display: block; }
 .item .prev .ic { font-size: 28px; }
-.item .prev .ic .wbd { font-size: 20px; } .wchip em .wbd { font-size: 15px; }
+.item .prev .ic .wbd { font-size: 20px; }
+.wxcard { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 100%; padding: 0 10px; background: linear-gradient(135deg, #12324d, #0d2133); color: #e6f6ff; }
+.wxcard .wi { font-size: 40px; line-height: 1; } .wxcard .wt { font: 700 34px/1 "Barlow Semi Condensed", sans-serif; color: #fff; }
+.wxcard .wd { display: grid; gap: 2px; min-width: 0; } .wxcard .wd b { font-size: 15px; } .wxcard .wd small { font-size: 12px; color: #a9d8f5; white-space: nowrap; }
+.lot.want { border-color: color-mix(in srgb, var(--good) 50%, var(--line)); } .lot.want.can { border-color: var(--good); box-shadow: 0 0 0 1px var(--good) inset; } .wchip em .wbd { font-size: 15px; }
 .item .prev canvas.bgprev { width: 100%; height: 84px; display: block; }
 .item.pic .prev { height: 84px; } .item.pic .prev .ic { font-size: 56px; line-height: 1; }
 .cbd { display: inline-flex; align-items: center; gap: .25em; padding: 0 .5em; border-radius: 999px; border: 1px solid var(--cc); color: var(--cc); background: rgba(11,18,27,.6); font: 700 .74em/1.5 "Barlow Semi Condensed", sans-serif; vertical-align: .08em; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -646,7 +650,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
         <div class="localbox" data-cat="tags"><h2>🏷️ Tagovi mjesta <small>natpis tvog mjesta uz ime (Grebaštica, Bilice, Žaborić, Brodarica, Šibenik), svaki samo 2 komada</small></h2><div class="shop" id="shopTags"></div></div>
         <div class="premiumbox" data-cat="crypto"><h2>₿ Kripto ikone <small>ograničeno: od svake samo 5 komada. Živa cijena (USD) stoji uz tvoje ime u predvorju, na ploči i iznad zmije dok igraš</small></h2><div class="shop" id="shopCrypto"></div></div>
-        <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Možeš nositi do 4 ikone odjednom</small></h2><div class="shop" id="shopWeather"></div></div>
+        <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Od svakog grada samo 3 komada; rasprodano možeš zatražiti na Aukciji 🔨</small></h2><div class="shop" id="shopWeather"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
@@ -825,7 +829,7 @@ const WX = {
   ri: { n: 'Rijeka', lat: 45.327, lon: 14.442 }, zd: { n: 'Zadar', lat: 44.119, lon: 15.231 }, os: { n: 'Osijek', lat: 45.555, lon: 18.695 }, du: { n: 'Dubrovnik', lat: 42.650, lon: 18.094 },
 };
 const WBD = (k) => '<span class="cbd wbd" data-w="' + k + '" style="--cc:#7fd4ff"><span class="cg">' + WX[k].n + '</span><span class="cp">…</span></span>';
-const WXB = (k, price) => ({ g: WX[k].n, wx: k, col: '#7fd4ff', svg: WBD(k), name: 'Vrijeme: ' + WX[k].n, d: `VRIJEME: prava temperatura, kiša i vjetar u gradu ${WX[k].n} uz tvoje ime, uživo`, price });
+const WXB = (k, price) => ({ g: WX[k].n, wx: k, col: '#7fd4ff', svg: WBD(k), name: 'Vrijeme: ' + WX[k].n, d: `VRIJEME, OGRANIČENO: prava temperatura, kiša i vjetar u gradu ${WX[k].n} uz tvoje ime, uživo. Samo 3 komada`, price, limit: 3 });
 const BADGES = {
   bd_none:  { g: '', name: 'Bez ikone', d: '', price: 0 },
   bd_c_btc: { g: '₿', crypto: 'BTC', col: '#f7931a', svg: CBD('BTC', '₿', '#f7931a'), name: 'Bitcoin (BTC)', d: 'KRIPTO, OGRANIČENO: živa cijena Bitcoina uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 2500 },
@@ -1615,6 +1619,7 @@ function renderShop() {
       const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
       const prev = document.createElement('div'); prev.className = 'prev';
       if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
+      else if (kind === 'badge' && it.wx) { prev.innerHTML = `<div class="wxcard" data-wx="${it.wx}">${wxCardInner(it.wx)}</div>`; d.classList.add('pic'); }
       else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${badgeGlyph(id) || '—'}</span>`; if (it.big || it.anim) d.classList.add('pic'); }
       else { const P = POWERUPS[id]; prev.innerHTML = `<i class="pu" style="border:0;padding:0"><i class="${P.t}" style="width:32px;height:32px;font-size:18px">${P.g}</i></i>`; }
       d.appendChild(prev);
@@ -1629,6 +1634,7 @@ function renderShop() {
       else if (lockLv && !eq && !owned) { b.textContent = '🔒 Nivo ' + lockLv; b.className = 'lockbtn'; b.disabled = true; }
       else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : kind === 'badge' ? 'Skini' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } else if (kind === 'badge') { unwearBadge(id); saveProfile(); } }; }
       else if (owned) { b.textContent = kind === 'badge' && badgeIds(profile.eq, profile.owned).length ? 'Dodaj' : 'Koristi'; b.onclick = () => { if (kind === 'badge') wearBadge(id); else profile.eq[kind] = id; saveProfile(); }; }
+      else if (it.limit && limitLeft(id) <= 0) { b.textContent = '🙋 Zatraži na aukciji'; b.className = 'buy'; b.title = 'Rasprodano u trgovini: otvori zahtjev za kupnju, a netko tko je ima može ti je prodati'; b.onclick = () => askOnAuction(id); }
       else { b.textContent = it.limit && limitLeft(id) <= 0 ? 'Rasprodano' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost || (it.limit && limitLeft(id) <= 0); b.onclick = () => { if (profile.coins < cost || (it.limit && limitLeft(id) <= 0)) return; if (!okToSpend(cost, it.name)) return; const prevEq = profile.eq[kind]; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); buyUndo(id, cost, kind, prevEq); }; }
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
@@ -1975,34 +1981,56 @@ async function reportTour(sorted) {
 }
 // ================= auction house =================
 const AUCT_API = 'https://vijuga.netlify.app/api/auction';
-var auct = { active: [], done: [], stats: {} }, auctTimer = 0; // var: read by limitLeft() before this line runs
+var auct = { active: [], done: [], stats: {}, wants: [] }, auctTimer = 0, wantPrefill = ''; // var: read by limitLeft() before this line runs
 const listable = id => !!((SKINS[id] && SKINS[id].limit) || (BADGES[id] && BADGES[id].limit));
 async function loadAuct() {
-  try { const r = await fetch(AUCT_API, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); auct = { active: Array.isArray(j && j.active) ? j.active : [], done: Array.isArray(j && j.done) ? j.done : [], stats: (j && j.stats) || {} }; } } catch (e) {}
-  renderAuct(); clearTimeout(auctTimer); if (curTab === 'auct' && !$('#menu').hidden) auctTimer = setTimeout(loadAuct, 20000);
+  try { const r = await fetch(AUCT_API, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); auct = { active: Array.isArray(j && j.active) ? j.active : [], done: Array.isArray(j && j.done) ? j.done : [], stats: (j && j.stats) || {}, wants: Array.isArray(j && j.wants) ? j.wants : [] }; } } catch (e) {}
+  renderAuct(); tellOwnersOfWants(); clearTimeout(auctTimer); if (curTab === 'auct' && !$('#menu').hidden) auctTimer = setTimeout(loadAuct, 20000);
 }
 setTimeout(loadAuct, 2000);
 async function auctCall(path, extra) {
   if (!profile) { showLogin(); return null; }
   try { const r = await fetch(AUCT_API + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ slug: profile.slug, auth: profile.pinHash || '' }, extra || {})) }); const j = await r.json().catch(() => ({}));
-    if (!r.ok) { toast({ 'too low': `Premalo. Najmanja ponuda je ${j.min}.`, 'not owned': 'Poslužitelj još ne vidi da imaš tu stvar. Pričekaj minutu.', 'already listed': 'Tu stvar već prodaješ.', 'own lot': 'Ne možeš licitirati na svoje.', 'has bids': 'Već ima ponuda, ne možeš povući. Prihvati ili pričekaj kraj.', closed: 'Aukcija je već završila.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; }
+    if (!r.ok) { toast({ 'too low': `Premalo. Najmanja ponuda je ${j.min}.`, 'not owned': 'Poslužitelj još ne vidi da imaš tu stvar. Pričekaj minutu.', 'already listed': 'Tu stvar već prodaješ.', 'own lot': 'Ne možeš licitirati na svoje.', 'has bids': 'Već ima ponuda, ne možeš povući. Prihvati ili pričekaj kraj.', closed: 'Već je završeno (netko je bio brži ili je isteklo).', 'already own': 'Tu stvar već imaš.', 'already wanted': 'Za tu stvar već imaš otvoren zahtjev.', 'too many wants': 'Najviše 5 otvorenih zahtjeva odjednom.', 'bad price': 'Ponuda mora biti od 10 do 1.000.000 zlatnika.', 'own want': 'To je tvoj zahtjev.', 'not buyer': 'To nije tvoj zahtjev.', auth: 'Prijava nije uspjela (PIN).' }[j.error] || 'Greška: ' + (j.error || r.status)); return null; }
     return j; } catch (e) { toast('Nema veze s poslužiteljem.'); return null; }
 }
-function itemIcon(id) { const b = BADGES[id]; if (b) return `<span class="ic">${b.svg || b.g}</span>`; if (SKINS[id]) return '<span class="ic">〰️</span>'; return ''; }
+function itemIcon(id) { const b = BADGES[id]; if (b) return `<span class="ic">${badgeGlyph(id) || b.g}</span>`; if (SKINS[id]) return '<span class="ic">〰️</span>'; return ''; }
 function fmtLeft(ms) { if (ms <= 0) return 'završava'; const h = Math.floor(ms / 3600000), d = Math.floor(h / 24); return d ? `${d} d ${h % 24} h` : h ? `${h} h ${Math.floor(ms / 60000) % 60} min` : `${Math.max(1, Math.floor(ms / 60000))} min`; }
+// a sold-out thing from the shop: straight to a buy request for it
+function askOnAuction(id) { wantPrefill = id; showTab('auct'); }
+const wantable = () => [...Object.keys(SKINS), ...Object.keys(BADGES)].filter(id => listable(id) && !(profile && profile.owned.includes(id)));
+function wantPrice(id) { const st = auct.stats[id]; return Math.max(50, Math.round((st ? st.last || st.avg : itemPrice(id) * 1.5) / 50) * 50); }
+// whoever owns a thing somebody asks for hears about it once
+function tellOwnersOfWants() {
+  if (!profile || !$('#game').hidden) return; let seen = []; try { seen = JSON.parse(localStorage.getItem('vijuga-wants-seen') || '[]'); } catch (e) {}
+  const w = (auct.wants || []).find(x => x.buyer !== profile.slug && profile.owned.includes(x.item) && !seen.includes(x.id)); if (!w) return;
+  seen = [...seen, w.id].slice(-60); try { localStorage.setItem('vijuga-wants-seen', JSON.stringify(seen)); } catch (e) {}
+  const n = notify(`🙋 <b>${esc(w.buyerName)}</b> želi kupiti tvoje <b>${esc(itemName(w.item))}</b> za <b>● ${w.price}</b>.`, { ms: 15000, actions: '<button class="pingbtn" type="button" data-go-auct="1">Pogledaj</button>' });
+  if (n) n.querySelector('[data-go-auct]').onclick = () => { n.remove(); showTab('auct'); };
+}
 function renderAuct() {
   const box = $('#auct'); if (!box) return;
   const me = profile && profile.slug;
   const mine = profile ? profile.owned.filter(listable) : [];
+  const keep = $('#wantNew') ? { open: $('#wantNew').open, item: $('#wnItem') && $('#wnItem').value, price: $('#wnPrice') && $('#wnPrice').value } : null; // the 20 s refresh must not wipe what is being typed
+  const wl = wantable().sort((a, b) => (limitLeft(a) > 0) - (limitLeft(b) > 0) || itemName(a).localeCompare(itemName(b), 'hr'));
+  const want = w => { const own = profile && profile.owned.includes(w.item) && w.buyer !== me;
+    return `<div class="lot want ${w.buyer === me ? 'mine' : ''} ${own ? 'can' : ''}"><div class="lotitem">${itemIcon(w.item)}<div><b>${esc(itemName(w.item))}</b><small>traži ${esc(w.buyerName)} · još ${fmtLeft(w.ends - Date.now())}</small></div></div>
+      <div class="lotbid">Nudi: <b>● ${w.price}</b>${own ? ` · ti je imaš: dobiješ <b>● ${Math.floor(w.price * 0.95)}</b>` : ''}</div>
+      ${w.buyer === me ? `<div class="lotact"><button class="btn sm ghost" type="button" data-wd="${w.id}">Povuci zahtjev</button><span class="hint">zlatnici su zaključani dok netko ne proda</span></div>` : own ? `<div class="lotact"><button class="btn sm" type="button" data-fill="${w.id}" data-item="${w.item}" data-p="${w.price}" data-bn="${esc(w.buyerName)}">Prodaj za ● ${w.price}</button></div>` : ''}</div>`; };
+  const wantsHtml = `<h3>🙋 Zahtjevi za kupnju (${(auct.wants || []).length})</h3><p class="hint" style="margin:0 0 8px">Želiš nešto čega više nema u trgovini? Otvori zahtjev i napiši koliko nudiš: zlatnici se zaključaju, a <b>bilo tko tko tu stvar ima</b> može ti je prodati jednim klikom. Zahtjev traje 7 dana; ako ga povučeš ili istekne, zlatnici ti se vraćaju.</p>
+    ${profile ? `<details class="tnew" id="wantNew" ${wantPrefill ? 'open' : ''}><summary>🙋 Otvori zahtjev za kupnju</summary><label>Što želiš <select id="wnItem">${wl.map(id => `<option value="${id}" ${id === wantPrefill ? 'selected' : ''}>${esc(itemName(id))}${limitLeft(id) > 0 ? '' : ' (rasprodano)'}</option>`).join('')}</select></label><label>Nudiš (zlatnika) <input type="number" id="wnPrice" min="10" value="${wantPrice(wantPrefill || wl[0] || '')}"></label><button class="btn" type="button" id="wnGo">Otvori zahtjev</button></details>` : ''}
+    <div class="lots">${(auct.wants || []).map(want).join('') || '<p class="hint">Trenutno nitko ništa ne traži.</p>'}</div>`;
   const lot = l => { const t = l.bids[l.bids.length - 1], min = t ? Math.ceil(t.amount * 1.05 + 1) : l.start, st = auct.stats[l.item];
     return `<div class="lot ${l.seller === me ? 'mine' : ''}"><div class="lotitem">${itemIcon(l.item)}<div><b>${esc(itemName(l.item))}</b><small>prodaje ${esc(l.sellerName)} · još ${fmtLeft(l.ends - Date.now())}${st ? ` · prosjek ${st.avg}` : ''}</small></div></div>
       <div class="lotbid">${t ? `Najviša: <b>● ${t.amount}</b> (${esc(t.name)})` : `Početna: <b>● ${l.start}</b>`}${l.buyNow ? ` · Kupi odmah: <b>● ${l.buyNow}</b>` : ''}</div>
       ${l.seller === me ? `<div class="lotact">${t ? `<button class="btn sm" type="button" data-acc="${l.id}">Prihvati ● ${t.amount}</button>` : `<button class="btn sm ghost" type="button" data-can="${l.id}">Povuci</button>`}</div>`
       : profile ? `<div class="lotact"><input type="number" min="${min}" value="${min}" data-in="${l.id}"><button class="btn sm" type="button" data-bid="${l.id}">Ponudi</button>${l.buyNow ? `<button class="btn sm ghost" type="button" data-bn="${l.id}" data-v="${l.buyNow}">Kupi odmah</button>` : ''}${t && t.slug === me ? '<span class="hint">✓ ti vodiš</span>' : ''}</div>` : ''}</div>`; };
-  box.innerHTML = `<div class="thead"><span class="tcup">🔨</span><div><h2 style="margin:0">Aukcija</h2><p class="hint" style="margin:0">Ovdje se prodaju <b>unikati i limitirane stvari</b> (stranke, zastave, Šibenik, navijači, Dijamant, Komet). Ponuda ti odmah zaključa zlatnike, a ako te netko nadmaši, vraćaju ti se. Prodaja završava kad prodavatelj prihvati, kad netko plati „kupi odmah” ili nakon 5 dana. Provizija je 5 %.</p></div></div>
+  box.innerHTML = `<div class="thead"><span class="tcup">🔨</span><div><h2 style="margin:0">Aukcija</h2><p class="hint" style="margin:0">Ovdje se prodaju <b>unikati i limitirane stvari</b> (stranke, zastave, Šibenik, navijači, vrijeme, kripto, Dijamant, Komet). Što nema u trgovini, možeš i <b>zatražiti</b> (dolje). Ponuda ti odmah zaključa zlatnike, a ako te netko nadmaši, vraćaju ti se. Prodaja završava kad prodavatelj prihvati, kad netko plati „kupi odmah” ili nakon 5 dana. Provizija je 5 %.</p></div></div>
     ${profile ? `<details class="tnew" ${mine.length ? '' : 'open'}><summary>➕ Stavi stvar na aukciju</summary>${mine.length ? `<label>Stvar <select id="auItem">${mine.map(id => `<option value="${id}">${esc(itemName(id))}</option>`).join('')}</select></label><label>Početna cijena <input type="number" id="auStart" value="1000" min="10"></label><label>Kupi odmah (neobavezno) <input type="number" id="auBn" placeholder="npr. 3000" min="0"></label><button class="btn" type="button" id="auGo">Stavi na aukciju</button>` : '<p class="hint">Nemaš limitiranih ni unikatnih stvari za prodaju. Kupi ih u Trgovini (🗳️ Unikati, ⚓ Šibenik i navijači).</p>'}</details>` : ''}
     <h3>Aktivno (${auct.active.length})</h3><div class="lots">${auct.active.map(lot).join('') || '<p class="hint">Trenutno nitko ništa ne prodaje.</p>'}</div>
-    <h3>Zadnje prodaje</h3><div class="lots">${auct.done.filter(l => l.status === 'sold').slice(0, 10).map(l => `<div class="lot done"><div class="lotitem">${itemIcon(l.item)}<div><b>${esc(itemName(l.item))}</b><small>${esc(l.sellerName)} → ${esc(l.buyerName || '')} za ● ${l.price}</small></div></div></div>`).join('') || '<p class="hint">Još nema prodaja.</p>'}</div>`;
+    ${wantsHtml}
+    <h3>Zadnje prodaje</h3><div class="lots">${auct.done.filter(l => l.status === 'sold').slice(0, 10).map(l => `<div class="lot done"><div class="lotitem">${itemIcon(l.item)}<div><b>${esc(itemName(l.item))}</b><small>${esc(l.sellerName)} → ${esc(l.buyerName || '')} za ● ${l.price}${l.want ? ' · po zahtjevu' : ''}</small></div></div></div>`).join('') || '<p class="hint">Još nema prodaja.</p>'}</div>`;
   if ($('#auGo')) $('#auGo').onclick = async () => {
     const item = $('#auItem').value, start = Math.floor(Number($('#auStart').value) || 0), bn = Math.floor(Number($('#auBn').value) || 0);
     if (!confirm(`Staviti ${itemName(item)} na aukciju od ${start}? Stvar odmah izlazi iz tvoje kolekcije (vraća se ako je nitko ne kupi).`)) return;
@@ -2015,6 +2043,24 @@ function renderAuct() {
   box.querySelectorAll('[data-bn]').forEach(b => b.onclick = () => bid(b.dataset.bn, Number(b.dataset.v)));
   box.querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => { if (!confirm('Prihvatiti najvišu ponudu i prodati?')) return; if (await auctCall('/' + b.dataset.acc + '/accept')) { toast('💰 Prodano! Zlatnici stižu za par sekundi.'); setTimeout(collectGifts, 1500); loadAuct(); } });
   box.querySelectorAll('[data-can]').forEach(b => b.onclick = async () => { if (await auctCall('/' + b.dataset.can + '/cancel')) { toast('Povučeno. Stvar ti se vraća.'); setTimeout(collectGifts, 1500); loadAuct(); } });
+  if (keep && $('#wantNew') && !wantPrefill) { $('#wantNew').open = keep.open; if (keep.item && $('#wnItem')) $('#wnItem').value = keep.item; if (keep.price && $('#wnPrice')) $('#wnPrice').value = keep.price; }
+  if ($('#wnItem')) $('#wnItem').onchange = () => { $('#wnPrice').value = wantPrice($('#wnItem').value); };
+  if ($('#wnGo')) $('#wnGo').onclick = async () => {
+    const item = $('#wnItem').value, price = Math.floor(Number($('#wnPrice').value) || 0); if (!item) return;
+    if (profile.coins < price) { toast('Nemaš dovoljno zlatnika.'); return; }
+    if (!confirm(`Otvoriti zahtjev: ${itemName(item)} za ${price} zlatnika? Zlatnici se odmah zaključaju (vraćaju se ako povučeš ili nitko ne proda u 7 dana).`)) return;
+    const j = await auctCall('/want/new', { item, price }); if (!j) return;
+    profile.coins -= j.paid; saveProfile(); wantPrefill = ''; toast('🙋 Zahtjev je otvoren. Čim ti netko proda, stvar stiže u tvoju kolekciju.'); loadAuct();
+  };
+  box.querySelectorAll('[data-wd]').forEach(b => b.onclick = async () => { if (!confirm('Povući zahtjev? Zlatnici ti se vraćaju.')) return; if (await auctCall('/' + b.dataset.wd + '/withdraw')) { toast('Zahtjev povučen, zlatnici se vraćaju.'); setTimeout(collectGifts, 1500); loadAuct(); } });
+  box.querySelectorAll('[data-fill]').forEach(b => b.onclick = async () => {
+    const item = b.dataset.item, price = Number(b.dataset.p);
+    if (!confirm(`Prodati ${itemName(item)} igraču ${b.dataset.bn} za ${price}? Dobiješ ${Math.floor(price * 0.95)} (5 % provizija), a stvar odmah izlazi iz tvoje kolekcije.`)) return;
+    if (!await auctCall('/' + b.dataset.fill + '/sell')) return;
+    profile.owned = profile.owned.filter(x => x !== item); for (const k of ['skin', 'badge']) if (profile.eq[k] === item) profile.eq[k] = k === 'skin' ? 'sk_none' : 'bd_none'; setBadges(badgeIds(profile.eq, profile.owned));
+    saveProfile(); toast('💰 Prodano! Zlatnici stižu za par sekundi.'); setTimeout(collectGifts, 1500); loadAuct();
+  });
+  if (wantPrefill && $('#wantNew')) { const el = $('#wantNew'); wantPrefill = ''; setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); }
 }
 // one-time announcement about unique items and the auction house
 function announceUnique() {
@@ -2635,6 +2681,7 @@ function renderTickers() {
   }
 }
 async function cryptoTick() {
+  document.querySelectorAll('.wxcard').forEach(el => { const h = wxCardInner(el.dataset.wx); if (el.dataset.h !== h) { el.dataset.h = h; el.innerHTML = h; } });
   document.querySelectorAll('.cbd').forEach(el => { const b = el.querySelector('.cp'), t = el.dataset.w ? weatherText(el.dataset.w) : cryptoText(el.dataset.c); if (b && b.textContent !== t) { b.textContent = t; if (el.dataset.w) b.title = wxTitle(el.dataset.w); } });
   renderTickers();
   if (!wxBusy && !document.hidden && Date.now() - wxAt > 10 * 60000) { wxBusy = true; wxAt = Date.now(); wxFetch().then(o => { if (o) { Object.assign(wxNow, o); try { localStorage.setItem('vijuga-wx', JSON.stringify(wxNow)); } catch (e) {} hudDirty = true; } }).finally(() => { wxBusy = false; }); }
@@ -2699,6 +2746,11 @@ function badgeImage(id, color) {
   const key = id + color; if (badgeImgCache[key]) return badgeImgCache[key];
   const img = new Image(); img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(b.svg.replace(/width="[^"]*" height="[^"]*"/, b.big ? 'xmlns="http://www.w3.org/2000/svg" width="96" height="96"' : 'xmlns="http://www.w3.org/2000/svg" width="40" height="48"').replace(/currentColor/g, color).replace(/ style="[^"]*"/, ''));
   badgeImgCache[key] = img; return img;
+}
+// the weather card in the shop: big sky, big temperature, then rain and wind
+function wxCardInner(k) {
+  const w = wxNow[k]; if (!w || !Number.isFinite(w.t)) return `<span class="wi">⏳</span><span class="wd"><b>${esc(WX[k].n)}</b><small>vrijeme se učitava…</small></span>`;
+  return `<span class="wi">${wxIcon(w.c, w.d)}</span><span class="wt">${Math.round(w.t)}°</span><span class="wd"><b>${esc(WX[k].n)}</b><small>💧 ${String(w.p).replace('.', ',')} mm · 💨 ${Math.round(w.w)} km/h</small></span>`;
 }
 function liveLabel(b) { return b.crypto ? b.g + ' ' + cryptoText(b.crypto) : b.g + ' ' + weatherText(b.wx); }
 function badgeWidth(c, id, size) {
