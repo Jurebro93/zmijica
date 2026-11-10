@@ -4,10 +4,13 @@
 // POST /api/roles/mute {slug, auth, target, minutes}   (moderator, admin, master; minutes 0 lifts it)
 // POST /api/roles/grant {slug, auth, target, amount | item, note?}  (master only)
 // POST /api/roles/treasury {slug, auth}                 (master only)
+// POST /api/roles/economy {slug, auth}                  (master and admins: coins held and spent, the treasury, what the
+//                                                        server wallet cut from saves today and yesterday)
 // Every action is privileged: the acting account must have a PIN (403 "pin needed"), checked through the shared limiter.
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import { authed as authedReq, cas } from "./guard.mts";
+import { accountsIndex, authed as authedReq, cas } from "./guard.mts";
+import { zDay } from "./wallet.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -43,7 +46,7 @@ export default async (req: Request, context: Context) => {
   // every action here is privileged: an account without a PIN proves nothing (anyone can act as it)
   const { gate } = await authedReq(req, context, slug, b.auth, { requirePin: true });
   if (!gate.ok) return gate.status === 429 ? json({ error: gate.error, wait: gate.wait }, 429) : json({ error: gate.error === "pin needed" ? "pin needed" : "auth" }, 403);
-  if (context.params.action !== "treasury" && (!SLUG.test(target) || (target === MASTER && context.params.action !== "grant"))) return json({ error: "bad target" }, 400);
+  if (context.params.action !== "treasury" && context.params.action !== "economy" && (!SLUG.test(target) || (target === MASTER && context.params.action !== "grant"))) return json({ error: "bad target" }, 400);
   const mine = slug === MASTER ? "master" : roles[slug] || "";
   if (context.params.action === "set") {
     if (mine !== "master") return json({ error: "master only" }, 403);
@@ -65,6 +68,15 @@ export default async (req: Request, context: Context) => {
   if (context.params.action === "treasury") {
     if (mine !== "master") return json({ error: "master only" }, 403);
     return json({ treasury: (await treasury()).value });
+  }
+  if (context.params.action === "economy") {
+    if (mine !== "master" && mine !== "admin") return json({ error: "admins only" }, 403);
+    const idx = Object.values(await accountsIndex.read()).filter(Boolean) as Record<string, unknown>[];
+    const n = (v: unknown) => Number(v) || 0, today = zDay(), yday = zDay(Date.now() - 86400000);
+    const rich = idx.map((a) => ({ slug: String(a.slug), name: String(a.name ?? a.slug), coins: n(a.coins), spent: n(a.spent) })).sort((a, b) => b.coins - a.coins);
+    const ns = getStore({ name: "vijuga-wallet-notes", consistency: "strong" }); const notes: { day: string; slug: string; notes: string[] }[] = [];
+    for (const day of [today, yday]) { const { blobs } = await ns.list({ prefix: day + "/" }); for (const bl of blobs.slice(0, 60)) { const v = (await ns.get(bl.key, { type: "json" })) as { notes?: string[] } | null; if (v && v.notes) notes.push({ day, slug: bl.key.slice(day.length + 1), notes: v.notes.slice(-10) }); } }
+    return json({ players: idx.length, coins: rich.reduce((s, a) => s + a.coins, 0), spent: rich.reduce((s, a) => s + a.spent, 0), richest: rich.slice(0, 8), treasury: (await treasury()).value, notes });
   }
   if (context.params.action === "mute") {
     if (!["master", "admin", "moderator"].includes(mine)) return json({ error: "moderators only" }, 403);

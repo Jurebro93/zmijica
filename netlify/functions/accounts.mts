@@ -10,6 +10,7 @@ import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { roleOf } from "./roles.mts";
 import { accountsIndex, cas, hit, ipKey, later, pinGate, publicView, sha256, type Gate } from "./guard.mts";
+import { guardSave, noteCut, ownersFor } from "./wallet.mts";
 
 const STORE = "vijuga-accounts";
 // SHA-256 of the maintenance key (same key as for matches); the key itself is not in the repository.
@@ -27,8 +28,9 @@ const refused = (g: Gate, error = "wrong pin") => g.ok ? null : g.status === 429
 type Doc = Record<string, unknown> & { slug: string; name: string; pinHash?: string };
 
 // what the owner gets back after a save: everything but the PIN hash (the private room code included)
+const newClaim = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
 function ownerView(d: Doc) {
-  const { pinHash, ...rest } = d;
+  const { pinHash, wal, claimHash, ...rest } = d; // wal: the day's wallet counters (wallet.mts), kept on the server only
   return { ...rest, hasPin: !!pinHash };
 }
 
@@ -38,7 +40,7 @@ function clean(input: unknown, slug: string): Doc | string {
   const name = String(d.name ?? "").trim();
   if (name.length < 1 || name.length > 14) return "name must be 1-14 characters";
   const num = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
-  const strArr = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length <= 20).slice(0, 200) : []);
+  const strArr = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length <= 20).slice(0, 400) : []); // the catalog is near 200 items: room for a full collection
   const eq = (d.eq && typeof d.eq === "object" ? d.eq : {}) as Record<string, unknown>;
   const doc: Doc = {
     slug,
@@ -57,9 +59,11 @@ function clean(input: unknown, slug: string): Doc | string {
     trollsGot: num(d.trollsGot, 1_000_000),
     daily: d.daily && typeof d.daily === "object" && typeof (d.daily as Record<string, unknown>).d === "string" ? { d: String((d.daily as Record<string, unknown>).d).slice(0, 10), c: Object.fromEntries(Object.entries(((d.daily as Record<string, unknown>).c as Record<string, unknown>) || {}).slice(0, 10).map(([k, v]) => [k.slice(0, 6), num(v, 10000)])), done: strArr((d.daily as Record<string, unknown>).done).slice(0, 10) } : undefined,
     inv: Object.fromEntries(Object.entries(d.inv && typeof d.inv === "object" ? (d.inv as Record<string, unknown>) : {}).filter(([k]) => /^[a-z]{2,12}$/.test(k)).slice(0, 30).map(([k, v]) => [k, num(v, 999)]).filter(([, v]) => (v as number) > 0)),
-    eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20), te: String(eq.te ?? "").slice(0, 20), ds: String(eq.ds ?? "").slice(0, 20), vs: String(eq.vs ?? "").slice(0, 20), bg: String(eq.bg ?? "").slice(0, 20), cc: String(eq.cc ?? "").slice(0, 20), bx: (Array.isArray(eq.bx) ? eq.bx : []).map((x) => String(x)).filter((x) => /^bd_[a-z0-9_]{1,20}$/.test(x)).slice(0, 3) },
+    eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20), te: String(eq.te ?? "").slice(0, 20), ds: String(eq.ds ?? "").slice(0, 20), vs: String(eq.vs ?? "").slice(0, 20), bg: String(eq.bg ?? "").slice(0, 20), cc: String(eq.cc ?? "").slice(0, 20), lux: String(eq.lux ?? "").replace(/[^a-z]/g, "").slice(0, 12), bx: (Array.isArray(eq.bx) ? eq.bx : []).map((x) => String(x)).filter((x) => /^bd_[a-z0-9_]{1,20}$/.test(x)).slice(0, 3) },
     title: typeof d.title === "string" ? d.title.replace(/[<>]/g, "").slice(0, 24) : undefined,
     bonus500: !!d.bonus500,
+    lastMatchDay: typeof d.lastMatchDay === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.lastMatchDay) ? d.lastMatchDay : undefined,
+    dayM: d.dayM && typeof d.dayM === "object" ? { d: String((d.dayM as Record<string, unknown>).d ?? "").slice(0, 10), n: num((d.dayM as Record<string, unknown>).n, 9999) } : undefined,
     box: d.box && typeof d.box === "object" ? { d: String((d.box as Record<string, unknown>).d ?? "").slice(0, 10), n: num((d.box as Record<string, unknown>).n, 999) } : undefined,
     room: typeof d.room === "string" && /^[a-z0-9]{4,8}$/.test(d.room) ? d.room : undefined,
     created: num(d.created, 9e15),
@@ -126,7 +130,7 @@ export default async (req: Request, context: Context) => {
   }
 
   if (req.method === "PUT") {
-    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string; basedOn?: number | null } | null;
+    const body = (await req.json().catch(() => null)) as { doc?: unknown; auth?: string; basedOn?: number | null; claim?: string } | null;
     const doc = clean(body?.doc, slug);
     if (typeof doc === "string") return json({ error: doc }, 400);
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -144,9 +148,18 @@ export default async (req: Request, context: Context) => {
       if (existing && existing.created) next.created = existing.created as number;
       if (existing) next.invitedBy = (existing.invitedBy as string | undefined) ?? next.invitedBy;
       if (!existing && !next.created) next.created = Date.now();
+      // a profile without a PIN belongs to the device that made it (or, for an older one, saved it first): that device
+      // holds a claim, and only with it can the profile be given a PIN, so a stranger cannot lock the owner out
+      let claim = "";
+      if (existing && !existing.pinHash && existing.claimHash) {
+        if (next.pinHash && (await sha256(String(body?.claim || ""))) !== existing.claimHash) return json({ error: "claim" }, 403);
+        if (!next.pinHash) next.claimHash = existing.claimHash;
+      } else if (!next.pinHash && !(existing && existing.pinHash)) { claim = newClaim(); next.claimHash = await sha256(claim); }
+      // coins and things: what a save from the game may change (wallet.mts); anything over is cut and noted
+      const cut = guardSave(existing, next, await ownersFor(existing, next));
       // two saves at the same moment: the second one sees the first (and its PIN) instead of silently replacing it
       const w = await store.setJSON(slug, next, cur ? { onlyIfMatch: cur.etag } : { onlyIfNew: true });
-      if (w.modified) { await later(context, accountsIndex.put(slug, publicView(next))); return json({ account: ownerView(next) }); }
+      if (w.modified) { await later(context, accountsIndex.put(slug, publicView(next))); if (cut.length) await later(context, noteCut(slug, cut)); return json({ account: ownerView(next), ...(cut.length ? { cut } : {}), ...(claim ? { claim } : {}) }); }
     }
     return json({ error: "busy" }, 503);
   }

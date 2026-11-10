@@ -174,7 +174,7 @@ export function digest<V>(name: string, rebuild: () => Promise<Record<string, V>
 
 // ---- public profiles: what anybody may see of an account (no PIN hash, no private room code)
 export function publicView(d: Record<string, unknown>) {
-  const { pinHash, room, ...rest } = d;
+  const { pinHash, room, wal, claimHash, ...rest } = d;
   return { ...rest, hasPin: !!pinHash };
 }
 export const accountsIndex = digest<Record<string, unknown>>("accounts", async () => {

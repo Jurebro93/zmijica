@@ -16,6 +16,8 @@
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { authed, cas, later } from "./guard.mts";
+import { bump } from "./wallet.mts";
+import { treasury } from "./roles.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -59,6 +61,7 @@ function markSold(l: Lot, b: Bid) { l.status = "sold"; l.price = b.amount; l.buy
 async function paySale(l: Lot, b: Bid) {
   await gift(b.slug, l.item, `Aukcija: kupio si od ${l.sellerName}`);
   await gift(l.seller, "coins:" + Math.floor(b.amount * (1 - FEE)), `Aukcija: prodano ${b.name} (−5 % provizija)`);
+  await treasury(b.amount - Math.floor(b.amount * (1 - FEE))).catch(() => {}); // the commission fills the tournament treasury
 }
 // change one lot; fn returns false to write nothing. Returns the lot as it is after the call (null: no such lot).
 const updateLot = (id: string, fn: (l: Lot) => boolean | void) => cas<Lot>(store(), id, (cur) => (cur && fn(cur) !== false ? cur : undefined));
@@ -135,17 +138,20 @@ export default async (req: Request, context: Context) => {
     if (open.some((w) => w.item === item)) return json({ error: "already wanted" }, 409);
     if (open.length >= WANT_MAX) return json({ error: "too many wants" }, 409);
     const w: Want = { id: "want-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), item, buyer: slug, buyerName: name, price, created: Date.now(), ends: Date.now() + WANT_DAYS * 86400000, status: "open" };
-    const r = await wantStore().setJSON(w.id, w, { onlyIfNew: true }); if (!r.modified) return json({ error: "busy" }, 503);
-    return json({ want: w, paid: price });
+    const paidAcc = await bump(slug, (d) => { if ((Number(d.coins) || 0) < price) return false; d.coins -= price; }); if (!paidAcc) return json({ error: "not enough coins" }, 409);
+    const r = await wantStore().setJSON(w.id, w, { onlyIfNew: true }); if (!r.modified) { await bump(slug, (d) => { d.coins += price; }); return json({ error: "busy" }, 503); }
+    return json({ want: w, paid: price, charged: price, rev: paidAcc.updatedAt, prev: paidAcc._prev });
   }
   if (id && id.startsWith("want-")) {
     if (action === "sell") {
       const owned = Array.isArray(acc.owned) ? (acc.owned as string[]) : [];
       const r = await closeWant(id, { status: "filled", seller: slug, sellerName: name }, (w) => w.ends < Date.now() ? "closed" : slug === w.buyer ? "own want" : !owned.includes(w.item) ? "not owned" : null);
       if (!r.want || r.error) return json({ error: r.error, want: r.want }, r.error === "not found" ? 404 : 409);
+      const took = await bump(slug, (d) => { d.owned = d.owned.filter((x: string) => x !== r.want!.item); });
       await gift(r.want.buyer, r.want.item, `Zahtjev za kupnju: ${name} ti je prodao`);
       await gift(slug, "coins:" + Math.floor(r.want.price * (1 - FEE)), `Zahtjev za kupnju: prodao si ${r.want.buyerName} (−5 % provizija)`);
-      return json({ want: r.want });
+      await treasury(r.want.price - Math.floor(r.want.price * (1 - FEE))).catch(() => {});
+      return json({ want: r.want, took: r.want.item, rev: took ? took.updatedAt : null, prev: took ? took._prev : null });
     }
     if (action === "withdraw") {
       const r = await closeWant(id, { status: "withdrawn" }, (w) => slug !== w.buyer ? "not buyer" : null);
@@ -165,8 +171,10 @@ export default async (req: Request, context: Context) => {
     const lots = await load(); if (lots.some((l) => l.status === "active" && l.item === item && l.seller === slug)) return json({ error: "already listed" }, 409);
     const start = Math.max(10, Math.min(MAX, start0 || 0)), bn = (buyNow0 || 0) > start ? Math.min(MAX, buyNow0) : 0;
     const l: Lot = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), item, seller: slug, sellerName: name, start, buyNow: bn, created: Date.now(), ends: Date.now() + DAYS * 86400000, bids: [], status: "active" };
-    const w = await s.setJSON(l.id, l, { onlyIfNew: true }); if (!w.modified) return json({ error: "busy" }, 503);
-    return json({ lot: l });
+    // the thing leaves the seller's account here, while it is on sale (it comes back as a gift if nobody buys it)
+    const took = await bump(slug, (d) => { if (!d.owned.includes(item)) return false; d.owned = d.owned.filter((x: string) => x !== item); }); if (!took) return json({ error: "not owned" }, 409);
+    const w = await s.setJSON(l.id, l, { onlyIfNew: true }); if (!w.modified) { await bump(slug, (d) => { if (!d.owned.includes(item)) d.owned.push(item); }); return json({ error: "busy" }, 503); }
+    return json({ lot: l, took: item, rev: took.updatedAt, prev: took._prev });
   }
   const l0 = (await s.get(id, { type: "json" })) as Lot | null; if (!l0) return json({ error: "not found" }, 404);
   const one = [l0]; await sweep(one); if (one[0].status !== "active") return json({ error: "closed", lot: one[0] }, 409);
@@ -176,7 +184,13 @@ export default async (req: Request, context: Context) => {
   if (action === "bid") {
     if (slug === l0.seller) return json({ error: "own lot" }, 409);
     const amount = coins(b.amount); if (!(amount >= 1 && amount <= MAX)) return json({ error: "bad amount" }, 400);
-    const l = await change((l) => {
+    // the bid is taken from the account first; what the bid did not use (refused, or a lower buy-now price) goes back
+    const held = await bump(slug, (d) => { if ((Number(d.coins) || 0) < amount) return false; d.coins -= amount; }); if (!held) return json({ error: "not enough coins" }, 409);
+    let rev = held.updatedAt; const prev = held._prev;
+    const giveBack = async (n: number) => { if (n > 0) { const a3 = await bump(slug, (d) => { d.coins += n; }); if (a3) rev = a3.updatedAt; } };
+    let l: Lot | null;
+    try {
+    l = await change((l) => {
       const buyNowHit = !!l.buyNow && amount >= l.buyNow;
       if (!buyNowHit && amount < minBid(l)) { r.fail = [{ error: "too low", min: minBid(l) }, 409]; return false; }
       r.prev = top(l);
@@ -184,12 +198,14 @@ export default async (req: Request, context: Context) => {
       l.bids.push(r.bid); if (l.bids.length > 50) l.bids = l.bids.slice(-50);
       if (buyNowHit) { markSold(l, r.bid); r.sold = r.bid; }
     });
-    if (r.fail) return json(r.fail[0], r.fail[1]);
-    if (!l || !r.bid) return json({ error: "not found" }, 404);
+    } catch (e) { await giveBack(amount); throw e; }
+    if (r.fail) { await giveBack(amount); return json(r.fail[0], r.fail[1]); }
+    if (!l || !r.bid) { await giveBack(amount); return json({ error: "not found" }, 404); }
+    await giveBack(amount - r.bid.amount);
     // only now, with the bid written, the outbid player gets the coins back (once: a second bid at the same moment saw this one)
     if (r.prev) await gift(r.prev.slug, "coins:" + r.prev.amount, `Aukcija: nadmašen si (${name} nudi ${r.bid.amount}), ponuda ti je vraćena`);
     if (r.sold) await paySale(l, r.sold);
-    return json({ lot: l, paid: r.bid.amount });
+    return json({ lot: l, paid: r.bid.amount, charged: r.bid.amount, rev, prev });
   }
   if (action === "accept") {
     if (slug !== l0.seller) return json({ error: "not seller" }, 403);

@@ -9,6 +9,7 @@
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { account, pinGate } from "./guard.mts";
+import { applyGift, bump, isThing, priceOf } from "./wallet.mts";
 
 const cors = {
   "access-control-allow-origin": "*",
@@ -33,9 +34,14 @@ export default async (req: Request, context: Context) => {
     if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "wrong pin" }, 403);
     const { blobs } = await store.list({ prefix: to + "/" });
     if (blobs.length >= 30) return json({ error: "too many pending gifts" }, 429);
+    // a player gives a thing from the shop and pays its price here (not in the game's own copy of the profile)
+    const price = priceOf(item); if (!isThing(item) || !price) return json({ error: "bad item" }, 400);
+    const paid = await bump(from, (d) => { if ((Number(d.coins) || 0) < price) return false; d.coins -= price; d.spent = (Number(d.spent) || 0) + price; d.purchases = (Number(d.purchases) || 0) + 1; });
+    if (!paid) return json({ error: "not enough coins" }, 409);
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    await store.setJSON(`${to}/${id}`, { id, from, fromName: String(giver.name ?? from).slice(0, 14), item, at: Date.now() });
-    return json({ ok: true, id });
+    try { await store.setJSON(`${to}/${id}`, { id, from, fromName: String(giver.name ?? from).slice(0, 14), item, at: Date.now() }); }
+    catch (e) { await bump(from, (d) => { d.coins += price; d.spent = Math.max(0, (Number(d.spent) || 0) - price); }); return json({ error: "busy" }, 503); }
+    return json({ ok: true, id, charged: price, rev: paid.updatedAt, prev: paid._prev });
   }
   if (!slug || !SLUG.test(slug)) return json({ error: "bad slug" }, 400);
   if (req.method === "GET") {
@@ -48,7 +54,7 @@ export default async (req: Request, context: Context) => {
     if (!id || !/^[a-z0-9]{4,20}$/.test(id)) return json({ error: "bad id" }, 400);
     const gone = () => json({ error: "gone" }, 404);
     // no such gift: the same answer whoever asks and with whatever PIN
-    if (!(await store.get(`${slug}/${id}`))) return gone();
+    const gift = (await store.get(`${slug}/${id}`, { type: "json" })) as { item?: string } | null; if (!gift) return gone();
     const acc = await account(slug); if (!acc) return gone();
     const b = (await req.json().catch(() => ({}))) as { auth?: string };
     const g = await pinGate(req, context, slug, acc.pinHash, b.auth);
@@ -57,7 +63,10 @@ export default async (req: Request, context: Context) => {
     const claim = await getStore({ name: "vijuga-gift-claims", consistency: "strong" }).setJSON(`${slug}/${id}`, { at: Date.now() }, { onlyIfNew: true });
     await store.delete(`${slug}/${id}`); // (also tidies up a gift whose claim was written by a request that died before this)
     if (!claim.modified) return gone();
-    return json({ ok: true });
+    // credited here, on the server's copy of the account; the game shows the same and moves its base along
+    let credit: Record<string, unknown> = {};
+    const acc2 = await bump(slug, (d) => { credit = applyGift(d, String(gift.item || "")); });
+    return json({ ok: true, credit, rev: acc2 ? acc2.updatedAt : null, prev: acc2 ? acc2._prev : null });
   }
   return json({ error: "method not allowed" }, 405);
 };

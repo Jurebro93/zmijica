@@ -30,6 +30,7 @@ import { getStore } from "@netlify/blobs";
 import { roleOf, treasury } from "./roles.mts";
 import { refund, stripeOn, stripeTest } from "./stripe.mts";
 import { authed, cas } from "./guard.mts";
+import { bump } from "./wallet.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -241,6 +242,9 @@ export default async (req: Request, context: Context) => {
 
   if (action === "view") return answer(await settleLater(context, id, t0));
   if (action === "join") {
+    // a coin tournament: the fee is taken from the account here (the game shows the same); given back if joining fails
+    const t0j = t0; const fee = !money(t0j) ? Number(t0j.fee) || 0 : 0; let charged = 0, rev: unknown = 0, prev: unknown = null;
+    if (fee && t0j.status === "open" && !t0j.players.some((p) => p.slug === slug)) { const a2 = await bump(slug, (d) => { if ((Number(d.coins) || 0) < fee) return false; d.coins -= fee; d.spent = (Number(d.spent) || 0) + fee; }); if (!a2) return json({ error: "not enough coins" }, 409); charged = fee; rev = a2.updatedAt; prev = a2._prev; }
     const t = await run((t) => {
       if (money(t)) { o.fail = ["payment required", 402]; return false; } // a money tournament is entered by paying (pay.mts)
       if (t.status !== "open") { o.fail = ["registration closed", 409]; return false; }
@@ -248,7 +252,8 @@ export default async (req: Request, context: Context) => {
       if (t.players.length >= t.max) { o.fail = ["full", 409]; return false; }
       t.players.push({ slug, name: String(acc.name ?? slug).slice(0, 14) });
     });
-    return failed(o) || answer(t, o.flag ? { already: true } : {});
+    if (charged && (failed(o) || o.flag)) { await bump(slug, (d) => { d.coins += charged; d.spent = Math.max(0, (Number(d.spent) || 0) - charged); }); return failed(o) || answer(t, { already: true }); }
+    return failed(o) || answer(t, o.flag ? { already: true } : charged ? { charged, rev, prev } : {});
   }
   if (action === "leave") {
     const t = await run((t) => {

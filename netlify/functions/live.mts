@@ -47,8 +47,9 @@ const SOURCES: Record<string, { ttl: number; load: () => Promise<unknown> }> = {
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zagreb" }).format(Date.now());
     const [nd, hol] = await Promise.allSettled([get("https://nameday.abalin.net/api/V2/today/hr?timezone=Europe/Zagreb"), get(`https://date.nager.at/api/v3/PublicHolidays/${today.slice(0, 4)}/HR`)]);
     const names = nd.status === "fulfilled" && nd.value && nd.value.data ? String(nd.value.data.hr || nd.value.data.name || "") : "";
-    const h = hol.status === "fulfilled" && Array.isArray(hol.value) ? hol.value.find((x: any) => x.date === today) : null;
-    return { date: today, names: names === "n/a" ? "" : names.slice(0, 120), holiday: h ? String(h.localName || h.name).slice(0, 80) : "" };
+    const list = hol.status === "fulfilled" && Array.isArray(hol.value) ? hol.value : [];
+    const h = list.find((x: any) => x.date === today) || null, nx = list.find((x: any) => String(x.date) > today) || null;
+    return { date: today, names: names === "n/a" ? "" : names.slice(0, 120), holiday: h ? String(h.localName || h.name).slice(0, 80) : "", next: nx ? { date: String(nx.date).slice(0, 10), name: String(nx.localName || nx.name).slice(0, 60) } : null };
   } },
   hnl: { ttl: 30 * MIN, load: async () => {
     const [home, fx] = await Promise.all([get("https://hnl.hr/", "text"), get("https://hnl.hr/supersport-hnl/raspored-i-rezultati/", "text")]);
