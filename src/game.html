@@ -814,11 +814,6 @@ const SKINS = {
   sk_xmas:    { name: 'Božićni 🎄', d: 'Zelena girlanda s lampicama u bojama koje trepere, a na čelu Djed Božićnjak', price: 600 },
   sk_fart:    { name: 'Prdonja 💨', d: 'Za sobom pušta oblačiće prdeža. Prrrt!', price: 300 },
   sk_centi:   { name: 'Stonoga 🐛', d: 'Trag s nožicama i glava s ticalima, kao prava stonoga', price: 380 },
-  sk_dildo:   { name: 'Dildo', d: 'Ružičasti, debeli trag s glavicom. Za odrasle.', price: 150 },
-  sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
-  sk_boobs:   { name: 'Dojke', d: 'Trag boje kože s parovima dojki. Za odrasle.', price: 160 },
-  sk_condom:  { name: 'Kondom', d: 'Prozirni trag s rezervoarom na vrhu. Za odrasle.', price: 160 },
-  sk_hairy:   { name: 'Dlakava jaja', d: 'Koža s dlakama, na glavi dvije dlakave kugle. Za odrasle.', price: 170 },
 };
 // an animated icon lives on a small canvas wherever a badge is shown in the page; the same routine draws it in the arena
 const CBD = (sym, glyph, col) => '<span class="cbd" data-c="' + sym + '" style="--cc:' + col + '"><span class="cg">' + glyph + '</span><span class="cp">…</span></span>';
@@ -879,11 +874,6 @@ const BADGES = {
   bd_boat:  { g: '⛵', name: 'Brodić', d: 'Za mornare', price: 120 },
   bd_dog:   { g: '🐶', name: 'Psić', d: 'Najbolji prijatelj', price: 120 },
   bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
-  bd_ucross: { g: '⁺U', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M4 9v7a6 6 0 0 0 12 0V9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 1v6M7 4h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', name: 'U s križem', d: 'Veliko U, križić na vrhu', price: 200 },
-  bd_vag:   { g: '◊', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>', name: 'Vagina', d: 'Ikona za odrasle', price: 120 },
-  bd_boobs: { g: '(.)(.)', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="11" r="1.5" fill="currentColor"/><circle cx="17" cy="11" r="1.5" fill="currentColor"/></svg>', name: 'Dojke', d: 'Ikona za odrasle', price: 120 },
-  bd_hairy: { g: '∞', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', name: 'Dlakava jaja', d: 'Ikona za odrasle', price: 130 },
-  bd_condom: { g: '∩', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>', name: 'Kondom', d: 'Ikona za odrasle', price: 120 },
 };
 const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
 const STARTER_PRICE = { s: 110, o: 170 };
@@ -923,9 +913,11 @@ const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
 function itemPrice(id) { return (PREMIUM[id] && PREMIUM[id].price) || (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
-const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, bg_kat: 2500 };
+const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, bg_kat: 2500,
+  // adult items, removed for a wider audience
+  sk_dildo: 150, sk_vag: 160, sk_boobs: 160, sk_condom: 160, sk_hairy: 170, bd_ucross: 200, bd_vag: 120, bd_boobs: 120, bd_hairy: 130, bd_condom: 120 };
 function refundRetired(P) {
-  for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; if (P.eq && P.eq.bg === id) P.eq.bg = ''; P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
+  for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; if (P.eq && P.eq.bg === id) P.eq.bg = ''; if (P.eq && P.eq.skin === id) P.eq.skin = 'sk_none'; if (P.eq && P.eq.badge === id) P.eq.badge = 'bd_none'; if (P.eq && Array.isArray(P.eq.bx)) P.eq.bx = P.eq.bx.filter(x => x !== id); P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
   return P;
 }
 function backfillSpend(P) {
@@ -1459,22 +1451,10 @@ function skinPreview(cv, skinId, color) {
   c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h);
   c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round';
   applySkin(c, skinId, color, 3, 0);
-  if (skinId === 'sk_dildo') { c.fillStyle = '#e98aa6'; c.beginPath(); c.arc(12, h / 2 - 6, 6, 0, 6.283); c.arc(12, h / 2 + 6, 6, 0, 6.283); c.fill(); }
-  const xe = ['sk_dildo', 'sk_vag', 'sk_boobs', 'sk_condom', 'sk_hairy'].includes(skinId) ? w - 26 : w - 10;
+  const xe = w - 10;
   c.beginPath(); for (let x = 10; x <= xe; x += 4) { const y = h / 2 + Math.sin(x / 22) * 12; if (x === 10) c.moveTo(x, y); else c.lineTo(x, y); }
   c.stroke();
-  if (skinId === 'sk_dildo') { const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawDildoHead(c, xe, y, a, 3.6); }
   if (['sk_glowdash', 'sk_blink', 'sk_xmas', 'sk_fart', 'sk_centi', 'sk_gold'].includes(skinId)) { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { preview: true, color, decoAcc: 30 }); }
-  if (skinId === 'sk_vag' || skinId === 'sk_boobs' || skinId === 'sk_condom' || skinId === 'sk_hairy') { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { ornAcc: 20 }); const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawSkinHead(c, skinId, xe, y, a, 3.4); }
-}
-function drawDildoHead(c, x, y, a, r) {
-  c.save(); c.translate(x, y); c.rotate(a);
-  c.shadowBlur = 0; c.setLineDash([]);
-  c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2.9; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 3, 0); c.lineTo(r * 0.6, 0); c.stroke();
-  c.fillStyle = '#e8809f'; c.beginPath(); c.ellipse(r * 0.9, 0, r * 0.9, r * 1.85, 0, 0, 6.283); c.fill();
-  c.fillStyle = '#f6adc4'; c.beginPath(); c.ellipse(r * 1.9, 0, r * 2.1, r * 1.6, 0, 0, 6.283); c.fill();
-  c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.ellipse(r * 2.4, -r * 0.5, r * 0.7, r * 0.35, 0, 0, 6.283); c.fill();
-  c.restore();
 }
 const BX_MAX = 4;
 // the icons someone wears, the main one first; `owned` (when known) drops anything no longer theirs
@@ -1537,11 +1517,6 @@ function applySkin0(c, skinId, color, r, gt) {
     case 'sk_centi': c.strokeStyle = '#b5652b'; break;
     case 'sk_hajduk': c.strokeStyle = '#ffffff'; c.shadowBlur = 4; c.shadowColor = 'rgba(255,255,255,.55)'; break;
     case 'sk_dinamo': c.strokeStyle = '#1d5be0'; c.shadowBlur = 9; c.shadowColor = '#6aa8ff'; break;
-    case 'sk_dildo': c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2 * 1.45; return true;
-    case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
-    case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
-    case 'sk_condom': c.strokeStyle = 'rgba(205,228,255,0.6)'; c.lineWidth = r * 2 * 1.35; return true;
-    case 'sk_hairy': c.strokeStyle = '#cf9580'; c.lineWidth = r * 2 * 1.15; return true;
   }
 }
 function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
@@ -2473,7 +2448,7 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 // ---------- grid ----------
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
 // the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
-const SKIN_COLOR = { sk_xmas: '#1e9e4a', sk_fart: '#8f9e46', sk_centi: '#b5652b', sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#f2c200', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_dildo: '#f29ab4', sk_vag: '#f08aa8', sk_boobs: '#f3c6a5', sk_condom: '#cde4ff', sk_hairy: '#cf9580', sk_rainbow: null };
+const SKIN_COLOR = { sk_xmas: '#1e9e4a', sk_fart: '#8f9e46', sk_centi: '#b5652b', sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#f2c200', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_rainbow: null };
 function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return (!p.nc && SKIN_COLOR[p.skin]) || p.color; }
 // Two snakes that read as the same colour (a gold trail next to the yellow snake, the orange scarf next to the orange
 // snake…) are told apart before the match starts: the player with the lower level, then fewer matches, changes. A trail
@@ -2508,7 +2483,7 @@ function fixColorClashes(players, keep) {
   return changed;
 }
 const colorNote = (p) => `🎨 Netko s višim nivoom (ili više mečeva) ima sličnu boju, pa si u ovom meču <b style="color:${p.color}">● ovakve boje</b>`;
-const SKIN_W = { sk_neon: 0.7, sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
+const SKIN_W = { sk_neon: 0.7 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
 function stamp(p, r, grace) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
@@ -2616,62 +2591,6 @@ function skinAfter(c, skin, pts, r, p) {
     c.restore();
   }
   if (skin === 'sk_gold' && !(p && p.nc) && pts.length >= 4) { c.save(); c.shadowBlur = 0; c.setLineDash([]); c.strokeStyle = '#fff1a6'; c.lineWidth = Math.max(0.8, r * 0.5); c.lineCap = 'round'; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); c.restore(); }
-  if (skin === 'sk_vag') { c.strokeStyle = '#c2496f'; c.lineWidth = Math.max(1, r * 0.7); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
-  if (skin === 'sk_condom') { c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.5); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
-  if (skin === 'sk_hairy' && p) {
-    p.hairAcc = p.hairAcc || 0;
-    c.strokeStyle = '#a8704c'; c.lineWidth = Math.max(1.1, r * 0.42); c.lineCap = 'round'; c.setLineDash([]);
-    c.beginPath();
-    for (let i = 2; i < pts.length; i += 2) {
-      const dx = pts[i] - pts[i - 2], dy = pts[i + 1] - pts[i - 1], len = Math.hypot(dx, dy); p.hairAcc += len;
-      while (p.hairAcc >= 3.6) {
-        p.hairAcc -= 3.6; p.hairSide = -(p.hairSide || 1);
-        const a = Math.atan2(dy, dx), side = p.hairSide, seed = Math.sin(pts[i] * 12.9898 + pts[i + 1] * 78.233) * 43758.5453, jit = seed - Math.floor(seed);
-        const bx = pts[i] + Math.cos(a + Math.PI / 2) * r * 1.2 * side, by = pts[i + 1] + Math.sin(a + Math.PI / 2) * r * 1.2 * side;
-        const ha = a + side * (Math.PI / 2 - .5 + jit * 1.0), hl = r * (1.6 + jit * 1.6);
-        c.moveTo(bx, by); c.quadraticCurveTo(bx + Math.cos(ha) * hl * .6 + Math.cos(a) * r * .5 * jit, by + Math.sin(ha) * hl * .6 + Math.sin(a) * r * .5 * jit, bx + Math.cos(ha) * hl, by + Math.sin(ha) * hl);
-      }
-    }
-    c.stroke();
-    c.strokeStyle = 'rgba(120,60,45,0.35)'; c.lineWidth = Math.max(0.6, r * 0.22); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke();
-  }
-  if (skin === 'sk_boobs' && p) {
-    p.ornAcc = p.ornAcc || 0;
-    for (let i = 2; i < pts.length; i += 2) {
-      const dx = pts[i] - pts[i - 2], dy = pts[i + 1] - pts[i - 1]; p.ornAcc += Math.hypot(dx, dy);
-      if (p.ornAcc >= 30) { p.ornAcc = 0; const a = Math.atan2(dy, dx), d = r * 1.7;
-        for (const sgn of [-1, 1]) { const ox = pts[i] + Math.cos(a + Math.PI / 2) * d * sgn, oy = pts[i + 1] + Math.sin(a + Math.PI / 2) * d * sgn;
-          c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(ox, oy, r * 1.55, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke();
-          c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(ox + Math.cos(a) * r * 0.2, oy + Math.sin(a) * r * 0.2, r * 0.5, 0, 6.283); c.fill(); } }
-    }
-  }
-}
-const cx0 = (r) => r * 0.4 - r * 1.2;
-function drawSkinHead(c, skin, x, y, a, r) {
-  c.save(); c.translate(x, y); c.rotate(a); c.shadowBlur = 0; c.setLineDash([]);
-  if (skin === 'sk_vag') {
-    c.fillStyle = '#f08aa8'; c.beginPath(); c.ellipse(r * 0.6, 0, r * 3.2, r * 1.9, 0, 0, 6.283); c.fill();
-    c.fillStyle = '#c2496f'; c.beginPath(); c.ellipse(r * 0.4, 0, r * 2.2, r * 0.55, 0, 0, 6.283); c.fill();
-    c.fillStyle = '#e46f93'; c.beginPath(); c.arc(r * 3.0, 0, r * 0.55, 0, 6.283); c.fill();
-  } else if (skin === 'sk_boobs') {
-    for (const sgn of [-1, 1]) { c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(r * 0.6, r * 1.6 * sgn, r * 1.8, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke(); c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(r * 1.1, r * 1.6 * sgn, r * 0.55, 0, 6.283); c.fill(); }
-  } else if (skin === 'sk_hairy') {
-    for (const sgn of [-1, 1]) {
-      const cx = r * 0.4, cy = r * 1.55 * sgn, br = r * 1.8;
-      c.fillStyle = '#d99e88'; c.beginPath(); c.arc(cx, cy, br, 0, 6.283); c.fill();
-      c.strokeStyle = '#b0705c'; c.lineWidth = Math.max(0.7, r * 0.22); c.beginPath(); c.arc(cx - br * .15, cy, br * .55, -1.2, 1.2); c.stroke();
-      c.strokeStyle = '#a8704c'; c.lineWidth = Math.max(0.9, r * 0.32); c.lineCap = 'round'; c.beginPath();
-      for (let k = 0; k < 13; k++) { const t = (k / 13) * 6.283 + sgn * .3, hx = cx + Math.cos(t) * br, hy = cy + Math.sin(t) * br, hl = r * (1.0 + (k % 3) * 0.45); c.moveTo(hx, hy); c.quadraticCurveTo(hx + Math.cos(t + .5) * hl * .7, hy + Math.sin(t + .5) * hl * .7, hx + Math.cos(t + .2) * hl, hy + Math.sin(t + .2) * hl); }
-      c.stroke();
-    }
-    c.strokeStyle = '#b0705c'; c.lineWidth = Math.max(0.7, r * 0.25); c.beginPath(); c.moveTo(cx0(r), -r * 0.6); c.lineTo(cx0(r), r * 0.6); c.stroke();
-  } else if (skin === 'sk_condom') {
-    c.strokeStyle = 'rgba(205,228,255,0.75)'; c.lineWidth = r * 2.7; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 2.5, 0); c.lineTo(r * 1.4, 0); c.stroke();
-    c.fillStyle = 'rgba(205,228,255,0.9)'; c.beginPath(); c.arc(r * 2.9, 0, r * 0.6, 0, 6.283); c.fill();
-    c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = Math.max(1, r * 0.6); c.beginPath(); c.ellipse(-r * 2.4, 0, r * 0.5, r * 1.7, 0, 0, 6.283); c.stroke();
-    c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.4); c.beginPath(); c.moveTo(-r * 2, -r * 0.7); c.lineTo(r * 1.4, -r * 0.7); c.stroke();
-  }
-  c.restore();
 }
 // ---- live crypto prices (USD) for the crypto icons. Fetched only while such an icon is on screen, from the first
 // public source that answers; the last known prices are kept on the device so something shows at once.
@@ -2806,7 +2725,6 @@ function drawBadge(c, id, x, y, size, color) {
   if (img) { if (img.complete && img.naturalWidth) c.drawImage(img, x - size * 0.42, y - size * 0.5, size * 0.84, size); return; }
   c.font = `700 ${size}px "Barlow Semi Condensed", sans-serif`; c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.g, x, y);
 }
-function drawBalls(x, y, a, r) { tctx.save(); tctx.setTransform(tctx.getTransform()); tctx.fillStyle = '#e98aa6'; const d = r * 1.7, bx = x - Math.cos(a) * r * 0.8, by = y - Math.sin(a) * r * 0.8; for (const sgn of [-1, 1]) { tctx.beginPath(); tctx.arc(bx + Math.cos(a + Math.PI / 2) * d * sgn, by + Math.sin(a + Math.PI / 2) * d * sgn, r * 1.9, 0, 6.283); tctx.fill(); } tctx.restore(); }
 // ---- the exact trail for guests. The host records every vertex of every snake's trail - where the pen comes down, each
 // bend, where it lifts - with a running number, and snapshots carry the newest ones. A guest draws the very line the
 // host stamped: a gap starts and ends exactly where it does on the host and a bend between two snapshots is not cut
@@ -2826,7 +2744,6 @@ function flushTrail(p, keepLast) {
   if (p.pts.length >= 2) {
     const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt, p.nc);
     if (!custom) tctx.lineWidth = p.ptsR * 2;
-    if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(p.pts[0], p.pts[1], p.a, p.ptsR); }
     // the trail is drawn in short pieces; a dashed skin must continue its pattern across pieces, so the dash offset follows the trail length
     tctx.lineDashOffset = -(p.dashLen || 0); let len = 0;
     tctx.beginPath(); tctx.moveTo(p.pts[0], p.pts[1]);
@@ -3230,8 +3147,6 @@ function render() {
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_centi' && p.alive) drawCentiHead(ctx, p.x, p.y, p.a, hr);
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
-    else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
-    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
     { const pm = p.alive && net ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
     if (p.alive && G.phase === 'run') { const ids = pBadges(p).filter(id => liveB(BADGES[id]) || BADGES[id].anim); if (ids.length) { ctx.globalAlpha = 0.85; drawBadgeRow(ctx, ids, p.x, p.y - hr - 12, 10, p.color); ctx.globalAlpha = 1; } }
     // the survivor of the round rides a victory lap with a crown above the head (and their own icon above the crown)
@@ -3534,11 +3449,6 @@ function controlHint(p) {
 }
 function showOverlay(html) { $('#overlay').innerHTML = html || ''; }
 const PAD_ICONS = {
-  sk_boobs: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="${side === 'L' ? 13 : 11}" cy="13" r="2.2" fill="currentColor"/></svg>`,
-  sk_vag: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>`,
-  sk_dildo: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:scaleX(${side === 'L' ? -1 : 1})"><path d="M3 15h11" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><ellipse cx="16" cy="15" rx="5" ry="4" fill="currentColor"/><circle cx="4" cy="20" r="2.4" fill="currentColor"/><circle cx="4" cy="10" r="2.4" fill="currentColor"/></svg>`,
-  sk_hairy: () => `<svg viewBox="0 0 24 20" aria-hidden="true"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
-  sk_condom: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>`,
 };
 let padPrank = null; // { e, until } while someone's "Ludi gumbi" prank is on me
 function padIcon(p, side) {
@@ -3994,7 +3904,7 @@ const TROLLS = {
   mirror: { e: '🪞', name: 'Zrcalo', price: 220, ms: 3000, d: 'Lijevo i desno zamijenjeni 3 sekunde' },
   fakepu: { e: '🎁', name: 'Lažni power-up', price: 110, ms: 4500, d: 'Ispred njega se pojavi lažni power-up. Prevaren!' },
   colors: { e: '🎨', name: 'Lude boje', price: 90, ms: 4000, d: 'Sve boje mu se izmiješaju na 4 sekunde' },
-  pads:   { e: '🍆', name: 'Ludi gumbi', price: 150, ms: 60000, d: 'Strelice za upravljanje mu postanu 🍆, 🍑, 🍒 ili 💩 na minutu' },
+  pads:   { e: '🐸', name: 'Ludi gumbi', price: 150, ms: 60000, d: 'Strelice za upravljanje mu postanu 🐸, 🦆, 🍒 ili 💩 na minutu' },
 };
 const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0, blockN = 0; const seenTb = {};
 const seenDm = {}, seenTr = {};
@@ -4186,7 +4096,7 @@ function receiveTroll(id, fromName, fromPeer) {
     showIgMsg(`🛡️ Štit je odbio: ${t.e} ${t.name} od ${esc(fromName)} (ostalo štitova: ${profile.inv.shield})`); beep(880, .12, 'triangle', .06); return;
   }
   if (id === 'mirror') mirrorUntil = performance.now() + t.ms;
-  if (id === 'pads') { padPrank = { e: ['🍆', '🍑', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
+  if (id === 'pads') { padPrank = { e: ['🐸', '🦆', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
   if (profile) { profile.trollsGot = (profile.trollsGot || 0) + 1; profileDirty = true; }
   const now = performance.now();
   if ($('#game').hidden || !G) { notify(`${t.e} <b>${esc(fromName)}</b> te pokušao zezati (${t.name}), ali nisi bio u igri.`, { warn: true, ms: 6000 }); return; }
@@ -4236,7 +4146,7 @@ function paintTroll(c, f, now, w, h, me, label) {
   }
   else if (f.id === 'fog') { blur = 7 * (k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1); }
   else if (f.id === 'sticker' && me) {
-    const STK = ['🤡', '🍆', '🍑', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(w, h) * 0.2);
+    const STK = ['🤡', '🐸', '🦆', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(w, h) * 0.2);
     c.globalAlpha = k > .85 ? (1 - k) / .15 : 1; c.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
     c.fillText(e, me.x + Math.cos(me.a) * sz * 0.75, me.y + Math.sin(me.a) * sz * 0.75);
   }
@@ -4267,11 +4177,11 @@ function trollSound(id) {
 const TROLL_HOW = {
   hearts: 'Preko cijele arene mu padaju srčeka. Ne smeta igri, samo je slatko.', horn: 'Glasna truba i veliki natpis TUUUUT preko sredine ekrana.',
   poop: 'Kakice mu padaju preko arene i prekrivaju tragove.', shake: 'Cijeli ekran mu se trese, a mobitel zavibrira.',
-  sticker: 'Veliki emotikon (🤡 🍆 🍑 💩 👻 🐔) mu sjedne točno ispred glave i prati ga kamo god krene.', flash: 'Ekran mu na trenutak zabljesne potpuno bijelo.',
+  sticker: 'Veliki emotikon (🤡 🐸 🦆 💩 👻 🐔) mu sjedne točno ispred glave i prati ga kamo god krene.', flash: 'Ekran mu na trenutak zabljesne potpuno bijelo.',
   fog: 'Cijela arena mu se zamuti, kao da gleda kroz maglu.', dark: 'Sve mu se zamrači, vidi samo mali krug oko svoje glave.',
   flip: 'Arena mu se okrene naglavačke, gore je dolje.', mirror: 'Lijevo i desno su mu zamijenjeni: kad stisne lijevo, skrene desno.',
   fakepu: 'Ispred njega se pojavi power-up. Kad ga pokupi, dočeka ga natpis PREVAREN!', colors: 'Boje svih zmija i arene mu se izmiješaju.',
-  pads: 'Njegove strelice za upravljanje postanu 🍆, 🍑, 🍒 ili 💩 na cijelu minutu.',
+  pads: 'Njegove strelice za upravljanje postanu 🐸, 🦆, 🍒 ili 💩 na cijelu minutu.',
 };
 let trollPrev = null;
 function showTrollPreview(id) {
@@ -4279,7 +4189,7 @@ function showTrollPreview(id) {
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile trollprev" novalidate onsubmit="return false"><h3>${t.e} ${esc(t.name)}</h3>
     <p class="hint" style="margin:0">Ovako to vidi igrač kojem je pošalješ (traje ${(t.ms / 1000).toLocaleString('hr-HR')} s${t.ms >= 10000 ? '' : ', pa kreće ispočetka'}):</p>
-    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🍆</span><span class="j">SKOK</span><span>🍆</span></div>' : ''}</div>
+    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🐸</span><span class="j">SKOK</span><span>🐸</span></div>' : ''}</div>
     <p style="margin:0">${esc(TROLL_HOW[id] || t.d)}</p>
     <p class="hint" style="margin:0">Kad je pošalješ, svi u meču iznad njegove zmije vide ${t.e} dok traje, a njemu piše tko ga je zezao. 🛡️ Štit je odbija.</p>
     <div class="go"><button class="btn ghost" type="button" id="tpvSound">🔊 Čuj zvuk</button><button class="btn" type="button" id="tpvOk">Zatvori</button></div></form>`;
@@ -4556,7 +4466,7 @@ async function loadChatHistory(room) {
 }
 function plural(n, one, few, many) { const m10 = n % 10, m100 = n % 100; return n + ' ' + (m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many); }
 function fmtChatTime(at) { if (!at) return ''; const d = new Date(at), n = new Date(); const t = d.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }); return d.toDateString() === n.toDateString() ? t : d.toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric' }) + ' ' + t; }
-const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🍆', '🍑', '🖕', '👏', '🥳', '😈'];
+const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🖕', '👏', '🥳', '😈'];
 const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
 let chatOpen = !IS_TOUCH, unread = 0;
 let chatSeenAt = (() => { try { return Number(localStorage.getItem('vijuga-chat-seen')) || 0; } catch (e) { return 0; } })();
@@ -4894,7 +4804,6 @@ function clientBegin(host, key = 'st', spectate = false) {
 }
 // one piece of a snake's trail on a guest's screen: the same stroke and the same collision stamps as on the host
 function guestLine(p, x0, y0, x1, y1, rr, ang) {
-  if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(x0, y0, ang, rr); }
   const custom = applySkin(tctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) tctx.lineWidth = rr * 2;
   const d = Math.hypot(x1 - x0, y1 - y0);
   tctx.lineDashOffset = -(p.dashLen || 0); tctx.beginPath(); tctx.moveTo(x0, y0); tctx.lineTo(x1, y1); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]); tctx.lineDashOffset = 0; p.dashLen = (p.dashLen || 0) + d;
