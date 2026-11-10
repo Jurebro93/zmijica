@@ -33,7 +33,12 @@ async function sell(l: Lot, b: Bid) {
 }
 async function sweep(lots: Lot[]) {
   const s = store();
+  const locks = getStore({ name: "vijuga-auction-locks", consistency: "strong" });
   for (const l of lots) if (l.status === "active" && l.ends < Date.now()) {
+    // every visitor's request sweeps, often several in the same second: the lot is closed (and paid out) by the one that
+    // wins this claim. A claim older than two minutes on a lot that is still open was left by a crashed request.
+    const claim = await locks.set("close-" + l.id, String(Date.now()), { onlyIfNew: true });
+    if (!claim.modified) { const at = Number(await locks.get("close-" + l.id)) || 0; if (Date.now() - at < 120000) continue; await locks.set("close-" + l.id, String(Date.now())); }
     const b = top(l);
     if (b) await sell(l, b); else { l.status = "returned"; l.closed = Date.now(); await gift(l.seller, l.item, "Aukcija istekla bez ponuda: stvar ti je vraćena"); }
     await s.setJSON(l.id, l);

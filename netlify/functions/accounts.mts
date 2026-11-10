@@ -79,7 +79,7 @@ export default async (req: Request, context: Context) => {
     return json({ accounts: list });
   }
 
-  if (!SLUG.test(slug)) return json({ error: "bad slug" }, 400);
+  if (!SLUG.test(slug) || slug === "constructor") return json({ error: "bad slug" }, 400); // "constructor" would collide with a built-in property wherever players are keyed by slug
   const existing = (await store.get(slug, { type: "json" })) as Doc | null;
 
   if (req.method === "GET") {
@@ -93,7 +93,7 @@ export default async (req: Request, context: Context) => {
     const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(given)))).map((b) => b.toString(16).padStart(2, "0")).join("");
     // allowed with the maintenance key, or for the master admin / an admin signed in with their PIN
     let ok = !!given && digest === ADMIN_KEY_SHA256;
-    if (!ok) { const body = (await req.json().catch(() => ({}))) as { by?: string; auth?: string }; const by = String(body.by ?? ""); if (SLUG.test(by) && by !== slug) { const r = await roleOf(by); const who = (await store.get(by, { type: "json" })) as Doc | null; ok = (r === "master" || r === "admin") && !!who && (!who.pinHash || who.pinHash === body.auth); } }
+    if (!ok) { const body = (await req.json().catch(() => ({}))) as { by?: string; auth?: string }; const by = String(body.by ?? ""); if (SLUG.test(by) && by !== slug) { const r = await roleOf(by); const who = (await store.get(by, { type: "json" })) as Doc | null; ok = (r === "master" || r === "admin") && !!who && !!who.pinHash && who.pinHash === body.auth && (await roleOf(slug)) !== "master"; } } // an account without a PIN proves nothing (anyone can act as it), and the master's PIN is not an admin's to remove
     if (!ok) return json({ error: "forbidden" }, 403);
     if (!existing) return json({ error: "not found" }, 404);
     delete existing.pinHash; existing.updatedAt = Date.now();

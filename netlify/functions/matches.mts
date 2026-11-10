@@ -62,7 +62,7 @@ async function stats() {
   const days: { day: string; matches: number; players: number }[] = [];
   for (let i = 13; i >= 0; i--) days.push({ day: dayKey(now - i * DAY), matches: 0, players: 0 });
   const dayIdx = Object.fromEntries(days.map((d, i) => [d.day, i]));
-  const activeByDay: Record<string, Set<string>> = {};
+  const activeByDay: Record<string, Set<string>> = Object.create(null);
   for (const m of matches) {
     const k = dayKey(m.at);
     if (k in dayIdx) days[dayIdx[k]].matches++;
@@ -71,13 +71,13 @@ async function stats() {
   for (const d of days) d.players = activeByDay[d.day]?.size || 0;
 
   // per player, from the match log (accurate for matches recorded since logging began) plus the profile counters
-  const per: Record<string, { logged: number; firsts: number; podiums: number; rounds: number; kills: number; lastPlayed: number; online: number }> = {};
+  const per: Record<string, { logged: number; firsts: number; podiums: number; rounds: number; kills: number; lastPlayed: number; online: number }> = Object.create(null);
   for (const m of matches) for (const p of m.players) {
     if (!p.human || !p.slug) continue;
     const r = (per[p.slug] ||= { logged: 0, firsts: 0, podiums: 0, rounds: 0, kills: 0, lastPlayed: 0, online: 0 });
     r.logged++; if (p.place === 1) r.firsts++; if (p.place <= 3) r.podiums++; r.rounds += p.wins; r.kills += p.kills; r.lastPlayed = Math.max(r.lastPlayed, m.at); if (m.mode === "online") r.online++;
   }
-  const invites: Record<string, number> = {};
+  const invites: Record<string, number> = Object.create(null);
   for (const a of accounts) if (a.invitedBy) invites[a.invitedBy] = (invites[a.invitedBy] || 0) + 1;
   const players = accounts.map((a) => {
     const r = per[a.slug] || { logged: 0, firsts: 0, podiums: 0, rounds: 0, kills: 0, lastPlayed: 0, online: 0 };
@@ -95,14 +95,14 @@ async function stats() {
     };
   }).sort((x, y) => y.matches - x.matches || y.wins - x.wins);
 
-  const skins: Record<string, number> = {}, badges: Record<string, number> = {};
+  const skins: Record<string, number> = Object.create(null), badges: Record<string, number> = Object.create(null);
   for (const p of players) { skins[p.skin] = (skins[p.skin] || 0) + 1; badges[p.badge] = (badges[p.badge] || 0) + 1; }
   // how many players own each item (bought at least once)
-  const owned: Record<string, number> = {};
+  const owned: Record<string, number> = Object.create(null);
   for (const a of accounts) for (const id of new Set(Array.isArray(a.owned) ? a.owned : [])) if (id !== "sk_none" && id !== "bd_none") owned[id] = (owned[id] || 0) + 1;
   const top = (key: keyof (typeof players)[number]) => [...players].filter((p) => Number(p[key]) > 0).sort((x, y) => Number(y[key]) - Number(x[key])).slice(0, 5).map((p) => ({ name: p.name, slug: p.slug, value: Number(p[key]) }));
   // player of the week: wins, podiums and kills in the last 7 days
-  const wk: Record<string, { name: string; slug: string; firsts: number; matches: number; podiums: number; kills: number; score: number }> = {};
+  const wk: Record<string, { name: string; slug: string; firsts: number; matches: number; podiums: number; kills: number; score: number }> = Object.create(null);
   for (const m of matches) if (m.at > now - 7 * DAY) for (const p of m.players) {
     if (!p.human || !p.slug) continue;
     const r = (wk[p.slug] ||= { name: p.name, slug: p.slug, firsts: 0, matches: 0, podiums: 0, kills: 0, score: 0 });
@@ -114,15 +114,15 @@ async function stats() {
 
   // ranked: online matches with at least two logged-in humans. Elo from pairwise places, plus head-to-head records.
   const nameOf = (slug: string) => accounts.find((a) => a.slug === slug)?.name || slug;
-  const elo: Record<string, { r: number; games: number; best: number }> = {};
-  const h2h: Record<string, { a: string; b: string; games: number; aw: number; bw: number }> = {};
+  const elo: Record<string, { r: number; games: number; best: number }> = Object.create(null);
+  const h2h: Record<string, { a: string; b: string; games: number; aw: number; bw: number }> = Object.create(null);
   const pairKey = (x: string, y: string) => (x < y ? x + "|" + y : y + "|" + x);
   for (const m of [...matches].reverse()) {
     if (m.mode !== "online") continue;
     const hs = m.players.filter((p) => p.human && p.slug) as (MatchPlayer & { slug: string })[];
     if (new Set(hs.map((p) => p.slug)).size < 2) continue;
     for (const p of hs) elo[p.slug] ||= { r: 1000, games: 0, best: 1000 };
-    const delta: Record<string, number> = {};
+    const delta: Record<string, number> = Object.create(null);
     for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) {
       const A = hs[i], B = hs[j]; if (A.slug === B.slug) continue;
       const ea = 1 / (1 + 10 ** ((elo[B.slug].r - elo[A.slug].r) / 400)), sa = A.place < B.place ? 1 : A.place > B.place ? 0 : 0.5;
@@ -137,7 +137,7 @@ async function stats() {
   }
   const ranked = Object.entries(elo).map(([slug, e]) => ({ slug, name: nameOf(slug), elo: Math.round(e.r), best: Math.round(e.best), games: e.games })).sort((a, b) => b.elo - a.elo);
   const rivals = Object.values(h2h).sort((x, y) => y.games - x.games).slice(0, 15).map((h) => ({ a: h.a, aName: nameOf(h.a), b: h.b, bName: nameOf(h.b), games: h.games, aw: h.aw, bw: h.bw }));
-  const killPairs: Record<string, number> = {};
+  const killPairs: Record<string, number> = Object.create(null);
   for (const m of matches) for (const [k, v, n] of m.kx || []) killPairs[k + ">" + v] = (killPairs[k + ">" + v] || 0) + n;
   const kills2 = Object.entries(killPairs).map(([k, n]) => { const [a, b2] = k.split(">"); return { killer: a, killerName: nameOf(a), victim: b2, victimName: nameOf(b2), n }; }).sort((x, y) => y.n - x.n).slice(0, 15);
   const tStore = getStore({ name: "vijuga-trolls", consistency: "strong" });

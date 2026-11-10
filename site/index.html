@@ -921,13 +921,28 @@ async function saveProfile() {
   saveBusy = true;
   try { await saveProfileNow(); } finally { saveBusy = false; if (savePending) { savePending = false; saveProfile(); } }
 }
+// What the server held when this device last agreed with it. When a save is refused because the server copy has moved on
+// (another device or tab of the same player), this device's own changes since then - coins won or spent, things bought,
+// matches played - are applied on top of the server copy instead of being thrown away.
+const SYNC_NUMS = ['coins', 'matches', 'wins', 'kills', 'spent', 'purchases', 'playMs', 'siteMs', 'trollsSent', 'trollsGot'];
+function syncBase(p) { const b = { owned: (p.owned || []).slice(), inv: Object.assign({}, p.inv || {}) }; for (const k of SYNC_NUMS) b[k] = Number(p[k]) || 0; return b; }
+function mergeOntoServer(srv, loc, base) {
+  for (const k of SYNC_NUMS) { const d = (Number(loc[k]) || 0) - (Number(base[k]) || 0); if (d) srv[k] = Math.max(0, (Number(srv[k]) || 0) + d); }
+  const had = new Set(base.owned || []), mine = new Set(loc.owned || []);
+  srv.owned = (srv.owned || []).filter(id => !(had.has(id) && !mine.has(id))); // what this device gave away (sold, opened) stays gone
+  for (const id of mine) if (!had.has(id) && !srv.owned.includes(id)) srv.owned.push(id); // what this device got is kept
+  srv.inv = Object.assign({}, srv.inv || {}); for (const k of new Set([...Object.keys(loc.inv || {}), ...Object.keys(base.inv || {})])) { const d = (Number((loc.inv || {})[k]) || 0) - (Number((base.inv || {})[k]) || 0); if (d) { const v = Math.max(0, (Number(srv.inv[k]) || 0) + d); if (v) srv.inv[k] = v; else delete srv.inv[k]; } }
+  srv.eq = Object.assign({}, srv.eq || {}, loc.eq || {}); // the look chosen on this device
+  for (const slot of ['skin', 'badge', 'bg', 'pu']) if (srv.eq[slot] && !['sk_none', 'bd_none', ''].includes(srv.eq[slot]) && !srv.owned.includes(srv.eq[slot])) srv.eq[slot] = slot === 'skin' ? 'sk_none' : slot === 'badge' ? 'bd_none' : '';
+  return srv;
+}
 async function saveProfileNow() {
   if (dbNs && dbWritable !== false) {
     if (window.__replaced) return; // another tab/device took over this account: this copy must not overwrite it
-    try { const srv = await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile)); profileStore = 'db'; if (profile) { profile._authHash = profile.pinHash || ''; if (srv && srv.updatedAt) profile._rev = srv.updatedAt; } }
+    try { const sent = syncBase(profile); const srv = await dbNs.doc('accounts/' + profile.slug).set(Object.assign({}, profile, { _base: undefined })); profileStore = 'db'; if (profile) { profile._authHash = profile.pinHash || ''; if (srv && srv.updatedAt) { profile._rev = srv.updatedAt; profile._base = sent; } } }
     catch (e) { profileStore = 'local';
       if (!e || !e.status) refreshLocalList(); // the server is unreachable: the device copy is what we show
-      if (e && e.status === 409 && e.account && profile) { const pin = profile.pinHash; const srvDoc = normalize(e.account); srvDoc.pinHash = pin; srvDoc._authHash = pin || ''; srvDoc._rev = srvDoc.updatedAt || null; profile = applyBonus(srvDoc); localSave(profile); renderMe(); renderShop(); toast('🔄 Profil je osvježen s drugog uređaja/kartice.'); return; }
+      if (e && e.status === 409 && e.account && profile) { const pin = profile.pinHash, loc = profile, base = loc._base; let srvDoc = normalize(e.account); const srvBase = syncBase(srvDoc); const merged = !!base; if (merged) srvDoc = mergeOntoServer(srvDoc, loc, base); srvDoc.pinHash = pin; srvDoc._authHash = pin || ''; srvDoc._rev = srvDoc.updatedAt || null; profile = applyBonus(srvDoc); profile._base = srvBase; localSave(profile); renderMe(); renderShop(); toast(merged ? '🔄 Profil je usklađen s drugim uređajem (tvoj napredak s ovog uređaja je sačuvan).' : '🔄 Profil je osvježen s drugog uređaja/kartice.'); if (merged) savePending = true; return; }
       if (e && e.status === 403) { dbWritable = false; if (!window.__pinWarned) { window.__pinWarned = true; notify('⚠️ <b>Napredak se ne sprema na server</b>: PIN na ovom uređaju ne odgovara (promijenjen drugdje?). Odjavi se i prijavi ponovno s ispravnim PIN-om.', { warn: true, ms: 0 }); } } }
   }
   if (!dbNs) refreshLocalList();
@@ -940,7 +955,7 @@ function loginAs(doc) {
   const local = localAccounts()[doc.slug];
   if (!doc.pinHash && doc.hasPin && local && local.pinHash) doc = Object.assign({}, doc, { pinHash: local.pinHash });
   if (!doc.pinHash && doc.hasPin === false && local && local.pinHash) { const all = localAccounts(); delete all[doc.slug].pinHash; try { localStorage.setItem('vijuga-accounts', JSON.stringify(all)); } catch (e) {} }
-  profile = applyBonus(normalize(doc)); delete profile.hasPin; profile._authHash = profile.pinHash || ''; rememberLogin(profile.slug); // the PIN the server knows: saves keep working after the PIN is changed in "uredi"
+  { const n = normalize(doc), b = doc._rev ? syncBase(n) : null; profile = applyBonus(n); if (b) profile._base = b; else delete profile._base; } delete profile.hasPin; profile._authHash = profile.pinHash || ''; rememberLogin(profile.slug); // the PIN the server knows: saves keep working after the PIN is changed in "uredi"
   setup.players[0].name = profile.name; saveSetup();
   if (profile._bonusNew) saveProfile(); else { renderMe(); renderShop(); renderBoard(); if (roomNs) netPresence(myLobbyPres()); }
   renderPlayers(); renderNet(); $('#regModal').hidden = true;
@@ -1731,7 +1746,7 @@ function collectKicks() {
 // master only: a row of buttons to kick a human player of the current match (pause / leave dialogs, results)
 function kickRowHtml() { if (myRole() !== 'master' || !net || !G || !profile) return ''; const hs = G.players.filter(p => p.human && p.slug && p.slug !== profile.slug); return hs.length ? `<div class="kickrow"><span class="label">🚫 Izbaci igrača (master)</span><div class="row">${hs.map(p => `<button type="button" class="btn sm ghost" data-kick="${esc(p.slug)}" data-kn="${esc(p.name)}">${esc(p.name)}</button>`).join('')}</div></div>` : ''; }
 function wireKick(root) { (root || document).querySelectorAll('[data-kick]').forEach(b => { b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); askKick(b.dataset.kick, b.dataset.kn); }; }); }
-async function loadRoles() { try { const r = await fetch(ROLES_API, { cache: 'no-store' }); if (r.ok) { roleState = await r.json(); renderNet(); renderBoard(); } } catch (e) {} }
+async function loadRoles() { try { const r = await fetch(ROLES_API, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); roleState = { master: (j && typeof j.master === 'string' && j.master) || 'jure', roles: (j && j.roles && typeof j.roles === 'object') ? j.roles : {}, mutes: (j && j.mutes && typeof j.mutes === 'object') ? j.mutes : {} }; renderNet(); renderBoard(); } } catch (e) {} } // an odd answer from the server must not break every screen that shows a role tag
 setTimeout(() => { loadRoles(); const h = $('#rolesHelp'); if (h) h.innerHTML = rolesHelpHtml(); }, 1200); setInterval(loadRoles, 60000);
 async function roleCall(action, extra) {
   if (!profile) return null;
@@ -1740,7 +1755,7 @@ async function roleCall(action, extra) {
 }
 async function resetPinOf(P) {
   if (!confirm(`Obrisati PIN igrača ${P.name}? On se tada prijavi bez PIN-a i u „uredi” postavi novi.`)) return;
-  try { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(P.slug) + '/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ by: profile.slug, auth: profile.pinHash || '' }) }); toast(r.ok ? `PIN igrača ${P.name} je obrisan. Javi mu da se prijavi i postavi novi.` : 'Nije uspjelo (' + r.status + ').'); }
+  try { const r = await fetch(ACCOUNTS_API + '/' + encodeURIComponent(P.slug) + '/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ by: profile.slug, auth: profile.pinHash || '' }) }); toast(r.ok ? `PIN igrača ${P.name} je obrisan. Javi mu da se prijavi i postavi novi.` : r.status === 403 ? 'Nije dopušteno. Za brisanje tuđeg PIN-a moraš i sam imati PIN (postavi ga u profilu), a PIN glavnog admina ne može se brisati.' : 'Nije uspjelo (' + r.status + ').'); }
   catch (e) { toast('Nema veze s poslužiteljem.'); }
 }
 function rolesHelpHtml() {
@@ -1829,7 +1844,7 @@ const AUCT_API = 'https://vijuga.netlify.app/api/auction';
 var auct = { active: [], done: [], stats: {} }, auctTimer = 0; // var: read by limitLeft() before this line runs
 const listable = id => !!((SKINS[id] && SKINS[id].limit) || (BADGES[id] && BADGES[id].limit));
 async function loadAuct() {
-  try { const r = await fetch(AUCT_API, { cache: 'no-store' }); if (r.ok) auct = await r.json(); } catch (e) {}
+  try { const r = await fetch(AUCT_API, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); auct = { active: Array.isArray(j && j.active) ? j.active : [], done: Array.isArray(j && j.done) ? j.done : [], stats: (j && j.stats) || {} }; } } catch (e) {}
   renderAuct(); clearTimeout(auctTimer); if (curTab === 'auct' && !$('#menu').hidden) auctTimer = setTimeout(loadAuct, 20000);
 }
 setTimeout(loadAuct, 2000);
@@ -1878,7 +1893,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '522f904af036';
+const BUILD = 'dbde2354534e';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -2208,7 +2223,7 @@ function newRound() {
     const toC = Math.atan2(H / 2 - y, W / 2 - x);
     p.roundStart = p.score || 0;
     Object.assign(p, { x, y, a: toC + rand(-1.1, 1.1), alive: true, fx: [], gapLeft: 26, nextGap: rand(1.4, 3), jumpUntil: 0,
-      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false });
+      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [] });
   });
   hudDirty = true; showOverlay(null);
   G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
@@ -2458,6 +2473,19 @@ function drawBadge(c, id, x, y, size, color) {
   c.font = `700 ${size}px "Barlow Semi Condensed", sans-serif`; c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.g, x, y);
 }
 function drawBalls(x, y, a, r) { tctx.save(); tctx.setTransform(tctx.getTransform()); tctx.fillStyle = '#e98aa6'; const d = r * 1.7, bx = x - Math.cos(a) * r * 0.8, by = y - Math.sin(a) * r * 0.8; for (const sgn of [-1, 1]) { tctx.beginPath(); tctx.arc(bx + Math.cos(a + Math.PI / 2) * d * sgn, by + Math.sin(a + Math.PI / 2) * d * sgn, r * 1.9, 0, 6.283); tctx.fill(); } tctx.restore(); }
+// ---- the exact trail for guests. The host records every vertex of every snake's trail - where the pen comes down, each
+// bend, where it lifts - with a running number, and snapshots carry the newest ones. A guest draws the very line the
+// host stamped: a gap starts and ends exactly where it does on the host and a bend between two snapshots is not cut
+// short. f: 0 = the pen comes down here, 1 = a line from the previous vertex, 2 = the same, and the width changes here.
+function tvPush(p, x, y, f) { p.tvN = (p.tvN || 0) + 1; (p.tvQ || (p.tvQ = [])).push(p.tvN, Math.round(x * 10) / 10, Math.round(y * 10) / 10, f); if (p.tvQ.length > 4 * 96) p.tvQ.splice(0, 4 * 32); p.tvX = x; p.tvY = y; p.tvA = p.a; }
+function trailVert(p, down, widthChanged) {
+  if (down) {
+    if (!p.tvDown) { p.tvDown = true; tvPush(p, p.x, p.y, 0); }
+    else if (widthChanged) tvPush(p, p.x, p.y, 2);
+    else { let da = p.a - p.tvA; da = Math.atan2(Math.sin(da), Math.cos(da)); const dx = p.x - p.tvX, dy = p.y - p.tvY; if (Math.abs(da) > 0.2 || dx * dx + dy * dy > 1600) tvPush(p, p.x, p.y, 1); }
+    p.ldx = p.x; p.ldy = p.y;
+  } else if (p.tvDown) { p.tvDown = false; if (p.ldx !== p.tvX || p.ldy !== p.tvY) tvPush(p, p.ldx, p.ldy, 1); } // the pen lifts at the last point that was drawn
+}
 function flushTrail(p, keepLast) {
   if (p.pts.length >= 2) {
     const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt);
@@ -2580,7 +2608,7 @@ function applyPu(p, k, silent) {
     case 'sharpS': add(p, 'sharp', P.dur); break;
     case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
     case 'clearA':
-      G.players.forEach(q => flushTrail(q, false));
+      G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; });
       owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; stampArena(); break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
   }
@@ -2590,7 +2618,7 @@ function applyPu(p, k, silent) {
 // ---------- death ----------
 function kill(p, by) {
   if (!p.alive || G.phase !== 'run') return;
-  p.alive = false; flushTrail(p, false); sfx.die(); p.killer = by || null;
+  p.alive = false; flushTrail(p, false); trailVert(p, false); sfx.die(); p.killer = by || null;
   if (by && by !== p && by.human && p.human) { const ks = by.mine && profile ? profile.slug : by.slug, vs = p.mine && profile ? profile.slug : p.slug; if (ks && vs) { G.kx ||= {}; const kk = ks + '>' + vs; G.kx[kk] = (G.kx[kk] || 0) + 1; } }
   if (by && by !== p) by.kills++;
   G.players.forEach(q => { if (q.alive) q.score++; });
@@ -2658,7 +2686,7 @@ function nextRound() { if (G && G.phase === 'end' && !G.over && !(net && net.rol
 // ends the lap.
 const LAP_MAX = 12; let lapAcc = 0;
 function lapOn() { return !!G && G.phase === 'end' && G.phaseT < LAP_MAX && G.players.some(p => p.alive); }
-function lapDeath(p) { if (!p.alive) return; p.alive = false; flushTrail(p, false); sfx.die(); deathFx(p); hudDirty = true; }
+function lapDeath(p) { if (!p.alive) return; p.alive = false; flushTrail(p, false); trailVert(p, false); sfx.die(); deathFx(p); hudDirty = true; }
 function substep(lap) {
   T++;
   const bd = bounds();
@@ -2706,9 +2734,9 @@ function substep(lap) {
     p.drawing = drawing;
     if (drawing) {
       stamp(p, Math.max(1, r * skinW(p) - 0.35));
-      if (p.pts.length && Math.abs(p.ptsR - r) > .01) flushTrail(p, true);
-      p.ptsR = r; p.pts.push(p.x, p.y);
-    } else if (p.pts.length) flushTrail(p, false);
+      const wch = p.pts.length > 0 && Math.abs(p.ptsR - r) > .01; if (wch) flushTrail(p, true);
+      p.ptsR = r; p.pts.push(p.x, p.y); trailVert(p, true, wch);
+    } else { if (p.pts.length) flushTrail(p, false); trailVert(p, false); }
     if (!lap) for (let i = G.pus.length - 1; i >= 0; i--) {
       const u = G.pus[i];
       if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + r) { G.pus.splice(i, 1); applyPu(p, u.k); }
@@ -4312,9 +4340,17 @@ function hostAwayPause() {
   }
   G.pz = null; return false; // the match never pauses for one absent player
 }
+function snapTrail(p, from) {
+  if (p.tvDown && p.alive && (p.x !== p.tvX || p.y !== p.tvY)) tvPush(p, p.x, p.y, 1); // every snapshot ends at the head: the trail never lags behind it
+  const q = p.tvQ; if (!q || !q.length) return undefined;
+  let k = 0; while (k < q.length && q[k] <= from) k += 4; if (k >= q.length) return undefined;
+  const out = [q[k]]; for (; k < q.length; k += 4) out.push(q[k + 1], q[k + 2], q[k + 3]); return out;
+}
 function buildSnap(full = true) {
-  return { W, H, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+  const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
+  for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
+  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -4344,11 +4380,21 @@ function clientBegin(host, key = 'st', spectate = false) {
   $('#menu').hidden = true; $('#game').hidden = false;
   sizeArena(); applyState(st, true); buildPads(); enterGame();
 }
+// one piece of a snake's trail on a guest's screen: the same stroke and the same collision stamps as on the host
+function guestLine(p, x0, y0, x1, y1, rr, ang) {
+  if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(x0, y0, ang, rr); }
+  const custom = applySkin(tctx, p.skin, p.color, rr, G.gt); if (!custom) tctx.lineWidth = rr * 2;
+  const d = Math.hypot(x1 - x0, y1 - y0);
+  tctx.lineDashOffset = -(p.dashLen || 0); tctx.beginPath(); tctx.moveTo(x0, y0); tctx.lineTo(x1, y1); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]); tctx.lineDashOffset = 0; p.dashLen = (p.dashLen || 0) + d;
+  skinAfter(tctx, p.skin, [x0, y0, x1, y1], rr, p);
+  const n = Math.max(1, Math.ceil(d * 2)), g = { id: p.id, x: 0, y: 0 }, sr = Math.max(1, rr * skinW(p) - 0.35); for (let k = 0; k <= n; k++) { g.x = x0 + (x1 - x0) * k / n; g.y = y0 + (y1 - y0) * k / n; stamp(g, sr); }
+}
 function applyState(st, first) {
   const mePeer = roomState.me;
+  if (st.te !== undefined && st.te !== net.tvE) { net.tvE = st.te; net.tv = {}; } // another host (or a match taken over): its trail numbering starts afresh
   if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
-  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.roundStart = p.score || 0; }); }
-  if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; }
+  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
+  if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
@@ -4378,13 +4424,19 @@ function applyState(st, first) {
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
     // trail segment
     const pv = net.prev[q.i];
-    if (pv && pv.d && q.d && Math.hypot(pv.x - q.x, pv.y - q.y) < 40) {
-      if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(pv.x, pv.y, q.a, q.rr); }
-      const custom = applySkin(tctx, p.skin, p.color, q.rr, G.gt); if (!custom) tctx.lineWidth = q.rr * 2;
-      tctx.beginPath(); tctx.moveTo(pv.x, pv.y); tctx.lineTo(q.x, q.y); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]);
-      skinAfter(tctx, p.skin, [pv.x, pv.y, q.x, q.y], q.rr, p);
-      { const d = Math.hypot(q.x - pv.x, q.y - pv.y), n = Math.max(1, Math.ceil(d)), g = { id: q.i, x: 0, y: 0 }; for (let k = 0; k <= n; k++) { g.x = pv.x + (q.x - pv.x) * k / n; g.y = pv.y + (q.y - pv.y) * k / n; stamp(g, Math.max(1, q.rr * skinW(p) - 0.35)); } }
-    }
+    if (st.te !== undefined) { // the host sends the exact trail: draw its new vertices, each once
+      if (Array.isArray(q.tv)) {
+        const tm = net.tv || (net.tv = {}), ts = tm[q.i] || (tm[q.i] = { n: 0, has: false, x: 0, y: 0, r: q.rr }); let r = ts.r || q.rr, n = q.tv[0];
+        for (let k = 1; k + 2 < q.tv.length; k += 3, n++) {
+          if (n <= ts.n) continue;
+          const x = q.tv[k], y = q.tv[k + 1], f = q.tv[k + 2];
+          if (f && ts.has && (n === ts.n + 1 || Math.hypot(x - ts.x, y - ts.y) < 60)) guestLine(p, ts.x, ts.y, x, y, r, q.a);
+          if (f === 2) r = q.rr;
+          ts.x = x; ts.y = y; ts.has = true; ts.n = n;
+        }
+        ts.r = q.rr;
+      } else if (net.tv && net.tv[q.i]) net.tv[q.i].r = q.rr;
+    } else if (pv && pv.d && (q.d || (pv.al && !q.al)) && Math.hypot(pv.x - q.x, pv.y - q.y) < 40) guestLine(p, pv.x, pv.y, q.x, q.y, q.rr, q.a); // an older host: one straight piece per snapshot, and the last piece before a crash
     net.prev[q.i] = q;
     newPlayers.push(p);
   }
@@ -4603,7 +4655,7 @@ async function initSupabase() {
   };
 }
 // ---- Vijuga realtime server (WebSocket): same interface as the Supabase layer, no rate limits, no dropped channels
-const SRV_URL = (() => { try { const q = new URLSearchParams(location.search); const u = q.get('srvurl'); if (u && /^wss?:\/\//.test(u)) return u; } catch (e) {} return 'wss://vijuga-server.onrender.com'; })();
+const SRV_URL = (() => { try { const q = new URLSearchParams(location.search); const u = q.get('srvurl'); if (u && /^wss?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(u)) return u; } catch (e) {} return 'wss://vijuga-server.onrender.com'; })(); // the override exists for local testing only: a link must not be able to send a player's lobby traffic elsewhere
 const SRV_ON = (() => { try { const q = new URLSearchParams(location.search); if (q.get('srv') === '0') { localStorage.setItem('vijuga-srv', '0'); return false; } if (q.get('srv') === '1') { localStorage.removeItem('vijuga-srv'); return true; } return localStorage.getItem('vijuga-srv') !== '0'; } catch (e) { return true; } })(); // the game server is the default; ?srv=0 goes back to Supabase
 const ONE_OFF = new Set(['msg', 're', 'ping', 'pong', 'dm', 'bt']); // relayed once by the server, never kept
 async function initWsRoom() {
@@ -4831,7 +4883,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
 
