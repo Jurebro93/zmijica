@@ -119,8 +119,10 @@ button:disabled { cursor: default; opacity: .5; }
 .meetbar .ms b { color: var(--amber); }
 .newsbar { border-color: color-mix(in srgb, var(--amber) 45%, var(--line)); } .nbadge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 9px; background: #ff5d73; color: #fff; font-style: normal; font-size: 12px; font-weight: 800; }
 .newtag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #ff5d73; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; vertical-align: .15em; }
-.newscard .nlist { display: grid; gap: 10px; } .newscard .nitem { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); }
-.newscard .nitem.unseen { border-color: var(--amber); } .newscard .ne { font-size: 28px; line-height: 1.1; } .newscard .nx b { font-size: 16px; } .newscard .nd { display: block; color: var(--muted); font-size: 12px; } .newscard .nx p { margin: 4px 0 6px; font-size: 14px; line-height: 1.35; } .newscard .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.newscard .nlist { display: grid; gap: 8px; } .newscard .nitem { padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); }
+.newscard .nitem summary { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; cursor: pointer; list-style: none; } .newscard .nitem summary::-webkit-details-marker { display: none; }
+.newscard .nitem .nchev { color: var(--muted); transition: transform .15s; } .newscard .nitem[open] .nchev { transform: rotate(180deg); } .newscard .nitem .nx { padding: 6px 0 2px 38px; }
+.newscard .nitem.unseen { border-color: var(--amber); } .newscard .ne { font-size: 24px; line-height: 1.1; } .newscard .nx b { font-size: 16px; } .newscard .nd { display: block; color: var(--muted); font-size: 12px; } .newscard .nx p { margin: 4px 0 6px; font-size: 14px; line-height: 1.35; } .newscard .row { display: flex; gap: 6px; flex-wrap: wrap; }
 .btn.wa { background: #25d366; color: #062b14; text-decoration: none; display: inline-flex; align-items: center; }
 .mday { display: grid; gap: 6px; }
 .mchips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
@@ -589,7 +591,11 @@ body:has(#game:not([hidden])) #notes, body:has(#regModal:not([hidden])) #notes {
 body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #bnav { display: none !important; }
 #bnav .bplay { animation-iteration-count: 6; }
 .tinfo-btn { display: block; margin: 6px auto 0; border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
-.tinfo-btn:hover { border-color: var(--amber); } .trollhelp { margin: -4px 0 10px; }
+.tinfo-btn:hover { border-color: var(--amber); }
+.luxbox { border-color: color-mix(in srgb, #ffd23f 55%, var(--line)); background: linear-gradient(180deg, rgba(255,210,63,.10), transparent); }
+.item.luxitem .prev { height: auto; min-height: 84px; padding: 8px 0; } .item.luxitem .prev .ic { font-size: 44px !important; }
+.luxreq { display: grid; gap: 4px; margin-top: 4px; padding: 8px 10px; border: 1px dashed color-mix(in srgb, var(--amber) 55%, var(--line)); border-radius: 10px; font-size: 13px; } .luxreq b { font-size: 13px; color: var(--amber); }
+.luxreq span { position: relative; display: block; padding: 2px 6px; border-radius: 6px; overflow: hidden; } .luxreq span small { float: right; color: var(--muted); } .luxreq span i { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--amber); } .luxreq span.ok { color: var(--good); } .luxreq span.ok i { background: var(--good); } .trollhelp { margin: -4px 0 10px; }
 .tpv { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #101b27; } .tpv canvas { display: block; width: 100%; height: auto; }
 .tpvpads { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: space-between; padding: 0 12px; pointer-events: none; }
 .tpvpads span { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: rgba(255,93,115,.25); border: 2px solid #ff5d73; } .tpvpads .j { font-size: 12px; font-weight: 800; color: #fff; }
@@ -679,11 +685,12 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       </div>
 
       <div class="tab" id="tab-shop" hidden>
-        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
+        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="lux"><span>🛥️</span>Luksuz</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
         <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
+        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>najskuplje animacije koje vide svi u meču. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda</small></h2><div class="shop" id="shopLux"></div></div>
         <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
@@ -1712,7 +1719,7 @@ function renderShop() {
   make($('#shopLive'), Object.entries(BADGES).filter(([, it]) => it.live || it.gold), 'badge');
   const prb = $('#shopPremium'), bgb = $('#shopBgs');
   if (prb) {
-    prb.innerHTML = ''; if (bgb) bgb.innerHTML = '';
+    prb.innerHTML = ''; if (bgb) bgb.innerHTML = ''; if ($('#shopLux')) $('#shopLux').innerHTML = '';
     Object.entries(PREMIUM).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = it.bg && profile && profile.eq.bg === id, cost = vipCost(it.price);
       const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; d.dataset.premium = '1';
@@ -1720,16 +1727,19 @@ function renderShop() {
       if (it.bg) d.classList.add('pic');
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${cost}`;
       const b = document.createElement('button'); b.type = 'button';
-      const lockLv = lockedFor(id); if (lockLv) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', `<span class="lvlock">${lockNote(lockLv)}</span>`); }
+      const gate = it.lux && !owned && profile ? luxGate(id) : null, lockLv = gate ? (gate.ok ? 0 : -1) : lockedFor(id);
+      if (it.lux) { d.classList.add('luxitem'); d.querySelector('.prev').insertAdjacentHTML('beforeend', `<button type="button" class="tinfo-btn" data-lux="${id}">ℹ️ Pogledaj kako izgleda</button>`); d.querySelector('[data-lux]').onclick = () => showLuxPreview(id); }
+      if (gate && !gate.ok) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', luxReqHtml(id)); }
+      else if (lockLv > 0) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', `<span class="lvlock">${lockNote(lockLv)}</span>`); }
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
-      else if (lockLv && !owned) { b.textContent = '🔒 Nivo ' + lockLv; b.className = 'lockbtn'; b.disabled = true; }
+      else if (lockLv && !owned) { b.textContent = lockLv < 0 ? '🔒 Zaključano' : '🔒 Nivo ' + lockLv; b.className = 'lockbtn'; b.disabled = true; }
       else if (owned) {
         if (it.bg) { b.textContent = on ? 'Isključi' : 'Koristi'; b.className = on ? 'on' : ''; b.onclick = () => { profile.eq.bg = on ? '' : id; saveProfile(); }; }
         else if (id === 'pr_title') { b.textContent = 'Uredi titulu'; b.onclick = () => { const t = prompt('Tvoja titula (do 24 znaka):', profile.title || 'Kralj Vijuge'); if (t != null) { profile.title = t.trim().slice(0, 24); saveProfile(); toast('🏷️ Titula spremljena.'); } }; }
         else if (id === 'pr_room') { b.textContent = 'Pozovi u sobu'; b.onclick = () => { const url = myRoomLink(); window.open('https://wa.me/?text=' + encodeURIComponent('🔒 Dođi u moju privatnu Vijuga sobu: ' + url), '_blank'); }; }
         else { b.textContent = 'Aktivno ✓'; b.className = 'on'; b.disabled = true; }
       } else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost; b.onclick = () => { if (profile.coins < cost) return; if (!confirm(`Kupiti ${it.name} za ${cost} zlatnika?`)) return; const prevEq = profile.eq.bg; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); if (it.bg) profile.eq.bg = id; if (id === 'pr_title') profile.title = 'Kralj Vijuge'; sfx.pick(); saveProfile(); checkAchievements(); buyUndo(id, cost, it.bg ? 'bg' : null, prevEq); }; }
-      act.append(pr, b); d.appendChild(act); (it.bg && bgb ? bgb : prb).appendChild(d);
+      act.append(pr, b); d.appendChild(act); (it.bg && bgb ? bgb : it.lux && $('#shopLux') ? $('#shopLux') : prb).appendChild(d);
     });
     document.querySelectorAll('canvas.bgprev').forEach(paintBgPreview);
   }
@@ -2134,7 +2144,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'bdce0ccfd847';
+const BUILD = 'e261839bc7ed';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -2237,9 +2247,14 @@ const PREMIUM = {
   lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ: na početku svake runde helikopter te spusti u arenu na užetu, a svi vide „IME stiže helikopterom!”', price: 18000, lux: true },
   lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ: kad pobijediš rundu, tvoja jahta s tvojim imenom proplovi arenom uz šampanjac', price: 20000, lux: true },
   lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ: kad nekoga srušiš, preko ekrana se zavrti zlatni sat i padnu zlatnici: „TIK-TAK, IME!”', price: 15000, lux: true },
+  lx_fireworks:{ e: '🎆', name: 'Vatromet', d: 'LUKSUZ: kad osvojiš cijeli meč, iznad arene puca vatromet u tvojoj boji uz „IME JE PRVAK!”', price: 16000, lux: true },
+  lx_ferrari:  { e: '🏎️', name: 'Ferrari', d: 'LUKSUZ: kad u rundi prvi put pokupiš power-up, crveni Ferrari projuri arenom uz „BRRRM, IME!”', price: 17000, lux: true },
+  lx_crown:    { e: '👑', name: 'Dijamantna kruna', d: 'LUKSUZ: dijamantna kruna koja svjetluca lebdi iznad tvoje zmije cijelu rundu, da svi znaju tko je kralj', price: 22000, lux: true },
+  lx_jet:      { e: '✈️', name: 'Privatni avion', d: 'LUKSUZ: na početku svake runde tvoj privatni avion preleti arenom s transparentom „IME LETI PRIVATNO”', price: 25000, lux: true },
   bg_live:     { e: '⛈️', name: 'Arena: Šibenik uživo', d: 'UŽIVO: arena prati pravo vrijeme u Šibeniku: kad pada kiša, kiša pada po areni; kad puše bura, nosi prašinu; noću zvijezde, danju sunce', price: 3000, bg: true },
   pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji veliki spomenik s tvojim imenom. Tko ga dotakne, vidi „Počivaj u miru” i tvoje ime', price: 1800 },
 };
+const PM_KEYS = ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex', 'lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'];
 const VIP_REACTIONS = ['🦄', '🍾', '🤑', '🧨', '👽'];
 function ownsSlug(slug, id) { if (profile && slug === profile.slug) return profile.owned.includes(id); const a = accounts.list.find(x => x.slug === slug); return !!(a && Array.isArray(a.owned) && a.owned.includes(id)); }
 function isVip() { return !!(profile && profile.owned.includes('pr_vip')); }
@@ -2366,7 +2381,7 @@ function newMatch(netPlayers) {
       if (cfg.type === 'off') return;
       const mine = cfg.type === 'human' && firstHuman && profile; if (cfg.type === 'human') firstHuman = false;
       ps.push({ id: i, name: cfg.name, color: COLORS[i], human: cfg.type === 'human', diff: cfg.diff,
-        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', badges: mine ? badgeIds(profile.eq, profile.owned) : [], starter: mine ? profile.eq.pu : '', pm: mine ? ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => profile.owned.includes(x)).map(x => x.slice(3)).join(',') : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
+        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', badges: mine ? badgeIds(profile.eq, profile.owned) : [], starter: mine ? profile.eq.pu : '', pm: mine ? PM_KEYS.filter(x => profile.owned.includes(x)).map(x => x.slice(3)).join(',') : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
         score: 0, kills: 0, wins: 0, picks: 0, jumps: 0, touchL: false, touchR: false });
     });
   }
@@ -2503,7 +2518,7 @@ function newRound() {
       jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [], tvH: [], portalCool: 0 });
   });
   hudDirty = true; showOverlay(null);
-  G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
+  G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); if (hasLux(x, 'jet')) luxStart('jet', x); });
 }
 
 // ---------- effects ----------
@@ -3055,7 +3070,7 @@ function spawnPu() {
   }
 }
 function applyPu(p, k, silent) {
-  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); }
+  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); if (hasLux(p, 'ferrari') && p.ferrariRound !== G.round) { p.ferrariRound = G.round; luxStart('ferrari', p); } }
   const add = (q, kind, dur) => q.fx.push({ k: kind, until: G.gt + dur });
   const others = G.players.filter(q => q !== p && q.alive);
   switch (k) {
@@ -3123,7 +3138,7 @@ function endRound(winner) {
   sfx.round(); if (winner && winner.vs) victoryFx(winner);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
+  if (G.round >= G.target) { if (sorted[0] && hasLux(sorted[0], 'fireworks')) luxStart('fireworks', sorted[0]); if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -3359,6 +3374,7 @@ function render() {
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_centi' && p.alive) drawCentiHead(ctx, p.x, p.y, p.a, hr);
+    if (p.alive && hasLux(p, 'crown') && G.phase !== 'end') drawCrown(ctx, p.x, p.y - hr - 34, performance.now() / 1000);
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     { const pm = p.alive && net ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
     if (p.alive && G.phase === 'run') { const ids = pBadges(p).filter(id => liveB(BADGES[id]) || BADGES[id].anim); if (ids.length) { ctx.globalAlpha = 0.85; drawBadgeRow(ctx, ids, p.x, p.y - hr - 12, 10, p.color); ctx.globalAlpha = 1; } }
@@ -3514,6 +3530,18 @@ function lvReq(id) {
   const p = Number(it.price) || 0;
   return p >= 15000 ? 12 : p >= 7000 ? 8 : p >= 4000 ? 6 : p >= 3000 ? 5 : p >= 2000 ? 4 : p >= 1200 ? 3 : p >= 900 ? 2 : 1;
 }
+// luxury is earned, not only bought: each needs a level and special achievements (the jet and the crown need other luxury first)
+const LUX_REQ = { lx_rolex: { lv: 8, ach: ['k100'] }, lx_fireworks: { lv: 10, ach: ['w50'] }, lx_ferrari: { lv: 10, ach: ['k250'] }, lx_heli: { lv: 12, ach: ['w50', 'm250', 'lux1'] }, lx_yacht: { lv: 12, ach: ['w100', 'lux1'] }, lx_crown: { lv: 15, ach: ['w100', 'lux3'] }, lx_jet: { lv: 18, ach: ['m500', 'h10', 'lux3'] } };
+function luxGate(id, P) {
+  P = P || profile; const q = LUX_REQ[id]; if (!q || !P) return { ok: true, rows: [] };
+  const rows = [{ e: '⭐', n: 'Nivo ' + q.lv, have: levelOf(P).lv, need: q.lv }];
+  for (const a of q.ach) { const A = ACH.find(x => x.id === a); if (A) rows.push({ e: A.e, n: A.n, have: Math.floor(A.val(P) || 0), need: A.goal }); }
+  rows.forEach(r => { r.done = r.have >= r.need; }); return { ok: rows.every(r => r.done), rows };
+}
+function luxReqHtml(id) {
+  const g = luxGate(id); if (g.ok) return '';
+  return `<div class="luxreq"><b>🔒 Uvjeti za kupnju</b>${g.rows.map(r => `<span class="${r.done ? 'ok' : ''}">${r.done ? '✅' : r.e} ${esc(r.n)} <small>${Math.min(r.have, r.need)}/${r.need}</small><i style="width:${Math.round(100 * Math.min(1, r.have / r.need))}%"></i></span>`).join('')}</div>`;
+}
 function myLevel() { return profile ? levelOf(profile).lv : 1; }
 function lockedFor(id) { const need = lvReq(id); return profile && !profile.owned.includes(id) && myLevel() < need ? need : 0; }
 function lockNote(need) { const L = profile ? levelOf(profile) : null; const xp = L ? 40 * (need - 1) ** 2 - L.xp : 0; return `🔒 Otključava se na nivou ${need}` + (xp > 0 ? ` (još ${xp} XP: igraj mečeve, pobjeđuj, ruši)` : ''); }
@@ -3561,6 +3589,8 @@ const ACH = [
   A('kripto', '₿', 'Kripto ulagač', 'Imaj kripto ikonu sa živom cijenom.', P => achOwned(P, x => !!(BADGES[x] && BADGES[x].crypto)), 1),
   A('fan', '⚽', 'Pravi navijač', 'Imaj navijački trag ili grb (Funcuti, Hajduk, Dinamo).', P => achOwned(P, x => !!(SKINS[x] && SKINS[x].fan) || ['bd_hajduk', 'bd_dinamo', 'bd_funcut'].includes(x)), 1),
   A('inv1', '📲', 'Doveo prijatelja', 'Pozovi igrača svojim linkom (i neka odigra meč).', refCount, 1),
+  A('lux1', '💎', 'Prvi luksuz', 'Kupi prvu luksuznu stvar (Rolex, Vatromet, Ferrari…).', P => achOwned(P, x => !!(PREMIUM[x] && PREMIUM[x].lux)), 1),
+  A('lux3', '🏝️', 'Milijarder', 'Imaj 3 luksuzne stvari.', P => achOwned(P, x => !!(PREMIUM[x] && PREMIUM[x].lux)), 3),
   A('inv5', '📣', 'Ambasador (5 pozvanih)', 'Dovedi 5 igrača svojim linkom.', refCount, 5),
 ];
 function achOf(P) { return ACH.filter(a => { try { return a.t(P); } catch (e) { return false; } }); }
@@ -3570,6 +3600,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Najskuplje animacije koje vide svi u meču. Za svaku trebaju nivo i posebna postignuća (za krunu i avion i drugi luksuz). ℹ️ na svakoj pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
   { id: 'live-pack', d: '2026-11-10', e: '🌍', t: 'Uživo: Hajduk, Dinamo i Šibenik, more, bura, tečaj…', x: 'Ikona kluba piše kad je sljedeća utakmica i protiv koga, a dok se igra svijetli zeleno s rezultatom uživo. Klik na ikonu otvara tablicu HNL-a. Dan nakon pobjede kluba navijači imaju duple nagrade. Tu su i more, bura alarm, zrak, tečaj, zlato, potresi, svemirska postaja i Formula 1.', go: 'shop:live', b: 'Pogledaj u trgovini', items: ['bd_fc_hajduk', 'bd_fc_dinamo', 'bd_fc_sibenik', 'bd_sea_sib', 'bd_sea_st', 'bd_sea_zd', 'bd_sea_du', 'bd_sea_pu', 'bd_bura', 'bd_uv', 'bd_air', 'bd_fx_usd', 'bd_fx_chf', 'bd_gold', 'bd_quake', 'bd_iss', 'bd_f1'] },
   { id: 'nameday-night', d: '2026-11-10', e: '🎉', t: 'Imendani i arena Šibenik uživo', x: 'Na naslovnoj piše tko danas slavi imendan; slavljenik dobije 🎉 uz ime i 200 zlatnika. Kad je noć u Šibeniku, arenom trepere zvijezde, a nova pozadina „Šibenik uživo” prati pravu kišu, buru i noćno nebo.', go: 'shop:bgs', b: 'Pozadine arene', items: ['bg_live'] },
   { id: 'wants', d: '2026-11-10', e: '🙋', t: 'Zahtjevi za kupnju na aukciji', x: 'Nešto je rasprodano? Na Aukciji otvori zahtjev i ponudi cijenu, a tko god tu stvar ima, proda ti je jednim klikom. U trgovini uz rasprodanu stvar stoji „Zatraži na aukciji”.', go: 'tab:auct', b: 'Otvori aukciju' },
@@ -3602,8 +3633,8 @@ function showNews() {
   const unseen = new Set(newsUnseen().map(n => n.id)), master = myRole() === 'master';
   const ago = (d) => { const days = Math.floor((Date.now() - Date.parse(d + 'T12:00:00Z')) / 864e5); return days <= 0 ? 'danas' : days === 1 ? 'jučer' : `prije ${days} d`; };
   const ov = document.createElement('div'); ov.className = 'achov newsov';
-  ov.innerHTML = `<div class="achcard newscard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>🆕 Što je novo</h3><p class="hint" style="margin:0">Najnovije stvari u igri. Dodirni tipku da ih odmah isprobaš.</p>
-    <div class="nlist">${NEWS.map(n => `<div class="nitem ${unseen.has(n.id) ? 'unseen' : ''}"><span class="ne">${n.e}</span><div class="nx"><b>${esc(n.t)}${unseen.has(n.id) ? ' <span class="newtag">NOVO</span>' : ''}</b><small class="nd">${ago(n.d)}</small><p>${esc(n.x)}</p>${n.go || master ? `<div class="row">${n.go ? `<button type="button" class="btn sm" data-ngo="${n.go}">${esc(n.b || 'Pogledaj')}</button>` : ''}${master ? `<button type="button" class="btn sm ghost" data-nbc="${n.id}" title="Pošalji ovu novost kao obavijest na mobitel svima koji su uključili obavijesti">📣 Javi svima</button>` : ''}</div>` : ''}</div></div>`).join('')}</div></div>`;
+  ov.innerHTML = `<div class="achcard newscard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>🆕 Što je novo</h3><p class="hint" style="margin:0">Najnovije stvari u igri. Dodirni novost da je otvoriš.</p>
+    <div class="nlist">${NEWS.map(n => `<details class="nitem ${unseen.has(n.id) ? 'unseen' : ''}"><summary><span class="ne">${n.e}</span><span class="nt"><b>${esc(n.t)}</b>${unseen.has(n.id) ? ' <span class="newtag">NOVO</span>' : ''}<small class="nd">${ago(n.d)}</small></span><span class="nchev" aria-hidden="true">▾</span></summary><div class="nx"><p>${esc(n.x)}</p>${n.go || master ? `<div class="row">${n.go ? `<button type="button" class="btn sm" data-ngo="${n.go}">${esc(n.b || 'Pogledaj')}</button>` : ''}${master ? `<button type="button" class="btn sm ghost" data-nbc="${n.id}" title="Pošalji ovu novost kao obavijest na mobitel svima koji su uključili obavijesti">📣 Javi svima</button>` : ''}</div>` : ''}</div></details>`).join('')}</div></div>`;
   const close = () => { ov.remove(); renderOnbar(); }; ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
   document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1, true); } }, true);
   ov.querySelectorAll('[data-ngo]').forEach(b => b.onclick = () => newsGo(b.dataset.ngo));
@@ -3626,6 +3657,35 @@ function tellNews() {
   if (n) n.querySelector('[data-news]').onclick = () => { n.remove(); showNews(); };
 }
 setTimeout(tellNews, 7000);
+const LUX_WHEN = { lx_heli: 'na početku svake runde', lx_jet: 'na početku svake runde', lx_yacht: 'kad pobijediš rundu', lx_fireworks: 'kad osvojiš cijeli meč', lx_rolex: 'kad nekoga srušiš', lx_ferrari: 'kad u rundi prvi put pokupiš power-up', lx_crown: 'cijelu rundu, stalno' };
+let luxPrev = null;
+function showLuxPreview(id) {
+  const it = PREMIUM[id]; if (!it || !it.lux) return; const type = id.slice(3);
+  document.querySelectorAll('.luxov').forEach(x => x.remove()); if (luxPrev) cancelAnimationFrame(luxPrev);
+  const g = luxGate(id), owned = profile && profile.owned.includes(id);
+  const ov = document.createElement('div'); ov.className = 'achov luxov';
+  ov.innerHTML = `<div class="achcard luxcard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>${it.e} ${esc(it.name)}</h3><p class="hint" style="margin:0">Ovako to vide svi u meču · ${esc(LUX_WHEN[id] || '')}</p>
+    <div class="tpv"><canvas id="luxCv" width="640" height="400"></canvas></div><p style="margin:0">${esc(it.d.replace(/^LUKSUZ: /, ''))}</p>
+    ${owned ? '<p style="margin:0;color:var(--good)">✓ Ovo već imaš.</p>' : g.ok ? `<p class="hint" style="margin:0">Uvjeti su ispunjeni: možeš kupiti za ● ${vipCost(it.price)}.</p>` : luxReqHtml(id)}</div>`;
+  const close = () => { ov.remove(); if (luxPrev) cancelAnimationFrame(luxPrev); luxPrev = null; }; ov.onclick = (e) => { if (e.target === ov) close(); }; ov.querySelector('.mclose').onclick = close;
+  document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1, true); } }, true);
+  document.body.appendChild(ov);
+  const cv = ov.querySelector('#luxCv'), c = cv.getContext('2d'), w = cv.width, h = cv.height, T0 = performance.now();
+  const me = { col: profile ? COLORS[profile.color] || COLORS[0] : COLORS[0], name: profile ? profile.name : 'Ti' }, list = [], trail = [];
+  let next = T0 + 500;
+  const loop = () => {
+    if (!document.body.contains(cv)) { luxPrev = null; return; }
+    const now = performance.now(), tt = (now - T0) / 1000, a = tt * 0.8, x = w * .5 + Math.cos(a) * w * .28, y = h * .58 + Math.sin(a) * h * .22;
+    trail.push(x, y); if (trail.length > 300) trail.splice(0, 2);
+    c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(131,150,171,0.16)'; for (let gx = 25; gx < w; gx += 25) for (let gy = 25; gy < h; gy += 25) c.fillRect(gx - .8, gy - .8, 1.6, 1.6);
+    c.strokeStyle = me.col; c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); for (let k = 0; k < trail.length; k += 2) { if (k === 0) c.moveTo(trail[k], trail[k + 1]); else c.lineTo(trail[k], trail[k + 1]); } c.stroke();
+    c.fillStyle = me.col; c.beginPath(); c.arc(x, y, 7, 0, 6.283); c.fill();
+    if (type === 'crown') drawCrown(c, x, y - 36, tt);
+    else { if (!list.length && now >= next) { list.push({ type, t0: now, x, y, name: me.name, color: me.col }); } drawLux(c, list, w, h); if (!list.length && now > next) next = now + 900; }
+    luxPrev = requestAnimationFrame(loop);
+  };
+  luxPrev = requestAnimationFrame(loop);
+}
 function showClubTable(k) {
   if (!FC[k]) return; document.querySelectorAll('.clubov').forEach(x => x.remove());
   const c = clubOf(k) || {}, tb = k === 'sibenik' ? [] : ((liveNow.hnl || {}).table || []), admin = ['master', 'admin'].includes(myRole());
@@ -4242,31 +4302,66 @@ function addBounty(key, amount, from) { const b = (bounties[key] ||= { amount: 0
 const luxFx = [];
 const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 function hasLux(p, k) { return !!(p && p.pm && p.pm.split(',').includes(k)); }
-function luxStart(type, p) { luxFx.push({ type, t0: performance.now(), x: p.x, y: p.y, name: p.name, color: p.color }); if (luxFx.length > 4) luxFx.shift(); if (type === 'rolex') { beep(1320, .08, 'square', .05); setTimeout(() => beep(1320, .08, 'square', .05), 160); } if (type === 'heli') beep(110, 1.2, 'sawtooth', .03, 20); }
-function luxLabel(c, t, y, size) { c.save(); c.font = `900 ${size}px "Barlow Semi Condensed", system-ui, sans-serif`; c.textAlign = 'center'; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(t, W / 2, y); c.fillStyle = '#ffd23f'; c.fillText(t, W / 2, y); c.restore(); }
-function drawLux(c) {
+// the diamond crown: always above its owner's head, sparkling
+function drawCrown(c, x, y, t) {
+  c.save(); c.translate(x, y + 2 * Math.sin(t * 3)); c.font = `26px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.shadowColor = 'rgba(160,230,255,.9)'; c.shadowBlur = 12; c.fillText('👑', 0, 0); c.shadowBlur = 0;
+  for (let k = 0; k < 4; k++) { const a = t * 2 + k * 1.57, r = 18 + 3 * Math.sin(t * 5 + k), s2 = 1.5 + 1.5 * Math.max(0, Math.sin(t * 7 + k * 2)); c.fillStyle = k % 2 ? '#bff4ff' : '#ffffff'; c.beginPath(); c.moveTo(Math.cos(a) * r, Math.sin(a) * r * .6 - s2 * 2); c.lineTo(Math.cos(a) * r + s2, Math.sin(a) * r * .6); c.lineTo(Math.cos(a) * r, Math.sin(a) * r * .6 + s2 * 2); c.lineTo(Math.cos(a) * r - s2, Math.sin(a) * r * .6); c.closePath(); c.fill(); }
+  c.restore();
+}
+function luxStart(type, p) { luxFx.push({ type, t0: performance.now(), x: p.x, y: p.y, name: p.name, color: p.color }); if (luxFx.length > 6) luxFx.shift(); if (type === 'ferrari') { beep(140, .5, 'sawtooth', .05, 260); setTimeout(() => beep(220, .4, 'sawtooth', .05, 200), 250); } if (type === 'jet') beep(300, 1.4, 'sine', .025, -120); if (type === 'fireworks') [0, 550, 1100, 1650].forEach(d => setTimeout(() => beep(900 + Math.random() * 400, .15, 'triangle', .05, -700), d + 450)); if (type === 'rolex') { beep(1320, .08, 'square', .05); setTimeout(() => beep(1320, .08, 'square', .05), 160); } if (type === 'heli') beep(110, 1.2, 'sawtooth', .03, 20); }
+function luxLabel(c, t, y, size, w) { c.save(); c.font = `900 ${size}px "Barlow Semi Condensed", system-ui, sans-serif`; c.textAlign = 'center'; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(t, (w || W) / 2, y); c.fillStyle = '#ffd23f'; c.fillText(t, (w || W) / 2, y); c.restore(); }
+function drawLux(c, list, w, h) {
+  list = list || luxFx; w = w || W; h = h || H;
   const now = performance.now();
-  for (let i = luxFx.length - 1; i >= 0; i--) {
-    const f = luxFx[i], t = (now - f.t0) / 1000;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const f = list[i], t = (now - f.t0) / 1000;
     if (f.type === 'heli') {
-      if (t > 3.6) { luxFx.splice(i, 1); continue; }
+      if (t > 3.6) { list.splice(i, 1); continue; }
       const k = Math.min(1, t / 1.2), hx = -80 + (f.x + 80) * (1 - Math.pow(1 - k, 3)), lv = Math.max(0, t - 2.6), hy = f.y - 110 + 6 * Math.sin(t * 4) - lv * lv * 140, fx = hx + lv * lv * 220;
       if (t > 1 && t < 3) { const d = (t - 1) % .5 / .5; c.strokeStyle = `rgba(210,190,150,${.6 * (1 - d)})`; c.lineWidth = 3; c.beginPath(); c.ellipse(f.x, f.y + 6, 12 + d * 50, 4 + d * 14, 0, 0, 6.283); c.stroke(); }
       if (t > 1.1 && t < 2.7) { c.strokeStyle = '#d9c9a3'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(fx, hy + 18); c.lineTo(fx, hy + 18 + (f.y - hy - 18) * Math.min(1, (t - 1.1) / .8)); c.stroke(); }
       c.save(); c.translate(fx, hy); c.scale(-1, 1); c.font = `46px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🚁', 0, 0); c.restore();
       c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2; const rot = t * 40; c.beginPath(); c.moveTo(fx - 38 * Math.cos(rot), hy - 21); c.lineTo(fx + 38 * Math.cos(rot), hy - 21); c.stroke();
-      if (t > .6) luxLabel(c, `${f.name.toUpperCase()} STIŽE HELIKOPTEROM! 🚁`, 46, 24);
+      if (t > .6) luxLabel(c, `${f.name.toUpperCase()} STIŽE HELIKOPTEROM! 🚁`, 46, 24, w);
     } else if (f.type === 'yacht') {
-      if (t > 5.5) { luxFx.splice(i, 1); continue; }
-      const x = -140 + t * (W + 280) / 5.5, y = H - 60 + 5 * Math.sin(t * 2.5);
-      c.fillStyle = 'rgba(30,90,140,.25)'; c.fillRect(0, H - 95, W, 95);
+      if (t > 5.5) { list.splice(i, 1); continue; }
+      const x = -140 + t * (w + 280) / 5.5, y = h - 60 + 5 * Math.sin(t * 2.5);
+      c.fillStyle = 'rgba(30,90,140,.25)'; c.fillRect(0, h - 95, w, 95);
       for (let j = 1; j < 14; j++) { const wx = x - 40 - j * 14; c.strokeStyle = `rgba(220,245,255,${.6 - j * .04})`; c.lineWidth = 1.5; c.beginPath(); c.arc(wx, y + 16, 4 + j * 1.5, .5, 2.6); c.stroke(); }
       c.save(); c.translate(x, y); c.scale(-1, 1); c.font = `74px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🛥️', 0, 0); c.restore();
       c.fillStyle = f.color; c.fillRect(x - 4, y - 66, 58, 18); c.fillStyle = '#fff'; c.font = '800 12px system-ui'; c.textAlign = 'left'; c.fillText(f.name.slice(0, 8), x, y - 53); c.fillStyle = '#ddd'; c.fillRect(x - 6, y - 68, 2, 40);
       if (t > 1.2) for (let j = 0; j < 26; j++) { const a = (t - 1.2) - j / 30; if (a < 0 || a > 1.4) continue; const ang = -1.2 - (j % 7) * .08; c.fillStyle = j % 2 ? '#ffd23f' : '#fff6c0'; c.beginPath(); c.arc(x + 14 + Math.cos(ang) * a * 110, y - 36 + Math.sin(ang) * a * 110 + a * a * 90, 2.5, 0, 6.283); c.fill(); }
+    } else if (f.type === 'jet') {
+      if (t > 4.6) { list.splice(i, 1); continue; }
+      const x = -120 + t * (w + 360) / 4.6, y = h * 0.16 + 10 * Math.sin(t * 1.6);
+      c.save(); c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 3; c.lineCap = 'round'; for (const dy of [-6, 6]) { c.beginPath(); c.moveTo(Math.max(0, x - 260), y + dy); c.lineTo(x - 30, y + dy); c.stroke(); } c.restore();
+      const bx = x - 250, bw = 190; c.save(); c.strokeStyle = '#ddd'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x - 34, y); c.lineTo(bx + bw, y + 22); c.stroke();
+      c.fillStyle = f.color; c.beginPath(); c.moveTo(bx, y + 10); for (let k = 0; k <= bw; k += 10) c.lineTo(bx + k, y + 10 + 4 * Math.sin(t * 9 + k / 18)); for (let k = bw; k >= 0; k -= 10) c.lineTo(bx + k, y + 36 + 4 * Math.sin(t * 9 + k / 18)); c.closePath(); c.fill();
+      c.fillStyle = '#fff'; c.font = '900 15px "Barlow Semi Condensed", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(`✈️ ${f.name.toUpperCase().slice(0, 12)} · VIP`, bx + bw / 2, y + 23); c.restore();
+      c.save(); c.translate(x, y); c.font = `54px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✈️', 0, 0); c.restore();
+      if (t > .5 && t < 4) luxLabel(c, `${f.name.toUpperCase()} LETI PRIVATNO ✈️`, h - 36, 24, w);
+    } else if (f.type === 'fireworks') {
+      if (t > 5.2) { list.splice(i, 1); continue; }
+      const cols = [f.color, '#ffd23f', '#ffffff', '#ff5d9e', '#4cc9f0'];
+      for (let k = 0; k < 7; k++) {
+        const t0 = k * 0.55, a = t - t0; if (a < 0 || a > 2.2) continue;
+        const sx = w * (0.15 + ((k * 0.37) % 0.7)), sy = h * (0.2 + ((k * 0.23) % 0.35));
+        if (a < 0.5) { const yy = h - (h - sy) * (a / 0.5); c.fillStyle = '#fff3c0'; c.beginPath(); c.arc(sx, yy, 2.5, 0, 6.283); c.fill(); continue; }
+        const e = a - 0.5, fade = Math.max(0, 1 - e / 1.7); c.save(); c.globalAlpha = fade;
+        for (let j = 0; j < 28; j++) { const ang = j / 28 * 6.283, r = e * 140, px = sx + Math.cos(ang) * r, py = sy + Math.sin(ang) * r + e * e * 60; c.fillStyle = cols[(j + k) % cols.length]; c.beginPath(); c.arc(px, py, 3, 0, 6.283); c.fill(); }
+        c.restore();
+      }
+      if (t > .6) luxLabel(c, `🎆 ${f.name.toUpperCase()} JE PRVAK! 🎆`, h * 0.12, 30, w);
+    } else if (f.type === 'ferrari') {
+      if (t > 2.4) { list.splice(i, 1); continue; }
+      const x = -140 + (t / 2.4) ** 1.3 * (w + 280), y = h - 70;
+      c.save(); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; for (let k = 0; k < 5; k++) { c.beginPath(); c.moveTo(x - 60 - k * 22, y - 18 + k * 8); c.lineTo(x - 140 - k * 22, y - 18 + k * 8); c.stroke(); }
+      for (let k = 0; k < 6; k++) { const a = (t * 6 + k) % 1.5; c.fillStyle = `rgba(180,180,180,${.35 * (1 - a / 1.5)})`; c.beginPath(); c.arc(x - 50 - a * 70, y + 14 - a * 10, 6 + a * 10, 0, 6.283); c.fill(); }
+      c.translate(x, y); c.scale(-1, 1); c.font = `64px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🏎️', 0, 0); c.restore();
+      if (t > .2) luxLabel(c, `BRRRM, ${f.name.toUpperCase()}! 🏎️`, h - 120, 28, w);
     } else if (f.type === 'rolex') {
-      if (t > 2.6) { luxFx.splice(i, 1); continue; }
-      const k = Math.min(1, t / .5), sc = (1 - Math.pow(1 - k, 3)) * .55, cx = W / 2, cy = H / 2 - 20, fade = t > 2.1 ? (2.6 - t) / .5 : 1;
+      if (t > 2.6) { list.splice(i, 1); continue; }
+      const k = Math.min(1, t / .5), sc = (1 - Math.pow(1 - k, 3)) * .55, cx = w / 2, cy = h / 2 - 20, fade = t > 2.1 ? (2.6 - t) / .5 : 1;
       c.save(); c.globalAlpha = .9 * fade; c.translate(cx, cy); c.rotate((1 - k) * 6); c.scale(sc, sc);
       c.fillStyle = '#c9a227'; c.fillRect(-38, -170, 76, 340);
       const g = c.createRadialGradient(-30, -30, 10, 0, 0, 110); g.addColorStop(0, '#fff3b0'); g.addColorStop(.5, '#e2b93b'); g.addColorStop(1, '#8a6b12'); c.fillStyle = g; c.beginPath(); c.arc(0, 0, 105, 0, 6.283); c.fill();
@@ -4274,8 +4369,8 @@ function drawLux(c) {
       const spin = t * 25; c.strokeStyle = '#fff'; c.lineCap = 'round'; c.lineWidth = 5; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(spin / 12) * 42, Math.sin(spin / 12) * 42); c.stroke(); c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(spin) * 62, Math.sin(spin) * 62); c.stroke();
       if (t > .5 && t < 1.5) { const sx = -150 + (t - .5) * 300; c.save(); c.beginPath(); c.arc(0, 0, 105, 0, 6.283); c.clip(); c.fillStyle = 'rgba(255,255,255,.45)'; c.beginPath(); c.moveTo(sx, -120); c.lineTo(sx + 30, -120); c.lineTo(sx - 30, 120); c.lineTo(sx - 60, 120); c.fill(); c.restore(); }
       c.restore();
-      for (let j = 0; j < 16; j++) { const a = t - .4 - (j % 5) * .12; if (a < 0) continue; const x = W * (j + .5) / 16, y = -10 + a * a * 260 + (j % 3) * 18; if (y > H) continue; const gg = c.createRadialGradient(x - 3, y - 3, 1, x, y, 9); gg.addColorStop(0, '#fff6b0'); gg.addColorStop(1, '#c9961a'); c.fillStyle = gg; c.globalAlpha = fade; c.beginPath(); c.ellipse(x, y, 9 * Math.abs(Math.cos(a * 6 + j)) + 2, 9, 0, 0, 6.283); c.fill(); c.globalAlpha = 1; }
-      if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, ${f.name.toUpperCase()}! ⌚`, H - 40, 26); c.globalAlpha = 1; }
+      for (let j = 0; j < 16; j++) { const a = t - .4 - (j % 5) * .12; if (a < 0) continue; const x = w * (j + .5) / 16, y = -10 + a * a * 260 + (j % 3) * 18; if (y > h) continue; const gg = c.createRadialGradient(x - 3, y - 3, 1, x, y, 9); gg.addColorStop(0, '#fff6b0'); gg.addColorStop(1, '#c9961a'); c.fillStyle = gg; c.globalAlpha = fade; c.beginPath(); c.ellipse(x, y, 9 * Math.abs(Math.cos(a * 6 + j)) + 2, 9, 0, 0, 6.283); c.fill(); c.globalAlpha = 1; }
+      if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, ${f.name.toUpperCase()}! ⌚`, h - 40, 26, w); c.globalAlpha = 1; }
     }
   }
 }
@@ -4837,7 +4932,7 @@ const countLen = () => (net && G && (G.round === 1 || G.joinRound === G.round) ?
 function netPlayerFrom(pr, c) {
   const me = pr.isMe && pr.sameTab;
   return { id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
-      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', badges: me ? badgeIds(profile.eq, profile.owned) : presBadges(pr.presence), starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => ownsSlug(pr.presence.sl, x)).map(x => x.slice(3)).join(',') }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null };
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', badges: me ? badgeIds(profile.eq, profile.owned) : presBadges(pr.presence), starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: PM_KEYS.filter(x => ownsSlug(pr.presence.sl, x)).map(x => x.slice(3)).join(',') }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null };
 }
 // a real player who is waiting (accepted an invite, sat down in the lobby) takes a bot's seat at the start of the next round
 // a guest who went back to the menu, or whose connection has been gone for a few seconds, leaves the match at the next
@@ -5079,6 +5174,7 @@ function applyState(st, first) {
     const wasAlive = p.alive;
     { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
+    if (q.pk > (p.picks || 0) && p.picks != null && hasLux(p, 'ferrari') && p.ferrariRound !== G.round) { p.ferrariRound = G.round; luxStart('ferrari', p); } // a guest sees the host's pick-up as the count going up
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.sl) p.slug = q.sl;
     if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && (q.nc || q.cx)) { net.colorTold = true; setTimeout(() => showIgMsg(colorNote(p)), 300); } else if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null, ig: 1, watch: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (net && G && net.myId != null && (G.round > 1 || G.phase !== 'count')) { const meP = G.players.find(x => x.id === net.myId); showIgMsg(meP && meP.alive && G.phase === 'run' ? '🎮 Ti si u meču! Upravljaš svojom zmijom.' : G.phase === 'count' ? '🎮 Ti si u meču! Runda kreće za koji trenutak.' : '🎮 U meču si – svojom zmijom upravljaš <b>od sljedeće runde</b>.'); } }, 0); } }
@@ -5122,8 +5218,8 @@ function applyState(st, first) {
     if (G.phase === 'run') sfx.go();
     if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
     if (st.dr) announceDrop(st.dr);
-    if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
-    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
+    if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); if (hasLux(x, 'jet')) luxStart('jet', x); });
+    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { const champ = ranking()[0]; if (champ && hasLux(champ, 'fireworks')) luxStart('fireworks', champ); setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
     if (G.phase === 'count') { showOverlay(null); if (owner) owner.fill(0); }
   }
   if (first && G.phase === 'end') { if (G.over) setTimeout(() => { if (net && G && G.over) showResults(); }, 100); else showRoundBanner(); } // joining a finished match shows its results (Ready / Izađi), not a frozen arena
@@ -5554,7 +5650,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM };
 })();
 </script>
 
