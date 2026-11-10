@@ -143,9 +143,10 @@ button:disabled { cursor: default; opacity: .5; }
 .betrow button:disabled { opacity: .4; } .betrow .sep { width: 10px; }
 .tptabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .tptabs .tpx { margin-left: auto; } .tpt { flex: 1 1 auto; min-width: 0; border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 9px; padding: 7px 4px; font-weight: 700; font-size: 13px; } .tpt.on { color: #fff; border-color: #b48cff; background: #2b2050; } .tpx { border: 0; background: none; color: var(--muted); font-size: 20px; padding: 0 6px; }
 .micbtn { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 9px; padding: 0 10px; font-size: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
-.micbtn.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; } @keyframes recp { 50% { opacity: .6; } }
+.micbtn.rec, .chatsheet .micbtn.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; } @keyframes recp { 50% { opacity: .6; } }
 #voiceHint { position: fixed; left: 50%; top: max(64px, 14%); z-index: 80; transform: translate(-50%, -6px); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; display: flex; gap: 10px; align-items: center; min-width: min(86vw, 250px); max-width: 92vw; box-sizing: border-box; padding: 10px 14px 12px; border-radius: 16px; border: 2px solid var(--amber); background: color-mix(in srgb, var(--ink) 94%, transparent); box-shadow: 0 10px 28px rgba(0,0,0,.5); overflow: hidden; }
-#voiceHint.show { opacity: 1; transform: translate(-50%, 0); } #voiceHint.v-rec { border-color: #ff5d73; } #voiceHint.v-short { border-color: var(--muted); }
+#voiceHint.show { opacity: 1; transform: translate(-50%, 0); }
+#voiceHint.ingame { top: calc(env(safe-area-inset-top, 0px) + 3px); padding: 5px 12px 7px; gap: 8px; min-width: 0; border-width: 1px; border-radius: 999px; } #voiceHint.ingame .ve { font-size: 18px; } #voiceHint.ingame div { display: flex; flex-wrap: wrap; gap: 0 6px; align-items: baseline; } #voiceHint.ingame b { font-size: 14px; } #voiceHint.ingame small { margin-top: 0; font-size: 12px; } #voiceHint.ingame .vbar { height: 3px; } #voiceHint.v-rec { border-color: #ff5d73; } #voiceHint.v-short { border-color: var(--muted); }
 #voiceHint .ve { font-size: 26px; line-height: 1; } #voiceHint.v-rec .ve { animation: recp .8s infinite; } #voiceHint b { display: block; font-size: 16px; } #voiceHint small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
 #voiceHint .vbar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: #ff5d73; animation: vbar linear forwards; } @keyframes vbar { to { width: 100%; } }
 .vplay { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
@@ -514,6 +515,7 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .pads.ps-a .padtools { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .pads.ps-b .padtools { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); } .pads.ps-b .ptool .tg { font-size: 20px; } .pads.ps-b .ptool .tl { font-size: 10px; }
 .pads.ps-c .padmid { grid-template-rows: minmax(0, 1fr) minmax(0, 0.75fr); } .pads.ps-c .padtools { grid-template-columns: repeat(4, minmax(0, 1fr)); } .pads.ps-c .ptool .tl { display: none; } .pads.ps-c .ptool .tg { font-size: 26px; }
+.padmid .ptool, .qreact button { touch-action: none; }
 .qreact { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-height: 0; }
 .qreact button { min-width: 0; min-height: 0; border-radius: 999px; border: 2px solid color-mix(in srgb, var(--pc, var(--line)) 55%, var(--line)); background: var(--panel); font-size: 21px; line-height: 1; padding: 0; touch-action: manipulation; }
 .qreact button:active { transform: scale(.92); }
@@ -1382,7 +1384,7 @@ function openAll() {
   m.querySelector('.allgrid').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) navGo(b.dataset.go); };
 }
 // the chat, reachable from anywhere in the menu: text, quick lines and voice messages
-const CHAT_QUICK = ['Ajmo partiju! 🎮', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂', '🔊 Pojačajte zvuk da čujete glasovne!'];
+const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
 function openChat() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -2322,7 +2324,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'e5e3b7d93ee8';
+const BUILD = 'eb33bed1c7c1';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -4068,7 +4070,7 @@ function buildPads() {
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
       const zb = mkTool('prank', '😈', 'Zezalice', 'Zezalice'); zb.onclick = openTab('z');
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
-      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb, e.pointerId); });
+      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb, e.pointerId); }); mb.addEventListener('pointerup', voiceUp); mb.addEventListener('pointercancel', voiceUp);
       const rb = mkTool('react', '😀', 'Emotikoni', 'Emotikoni'); rb.onclick = openTab('r');
       tools.append(zb, cb, mb, rb);
       if (PAD_STYLE === 'b') { const qb = mkTool('quick', '⚡', 'Brze poruke: gg, bravo, revanš…', 'Brze'); qb.onclick = openTab('q'); const sb = mkTool('shot', '📸', 'Slikaj arenu i podijeli', 'Slikaj'); sb.onclick = (e) => { e.stopPropagation(); shareShot(); }; tools.append(qb, sb); }
@@ -4115,14 +4117,14 @@ function buildPads() {
 }
 const CHORD_MS = 250;
 const QUICK_REACT = ['😂', '🔥', '👏', '🥳']; // must be in REACTIONS, the others drop anything else
-const QUICK_MSG = ['🔊 Pojačajte zvuk da čujete glasovne!', 'gg 👏', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
+const QUICK_MSG = ['gg 👏', '🔊 Pojačajte zvuk! 🎤', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
 // players used to the old SKOK button: a notice over the pads for their first matches, until they have jumped the new way
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); toast('👍 Tako je! LIJEVO + DESNO odjednom = skok.'); } }
 let jumpTipAt = 0;
 function showJumpTip() {
   if (!IS_TOUCH || !setup.jump || lsGet('vijuga-chordok')) return;
-  if (performance.now() - jumpTipAt < 15000) return; // the pads are built more than once per start: one notice per match
+  if (jumpTipAt && performance.now() - jumpTipAt < 15000) return; // the pads are built more than once per start: one notice per match
   const n = Number(lsGet('vijuga-jumptip') || 0); if (n >= 3) return; lsSet('vijuga-jumptip', String(n + 1)); jumpTipAt = performance.now();
   document.querySelectorAll('.jumptip').forEach(x => x.remove());
   // measure the arrows themselves: in landscape the bar is display:contents and has no box of its own
@@ -5185,9 +5187,20 @@ function chatAutoHide() {
   if (!G) return; const ph = G.phase; if (ph === chatPhase) return; chatPhase = ph;
   if (ph === 'run' && chatOpen && IS_TOUCH && document.activeElement && document.activeElement.id !== 'gchatIn') setChatOpen(false);
 }
-function playVoice(src) { try { const au = new Audio(src); au.volume = 1; au.play().catch(() => toast('🔊 Dodirni ▶ u chatu da čuješ glasovnu poruku.')); } catch (e) {} }
+// auto: a message that just arrived (no tap); a ▶ in the chat plays the same clip on demand
+function playVoice(src, auto) {
+  try { const au = new Audio(src); au.volume = 1;
+    au.play().then(() => { if (auto) volumeHint(false); }, (err) => {
+      if (auto && err && err.name === 'NotAllowedError') volumeHint(true); // the browser wants a tap first
+      else if (!auto) toast('Ova glasovna poruka se ne može pustiti na ovom uređaju.'); });
+  } catch (e) {}
+}
 let volumeHinted = false;
-function volumeHint() { if (volumeHinted) return; volumeHinted = true; toast('🔊 Stigla je glasovna poruka. Pojačaj zvuk tipkama sa strane mobitela da je čuješ.'); }
+function volumeHint(blocked) {
+  if (volumeHinted) return; volumeHinted = true;
+  const up = IS_TOUCH ? 'pojačaj zvuk tipkama sa strane mobitela' : 'pojačaj zvuk na računalu';
+  toast(blocked ? `🔊 Stigla je glasovna poruka: dodirni ▶ u chatu i ${up}.` : `🔊 Stigla je glasovna poruka. Ako je ne čuješ, ${up}; ▶ u chatu je pušta ponovno.`);
+}
 function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; if (net) markChatSeen(); } updateUnread(); }
 function updateUnread() { document.querySelectorAll('.ptool.chat').forEach(b => b.classList.toggle('has', !!unread && !chatOpen)); const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
@@ -5199,37 +5212,61 @@ function sendChat(text) {
   const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
 }
 let recState = null;
-// what the microphone is doing, in one bubble: hold while talking, release to send (and why nothing was sent)
+// what the microphone is doing, in one bubble: hold while talking, release to send (and why nothing was sent).
+// In a match it is a slim pill over the top bar, so it never covers the arena; in the menu it floats near the top.
 const VOICE_MAX = 5000;
+const voiceEl = (() => { const el = document.createElement('div'); el.id = 'voiceHint'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); return el; })();
 function voiceHint(state, note) {
-  let el = $('#voiceHint'); if (!el) { el = document.createElement('div'); el.id = 'voiceHint'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
-  clearTimeout(el._h); if (!state) { el.className = ''; return; }
-  const T = { wait: ['🎙️', 'Drži dok govoriš', 'pusti za slanje'], perm: ['🎙️', 'Dopusti mikrofon', 'pa drži 🎤 dok govoriš i pusti za slanje'], rec: ['🔴', 'Snimam… drži dok govoriš', 'pusti za slanje · najviše 5 s'], send: ['📤', 'Šaljem…', ''], sent: ['✅', 'Poslano svima', 'neka pojačaju zvuk 🔊 da te čuju'], short: ['✋', 'Prekratko', 'drži 🎤 dok govoriš, pa pusti za slanje'], ready: ['✅', 'Mikrofon je uključen', 'sad drži 🎤 dok govoriš, pa pusti za slanje'] }[state];
+  const el = voiceEl; clearTimeout(el._h);
+  if (!state) { el.className = ''; el.setAttribute('aria-hidden', 'true'); return; }
+  const T = { wait: ['🎙️', 'Drži dok govoriš', 'pusti za slanje'], perm: ['🎙️', 'Dopusti mikrofon', 'pa drži 🎤 dok govoriš i pusti za slanje'], rec: ['🔴', 'Snimam… drži dok govoriš', 'pusti za slanje · najviše 5 s'], send: ['📤', 'Šaljem…', ''], sent: ['✅', 'Poslano svima', 'neka pojačaju zvuk 🔊 da te čuju'], alone: ['✅', 'Poslano', 'trenutno nitko drugi nije online'], short: ['✋', 'Prekratko', 'drži 🎤 dok govoriš, pa pusti za slanje'], ready: ['✅', 'Mikrofon je dopušten', 'sad drži 🎤 dok govoriš, pa pusti za slanje'] }[state];
+  const inGame = !$('#game').hidden;
   el.innerHTML = `<span class="ve">${T[0]}</span><div><b>${T[1]}</b>${note || T[2] ? `<small>${note || T[2]}</small>` : ''}</div>${state === 'rec' ? `<i class="vbar" style="animation-duration:${VOICE_MAX}ms"></i>` : ''}`;
-  el.className = 'show v-' + state;
-  if (state === 'sent' || state === 'short' || state === 'ready') el._h = setTimeout(() => { el.className = ''; }, state === 'ready' ? 3500 : 2200);
+  el.className = 'show v-' + state + (inGame ? ' ingame' : ''); el.removeAttribute('aria-hidden');
+  const life = { sent: inGame ? 1300 : 2200, alone: 2600, short: inGame ? 1400 : 2200, ready: 3500, perm: 8000, wait: 10000 }[state];
+  if (life) el._h = setTimeout(() => voiceHint(null), life);
+}
+let voiceWanted = false, voicePtr = null, voiceStarting = false, micGranted = false, voicePerm = null;
+function micError(e) {
+  const n = e && e.name;
+  if (n === 'NotAllowedError' || n === 'SecurityError') return IS_TOUCH ? 'Mikrofon nije dopušten. Dopusti ga u postavkama stranice (ikona lijevo od adrese; na iPhoneu aA → Postavke web-stranice).' : 'Mikrofon nije dopušten. Dopusti ga u postavkama stranice (ikona lijevo od adrese).';
+  if (n === 'NotReadableError' || n === 'AbortError') return 'Mikrofon trenutno koristi druga aplikacija (npr. poziv).';
+  if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'Ovaj uređaj nema mikrofon.';
+  return 'Snimanje nije uspjelo.';
 }
 async function startVoice(btn, ptrId) {
-  voiceWanted = true; voicePtr = ptrId == null ? null : ptrId;
-  if (profile && mutedUntil(profile.slug)) { voiceWanted = false; toast('🔇 Utišan si.'); return; }
-  if (recState || !navigator.mediaDevices || !window.MediaRecorder) { if (!window.MediaRecorder) toast('Ovaj preglednik ne snima zvuk.'); return; }
+  if (recState || voiceStarting) return; // one finger owns the mic: a second press does not take it over
+  if (profile && mutedUntil(profile.slug)) { toast('🔇 Utišan si.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toast('Ovaj preglednik ne snima zvuk.'); return; }
+  if (!roomNs) { toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
+  voiceWanted = true; voicePtr = ptrId == null ? null : ptrId; voiceStarting = true;
+  try { if (ptrId != null) btn.setPointerCapture(ptrId); } catch (e) {}
   voiceHint('wait'); const asked = performance.now();
+  // is the browser going to ask for permission? (read in parallel: nothing may be awaited before getUserMedia)
+  voicePerm = micGranted ? 'granted' : null;
+  try { if (!micGranted && navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: 'microphone' }).then(st => { if (st && !micGranted) voicePerm = st.state; }, () => {}); } catch (e) {}
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true } }); }
+  catch (e) { voiceStarting = false; voiceWanted = false; voiceHint(null); toast(micError(e)); return; }
+  voiceStarting = false; const wasAsked = voicePerm === 'prompt' || (voicePerm == null && !micGranted && performance.now() - asked > 700); micGranted = true;
+  if (!voiceWanted) { // let go before the microphone was ready: the first time that is the browser asking for permission
+    stream.getTracks().forEach(t => t.stop()); voiceHint(wasAsked ? 'ready' : 'short'); return; }
+  let mr;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true } });
-    if (!voiceWanted || recState) { // let go before the microphone was ready: the first time that is the browser asking for permission
-      stream.getTracks().forEach(t => t.stop()); if (!recState) voiceHint(performance.now() - asked > 700 ? 'ready' : 'short'); return; }
     const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
-    const mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 16000 } : { audioBitsPerSecond: 16000 });
-    const chunks = []; mr.ondataavailable = e => e.data.size && chunks.push(e.data);
-    mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' }); const ms = performance.now() - recState.t0; recState = null; btn.classList.remove('rec');
-      if (ms < 400) { voiceHint('short'); return; }
-      voiceHint('send');
-      const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 400000) { voiceHint(null); toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint('sent'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(blob); };
-    recState = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), VOICE_MAX) }; mr.start(); btn.classList.add('rec'); voiceHint('rec'); beep(880, .06, 'sine', .04);
-  } catch (e) { voiceHint(null); toast('Mikrofon nije dopušten. Dopusti ga u postavkama preglednika (lokot pored adrese).'); recState = null; }
+    mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 16000 } : { audioBitsPerSecond: 16000 });
+  } catch (e) { stream.getTracks().forEach(t => t.stop()); voiceWanted = false; voiceHint(null); toast('Ovaj preglednik ne može snimiti zvuk.'); return; }
+  const chunks = []; mr.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const rs = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), VOICE_MAX) };
+  mr.onstop = () => { clearTimeout(rs.timer); stream.getTracks().forEach(t => t.stop()); const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' }); const ms = performance.now() - rs.t0; if (recState === rs) recState = null; btn.classList.remove('rec'); voiceWanted = false;
+    if (ms < 400) { voiceHint('short'); return; }
+    if (!roomNs) { voiceHint(null); toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
+    voiceHint('send');
+    const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 400000) { voiceHint(null); toast('Poruka je preduga.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint(onlineOthers().length ? 'sent' : 'alone'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(blob); };
+  try { mr.start(); } catch (e) { clearTimeout(rs.timer); stream.getTracks().forEach(t => t.stop()); voiceWanted = false; voiceHint(null); toast('Ovaj preglednik ne može snimiti zvuk.'); return; }
+  recState = rs; btn.classList.add('rec'); voiceHint('rec'); beep(880, .06, 'sine', .04);
 }
-let voiceWanted = false, voicePtr = null;
-function stopVoice() { const was = voiceWanted; voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } else if (was && !recState) { const el = $('#voiceHint'); if (el && el.classList.contains('v-wait')) voiceHint('perm'); } }
+function stopVoice() { const was = voiceWanted; voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } else if (was && !recState && voiceEl.classList.contains('v-wait') && (voicePerm === 'prompt' || (voicePerm == null && !micGranted))) voiceHint('perm'); }
 // the lobby redraws its chat often, so a release anywhere ends the recording, but only the finger that holds the mic:
 // in a match the other thumb keeps steering, and letting go of LIJEVO / DESNO must not cut the message
 const voiceUp = (e) => { if (!(voiceWanted || recState)) return; if (voicePtr != null && e.pointerId !== voicePtr) return; stopVoice(); };
@@ -5238,7 +5275,7 @@ function wireChat(inSel, btnSel) {
   const i = $(inSel), b = $(btnSel); if (!i) return;
   if (b && !b.parentNode.querySelector('.micbtn')) {
     const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'micbtn'; mic.textContent = '🎤'; mic.title = 'Drži dok govoriš, pusti za slanje (do 5 s)'; mic.setAttribute('aria-label', 'Glasovna poruka');
-    mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(mic, e.pointerId); }); mic.addEventListener('contextmenu', e => e.preventDefault());
+    mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(mic, e.pointerId); }); mic.addEventListener('pointerup', voiceUp); mic.addEventListener('pointercancel', voiceUp); mic.addEventListener('contextmenu', e => e.preventDefault());
     b.parentNode.insertBefore(mic, b);
   }
   const go = () => { sendChat(i.value); i.value = ''; if (!$('#game').hidden) i.blur(); }; // in a match the keys must steer again right after sending
@@ -5255,7 +5292,7 @@ function collectChat() {
     // only a plain base64 audio data URL is accepted: it is placed into HTML attributes, so no other characters may get through
     const audio = typeof m[3] === 'string' && /^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 420000 ? m[3] : null;
     if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, cc: typeof m[4] === 'string' && EFFECTS[m[4]] && EFFECTS[m[4]].kind === 'cc' ? m[4] : '', me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
-    if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) { playVoice(audio); volumeHint(); }
+    if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio, true);
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
   for (const p of roomState.peers) {
