@@ -162,6 +162,12 @@ button:disabled { cursor: default; opacity: .5; }
 .goldname { color: #ffd23f; text-shadow: 0 0 8px rgba(255,210,63,.7); font-weight: 800; }
 .ptitle { display: inline-block; margin-left: 6px; font-size: 11px; font-style: italic; color: #b48cff; font-weight: 600; }
 .vipmsg { color: #ffd23f; }
+.ccfire { background: linear-gradient(0deg, #ff3b00, #ffb000 60%, #fff3a0); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800; }
+.ccrain { background: linear-gradient(90deg, #ff3b3b, #ffb000, #ffe600, #3ddc97, #4cc9f0, #b48cff, #ff4fd8); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; }
+.ccdisco { font-weight: 700; color: #ff2fb3; animation: ccdisco 1.2s steps(6) infinite; }
+@keyframes ccdisco { 0% { color: #ff2fb3; } 17% { color: #ffe600; } 33% { color: #39ff14; } 50% { color: #00f0ff; } 67% { color: #b48cff; } 83% { color: #ff6a00; } }
+@media (prefers-reduced-motion: reduce) { .ccdisco { animation: none; } }
+.ccs { font-weight: 700; font-size: 17px; }
 .premiumbox { border: 1px solid rgba(255,210,63,.45); background: linear-gradient(180deg, rgba(255,210,63,.08), transparent); border-radius: 14px; padding: 12px; }
 .roomlink { color: var(--amber); font-size: 14px; } .treasury { border: 1px dashed #ffd23f; border-radius: 10px; padding: 8px 12px; } .treasury b { color: #ffd23f; }
 .uniquebox { border: 1px solid rgba(180,140,255,.5); background: linear-gradient(180deg, rgba(180,140,255,.12), transparent); border-radius: 14px; padding: 12px; }
@@ -257,6 +263,10 @@ button:disabled { cursor: default; opacity: .5; }
 .wrow { display: flex; flex-wrap: wrap; gap: 6px; }
 .wchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--ink); border-radius: 10px; padding: 5px 9px; font-weight: 600; font-size: 14px; }
 .wchip.on { border-color: var(--amber); color: var(--amber); }
+.prlist { display: grid; gap: 6px; } .pritem { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); background: color-mix(in srgb, var(--amber) 7%, var(--ink)); border-radius: 10px; padding: 7px 10px; }
+.pritem em { font-style: normal; font-size: 24px; } .pritem b { display: block; font-size: 14px; } .pritem small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.3; } .pritem i { font-style: normal; color: var(--good); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pushnag { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); background: color-mix(in srgb, var(--amber) 10%, var(--panel)); border-radius: 12px; padding: 9px 12px; font-size: 14px; }
+.pushnag span { flex: 1 1 200px; } .pushnag .x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 2px 6px; }
 .wchip em { font-style: normal; font-size: 18px; } .wchip i { font-style: normal; }
 .wchip canvas.wprev { width: 56px; height: 16px; border-radius: 4px; }
 .me button#profBtn { color: var(--fg); }
@@ -312,6 +322,14 @@ button.pu:hover { border-color: var(--line); }
 .rules li::marker { color: var(--amber); }
 .new { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--amber); border: 1px solid var(--amber); border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
 .badge { display: inline-block; font-size: .95em; margin-left: 3px; }
+.badges { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; vertical-align: middle; margin-left: 3px; } .badges .badge { margin-left: 0; }
+.ticker { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px; font-size: 12.5px; color: var(--muted); padding: 2px 4px; font-variant-numeric: tabular-nums; }
+.ticker .tl { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--good); }
+.ticker .tk, .gticker .tk { white-space: nowrap; } .ticker .tk b { color: #f7931a; } .ticker .tk.w b { color: #7fd4ff; }
+.gticker { position: absolute; top: 6px; right: 8px; display: flex; gap: 8px; font-size: 11px; color: rgba(233,239,246,.62); pointer-events: none; z-index: 2; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.gticker .tk b { color: rgba(247,147,26,.8); } .gticker .tk.w b { color: rgba(127,212,255,.8); }
+@media (max-width: 520px) { .gticker .tk:nth-child(n+3) { display: none; } }
+@media (max-width: 520px) { #scores .badges .badge:nth-child(n+3) { display: none; } } /* the narrow HUD keeps two icons; the arena shows them all */
 
 /* shop */
 .shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; }
@@ -320,6 +338,7 @@ button.pu:hover { border-color: var(--line); }
 .item .prev { height: 44px; border-radius: 6px; background: var(--slate); display: grid; place-items: center; overflow: hidden; }
 .item .prev canvas { width: 100%; height: 44px; display: block; }
 .item .prev .ic { font-size: 28px; }
+.item .prev .ic .wbd { font-size: 20px; } .wchip em .wbd { font-size: 15px; }
 .item .prev canvas.bgprev { width: 100%; height: 84px; display: block; }
 .item.pic .prev { height: 84px; } .item.pic .prev .ic { font-size: 56px; line-height: 1; }
 .cbd { display: inline-flex; align-items: center; gap: .25em; padding: 0 .5em; border-radius: 999px; border: 1px solid var(--cc); color: var(--cc); background: rgba(11,18,27,.6); font: 700 .74em/1.5 "Barlow Semi Condensed", sans-serif; vertical-align: .08em; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -594,6 +613,8 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="me" id="me"></div>
       </header>
       <div class="onhero" id="onbar" aria-live="polite"></div>
+      <div class="ticker" id="ticker" aria-label="Kripto i vrijeme uživo"></div>
+      <div class="pushnag" id="pushNag" hidden></div>
       <button type="button" class="chatteaser" id="chatTeaser" data-go="chat"><span class="cti">💬</span><span class="ctx"><b>Chat <i class="cunread" hidden></i></b><span id="chatTeaserTxt">Pozdravi ekipu: napiši prvu poruku ili snimi glasovnu 🎤</span></span><span class="ctgo">Piši</span></button>
       <canvas id="preview" aria-hidden="true"></canvas>
 
@@ -638,7 +659,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       </div>
 
       <div class="tab" id="tab-shop" hidden>
-        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
+        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
         <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
@@ -647,12 +668,14 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
         <div class="localbox" data-cat="tags"><h2>🏷️ Tagovi mjesta <small>natpis tvog mjesta uz ime (Grebaštica, Bilice, Žaborić, Brodarica, Šibenik), svaki samo 2 komada</small></h2><div class="shop" id="shopTags"></div></div>
-        <div class="premiumbox" data-cat="crypto"><h2>₿ Kripto ikone <small>živa cijena (USD) stoji uz tvoje ime u predvorju, na ploči i iznad zmije dok igraš</small></h2><div class="shop" id="shopCrypto"></div></div>
+        <div class="premiumbox" data-cat="crypto"><h2>₿ Kripto ikone <small>ograničeno: od svake samo 5 komada. Živa cijena (USD) stoji uz tvoje ime u predvorju, na ploči i iznad zmije dok igraš</small></h2><div class="shop" id="shopCrypto"></div></div>
+        <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Možeš nositi do 4 ikone odjednom</small></h2><div class="shop" id="shopWeather"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div></div>
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
+        <div data-cat="chatc"><h2>🎨 Boje slova u chatu <small>kričavo roza, neon, duga, disko: tvoje poruke svi vide u toj boji</small></h2><div class="shop" id="shopChat"></div></div>
         <div data-cat="trolls"><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><p class="hint trollhelp">Zezalica je mala šala koju u online meču pošalješ drugom igraču: njemu se nakratko nešto dogodi na ekranu (trese se, zamrači, okrene, padaju kakice…). Ti i ostali iznad njegove zmije vidite znak zezalice dok traje. Stisni <b>ℹ️ Kako izgleda</b> na svakoj da vidiš što točno dobije. 🛡️ Štit odbija jednu zezanciju.</p><div class="shop" id="shopTrolls"></div></div>
         <div class="notice" id="shopEmpty" hidden>Ovdje nema ničega za odabrani filtar ili pretragu. <button type="button" class="btn sm" id="shopEmptyAll" style="margin-left:8px">Prikaži sve</button></div>
       </div>
@@ -716,6 +739,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
       <div id="trollPop" hidden role="dialog" aria-label="Zezalice"></div>
       <div id="igMsgs" aria-live="polite"></div>
+      <div class="gticker" id="gTicker" aria-hidden="true"></div>
       <div id="gchat" hidden><div class="gchead"><b>Chat</b><button type="button" id="gchatBig" aria-label="Cijela povijest">⤢</button><button type="button" id="gchatX" aria-label="Zatvori chat">×</button></div><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
     <div class="specbar" id="specBar" hidden></div>
@@ -808,22 +832,30 @@ const SKINS = {
   sk_funcuti: { name: 'Funcuti 🟠⚫', d: 'NAVIJAČKI: crno-narančasti trag Šibenskih Funcuta, kao navijački šal', price: 1200, fan: true },
   sk_hajduk:  { name: 'Hajduk ⚪', d: 'NAVIJAČKI: čisti bijeli trag, boja Hajduka', price: 1200, fan: true },
   sk_dinamo:  { name: 'Dinamo 🔵', d: 'NAVIJAČKI: posebna modra boja Dinama s plavim sjajem', price: 1200, fan: true },
-  sk_dildo:   { name: 'Dildo', d: 'Ružičasti, debeli trag s glavicom. Za odrasle.', price: 150 },
-  sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
-  sk_boobs:   { name: 'Dojke', d: 'Trag boje kože s parovima dojki. Za odrasle.', price: 160 },
-  sk_condom:  { name: 'Kondom', d: 'Prozirni trag s rezervoarom na vrhu. Za odrasle.', price: 160 },
-  sk_hairy:   { name: 'Dlakava jaja', d: 'Koža s dlakama, na glavi dvije dlakave kugle. Za odrasle.', price: 170 },
+  sk_glowdash:{ name: 'Svjetleće crtice ✨', d: 'Svaka druga crtica svijetli u tvojoj boji', price: 260 },
+  sk_blink:   { name: 'Pali-gasi 💡', d: 'Trag je niz lampica koje se pale i gase', price: 420 },
+  sk_xmas:    { name: 'Božićni 🎄', d: 'Zelena girlanda s lampicama u bojama koje trepere, a na čelu Djed Božićnjak', price: 600 },
+  sk_fart:    { name: 'Prdonja 💨', d: 'Za sobom pušta oblačiće prdeža. Prrrt!', price: 300 },
+  sk_centi:   { name: 'Stonoga 🐛', d: 'Trag s nožicama i glava s ticalima, kao prava stonoga', price: 380 },
 };
 // an animated icon lives on a small canvas wherever a badge is shown in the page; the same routine draws it in the arena
 const CBD = (sym, glyph, col) => '<span class="cbd" data-c="' + sym + '" style="--cc:' + col + '"><span class="cg">' + glyph + '</span><span class="cp">…</span></span>';
 const TAGB = (t, c) => '<span class="tagbd" style="background:' + c + '">' + t + '</span>';
 const ABD = (k) => '<canvas class="abd" data-a="' + k + '" width="56" height="56" aria-hidden="true"></canvas>';
+// weather icons: real current weather (Open-Meteo) for a few Croatian cities
+const WX = {
+  sib: { n: 'Šibenik', lat: 43.735, lon: 15.895 }, zg: { n: 'Zagreb', lat: 45.815, lon: 15.982 }, st: { n: 'Split', lat: 43.508, lon: 16.440 },
+  ri: { n: 'Rijeka', lat: 45.327, lon: 14.442 }, zd: { n: 'Zadar', lat: 44.119, lon: 15.231 }, os: { n: 'Osijek', lat: 45.555, lon: 18.695 }, du: { n: 'Dubrovnik', lat: 42.650, lon: 18.094 },
+};
+const WBD = (k) => '<span class="cbd wbd" data-w="' + k + '" style="--cc:#7fd4ff"><span class="cg">' + WX[k].n + '</span><span class="cp">…</span></span>';
+const WXB = (k, price) => ({ g: WX[k].n, wx: k, col: '#7fd4ff', svg: WBD(k), name: 'Vrijeme: ' + WX[k].n, d: `VRIJEME: prava temperatura, kiša i vjetar u gradu ${WX[k].n} uz tvoje ime, uživo`, price });
 const BADGES = {
   bd_none:  { g: '', name: 'Bez ikone', d: '', price: 0 },
-  bd_c_btc: { g: '₿', crypto: 'BTC', col: '#f7931a', svg: CBD('BTC', '₿', '#f7931a'), name: 'Bitcoin (BTC)', d: 'KRIPTO: živa cijena Bitcoina stoji uz tvoje ime dok igraš', price: 2500 },
-  bd_c_eth: { g: 'Ξ', crypto: 'ETH', col: '#7b8ff7', svg: CBD('ETH', 'Ξ', '#7b8ff7'), name: 'Ethereum (ETH)', d: 'KRIPTO: živa cijena Ethereuma stoji uz tvoje ime dok igraš', price: 2000 },
-  bd_c_xrp: { g: '✕', crypto: 'XRP', col: '#28b7f0', svg: CBD('XRP', '✕', '#28b7f0'), name: 'XRP', d: 'KRIPTO: živa cijena XRP-a stoji uz tvoje ime dok igraš', price: 1500 },
-  bd_c_sol: { g: '◎', crypto: 'SOL', col: '#14f195', svg: CBD('SOL', '◎', '#14f195'), name: 'Solana (SOL)', d: 'KRIPTO: živa cijena Solane stoji uz tvoje ime dok igraš', price: 1800 },
+  bd_c_btc: { g: '₿', crypto: 'BTC', col: '#f7931a', svg: CBD('BTC', '₿', '#f7931a'), name: 'Bitcoin (BTC)', d: 'KRIPTO, OGRANIČENO: živa cijena Bitcoina uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 2500 },
+  bd_c_eth: { g: 'Ξ', crypto: 'ETH', col: '#7b8ff7', svg: CBD('ETH', 'Ξ', '#7b8ff7'), name: 'Ethereum (ETH)', d: 'KRIPTO, OGRANIČENO: živa cijena Ethereuma uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 2000 },
+  bd_c_xrp: { g: '✕', crypto: 'XRP', col: '#28b7f0', svg: CBD('XRP', '✕', '#28b7f0'), name: 'XRP', d: 'KRIPTO, OGRANIČENO: živa cijena XRP-a uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 1500 },
+  bd_c_sol: { g: '◎', crypto: 'SOL', col: '#14f195', svg: CBD('SOL', '◎', '#14f195'), name: 'Solana (SOL)', d: 'KRIPTO, OGRANIČENO: živa cijena Solane uz tvoje ime dok igraš. Samo 5 komada', limit: 5, price: 1800 },
+  bd_w_sib: WXB('sib', 900), bd_w_zg: WXB('zg', 900), bd_w_st: WXB('st', 900), bd_w_ri: WXB('ri', 900), bd_w_zd: WXB('zd', 900), bd_w_os: WXB('os', 900), bd_w_du: WXB('du', 900),
   bd_a_fire:  { g: '🔥', anim: 'fire',  premium: true, svg: ABD('fire'),  name: 'Vatra koja gori', d: 'ANIMACIJA: plamen gori uz tvoje ime i iznad zmije. Rijetko ispadne iz kutije', price: 7000 },
   bd_a_ski:   { g: '⛷️', anim: 'ski',   premium: true, svg: ABD('ski'),   name: 'Skijaš skakač', d: 'ANIMACIJA: skijaš se spušta zaletištem i leti. Rijetko ispadne iz kutije', price: 7500 },
   bd_a_graph: { g: '📈', anim: 'graph', premium: true, svg: ABD('graph'), name: 'Graf koji raste', d: 'ANIMACIJA: stupci i strelica idu samo gore. Rijetko ispadne iz kutije', price: 7000 },
@@ -865,11 +897,6 @@ const BADGES = {
   bd_boat:  { g: '⛵', name: 'Brodić', d: 'Za mornare', price: 120 },
   bd_dog:   { g: '🐶', name: 'Psić', d: 'Najbolji prijatelj', price: 120 },
   bd_comet: { g: '☄', name: 'Komet', d: 'RIJETKO: samo 3 igrača je mogu imati.', price: 700, limit: 3 },
-  bd_ucross: { g: '⁺U', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M4 9v7a6 6 0 0 0 12 0V9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 1v6M7 4h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', name: 'U s križem', d: 'Veliko U, križić na vrhu', price: 200 },
-  bd_vag:   { g: '◊', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>', name: 'Vagina', d: 'Ikona za odrasle', price: 120 },
-  bd_boobs: { g: '(.)(.)', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="11" r="1.5" fill="currentColor"/><circle cx="17" cy="11" r="1.5" fill="currentColor"/></svg>', name: 'Dojke', d: 'Ikona za odrasle', price: 120 },
-  bd_hairy: { g: '∞', svg: '<svg width="1.1em" height="1em" viewBox="0 0 24 20" aria-hidden="true" style="vertical-align:-0.12em"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', name: 'Dlakava jaja', d: 'Ikona za odrasle', price: 130 },
-  bd_condom: { g: '∩', svg: '<svg width="0.9em" height="1.1em" viewBox="0 0 20 24" aria-hidden="true" style="vertical-align:-0.15em"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>', name: 'Kondom', d: 'Ikona za odrasle', price: 120 },
 };
 const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
 const STARTER_PRICE = { s: 110, o: 170 };
@@ -909,9 +936,11 @@ const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
 function itemPrice(id) { return (PREMIUM[id] && PREMIUM[id].price) || (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
-const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, bg_kat: 2500 };
+const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, bg_kat: 2500,
+  // adult items, removed for a wider audience
+  sk_dildo: 150, sk_vag: 160, sk_boobs: 160, sk_condom: 160, sk_hairy: 170, bd_ucross: 200, bd_vag: 120, bd_boobs: 120, bd_hairy: 130, bd_condom: 120 };
 function refundRetired(P) {
-  for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; if (P.eq && P.eq.bg === id) P.eq.bg = ''; P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
+  for (const id in RETIRED_PU) if ((P.owned || []).includes(id)) { P.owned = P.owned.filter(x => x !== id); P.coins = (Number(P.coins) || 0) + RETIRED_PU[id]; if (P.eq && P.eq.pu === id) P.eq.pu = ''; if (P.eq && P.eq.bg === id) P.eq.bg = ''; if (P.eq && P.eq.skin === id) P.eq.skin = 'sk_none'; if (P.eq && P.eq.badge === id) P.eq.badge = 'bd_none'; if (P.eq && Array.isArray(P.eq.bx)) P.eq.bx = P.eq.bx.filter(x => x !== id); P.refunded = (P.refunded || 0) + RETIRED_PU[id]; }
   return P;
 }
 function backfillSpend(P) {
@@ -960,6 +989,7 @@ function mergeOntoServer(srv, loc, base) {
   for (const id of mine) if (!had.has(id) && !srv.owned.includes(id)) srv.owned.push(id); // what this device got is kept
   srv.inv = Object.assign({}, srv.inv || {}); for (const k of new Set([...Object.keys(loc.inv || {}), ...Object.keys(base.inv || {})])) { const d = (Number((loc.inv || {})[k]) || 0) - (Number((base.inv || {})[k]) || 0); if (d) { const v = Math.max(0, (Number(srv.inv[k]) || 0) + d); if (v) srv.inv[k] = v; else delete srv.inv[k]; } }
   srv.eq = Object.assign({}, srv.eq || {}, loc.eq || {}); // the look chosen on this device
+  if (Array.isArray(srv.eq.bx)) srv.eq.bx = srv.eq.bx.filter(id => srv.owned.includes(id) && BADGES[id]).slice(0, BX_MAX - 1);
   for (const slot of ['skin', 'badge', 'bg', 'pu']) if (srv.eq[slot] && !['sk_none', 'bd_none', ''].includes(srv.eq[slot]) && !srv.owned.includes(srv.eq[slot])) srv.eq[slot] = slot === 'skin' ? 'sk_none' : slot === 'badge' ? 'bd_none' : '';
   return srv;
 }
@@ -1068,16 +1098,18 @@ function showPlayer(slug) {
     ${achBtnHtml(P)}
     <h4>Kolekcija <small>✓ = trenutno koristi</small></h4>
     <span class="label">Tragovi</span><div class="wrow">${skins.map(k => chip(P.eq.skin === k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('') || none}</div>
-    <span class="label">Ikone</span><div class="wrow">${badges.map(k => chip(P.eq.badge === k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('') || none}</div>
+    <span class="label">Ikone <small>nosi ih do ${BX_MAX} odjednom</small></span><div class="wrow">${badges.map(k => chip(badgeIds(P.eq).includes(k), BADGES[k].name, `<em>${badgeGlyph(k) || '—'}</em>`)).join('') || none}</div>
     <span class="label">Početni power-upovi</span><div class="wrow">${pus.map(k => chip(P.eq.pu === k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('') || none}</div>
-    <span class="label">Efekti</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
+    <span class="label">Efekti i boja chata</span><div class="wrow">${Object.keys(EFFECTS).filter(k => P.owned.includes(k)).map(k => chip(P.eq[EFFECTS[k].kind] === k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('') || none}</div>
+    <span class="label">Pozadine arene</span><div class="wrow">${Object.keys(PREMIUM).filter(k => PREMIUM[k].bg && P.owned.includes(k)).map(k => chip(P.eq.bg === k, PREMIUM[k].name.replace('Arena: ', ''), `<em>${PREMIUM[k].e}</em>`)).join('') || none}</div>
+    <span class="label">Premium i luksuz</span>${premiumListHtml(P)}
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
     ${myRole() === 'master' ? `<div class="rolepick"><b>Uloga</b>${[['', 'Igrač'], ['moderator', '🛡️ Moderator'], ['turnir', '🏆 Voditelj turnira'], ['admin', '⭐ Admin']].map(([k, n]) => `<button type="button" class="rp ${roleOfSlug(P.slug) === k ? 'on' : ''}" data-r="${k}">${n}</button>`).join('')}</div>` : ''}
     ${myRole() === 'master' ? `<div class="rolepick"><b>Pokloni</b><button type="button" class="rp" id="pGrant">💰 Zlatnici</button><button type="button" class="rp" id="pGrantItem">🎁 Zezalica</button></div>` : ''}
     ${canMute() && roleOfSlug(P.slug) !== 'master' ? `<div class="rolepick"><b>Chat</b>${mutedUntil(P.slug) ? '<button type="button" class="mu" data-m="0">🔊 Ukini utišavanje</button>' : [[10, '🔇 10 min'], [60, '🔇 1 h'], [1440, '🔇 1 dan']].map(([m, n]) => `<button type="button" class="mu" data-m="${m}">${n}</button>`).join('')}</div>` : ''}
     ${myRole() === 'master' && roleOfSlug(P.slug) !== 'master' ? `<div class="rolepick"><b>Soba</b><button type="button" id="pKick" data-kick="${esc(P.slug)}" data-kn="${esc(P.name)}">${kickedSlug(P.slug) ? '↩️ Vrati u sobu' : '🚫 Izbaci iz sobe (5 min)'}</button></div>` : ''}
     ${['master', 'admin'].includes(myRole()) && raw.hasPin ? '<div class="rolepick"><b>Račun</b><button type="button" id="pReset">🔑 Obriši zaboravljeni PIN</button></div>' : ''}
-    <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${!online && profile ? '<button class="btn ghost" type="button" id="pPush">🔔 Pozovi obaviješću</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
+    <div class="go">${profile ? '<button class="btn ghost" type="button" id="pGift">🎁 Pokloni</button>' : ''}${profile ? '<button class="btn ghost" type="button" id="pPoke" title="Dobije obavijest na mobitel: vrati se u igru">👉 Bocni</button>' : ''}${watchable ? `<button class="btn" type="button" id="pWatch">👀 Gledaj</button>` : online ? `<button class="btn" type="button" id="pPing">🔔 Pozovi u igru</button>` : `<a class="btn wa" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pozovi na WhatsApp</a>`}<button class="btn ghost" type="button" id="pClose">Zatvori</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
   { const ab = m.querySelector('.achbtn'); if (ab) ab.onclick = (e) => { e.preventDefault(); showAchievements(P); }; }
@@ -1085,7 +1117,7 @@ function showPlayer(slug) {
   if ($('#pWatch')) $('#pWatch').onclick = () => { m.hidden = true; startSpectate(pe.peer); };
   if ($('#pPing')) $('#pPing').onclick = () => { m.hidden = true; sendPing(pe.peer); };
   if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
-  if ($('#pPush')) $('#pPush').onclick = () => pushInvite(P);
+  if ($('#pPoke')) $('#pPoke').onclick = () => pokePlayer(P, pe);
   m.querySelectorAll('.rp').forEach(b => b.onclick = async () => { const r = b.dataset.r; if (!confirm(r ? `Dati ulogu „${ROLE_INFO[r].n}” igraču ${P.name}?` : `Oduzeti ulogu igraču ${P.name}?`)) return; if (await roleCall('set', { target: P.slug, role: r })) { toast(r ? `${P.name} je sada ${ROLE_INFO[r].n}.` : `${P.name} više nema ulogu.`); showPlayer(P.slug); } });
   if ($('#pGrantItem')) $('#pGrantItem').onclick = async () => { const ids = Object.keys(TROLLS).concat('shield'); const id = String(prompt(`Koju zezalicu dati igraču ${P.name}?\n${ids.join(', ')}`, 'hearts') || '').trim(); if (!ids.includes(id)) { if (id) toast('Nepoznata zezalica.'); return; } const j = await roleCall('grant', { target: P.slug, item: id, note: `${profile.name} (admin): poklon` }); if (j) toast(`🎁 ${P.name} dobiva ${(TROLLS[id] || { name: 'Štit' }).name} pri sljedećem otvaranju igre.`); };
   if ($('#pGrant')) $('#pGrant').onclick = async () => { const v = Math.floor(Number(prompt(`Koliko zlatnika dati igraču ${P.name}? (1–50000)`, '500')) || 0); if (!v) return; const j = await roleCall('grant', { target: P.slug, amount: v, note: `${profile.name} (admin): bonus` }); if (j) toast(`💰 ${P.name} dobiva ${v} zlatnika pri sljedećem otvaranju igre.`); };
@@ -1100,6 +1132,16 @@ document.addEventListener('click', (e) => {
 });
 const GIFTS_API = 'https://vijuga.netlify.app/api/gifts';
 const PUSH_API = 'https://vijuga.netlify.app/api/push';
+const PUSH_BONUS = 300;
+function renderPushNag() {
+  const el = $('#pushNag'); if (!el) return;
+  let snooze = 0; try { snooze = Number(localStorage.getItem('vijuga-pushnag')) || 0; } catch (e) {}
+  const show = !!profile && !pushOn() && (pushSupported() || IS_IOS) && Date.now() > snooze;
+  el.hidden = !show; if (!show) return;
+  const bonus = !profile.owned.includes('x_pushbonus');
+  const h = `<span>🔔 <b>Uključi obavijesti</b>: kad te prijatelj bocne 👉 ili krene meč, dobiješ poruku na mobitel.${bonus ? ` Za uključivanje dobivaš <b>${PUSH_BONUS} zlatnika</b>.` : ''}</span><button class="btn sm" type="button" data-pushon="1">Uključi</button><button class="x" type="button" data-pushx="1" aria-label="Kasnije">×</button>`;
+  if (el.dataset.h !== h) { el.dataset.h = h; el.innerHTML = h; el.querySelector('[data-pushon]').onclick = () => enablePush(); el.querySelector('[data-pushx]').onclick = () => { try { localStorage.setItem('vijuga-pushnag', String(Date.now() + 3 * 864e5)); } catch (e) {} el.hidden = true; }; }
+}
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
 function pushOn() { try { return pushSupported() && Notification.permission === 'granted' && localStorage.getItem('vijuga-push-on') === (profile ? profile.slug : ''); } catch (e) { return false; } }
@@ -1115,13 +1157,24 @@ async function enablePush() {
     const r = await fetch(PUSH_API + '/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', sub: sub.toJSON() }) });
     if (!r.ok) { toast('Obavijesti nisu spremljene (' + r.status + ').'); return false; }
     try { localStorage.setItem('vijuga-push-on', profile.slug); } catch (e) {}
-    toast('🔔 Obavijesti uključene: pozivi i podsjetnik 15 min prije termina.'); renderOnbar(); return true;
+    if (!profile.owned.includes('x_pushbonus')) { profile.owned.push('x_pushbonus'); profile.coins += PUSH_BONUS; saveProfile(); toast(`🔔 Obavijesti uključene. Nagrada: +${PUSH_BONUS} zlatnika! Prijatelji te sad mogu bocnuti 👉`); }
+    else toast('🔔 Obavijesti uključene: pozivi, bocanja i podsjetnik 15 min prije termina.');
+    renderOnbar(); renderPushNag(); return true;
   } catch (e) { toast('Obavijesti nisu uspjele: ' + (e && e.message || e)); return false; }
 }
-async function pushInvite(P) {
+// premium and luxury things work by themselves (no choosing): a profile lists them with what they do, so everything is visible
+function premiumListHtml(P) {
+  const own = Object.keys(PREMIUM).filter(k => !PREMIUM[k].bg && P.owned.includes(k));
+  return own.length ? `<div class="prlist">${own.map(k => `<div class="pritem"><em>${PREMIUM[k].e}</em><div><b>${esc(PREMIUM[k].name)}</b><small>${esc(PREMIUM[k].d)}</small></div><i>✓ aktivno</i></div>`).join('')}</div>` : '<span class="hint">ništa još (Trgovina → Premium)</span>';
+}
+// a nudge: on the phone the other player gets "X te bocnuo! Vrati se u igru"; if they are in the room, they also see it there
+async function pokePlayer(P, pe) {
   if (!profile) { showLogin(); return; }
-  try { const r = await fetch(PUSH_API + '/invite', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, to: P.slug, auth: profile.pinHash || '' }) });
-    if (r.ok) toast(`🔔 Obavijest poslana igraču ${P.name}.`); else if (r.status === 404) toast(`${P.name} nema uključene obavijesti. Pošalji mu WhatsApp.`); else if (r.status === 429) toast('Pričekaj minutu prije ponovnog poziva.'); else toast('Nije poslano (' + r.status + ').');
+  if (pe) sendPing(pe.peer);
+  try { const r = await fetch(PUSH_API + '/invite', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, to: P.slug, auth: profile.pinHash || '', kind: 'poke' }) });
+    if (r.ok) toast(`👉 Bocnuo si igrača ${P.name}: dobio je obavijest na mobitel.`);
+    else if (r.status === 404) { if (!pe) notify(`${esc(P.name)} nema uključene obavijesti, pa bocanje nije stiglo na mobitel.`, { ms: 9000, actions: `<a class="pingbtn" target="_blank" rel="noopener" href="${comeBackLink(P.name)}">📲 Pošalji WhatsApp</a>` }); else toast(`👉 ${P.name} je bocnut u sobi (obavijesti na mobitelu nema uključene).`); }
+    else if (r.status === 429) toast('Pričekaj minutu prije ponovnog bocanja.'); else toast('Bocanje nije poslano (' + r.status + ').');
   } catch (e) { toast('Nema veze s poslužiteljem.'); }
 }
 function giftOptions(P) {
@@ -1278,8 +1331,8 @@ function showProfile() {
   const P = profile, wr = P.matches ? Math.round(100 * P.wins / P.matches) : 0;
   const stat = (k, v) => `<div class="pstat"><b>${v}</b><span>${k}</span></div>`;
   const ownedSkins = Object.keys(SKINS).filter(k => P.owned.includes(k));
-  const ownedBadges = Object.keys(BADGES).filter(k => P.owned.includes(k));
-  const ownedPu = STARTER_PU.filter(k => P.owned.includes(k));
+  const ownedBadges = Object.keys(BADGES).filter(k => P.owned.includes(k)), worn = badgeIds(P.eq, P.owned);
+  const ownedPu = STARTER_PU.filter(k => P.owned.includes(k)), ownedBgs = Object.keys(PREMIUM).filter(k => PREMIUM[k].bg && P.owned.includes(k));
   const chip = (kind, id, label, prev) => `<button type="button" class="wchip ${P.eq[kind] === id ? 'on' : ''}" data-kind="${kind}" data-id="${id}">${prev}<span>${esc(label)}</span>${P.eq[kind] === id ? '<i>✓</i>' : ''}</button>`;
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
@@ -1289,18 +1342,21 @@ function showProfile() {
     ${achBtnHtml(P)}
     <h4>Garderoba <small>dodirni da promijeniš</small></h4>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
-    <span class="label">Ikona uz ime</span><div class="wrow">${ownedBadges.map(k => chip('badge', k, BADGES[k].name, `<em>${BADGES[k].svg || BADGES[k].g || '—'}</em>`)).join('')}</div>
-    ${['te', 'ds', 'vs'].map(kind => { const own = Object.keys(EFFECTS).filter(k => EFFECTS[k].kind === kind && P.owned.includes(k)); return own.length ? `<span class="label">${{ te: 'Efekt traga', ds: 'Kad ispadneš', vs: 'Zvuk pobjede' }[kind]}</span><div class="wrow">${chip(kind, '', 'Bez', '<em>—</em>')}${own.map(k => chip(kind, k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('')}</div>` : ''; }).join('')}
+    <span class="label">Ikone uz ime <small>do ${BX_MAX} odjednom, poredane u red (broj = redoslijed). Dodirni da dodaš ili skineš</small></span><div class="wrow">${worn.length ? '<button type="button" class="wchip" data-kind="badgeclear" data-id="">✕<span>Skini sve</span></button>' : ''}${ownedBadges.filter(k => k !== 'bd_none').map(k => `<button type="button" class="wchip ${worn.includes(k) ? 'on' : ''}" data-kind="badge" data-id="${k}"><em>${badgeGlyph(k) || '—'}</em><span>${esc(BADGES[k].name)}</span>${worn.includes(k) ? '<i>' + (worn.indexOf(k) + 1) + '</i>' : ''}</button>`).join('') || '<span class="hint">nemaš ikona: kupi u Trgovini (Ikone, Vrijeme, Kripto…)</span>'}</div>
+    ${['te', 'ds', 'vs', 'cc'].map(kind => { const own = Object.keys(EFFECTS).filter(k => EFFECTS[k].kind === kind && P.owned.includes(k)); return own.length ? `<span class="label">${{ te: 'Efekt traga', ds: 'Kad ispadneš', vs: 'Zvuk pobjede', cc: 'Boja slova u chatu' }[kind]}</span><div class="wrow">${chip(kind, '', 'Bez', '<em>—</em>')}${own.map(k => chip(kind, k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('')}</div>` : ''; }).join('')}
+    ${ownedBgs.length ? `<span class="label">Pozadina arene <small>vide je svi kad si domaćin</small></span><div class="wrow">${chip('bg', '', 'Bez', '<em>—</em>')}${ownedBgs.map(k => chip('bg', k, PREMIUM[k].name.replace('Arena: ', ''), `<em>${PREMIUM[k].e}</em>`)).join('')}</div>` : ''}
+    <span class="label">Premium i luksuz <small>rade sami, uvijek uključeno</small></span>${premiumListHtml(P)}
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && (TROLLS[k] || k === 'shield')).map(([k, v]) => `<span style="padding:4px 9px;border:1px solid var(--line);border-radius:9px;font-size:13px">${(TROLLS[k] || { e: '🛡️' }).e} ${(TROLLS[k] || { name: 'Štit' }).name} ×${v}</span>`).join('') || '<span class="hint">ništa – kupi u Trgovini → Zezalice ili otvori kutiju</span>'}</div>
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
-    <p style="margin:0">${pushOn() ? '🔔 Obavijesti su uključene na ovom uređaju.' : '<button class="btn ghost sm" type="button" id="profPush">🔔 Uključi obavijesti (pozivi i podsjetnici)</button>'}</p>
+    ${pushOn() ? '<p style="margin:0">🔔 Obavijesti su uključene na ovom uređaju: prijatelji te mogu bocnuti 👉 kad krene meč.</p>' : `<div class="refbox pushbox"><b>🔔 Uključi obavijesti${P.owned.includes('x_pushbonus') ? '' : ` i dobij ${PUSH_BONUS} zlatnika`}</b><span>Kad te netko <b>bocne 👉</b> ili pozove na meč, dobiješ poruku na mobitel, čak i kad Vijuga nije otvorena. Bez reklama, samo pozivi i podsjetnici za turnir.</span><div class="row"><button class="btn sm" type="button" id="profPush">🔔 Uključi obavijesti</button></div></div>`}
     ${myRole() === 'master' ? '<div class="rolepick"><b>Master</b><button type="button" id="profGrantAll">💰 Pokloni zlatnike svim igračima</button></div>' : ''}
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
   { const ab = m.querySelector('.achbtn'); if (ab) ab.onclick = (e) => { e.preventDefault(); showAchievements(P); }; }
-  m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { const sc = m.querySelector('.profile'), y = sc ? sc.scrollTop : 0; profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; }); // stay where you were, only the choice changes
+  m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { if (!b.dataset.kind) return; const sc = m.querySelector('.profile'), y = sc ? sc.scrollTop : 0;
+    if (b.dataset.kind === 'badgeclear') setBadges([]); else if (b.dataset.kind === 'badge') { if (badgeIds(profile.eq, profile.owned).includes(b.dataset.id)) unwearBadge(b.dataset.id); else wearBadge(b.dataset.id); } else profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; }); // stay where you were, only the choice changes
   $('#profClose').onclick = () => { m.hidden = true; };
   if ($('#profGrantAll')) $('#profGrantAll').onclick = () => grantAll();
   if ($('#profInvite')) $('#profInvite').onclick = () => shareInvite();
@@ -1321,7 +1377,7 @@ function showLogin() {
   const who = $('#who');
   list.forEach(a => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'whobtn';
-    b.innerHTML = `<span class="av" style="background:${COLORS[a.color] || COLORS[0]}">${esc(a.name.slice(0, 1).toUpperCase())}</span><span><b>${esc(a.name)}</b>${badgeGlyph(a.eq.badge) ? '<span class="badge">' + badgeGlyph(a.eq.badge) + '</span>' : ''}<small>● ${a.coins} · ${a.wins} pobj.${a.pinHash || a.hasPin ? ' · PIN' : ''}</small></span>`;
+    b.innerHTML = `<span class="av" style="background:${COLORS[a.color] || COLORS[0]}">${esc(a.name.slice(0, 1).toUpperCase())}</span><span><b>${esc(a.name)}</b>${badgeOf(a)}<small>● ${a.coins} · ${a.wins} pobj.${a.pinHash || a.hasPin ? ' · PIN' : ''}</small></span>`;
     b.onclick = () => pickAccount(a);
     who.appendChild(b);
   });
@@ -1418,24 +1474,31 @@ function skinPreview(cv, skinId, color) {
   c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h);
   c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round';
   applySkin(c, skinId, color, 3, 0);
-  if (skinId === 'sk_dildo') { c.fillStyle = '#e98aa6'; c.beginPath(); c.arc(12, h / 2 - 6, 6, 0, 6.283); c.arc(12, h / 2 + 6, 6, 0, 6.283); c.fill(); }
-  const xe = ['sk_dildo', 'sk_vag', 'sk_boobs', 'sk_condom', 'sk_hairy'].includes(skinId) ? w - 26 : w - 10;
+  const xe = w - 10;
   c.beginPath(); for (let x = 10; x <= xe; x += 4) { const y = h / 2 + Math.sin(x / 22) * 12; if (x === 10) c.moveTo(x, y); else c.lineTo(x, y); }
   c.stroke();
-  if (skinId === 'sk_dildo') { const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawDildoHead(c, xe, y, a, 3.6); }
-  if (skinId === 'sk_vag' || skinId === 'sk_boobs' || skinId === 'sk_condom' || skinId === 'sk_hairy') { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { ornAcc: 20 }); const y = h / 2 + Math.sin(xe / 22) * 12, a = Math.atan2(Math.cos(xe / 22) * 12 / 22, 1); drawSkinHead(c, skinId, xe, y, a, 3.4); }
+  if (['sk_glowdash', 'sk_blink', 'sk_xmas', 'sk_fart', 'sk_centi', 'sk_gold'].includes(skinId)) { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { preview: true, color, decoAcc: 30 }); }
 }
-function drawDildoHead(c, x, y, a, r) {
-  c.save(); c.translate(x, y); c.rotate(a);
-  c.shadowBlur = 0; c.setLineDash([]);
-  c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2.9; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 3, 0); c.lineTo(r * 0.6, 0); c.stroke();
-  c.fillStyle = '#e8809f'; c.beginPath(); c.ellipse(r * 0.9, 0, r * 0.9, r * 1.85, 0, 0, 6.283); c.fill();
-  c.fillStyle = '#f6adc4'; c.beginPath(); c.ellipse(r * 1.9, 0, r * 2.1, r * 1.6, 0, 0, 6.283); c.fill();
-  c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.ellipse(r * 2.4, -r * 0.5, r * 0.7, r * 0.35, 0, 0, 6.283); c.fill();
-  c.restore();
+const BX_MAX = 4;
+// the icons someone wears, the main one first; `owned` (when known) drops anything no longer theirs
+function badgeIds(eq, owned) {
+  if (!eq) return []; const out = [], extra = Array.isArray(eq.bx) ? eq.bx : String(eq.bx || '').split(',');
+  for (const id of [eq.badge, ...extra]) if (id && id !== 'bd_none' && BADGES[id] && BADGES[id].g && !out.includes(id) && (!Array.isArray(owned) || owned.includes(id))) out.push(id);
+  return out.slice(0, BX_MAX);
 }
-function badgeOf(p) { const id = p && p.eq && p.eq.badge, b = BADGES[id]; return b && b.g ? `<span class="badge" aria-hidden="true">${badgeGlyph(id)}</span>` : ''; }
-function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
+const pBadges = (p) => p ? (Array.isArray(p.badges) && p.badges.length ? p.badges : (BADGES[p.badge] && BADGES[p.badge].g ? [p.badge] : [])) : [];
+function badgesHtml(ids) { return ids.length ? `<span class="badges" aria-hidden="true">${ids.map(id => `<span class="badge">${badgeGlyph(id)}</span>`).join('')}</span>` : ''; }
+function badgeOf(p) { return badgesHtml(badgeIds(p && p.eq, p && Array.isArray(p.owned) ? p.owned : null)); }
+const presBadges = (pr) => badgeIds({ badge: pr && pr.bd, bx: pr && pr.bx });
+function setBadges(ids) { if (!profile) return; ids = ids.filter((x, i) => x && x !== 'bd_none' && BADGES[x] && ids.indexOf(x) === i).slice(0, BX_MAX); profile.eq.badge = ids[0] || 'bd_none'; profile.eq.bx = ids.slice(1); }
+function wearBadge(id) {
+  if (!profile || !BADGES[id]) return; const ids = badgeIds(profile.eq, profile.owned); if (ids.includes(id)) return;
+  if (ids.length >= BX_MAX) { const out = ids.pop(); toast(`Najviše ${BX_MAX} ikone odjednom: skinuta je ${BADGES[out].name}.`); }
+  ids.push(id); setBadges(ids);
+}
+const unwearBadge = (id) => setBadges(badgeIds(profile.eq, profile.owned).filter(x => x !== id));
+const liveB = (b) => !!(b && (b.crypto || b.wx));
+function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); if (b.wx && !text) return b.svg.replace('<span class="cp">', `<span class="cp" title="${esc(wxTitle(b.wx))}">`).replace('…', weatherText(b.wx)); return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
 // diagonal black/orange stripes (Šibenski Funcuti); one pattern per canvas context
 const scarfPats = new WeakMap();
 function scarfPattern(c) {
@@ -1446,14 +1509,19 @@ function scarfPattern(c) {
   x.beginPath(); x.moveTo(12, 0); x.lineTo(12, 6); x.lineTo(6, 12); x.lineTo(0, 12); x.closePath(); x.fill();
   pt = c.createPattern(t, 'repeat') || '#ff7a1a'; scarfPats.set(c, pt); return pt;
 }
-function applySkin(c, skinId, color, r, gt) {
+function applySkin(c, skinId, color, r, gt, nc) {
+  const res = applySkin0(c, skinId, color, r, gt);
+  if (nc && SKIN_COLOR[skinId]) { c.strokeStyle = color; if (c.shadowBlur) c.shadowColor = color; }
+  return res;
+}
+function applySkin0(c, skinId, color, r, gt) {
   c.shadowBlur = 0; c.setLineDash([]); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = color;
   switch (skinId) {
     case 'sk_neon': c.strokeStyle = color; c.lineWidth = r * 2 * 0.7; c.shadowBlur = 5; c.shadowColor = color; return true; // thin, soft glow
     case 'sk_dash': c.setLineDash([r * 3, r * 2.2]); break;
     case 'sk_pixel': c.lineCap = 'butt'; c.lineJoin = 'miter'; c.setLineDash([r * 1.2, r * 0.5]); break;
     case 'sk_rainbow': c.strokeStyle = `hsl(${(gt * 160) % 360} 90% 62%)`; break;
-    case 'sk_gold': c.strokeStyle = '#ffd700'; c.shadowBlur = 6; c.shadowColor = '#ffb547'; break;
+    case 'sk_gold': c.strokeStyle = '#f2c200'; break;
     case 'sk_boat': c.strokeStyle = '#4cc9f0'; break;
     case 'sk_dog': c.strokeStyle = '#b07a4f'; break;
     case 'sk_dragon': c.strokeStyle = '#1f8a4c'; c.shadowBlur = 8; c.shadowColor = '#ffd23f'; break;
@@ -1465,13 +1533,13 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sz_sun': c.strokeStyle = `hsl(${40 + 15 * Math.sin(gt * 4)} 100% 58%)`; break;
     case 'sk_diamond': c.strokeStyle = `hsl(190 95% ${78 + 12 * Math.sin(gt * 9)}%)`; c.shadowBlur = 14; c.shadowColor = '#7df9ff'; break;
     case 'sk_funcuti': c.strokeStyle = scarfPattern(c); break; // black and orange stripes, like a supporters' scarf
+    case 'sk_glowdash': c.strokeStyle = mixHex(color, '#0b121b', 0.6); break; // the dark half; the lit dashes come after
+    case 'sk_blink': c.strokeStyle = mixHex(color, '#0b121b', 0.62); break; // the wire; the lamps are lit frame by frame
+    case 'sk_xmas': c.strokeStyle = '#1e9e4a'; break;
+    case 'sk_fart': c.strokeStyle = '#8f9e46'; break;
+    case 'sk_centi': c.strokeStyle = '#b5652b'; break;
     case 'sk_hajduk': c.strokeStyle = '#ffffff'; c.shadowBlur = 4; c.shadowColor = 'rgba(255,255,255,.55)'; break;
     case 'sk_dinamo': c.strokeStyle = '#1d5be0'; c.shadowBlur = 9; c.shadowColor = '#6aa8ff'; break;
-    case 'sk_dildo': c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2 * 1.45; return true;
-    case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
-    case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
-    case 'sk_condom': c.strokeStyle = 'rgba(205,228,255,0.6)'; c.lineWidth = r * 2 * 1.35; return true;
-    case 'sk_hairy': c.strokeStyle = '#cf9580'; c.lineWidth = r * 2 * 1.15; return true;
   }
 }
 function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
@@ -1543,6 +1611,7 @@ function buyUndo(id, cost, kind, prevEq) {
     if (!profile || !profile.owned.includes(id)) return;
     profile.owned = profile.owned.filter(x => x !== id); profile.coins += cost; profile.spent = Math.max(0, (profile.spent || 0) - cost); profile.purchases = Math.max(0, (profile.purchases || 0) - 1);
     if (kind && profile.eq[kind] === id) profile.eq[kind] = prevEq || (kind === 'skin' ? 'sk_none' : kind === 'badge' ? 'bd_none' : '');
+    if (kind === 'badge') unwearBadge(id);
     saveProfile(); renderShop(); n.remove(); toast('↩️ Kupnja poništena, zlatnici vraćeni.');
   };
 }
@@ -1565,11 +1634,11 @@ function renderShop() {
   const make = (box, items, kind) => {
     box.innerHTML = '';
     items.forEach(([id, it]) => {
-      const owned = profile && profile.owned.includes(id), eq = profile && profile.eq[kind] === id;
+      const owned = profile && profile.owned.includes(id), eq = profile && (kind === 'badge' ? badgeIds(profile.eq, profile.owned).includes(id) : profile.eq[kind] === id);
       const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
       const prev = document.createElement('div'); prev.className = 'prev';
       if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
-      else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${it.svg || it.g || '—'}</span>`; if (it.big || it.anim) d.classList.add('pic'); }
+      else if (kind === 'badge') { prev.innerHTML = `<span class="ic">${badgeGlyph(id) || '—'}</span>`; if (it.big || it.anim) d.classList.add('pic'); }
       else { const P = POWERUPS[id]; prev.innerHTML = `<i class="pu" style="border:0;padding:0"><i class="${P.t}" style="width:32px;height:32px;font-size:18px">${P.g}</i></i>`; }
       d.appendChild(prev);
       d.insertAdjacentHTML('beforeend', `<div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`);
@@ -1581,16 +1650,17 @@ function renderShop() {
       if (lockLv) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', `<span class="lvlock">${lockNote(lockLv)}</span>`); }
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
       else if (lockLv && !eq && !owned) { b.textContent = '🔒 Nivo ' + lockLv; b.className = 'lockbtn'; b.disabled = true; }
-      else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } }; }
-      else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[kind] = id; saveProfile(); }; }
+      else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : kind === 'badge' ? 'Skini' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } else if (kind === 'badge') { unwearBadge(id); saveProfile(); } }; }
+      else if (owned) { b.textContent = kind === 'badge' && badgeIds(profile.eq, profile.owned).length ? 'Dodaj' : 'Koristi'; b.onclick = () => { if (kind === 'badge') wearBadge(id); else profile.eq[kind] = id; saveProfile(); }; }
       else { b.textContent = it.limit && limitLeft(id) <= 0 ? 'Rasprodano' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost || (it.limit && limitLeft(id) <= 0); b.onclick = () => { if (profile.coins < cost || (it.limit && limitLeft(id) <= 0)) return; if (!okToSpend(cost, it.name)) return; const prevEq = profile.eq[kind]; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); buyUndo(id, cost, kind, prevEq); }; }
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
   };
   make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
-  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && !it.fan && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
+  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx), 'badge');
+  make($('#shopWeather'), Object.entries(BADGES).filter(([, it]) => it.wx), 'badge');
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local && !it.tag), 'badge');
@@ -1621,18 +1691,18 @@ function renderShop() {
   }
   const fxb = $('#shopFx');
   if (fxb) {
-    fxb.innerHTML = '';
+    fxb.innerHTML = ''; if ($('#shopChat')) $('#shopChat').innerHTML = '';
     Object.entries(EFFECTS).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = profile && profile.eq[it.kind] === id;
       const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0';
-      d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${it.e}</span></div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
+      d.innerHTML = `<div class="prev">${it.kind === 'cc' ? `<span class="ccs"><span${ccAttr(id)}>Bok ekipa! 👋</span></span>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}</b><small>${esc(it.d)}</small></div>`;
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${it.price}`;
       const b = document.createElement('button'); b.type = 'button';
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
       else if (on) { b.textContent = 'Isključi'; b.className = 'on'; b.onclick = () => { profile.eq[it.kind] = ''; saveProfile(); }; }
       else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[it.kind] = id; saveProfile(); if (it.kind === 'vs') playVictory(id); }; }
       else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < it.price; b.onclick = () => { if (profile.coins < it.price) return; const prevEq = profile.eq[it.kind]; profile.coins -= it.price; profile.spent = (profile.spent || 0) + it.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[it.kind] = id; sfx.pick(); if (it.kind === 'vs') playVictory(id); saveProfile(); buyUndo(id, it.price, it.kind, prevEq); }; }
-      act.append(pr, b); d.appendChild(act); fxb.appendChild(d);
+      act.append(pr, b); d.appendChild(act); (it.kind === 'cc' && $('#shopChat') ? $('#shopChat') : fxb).appendChild(d);
     });
   }
   const tb = $('#shopTrolls');
@@ -1960,7 +2030,7 @@ function renderAuct() {
     const item = $('#auItem').value, start = Math.floor(Number($('#auStart').value) || 0), bn = Math.floor(Number($('#auBn').value) || 0);
     if (!confirm(`Staviti ${itemName(item)} na aukciju od ${start}? Stvar odmah izlazi iz tvoje kolekcije (vraća se ako je nitko ne kupi).`)) return;
     const j = await auctCall('', { item, start, buyNow: bn }); if (!j) return;
-    profile.owned = profile.owned.filter(x => x !== item); for (const k of ['skin', 'badge']) if (profile.eq[k] === item) profile.eq[k] = k === 'skin' ? 'sk_none' : 'bd_none';
+    profile.owned = profile.owned.filter(x => x !== item); for (const k of ['skin', 'badge']) if (profile.eq[k] === item) profile.eq[k] = k === 'skin' ? 'sk_none' : 'bd_none'; setBadges(badgeIds(profile.eq, profile.owned));
     saveProfile(); toast('🔨 Stvar je na aukciji.'); loadAuct();
   };
   const bid = async (id, amount) => { if (!profile || profile.coins < amount) { toast('Nemaš dovoljno zlatnika.'); return; } if (!confirm(`Ponuditi ${amount} zlatnika? Zlatnici se odmah zaključaju.`)) return; const j = await auctCall('/' + id + '/bid', { amount }); if (!j) return; profile.coins -= j.paid; if (j.lot.status === 'sold') profile.spent = (profile.spent || 0) + j.paid; saveProfile(); toast(j.lot.status === 'sold' ? '🎉 Kupljeno! Stvar stiže za par sekundi.' : '🔨 Ponuda je tvoja.'); if (j.lot.status === 'sold') setTimeout(collectGifts, 1500); loadAuct(); };
@@ -1980,7 +2050,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'e78a4c8b76cc';
+const BUILD = 'd246dc7085d4';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -2105,7 +2175,25 @@ const EFFECTS = {
   vs_fart:   { kind: 'vs', e: '💨', name: 'Prdac', d: 'Zvuk kad pobijediš rundu', price: 120 },
   vs_horn:   { kind: 'vs', e: '📯', name: 'Zračna truba', d: 'Zvuk kad pobijediš rundu', price: 160 },
   vs_laugh:  { kind: 'vs', e: '😂', name: 'Smijeh', d: 'Zvuk kad pobijediš rundu', price: 140 },
+  cc_pink:   { kind: 'cc', e: '💗', name: 'Kričavo roza', d: 'Tvoja slova u chatu su kričavo roza i svijetle', price: 400, css: 'color:#ff2fb3;text-shadow:0 0 6px rgba(255,47,179,.65)' },
+  cc_neon:   { kind: 'cc', e: '💚', name: 'Neonsko zelena', d: 'Slova u chatu svijetle neonski zeleno', price: 400, css: 'color:#39ff14;text-shadow:0 0 6px rgba(57,255,20,.6)' },
+  cc_cyan:   { kind: 'cc', e: '🩵', name: 'Neonsko plava', d: 'Slova u chatu svijetle ledeno plavo', price: 400, css: 'color:#00f0ff;text-shadow:0 0 6px rgba(0,240,255,.6)' },
+  cc_lava:   { kind: 'cc', e: '🧡', name: 'Lava', d: 'Užarena narančasta slova u chatu', price: 450, css: 'color:#ff6a00;text-shadow:0 0 6px rgba(255,106,0,.6)' },
+  cc_uv:     { kind: 'cc', e: '💜', name: 'Ultraljubičasta', d: 'Slova u chatu kao pod UV svjetlom', price: 450, css: 'color:#c77dff;text-shadow:0 0 7px rgba(199,125,255,.7)' },
+  cc_gold:   { kind: 'cc', e: '💛', name: 'Zlatna slova', d: 'Zlatna slova u chatu, za bogataše', price: 700, css: 'color:#ffd700;text-shadow:0 0 5px rgba(255,190,40,.55)' },
+  cc_fire:   { kind: 'cc', e: '🔥', name: 'Vatrena slova', d: 'Slova u chatu gore: od žute do crvene', price: 1000, cls: 'ccfire' },
+  cc_rainbow:{ kind: 'cc', e: '🌈', name: 'Duga', d: 'Svako slovo druge boje, kao duga', price: 1200, cls: 'ccrain' },
+  cc_disco:  { kind: 'cc', e: '🪩', name: 'Disko', d: 'Slova u chatu stalno mijenjaju boje, kao disko', price: 1500, cls: 'ccdisco' },
 };
+// the colour of someone's chat letters: from the message itself (live chat) or from what their account wears
+function chatCC(m) {
+  if (!m || m.audio) return '';
+  const ok = (id) => id && EFFECTS[id] && EFFECTS[id].kind === 'cc';
+  if (ok(m.cc)) return m.cc;
+  const a = m.me && profile ? profile : m.sl ? accounts.list.find(x => x.slug === m.sl) : null; const id = a && a.eq && a.eq.cc;
+  return ok(id) && ownsSlug(m.sl || (profile && profile.slug), id) ? id : '';
+}
+const ccAttr = (id) => id ? ` class="${EFFECTS[id].cls || ''}" style="${EFFECTS[id].css || ''}"` : '';
 function playVictory(vs) {
   if (vs === 'vs_fanfare') [523, 659, 784, 1047, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, i > 3 ? .3 : .12, 'square', .06), i * 120));
   else if (vs === 'vs_fart') { beep(110, .55, 'sawtooth', .09, -60); setTimeout(() => beep(85, .35, 'sawtooth', .08, -40), 300); }
@@ -2193,10 +2281,11 @@ function newMatch(netPlayers) {
       if (cfg.type === 'off') return;
       const mine = cfg.type === 'human' && firstHuman && profile; if (cfg.type === 'human') firstHuman = false;
       ps.push({ id: i, name: cfg.name, color: COLORS[i], human: cfg.type === 'human', diff: cfg.diff,
-        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', starter: mine ? profile.eq.pu : '', pm: mine ? ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => profile.owned.includes(x)).map(x => x.slice(3)).join(',') : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
+        skin: mine ? profile.eq.skin : 'sk_none', badge: mine ? profile.eq.badge : 'bd_none', badges: mine ? badgeIds(profile.eq, profile.owned) : [], starter: mine ? profile.eq.pu : '', pm: mine ? ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => profile.owned.includes(x)).map(x => x.slice(3)).join(',') : '', te: mine ? profile.eq.te || '' : '', ds: mine ? profile.eq.ds || '' : '', vs: mine ? profile.eq.vs || '' : '', mine: !!mine,
         score: 0, kills: 0, wins: 0, picks: 0, jumps: 0, touchL: false, touchR: false });
     });
   }
+  fixColorClashes(ps); // also against the bots: a gold trail never rides next to the yellow bot
   const speedMul = { sporo: 0.8, normalno: 1, brzo: 1.25 }[setup.speed];
   G = { players: ps, target: targetFor(ps.length), speedMul, round: 0, phase: 'count', phaseT: 0, gt: 0,
         pus: [], nextPu: 0, wrapAllUntil: 0, inset: 0, parts: [], over: false, ff: false, lastCount: 4, clr: 0, rank: null, mid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) };
@@ -2314,7 +2403,7 @@ function newRound() {
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
   owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
-  tctx.clearRect(0, 0, W, H);
+  tctx.clearRect(0, 0, W, H); clearLights();
   const placed = [];
   G.players.forEach(p => {
     let x, y, tries = 0;
@@ -2382,9 +2471,42 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 // ---------- grid ----------
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
 // the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
-const SKIN_COLOR = { sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#ffd700', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_dildo: '#f29ab4', sk_vag: '#f08aa8', sk_boobs: '#f3c6a5', sk_condom: '#cde4ff', sk_hairy: '#cf9580', sk_rainbow: null };
-function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return SKIN_COLOR[p.skin] || p.color; }
-const SKIN_W = { sk_neon: 0.7, sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
+const SKIN_COLOR = { sk_xmas: '#1e9e4a', sk_fart: '#8f9e46', sk_centi: '#b5652b', sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#f2c200', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_rainbow: null };
+function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return (!p.nc && SKIN_COLOR[p.skin]) || p.color; }
+// Two snakes that read as the same colour (a gold trail next to the yellow snake, the orange scarf next to the orange
+// snake…) are told apart before the match starts: the player with the lower level, then fewer matches, changes. A trail
+// that paints its own colour first falls back to the player's colour (nc); if that clashes too, the player gets a free colour.
+const XCOLORS = ['#ff4fd8', '#b5f23d', '#3a5bff', '#c0c0c0', '#8b5a2b', '#00a86b'];
+function hexHsl(hex) { const m = /^#([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return null; const n = parseInt(m[1], 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn; let h = 0, s = 0; if (d) { s = d / (1 - Math.abs(2 * l - 1)); h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; } return { h, s, l }; }
+function sameColor(a, b) {
+  if (!a || !b) return false; if (String(a).toLowerCase() === String(b).toLowerCase()) return true;
+  const A = hexHsl(a), B = hexHsl(b); if (!A || !B) return false;
+  const grey = (X) => X.s < 0.22 || X.l > 0.9 || X.l < 0.12; if (grey(A) || grey(B)) return grey(A) && grey(B) && Math.abs(A.l - B.l) < 0.16;
+  const dh = Math.min(Math.abs(A.h - B.h), 360 - Math.abs(A.h - B.h)); return dh < 20 && Math.abs(A.l - B.l) < 0.18;
+}
+const lookColor = (p) => p.skin === 'sk_rainbow' ? null : (!p.nc && SKIN_COLOR[p.skin]) || p.color;
+function rankOfSlug(slug, mine) { const a = mine && profile ? profile : slug ? accounts.list.find(x => x.slug === slug) : null; return a ? [levelOf(a).lv, Number(a.matches) || 0] : [0, 0]; }
+const rankOf = (p) => p.human ? rankOfSlug(p.slug, p.mine) : [-1, 0];
+const rankCmp = (a, b) => (b[0] - a[0]) || (b[1] - a[1]);
+// keep: players already riding in this match (they do not change mid-match; a newcomer adapts)
+function fixColorClashes(players, keep) {
+  const rk = new Map(players.map(p => [p, rankOf(p)])), kept = (p) => !!(keep && keep.has(p));
+  const order = [...players].sort((a, b) => (kept(b) - kept(a)) || rankCmp(rk.get(a), rk.get(b)));
+  const taken = [], changed = [];
+  for (const p of order) {
+    const clash = (c) => taken.some(t => sameColor(t, c));
+    if (!kept(p) && lookColor(p) && clash(lookColor(p))) {
+      if (SKIN_COLOR[p.skin] && !p.nc) p.nc = 1;
+      if (clash(p.color)) { const c = [...COLORS, ...XCOLORS].find(c => !clash(c) && !players.some(q => q !== p && (q.color === c || sameColor(lookColor(q), c))));
+        if (c) { const oi = COLORS.indexOf(p.color), ni = COLORS.indexOf(c); if (!p.human && oi >= 0 && ni >= 0 && String(p.name || '').startsWith(DEFAULT_NAMES[oi])) p.name = DEFAULT_NAMES[ni] + p.name.slice(DEFAULT_NAMES[oi].length); p.color = c; } }
+      changed.push(p);
+    }
+    const lc = lookColor(p); if (lc) taken.push(lc);
+  }
+  return changed;
+}
+const colorNote = (p) => `🎨 Netko s višim nivoom (ili više mečeva) ima sličnu boju, pa si u ovom meču <b style="color:${p.color}">● ovakve boje</b>`;
+const SKIN_W = { sk_neon: 0.7 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
 function stamp(p, r, grace) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
@@ -2407,8 +2529,69 @@ function blockedBy(x, y, p, grace) {
 }
 
 // ---------- trail drawing ----------
+function mixHex(a, b, t) { const A = /^#([0-9a-f]{6})$/i.exec(String(a || '')), B = /^#([0-9a-f]{6})$/i.exec(String(b || '')); if (!A || !B) return a; const x = parseInt(A[1], 16), y = parseInt(B[1], 16); const ch = (sh) => Math.round(((x >> sh) & 255) * (1 - t) + ((y >> sh) & 255) * t); return '#' + ((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1); }
+// lamps along some trails (Pali-gasi, Božićni): placed while the trail is drawn, lit in the arena frame by frame, so they
+// really switch on and off. They go with the trail layer: cleared whenever it is cleared.
+const trailLights = [], LIGHTS_MAX = 6000, XMAS_C = ['#ff3b3b', '#ffd23f', '#4cc9f0', '#ffffff', '#ff7de9', '#3ddc97'];
+function clearLights() { trailLights.length = 0; }
+function lampLit(L, t) { return L.k === 'blink' ? Math.sin(t * 6.3) > -0.15 : Math.sin(t * 3.1 + L.i * 1.9) > -0.25; }
+function drawLamp(c, x, y, r, col, k) {
+  c.save(); c.shadowBlur = 0; c.fillStyle = col; c.globalAlpha = 0.22; c.beginPath(); c.arc(x, y, r * (k === 'blink' ? 2.1 : 2.4), 0, 6.283); c.fill();
+  c.globalAlpha = 1; c.beginPath(); c.arc(x, y, r * (k === 'blink' ? 1.05 : 0.95), 0, 6.283); c.fill(); c.restore();
+}
+function placeLamp(c, p, x, y, k, col, r) { if (p.preview) { drawLamp(c, x, y, r, col, k); return; } if (trailLights.length >= LIGHTS_MAX) trailLights.splice(0, 1000); trailLights.push({ x, y, k, c: col, r, i: trailLights.length }); }
+function drawLights(c) {
+  if (!trailLights.length) return; const t = performance.now() / 1000, groups = new Map();
+  for (const L of trailLights) if (lampLit(L, t)) { const key = L.c + '|' + L.k; let g = groups.get(key); if (!g) groups.set(key, g = []); g.push(L); }
+  c.save(); c.shadowBlur = 0; c.setLineDash([]);
+  for (const [key, arr] of groups) {
+    const blink = key.endsWith('|blink'); c.fillStyle = arr[0].c;
+    c.globalAlpha = 0.22; c.beginPath(); for (const L of arr) { const R = L.r * (blink ? 2.1 : 2.4); c.moveTo(L.x + R, L.y); c.arc(L.x, L.y, R, 0, 6.283); } c.fill();
+    c.globalAlpha = 1; c.beginPath(); for (const L of arr) { const R = L.r * (blink ? 1.05 : 0.95); c.moveTo(L.x + R, L.y); c.arc(L.x, L.y, R, 0, 6.283); } c.fill();
+    c.fillStyle = '#ffffff'; c.globalAlpha = 0.65; c.beginPath(); for (const L of arr) { const R = L.r * 0.36, x = L.x - L.r * 0.25, y = L.y - L.r * 0.25; c.moveTo(x + R, y); c.arc(x, y, R, 0, 6.283); } c.fill();
+  }
+  c.restore();
+}
+function drawCentiHead(c, x, y, a, r) {
+  c.save(); c.translate(x, y); c.rotate(a); c.shadowBlur = 0; c.setLineDash([]); c.strokeStyle = '#4a2410'; c.lineWidth = Math.max(1, r * 0.32); c.lineCap = 'round';
+  c.beginPath(); for (const sd of [-1, 1]) { c.moveTo(r * 0.6, sd * r * 0.4); c.quadraticCurveTo(r * 2.3, sd * r * 0.5, r * 3.0, sd * r * 2.0); } c.stroke();
+  c.fillStyle = '#111'; for (const sd of [-1, 1]) { c.beginPath(); c.arc(r * 0.35, sd * r * 0.45, Math.max(0.9, r * 0.3), 0, 6.283); c.fill(); }
+  c.restore();
+}
+// walk along a piece of trail and call fn every `step` px (the running distance lives on the player under `key`)
+function alongTrail(p, key, pts, step, fn) {
+  for (let i = 2; i < pts.length; i += 2) {
+    const x0 = pts[i - 2], y0 = pts[i - 1], x1 = pts[i], y1 = pts[i + 1], len = Math.hypot(x1 - x0, y1 - y0); if (len < 0.01 || len > 120) continue;
+    const ux = (x1 - x0) / len, uy = (y1 - y0) / len; let d = step - (p[key] || 0);
+    while (d <= len) { p[key + 'N'] = (p[key + 'N'] || 0) + 1; fn(x0 + ux * d, y0 + uy * d, ux, uy, p[key + 'N']); d += step; }
+    p[key] = len - (d - step);
+  }
+}
 function skinAfter(c, skin, pts, r, p) {
-  const DECO = { sk_boat: 9, sk_dog: 26, sk_dragon: 7, sk_galaxy: 4, sk_bolt: 12, sz_snow: 30, sz_love: 42 };
+  if (skin === 'sk_glowdash' && p && pts.length >= 4) {
+    let L = 0; for (let i = 2; i < pts.length; i += 2) L += Math.hypot(pts[i] - pts[i - 2], pts[i + 1] - pts[i - 1]);
+    const col = (p && p.color) || '#4cc9f0';
+    c.save(); c.setLineDash([r * 2.6, r * 2.6]); c.lineDashOffset = -(p.gdl || 0); c.lineCap = 'butt'; c.lineJoin = 'round'; c.lineWidth = r * 2; c.strokeStyle = mixHex(col, '#ffffff', 0.3); c.shadowBlur = 7; c.shadowColor = col;
+    c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); c.restore(); p.gdl = (p.gdl || 0) + L;
+  }
+  if (skin === 'sk_blink' && p && pts.length >= 4) alongTrail(p, 'lampAcc', pts, Math.max(4, r * 1.7), (x, y) => placeLamp(c, p, x, y, 'blink', p.color || '#ffd23f', r));
+  if (skin === 'sk_xmas' && p && pts.length >= 4) alongTrail(p, 'lampAcc', pts, Math.max(10, r * 4.6), (x, y, ux, uy, n) => {
+    const side = n % 2 ? 1 : -1, bx = x - uy * side * r * 1.25, by = y + ux * side * r * 1.25, col = XMAS_C[n % XMAS_C.length];
+    c.save(); c.shadowBlur = 0; c.setLineDash([]); c.fillStyle = mixHex(col, '#0b121b', 0.5); c.beginPath(); c.arc(bx, by, r * 0.95, 0, 6.283); c.fill(); c.restore(); // the bulb, dark, on the trail layer
+    placeLamp(c, p, bx, by, 'xmas', col, r);
+  });
+  if (skin === 'sk_centi' && p && pts.length >= 4) {
+    c.save(); c.setLineDash([]); c.shadowBlur = 0; c.lineCap = 'round';
+    const legs = new Path2D(), rings = new Path2D();
+    alongTrail(p, 'legAcc', pts, Math.max(4, r * 1.6), (x, y, ux, uy, n) => {
+      const nx = -uy, ny = ux, sw = (n % 2 ? 1 : -1) * r * 0.45;
+      for (const sd of [-1, 1]) { const bx = x + nx * sd * r * 0.85, by = y + ny * sd * r * 0.85; legs.moveTo(bx, by); legs.lineTo(bx + nx * sd * r * 1.6 - ux * r * 0.7 + ux * sw, by + ny * sd * r * 1.6 - uy * r * 0.7 + uy * sw); }
+      rings.moveTo(x + nx * r * 0.9, y + ny * r * 0.9); rings.lineTo(x - nx * r * 0.9, y - ny * r * 0.9);
+    });
+    c.strokeStyle = '#e3a466'; c.lineWidth = Math.max(1.1, r * 0.42); c.stroke(legs);
+    c.strokeStyle = 'rgba(60,25,8,.55)'; c.lineWidth = Math.max(0.6, r * 0.25); c.stroke(rings); c.restore();
+  }
+  const DECO = { sk_boat: 9, sk_dog: 26, sk_dragon: 7, sk_galaxy: 4, sk_bolt: 12, sz_snow: 30, sz_love: 42, sk_fart: 46 };
   if (DECO[skin] && p && pts.length >= 4) {
     // decorations are spaced by distance travelled (the trail comes in tiny pieces)
     c.save(); c.shadowBlur = 0; c.setLineDash([]);
@@ -2422,66 +2605,15 @@ function skinAfter(c, skin, pts, r, p) {
       else if (skin === 'sk_galaxy') { const o = (Math.random() - .5) * r * 2.2; c.fillStyle = Math.random() < .5 ? '#ffffff' : '#9fe8ff'; c.fillRect(x1 + nx * o - 0.8, y1 + ny * o - 0.8, 1.6, 1.6); }
       else if (skin === 'sk_bolt') { c.strokeStyle = '#ffe94a'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(x1 - (x1 - x0) / len * 10 + nx * r * 1.7 * side, y1 - (y1 - y0) / len * 10 + ny * r * 1.7 * side); c.lineTo(x1 - (x1 - x0) / len * 5 - nx * r * 1.7 * side, y1 - (y1 - y0) / len * 5 - ny * r * 1.7 * side); c.lineTo(x1 + nx * r * 1.3 * side, y1 + ny * r * 1.3 * side); c.stroke(); }
       else if (skin === 'sz_snow') { c.fillStyle = '#ffffff'; c.font = `${Math.round(r * 3)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('❄', x1 + nx * side * r * 2, y1 + ny * side * r * 2); }
+      else if (skin === 'sk_fart') { const bx = x1 - (x1 - x0) / len * r * 2 + nx * side * r * 1.6, by = y1 - (y1 - y0) / len * r * 2 + ny * side * r * 1.6;
+        c.fillStyle = 'rgba(170,200,90,.35)'; for (const [ox, oy, rr] of [[0, 0, 1.6], [-1.3, 0.9, 1.1], [1.1, 1.1, 1.0]]) { c.beginPath(); c.arc(bx + ox * r, by + oy * r, rr * r, 0, 6.283); c.fill(); }
+        c.font = `${Math.round(r * 3.2)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💨', bx, by);
+        if (p.decoN % 4 === 0) { c.font = `italic 700 ${Math.max(8, Math.round(r * 2.4))}px "Barlow Semi Condensed", sans-serif`; c.fillStyle = 'rgba(200,220,120,.85)'; c.fillText('prrt', bx - nx * side * r * 3.4, by - ny * side * r * 3.4); } }
       else if (skin === 'sz_love') { c.font = `${Math.round(r * 3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💘', x1 + nx * side * r * 2.2, y1 + ny * side * r * 2.2); }
     }
     c.restore();
   }
-  if (skin === 'sk_vag') { c.strokeStyle = '#c2496f'; c.lineWidth = Math.max(1, r * 0.7); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
-  if (skin === 'sk_condom') { c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.5); c.setLineDash([]); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); }
-  if (skin === 'sk_hairy' && p) {
-    p.hairAcc = p.hairAcc || 0;
-    c.strokeStyle = '#a8704c'; c.lineWidth = Math.max(1.1, r * 0.42); c.lineCap = 'round'; c.setLineDash([]);
-    c.beginPath();
-    for (let i = 2; i < pts.length; i += 2) {
-      const dx = pts[i] - pts[i - 2], dy = pts[i + 1] - pts[i - 1], len = Math.hypot(dx, dy); p.hairAcc += len;
-      while (p.hairAcc >= 3.6) {
-        p.hairAcc -= 3.6; p.hairSide = -(p.hairSide || 1);
-        const a = Math.atan2(dy, dx), side = p.hairSide, seed = Math.sin(pts[i] * 12.9898 + pts[i + 1] * 78.233) * 43758.5453, jit = seed - Math.floor(seed);
-        const bx = pts[i] + Math.cos(a + Math.PI / 2) * r * 1.2 * side, by = pts[i + 1] + Math.sin(a + Math.PI / 2) * r * 1.2 * side;
-        const ha = a + side * (Math.PI / 2 - .5 + jit * 1.0), hl = r * (1.6 + jit * 1.6);
-        c.moveTo(bx, by); c.quadraticCurveTo(bx + Math.cos(ha) * hl * .6 + Math.cos(a) * r * .5 * jit, by + Math.sin(ha) * hl * .6 + Math.sin(a) * r * .5 * jit, bx + Math.cos(ha) * hl, by + Math.sin(ha) * hl);
-      }
-    }
-    c.stroke();
-    c.strokeStyle = 'rgba(120,60,45,0.35)'; c.lineWidth = Math.max(0.6, r * 0.22); c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke();
-  }
-  if (skin === 'sk_boobs' && p) {
-    p.ornAcc = p.ornAcc || 0;
-    for (let i = 2; i < pts.length; i += 2) {
-      const dx = pts[i] - pts[i - 2], dy = pts[i + 1] - pts[i - 1]; p.ornAcc += Math.hypot(dx, dy);
-      if (p.ornAcc >= 30) { p.ornAcc = 0; const a = Math.atan2(dy, dx), d = r * 1.7;
-        for (const sgn of [-1, 1]) { const ox = pts[i] + Math.cos(a + Math.PI / 2) * d * sgn, oy = pts[i + 1] + Math.sin(a + Math.PI / 2) * d * sgn;
-          c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(ox, oy, r * 1.55, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke();
-          c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(ox + Math.cos(a) * r * 0.2, oy + Math.sin(a) * r * 0.2, r * 0.5, 0, 6.283); c.fill(); } }
-    }
-  }
-}
-const cx0 = (r) => r * 0.4 - r * 1.2;
-function drawSkinHead(c, skin, x, y, a, r) {
-  c.save(); c.translate(x, y); c.rotate(a); c.shadowBlur = 0; c.setLineDash([]);
-  if (skin === 'sk_vag') {
-    c.fillStyle = '#f08aa8'; c.beginPath(); c.ellipse(r * 0.6, 0, r * 3.2, r * 1.9, 0, 0, 6.283); c.fill();
-    c.fillStyle = '#c2496f'; c.beginPath(); c.ellipse(r * 0.4, 0, r * 2.2, r * 0.55, 0, 0, 6.283); c.fill();
-    c.fillStyle = '#e46f93'; c.beginPath(); c.arc(r * 3.0, 0, r * 0.55, 0, 6.283); c.fill();
-  } else if (skin === 'sk_boobs') {
-    for (const sgn of [-1, 1]) { c.fillStyle = '#f3c6a5'; c.beginPath(); c.arc(r * 0.6, r * 1.6 * sgn, r * 1.8, 0, 6.283); c.fill(); c.strokeStyle = '#d99a78'; c.lineWidth = 1; c.stroke(); c.fillStyle = '#c97a7a'; c.beginPath(); c.arc(r * 1.1, r * 1.6 * sgn, r * 0.55, 0, 6.283); c.fill(); }
-  } else if (skin === 'sk_hairy') {
-    for (const sgn of [-1, 1]) {
-      const cx = r * 0.4, cy = r * 1.55 * sgn, br = r * 1.8;
-      c.fillStyle = '#d99e88'; c.beginPath(); c.arc(cx, cy, br, 0, 6.283); c.fill();
-      c.strokeStyle = '#b0705c'; c.lineWidth = Math.max(0.7, r * 0.22); c.beginPath(); c.arc(cx - br * .15, cy, br * .55, -1.2, 1.2); c.stroke();
-      c.strokeStyle = '#a8704c'; c.lineWidth = Math.max(0.9, r * 0.32); c.lineCap = 'round'; c.beginPath();
-      for (let k = 0; k < 13; k++) { const t = (k / 13) * 6.283 + sgn * .3, hx = cx + Math.cos(t) * br, hy = cy + Math.sin(t) * br, hl = r * (1.0 + (k % 3) * 0.45); c.moveTo(hx, hy); c.quadraticCurveTo(hx + Math.cos(t + .5) * hl * .7, hy + Math.sin(t + .5) * hl * .7, hx + Math.cos(t + .2) * hl, hy + Math.sin(t + .2) * hl); }
-      c.stroke();
-    }
-    c.strokeStyle = '#b0705c'; c.lineWidth = Math.max(0.7, r * 0.25); c.beginPath(); c.moveTo(cx0(r), -r * 0.6); c.lineTo(cx0(r), r * 0.6); c.stroke();
-  } else if (skin === 'sk_condom') {
-    c.strokeStyle = 'rgba(205,228,255,0.75)'; c.lineWidth = r * 2.7; c.lineCap = 'round'; c.beginPath(); c.moveTo(-r * 2.5, 0); c.lineTo(r * 1.4, 0); c.stroke();
-    c.fillStyle = 'rgba(205,228,255,0.9)'; c.beginPath(); c.arc(r * 2.9, 0, r * 0.6, 0, 6.283); c.fill();
-    c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = Math.max(1, r * 0.6); c.beginPath(); c.ellipse(-r * 2.4, 0, r * 0.5, r * 1.7, 0, 0, 6.283); c.stroke();
-    c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = Math.max(1, r * 0.4); c.beginPath(); c.moveTo(-r * 2, -r * 0.7); c.lineTo(r * 1.4, -r * 0.7); c.stroke();
-  }
-  c.restore();
+  if (skin === 'sk_gold' && !(p && p.nc) && pts.length >= 4) { c.save(); c.shadowBlur = 0; c.setLineDash([]); c.strokeStyle = '#fff1a6'; c.lineWidth = Math.max(0.8, r * 0.5); c.lineCap = 'round'; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); c.restore(); }
 }
 // ---- live crypto prices (USD) for the crypto icons. Fetched only while such an icon is on screen, from the first
 // public source that answers; the last known prices are kept on the device so something shows at once.
@@ -2500,9 +2632,35 @@ async function cryptoFetch() {
   for (const src of sources) { try { const o = await src(); if (Object.values(o).filter(v => v > 0).length >= 2) return o; } catch (e) {} }
   return null;
 }
-function cryptoWanted() { return !!document.querySelector('.cbd') && !document.hidden || !!(G && G.players && G.players.some(p => BADGES[p.badge] && BADGES[p.badge].crypto)); }
+function cryptoWanted() { return !document.hidden; } // the ticker on the front page and in the arena always shows Bitcoin
+const wxNow = (() => { try { const o = JSON.parse(localStorage.getItem('vijuga-wx') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } })();
+let wxAt = 0, wxBusy = false;
+function wxIcon(code, day) { const c = Number(code); return c === 0 ? (day ? '☀️' : '🌙') : c <= 2 ? (day ? '🌤️' : '☁️') : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 57 ? '🌦️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌦️' : c <= 86 ? '🌨️' : '⛈️'; }
+function weatherText(k) { const w = wxNow[k]; if (!w || !Number.isFinite(w.t)) return '…'; return `${wxIcon(w.c, w.d)} ${Math.round(w.t)}°` + (w.p > 0 ? ` 💧${w.p >= 10 ? Math.round(w.p) : String(w.p.toFixed(1)).replace('.', ',')}` : '') + (w.w >= 40 ? ' 💨' : ''); }
+function wxTitle(k) { const w = wxNow[k]; return w && Number.isFinite(w.t) ? `${WX[k].n}: ${String(w.t).replace('.', ',')} °C, oborine ${String(w.p).replace('.', ',')} mm, vjetar ${Math.round(w.w)} km/h` : WX[k].n + ': vrijeme se učitava'; }
+async function wxFetch() {
+  const ks = Object.keys(WX), url = 'https://api.open-meteo.com/v1/forecast?latitude=' + ks.map(k => WX[k].lat).join(',') + '&longitude=' + ks.map(k => WX[k].lon).join(',') + '&current=temperature_2m,precipitation,weather_code,wind_speed_10m,is_day&timezone=Europe%2FZagreb';
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), 8000);
+  try { const r = await fetch(url, { cache: 'no-store', signal: ac.signal }); if (!r.ok) return null; let j = await r.json(); if (!Array.isArray(j)) j = [j];
+    const o = {}; ks.forEach((k, i) => { const c = j[i] && j[i].current; if (c && Number.isFinite(c.temperature_2m)) o[k] = { t: c.temperature_2m, p: Number(c.precipitation) || 0, c: c.weather_code, w: Number(c.wind_speed_10m) || 0, d: c.is_day ? 1 : 0, at: Date.now() }; }); return o;
+  } catch (e) { return null; } finally { clearTimeout(t); }
+}
+// a quiet line with Bitcoin, Ethereum and the weather: on the front page, and in a corner of the arena while playing
+function tickerHtml(ids) {
+  const it = (cls, g, v, title) => `<span class="tk ${cls}"${title ? ` title="${esc(title)}"` : ''}><b>${g}</b> ${v}</span>`;
+  return ids.map(id => { const b = BADGES[id]; return b.crypto ? it('c', b.g, cryptoText(b.crypto)) : it('w', b.g, weatherText(b.wx), wxTitle(b.wx)); }).join('');
+}
+function renderTickers() {
+  const home = $('#ticker'); if (home && !$('#menu').hidden) { const h = tickerHtml(['bd_c_btc', 'bd_c_eth', 'bd_w_sib', 'bd_w_zg']); if (home.dataset.h !== h) { home.dataset.h = h; home.innerHTML = '<span class="tl">Uživo</span>' + h; } }
+  const gt = $('#gTicker'); if (gt && G && G.players && !$('#game').hidden) {
+    const worn = []; for (const p of G.players) for (const id of pBadges(p)) if (liveB(BADGES[id]) && !worn.includes(id)) worn.push(id);
+    const ids = ['bd_c_btc', ...worn.filter(x => x !== 'bd_c_btc')].slice(0, 4), h = tickerHtml(ids); if (gt.dataset.h !== h) { gt.dataset.h = h; gt.innerHTML = h; }
+  }
+}
 async function cryptoTick() {
-  document.querySelectorAll('.cbd').forEach(el => { const b = el.querySelector('.cp'), t = cryptoText(el.dataset.c); if (b && b.textContent !== t) b.textContent = t; });
+  document.querySelectorAll('.cbd').forEach(el => { const b = el.querySelector('.cp'), t = el.dataset.w ? weatherText(el.dataset.w) : cryptoText(el.dataset.c); if (b && b.textContent !== t) { b.textContent = t; if (el.dataset.w) b.title = wxTitle(el.dataset.w); } });
+  renderTickers();
+  if (!wxBusy && !document.hidden && Date.now() - wxAt > 10 * 60000) { wxBusy = true; wxAt = Date.now(); wxFetch().then(o => { if (o) { Object.assign(wxNow, o); try { localStorage.setItem('vijuga-wx', JSON.stringify(wxNow)); } catch (e) {} hudDirty = true; } }).finally(() => { wxBusy = false; }); }
   if (cryptoBusy || !cryptoWanted() || Date.now() - cryptoAt < 30000) return;
   cryptoBusy = true; cryptoAt = Date.now();
   try { const o = await cryptoFetch(); if (o) { for (const k in o) if (o[k] > 0) cryptoPx[k] = o[k]; try { localStorage.setItem('vijuga-crypto', JSON.stringify(cryptoPx)); } catch (e) {} hudDirty = true; } } finally { cryptoBusy = false; }
@@ -2565,17 +2723,31 @@ function badgeImage(id, color) {
   const img = new Image(); img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(b.svg.replace(/width="[^"]*" height="[^"]*"/, b.big ? 'xmlns="http://www.w3.org/2000/svg" width="96" height="96"' : 'xmlns="http://www.w3.org/2000/svg" width="40" height="48"').replace(/currentColor/g, color).replace(/ style="[^"]*"/, ''));
   badgeImgCache[key] = img; return img;
 }
+function liveLabel(b) { return b.crypto ? b.g + ' ' + cryptoText(b.crypto) : b.g + ' ' + weatherText(b.wx); }
+function badgeWidth(c, id, size) {
+  const b = BADGES[id]; if (!b || !b.g) return 0;
+  if (b.anim) return size * 1.7;
+  if (liveB(b) || b.tag) { const fs = Math.max(7, Math.round(size * (b.tag ? 0.74 : 0.8))); c.save(); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(b.tag ? b.g.toUpperCase() : liveLabel(b)).width + fs * 0.92; c.restore(); return w; }
+  if (b.big) return size * 1.5;
+  if (badgeImage(id, '#fff')) return size * 0.84;
+  c.save(); c.font = `700 ${size}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(b.g).width; c.restore(); return Math.max(size * 0.8, w);
+}
+function drawBadgeRow(c, ids, x, y, size, color) {
+  ids = ids.filter(id => BADGES[id] && BADGES[id].g); if (!ids.length) return;
+  const gap = size * 0.3, ws = ids.map(id => badgeWidth(c, id, size)), tot = ws.reduce((a, w) => a + w, 0) + gap * (ids.length - 1);
+  if (tot + 12 < W) x = Math.max(tot / 2 + 6, Math.min(W - tot / 2 - 6, x)); y = Math.max(size, y); // never cut off at the edge of the arena
+  let cx = x - tot / 2; ids.forEach((id, i) => { drawBadge(c, id, cx + ws[i] / 2, y, size, color); cx += ws[i] + gap; });
+}
 function drawBadge(c, id, x, y, size, color) {
   const b = BADGES[id]; if (!b || !b.g) return;
   if (b.anim) { drawAnim(c, b.anim, x, y, size * 1.7, performance.now() / 1000); return; }
-  if (b.crypto) { c.save(); const t = b.g + ' ' + cryptoText(b.crypto), fs = Math.max(7, Math.round(size * 0.8)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.9, h = fs * 1.5; c.fillStyle = 'rgba(11,18,27,.82)'; c.strokeStyle = b.col; c.lineWidth = 1; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.stroke(); c.fillStyle = b.col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
+  if (liveB(b)) { c.save(); const t = liveLabel(b), fs = Math.max(7, Math.round(size * 0.8)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.9, h = fs * 1.5; c.fillStyle = 'rgba(11,18,27,.82)'; c.strokeStyle = b.col; c.lineWidth = 1; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.stroke(); c.fillStyle = b.wx ? '#e6f6ff' : b.col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
   if (b.tag) { c.save(); const t = b.g.toUpperCase(), fs = Math.max(7, Math.round(size * 0.74)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.95, h = fs * 1.5; c.fillStyle = b.tag; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
   const img = badgeImage(id, color);
   if (img && b.big) { const s2 = size * 1.5; if (img.complete && img.naturalWidth) c.drawImage(img, x - s2 / 2, y - s2 / 2, s2, s2); return; }
   if (img) { if (img.complete && img.naturalWidth) c.drawImage(img, x - size * 0.42, y - size * 0.5, size * 0.84, size); return; }
   c.font = `700 ${size}px "Barlow Semi Condensed", sans-serif`; c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.g, x, y);
 }
-function drawBalls(x, y, a, r) { tctx.save(); tctx.setTransform(tctx.getTransform()); tctx.fillStyle = '#e98aa6'; const d = r * 1.7, bx = x - Math.cos(a) * r * 0.8, by = y - Math.sin(a) * r * 0.8; for (const sgn of [-1, 1]) { tctx.beginPath(); tctx.arc(bx + Math.cos(a + Math.PI / 2) * d * sgn, by + Math.sin(a + Math.PI / 2) * d * sgn, r * 1.9, 0, 6.283); tctx.fill(); } tctx.restore(); }
 // ---- the exact trail for guests. The host records every vertex of every snake's trail - where the pen comes down, each
 // bend, where it lifts - with a running number, and snapshots carry the newest ones. A guest draws the very line the
 // host stamped: a gap starts and ends exactly where it does on the host and a bend between two snapshots is not cut
@@ -2593,9 +2765,8 @@ function trailVert(p, down, widthChanged) {
 }
 function flushTrail(p, keepLast) {
   if (p.pts.length >= 2) {
-    const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt);
+    const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt, p.nc);
     if (!custom) tctx.lineWidth = p.ptsR * 2;
-    if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(p.pts[0], p.pts[1], p.a, p.ptsR); }
     // the trail is drawn in short pieces; a dashed skin must continue its pattern across pieces, so the dash offset follows the trail length
     tctx.lineDashOffset = -(p.dashLen || 0); let len = 0;
     tctx.beginPath(); tctx.moveTo(p.pts[0], p.pts[1]);
@@ -2714,7 +2885,7 @@ function applyPu(p, k, silent) {
     case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
     case 'clearA':
       G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; q.tvH = []; });
-      owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; stampArena(); break;
+      owner.fill(0); tctx.clearRect(0, 0, W, H); clearLights(); G.clr++; stampArena(); break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
   }
   G.toast = { text: P.name, color: PU_COLOR[P.t], x: p.x, y: p.y, t: G.gt };
@@ -2780,7 +2951,7 @@ function showRoundBanner() {
   const top = ranking()[0];
   const lead = G.round === G.target - 1 ? '<p>Sljedeća runda je zadnja.</p>' : '';
   const hostOnly = net && net.role === 'client';
-  const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, top.score))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
+  const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, top.score))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span>${badgesHtml(pBadges(p))}</span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
   const teamWin = G.winTeam != null ? `<h3 style="color:${TEAM_C[G.winTeam]}">Tim ${TEAM_N[G.winTeam]} pobjeđuje!</h3><p>${G.players.filter(p => p.team === G.winTeam).map(p => esc(p.name)).join(' & ')}</p>` : '';
   showOverlay(`<div class="banner lap">${teamWin || `<h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? '👑 ' + esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>`}${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div><p class="hint">${net ? 'Chat i reakcije: gumbi 💬 i 😀 gore desno.' : IS_TOUCH || hostOnly ? '' : 'Razmaknica za nastavak'}</p></div>`);
   if (!hostOnly) $('#nextBtn').onclick = () => nextRound();
@@ -2902,6 +3073,7 @@ function render() {
   for (const p of G.players) if (p.pts && p.pts.length >= 2) flushTrail(p, true);
   ctx.drawImage(trail, 0, 0, cv.width, cv.height);
   ctx.setTransform(s, 0, 0, s, 0, 0);
+  drawLights(ctx);
   const bd = bounds();
   if (G.inset > 0.5) {
     ctx.fillStyle = 'rgba(11,18,27,0.72)';
@@ -2959,7 +3131,7 @@ function render() {
   if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     if (!p.alive || !p.drawing || p.sx == null || (p.jumpUntil && p.jumpUntil > G.gt)) continue;
     const d = Math.hypot(p.x - p.sx, p.y - p.sy); if (d < 0.3 || d > 40) continue;
-    const rr = radiusOf(p); const custom = applySkin(ctx, p.skin, p.color, rr, G.gt); if (!custom) ctx.lineWidth = rr * 2;
+    const rr = radiusOf(p); const custom = applySkin(ctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) ctx.lineWidth = rr * 2;
     ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.sx, p.sy); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.shadowBlur = 0; ctx.setLineDash([]); ctx.globalAlpha = 1;
   }
   if (innerWidth < 760 || (net && G.players.length > 4)) drawBoard(ctx);
@@ -2983,7 +3155,7 @@ function render() {
     } }
   if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
-    ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
+    ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt, p.nc)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
     ctx.beginPath(); ctx.moveTo(pv.x, pv.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.restore();
   }
   for (const p of G.players) {
@@ -2996,17 +3168,16 @@ function render() {
     ctx.beginPath(); ctx.arc(p.x, p.y, hr + 3, 0, 6.283); ctx.fillStyle = p.color + '40'; ctx.fill();
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
-    if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
-    else if (p.skin === 'sk_dildo' && p.alive) drawDildoHead(ctx, p.x, p.y, p.a, Math.max(3.4, r + 1.1));
-    else if ((p.skin === 'sk_vag' || p.skin === 'sk_boobs' || p.skin === 'sk_condom' || p.skin === 'sk_hairy') && p.alive) drawSkinHead(ctx, p.skin, p.x, p.y, p.a, Math.max(3.2, r + 0.9) * (p.skin === 'sk_hairy' ? 0.85 : 1));
+    if (p.skin === 'sk_centi' && p.alive) drawCentiHead(ctx, p.x, p.y, p.a, hr);
+    if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     { const pm = p.alive && net ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
-    if (p.alive && G.phase === 'run' && BADGES[p.badge] && BADGES[p.badge].crypto) { ctx.globalAlpha = 0.85; drawBadge(ctx, p.badge, p.x, p.y - hr - 11, 10, p.color); ctx.globalAlpha = 1; }
-    if (p.alive && G.phase === 'run' && BADGES[p.badge] && BADGES[p.badge].anim) { ctx.globalAlpha = 0.9; drawAnim(ctx, BADGES[p.badge].anim, p.x, p.y - hr - 12, 17, performance.now() / 1000); ctx.globalAlpha = 1; }
+    if (p.alive && G.phase === 'run') { const ids = pBadges(p).filter(id => liveB(BADGES[id]) || BADGES[id].anim); if (ids.length) { ctx.globalAlpha = 0.85; drawBadgeRow(ctx, ids, p.x, p.y - hr - 12, 10, p.color); ctx.globalAlpha = 1; } }
     // the survivor of the round rides a victory lap with a crown above the head (and their own icon above the crown)
     if (G.phase === 'end' && p.alive && (p.id === G.winner || (G.winTeam != null && p.team === G.winTeam))) {
       const bob = 3 * Math.sin(G.phaseT * 5), cy = p.y - hr - 15 + bob;
       ctx.save(); ctx.font = '20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👑', p.x, cy); ctx.restore();
-      if (BADGES[p.badge] && BADGES[p.badge].g) drawBadge(ctx, p.badge, p.x, cy - (BADGES[p.badge].big || BADGES[p.badge].anim ? 30 : 22), BADGES[p.badge].crypto || BADGES[p.badge].tag ? 13 : 20, '#ffb547');
+      const wids = pBadges(p); if (wids.length) { const k = Math.min(1, G.phaseT / 0.35), pop = k < 1 ? 0.4 + 0.6 * k + 0.25 * Math.sin(k * Math.PI) : 1, sz = Math.round(30 * pop * Math.max(1, Math.min(1.6, 0.85 / Math.max(0.05, (cv.clientWidth || W) / W)))), big = wids.some(id => BADGES[id].big || BADGES[id].anim);
+        ctx.save(); ctx.shadowColor = 'rgba(255,214,90,.75)'; ctx.shadowBlur = 16; drawBadgeRow(ctx, wids, p.x, cy - sz * (big ? 1.25 : 0.95), sz, '#ffb547'); ctx.restore(); }
     }
     ctx.globalAlpha = 1;
     if (has(p, 'square')) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x - hr - 3, p.y - hr - 3, (hr + 3) * 2, (hr + 3) * 2); }
@@ -3025,7 +3196,7 @@ function render() {
       ctx.font = `600 ${Math.round(15 * lu)}px "Barlow Semi Condensed", sans-serif`; ctx.fillStyle = dispColor(p);
       const lbl = (p.human ? p.name : p.name + ' · bot') + (p.mine || (net && net.role === 'client' && p.id === net.myId) ? ' (ti)' : '');
       ctx.fillText(lbl, p.x, p.y - 12 - 8 * lu);
-      if (BADGES[p.badge] && BADGES[p.badge].g) { const B = BADGES[p.badge]; if (B.tag || B.crypto) drawBadge(ctx, p.badge, p.x, p.y - 12 - 8 * lu - 17 * lu, 13 * lu, p.color); else drawBadge(ctx, p.badge, p.x - ctx.measureText(lbl).width / 2 - (B.big || B.anim ? 16 : 10) * lu, p.y - 12 - 8 * lu, 15 * lu, p.color); }
+      { const ids = pBadges(p); if (ids.length) drawBadgeRow(ctx, ids, p.x, p.y - 12 - 8 * lu - (ids.some(id => BADGES[id].big || BADGES[id].anim) ? 22 : 17) * lu, 13 * lu, p.color); }
       const hint = controlHint(p);
       if (hint) { ctx.font = `600 ${Math.round(12 * lu)}px "Barlow Semi Condensed", sans-serif`; ctx.fillStyle = 'rgba(233,239,246,0.75)'; ctx.fillText(hint, p.x, p.y + 14 + 10 * lu); }
     }
@@ -3104,7 +3275,7 @@ function renderHud() {
   ranking().forEach(p => {
     const c = document.createElement('div'); c.className = 'chip' + (p.alive || G.phase === 'count' ? '' : ' dead');
     const rr = reactionOf(peerOfPlayer(p));
-    c.innerHTML = `<span class="dot" style="background:${dispColor(p)}"></span><span>${esc(p.name)}${badgeGlyph(p.badge) ? '<span class="badge">' + badgeGlyph(p.badge) + '</span>' : ''}</span>${rr ? '<span class="re">' + rr.e + '</span>' : ''}<span class="sc">${p.score}</span>`;
+    c.innerHTML = `<span class="dot" style="background:${dispColor(p)}"></span><span>${esc(p.name)}${badgesHtml(pBadges(p))}</span>${rr ? '<span class="re">' + rr.e + '</span>' : ''}<span class="sc">${p.score}</span>`;
     box.appendChild(c);
   });
   $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
@@ -3148,7 +3319,7 @@ const BOX_LV = { basic: 1, silver: 3, gold: 5, diamond: 8 };
 function lvReq(id) {
   const it = SKINS[id] || BADGES[id] || PREMIUM[id] || EFFECTS[id]; if (!it) return 1;
   if (it.lv) return it.lv;
-  const special = it.premium || it.anim || it.crypto || it.limit || it.unique || it.fan || it.bg || PREMIUM[id];
+  const special = it.premium || it.anim || it.crypto || it.wx || it.limit || it.unique || it.fan || it.bg || PREMIUM[id];
   if (!special) return 1;
   const p = Number(it.price) || 0;
   return p >= 15000 ? 12 : p >= 7000 ? 8 : p >= 4000 ? 6 : p >= 3000 ? 5 : p >= 2000 ? 4 : p >= 1200 ? 3 : p >= 900 ? 2 : 1;
@@ -3301,11 +3472,6 @@ function controlHint(p) {
 }
 function showOverlay(html) { $('#overlay').innerHTML = html || ''; }
 const PAD_ICONS = {
-  sk_boobs: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="${side === 'L' ? 13 : 11}" cy="13" r="2.2" fill="currentColor"/></svg>`,
-  sk_vag: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2C4 8 4 16 10 22C16 16 16 8 10 2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1.3" fill="currentColor"/></svg>`,
-  sk_dildo: (side) => `<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:scaleX(${side === 'L' ? -1 : 1})"><path d="M3 15h11" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><ellipse cx="16" cy="15" rx="5" ry="4" fill="currentColor"/><circle cx="4" cy="20" r="2.4" fill="currentColor"/><circle cx="4" cy="10" r="2.4" fill="currentColor"/></svg>`,
-  sk_hairy: () => `<svg viewBox="0 0 24 20" aria-hidden="true"><circle cx="7.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6l-1-3M6 5.5l-.5-3.5M9.5 6l.8-3M14 6l-.6-3.2M17.5 5.6l.4-3.4M21 6.5l1.4-3M1.6 12H-.2M24.2 12h-1.8M4 17.5l-1.6 1.8M20 17.5l1.6 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
-  sk_condom: () => `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M6 19V9a4 4 0 0 1 8 0v10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="10" cy="19.5" rx="6.5" ry="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="3.5" r="1.3" fill="currentColor"/></svg>`,
 };
 let padPrank = null; // { e, until } while someone's "Ludi gumbi" prank is on me
 function padIcon(p, side) {
@@ -3439,7 +3605,7 @@ function showResults() {
   if (mine && profile && !G.awarded) { G.awarded = true; if (pmid) { paidMids.push(pmid); paidMids.splice(0, Math.max(0, paidMids.length - 20)); } const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
+    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}${badgesHtml(pBadges(p))}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
     </tbody></table></div>`;
   let actions;
   if (net) {
@@ -3447,7 +3613,7 @@ function showResults() {
   } else {
     actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div><p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Pogledaj statistiku svih igrača</a></p>`;
   }
-  showOverlay(`<div class="banner"><span class="label">Kraj meča · ${G.target} rundi</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgeGlyph(w.badge) ? ' ' + badgeGlyph(w.badge) : ''}</h3>${earn}${table}${actions}</div>`);
+  showOverlay(`<div class="banner"><span class="label">Kraj meča · ${G.target} rundi</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgesHtml(pBadges(w))}</h3>${earn}${table}${actions}</div>`);
   if (net) {
     $('#readyBtn').onclick = () => { const on = myPres.again !== net.mid; netPresence({ again: on ? net.mid : null }); renderReady(); };
     $('#leaveBtn').onclick = () => leaveOnline();
@@ -3513,7 +3679,7 @@ function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.p
 // shape of the arena this screen would like (width / height), so the host can pick one that suits everybody
 function myArenaRatio() { const st = $('#stage'); const r = st && st.getBoundingClientRect(); if (r && r.width > 100 && r.height > 100) return +(Math.min(2.1, Math.max(0.55, (r.width - 16) / (r.height - 16)))).toFixed(2); const land = innerWidth > innerHeight && innerHeight < 560; return +(Math.min(2.1, Math.max(0.55, (innerWidth - (land ? 200 : 16)) / Math.max(100, innerHeight - (land ? 60 : 200))))).toFixed(2); }
 let netRatio = 0;
-function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? profile.eq.badge : 'bd_none', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0, ar: myArenaRatio() }; }
+function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? badgeIds(profile.eq, profile.owned)[0] || 'bd_none' : 'bd_none', bx: profile ? badgeIds(profile.eq, profile.owned).slice(1).join(',') : '', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0, ar: myArenaRatio() }; }
 { let arT = 0; addEventListener('resize', () => { clearTimeout(arT); arT = setTimeout(() => { if (roomNs && $('#game').hidden) netPresence({ ar: myArenaRatio() }); }, 1500); }); }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null, autoStart: false, accepted: [], lastAnswer: 0 };
@@ -3613,13 +3779,14 @@ function showMeet() {
   $('#meetWa').onclick = () => { setTimeout(() => { const a = $('#meetWa'); if (a) a.href = meetWaLink(meetBest()); }, 300); };
 }
 function renderOnbar() {
+  renderPushNag();
   const bar = $('#onbar'); if (!bar) return;
   if (!roomNs) { bar.className = 'onhero empty'; bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><span>${roomState.resolved ? 'Online soba trenutno nije dostupna.<small>Osvježi stranicu za novi pokušaj. Do tada možeš igrati s botovima.</small>' : 'Spajanje na online sobu…'}</span></div></div>`; renderBotNote(0); return; }
   const others = onlineOthers(), n = others.length;
   const host = liveHost(), hostOther = host && !(host.isMe && host.sameTab);
   const inLobby = lobbyPlayers().filter(p => !(p.isMe && p.sameTab)).length;
   bar.className = 'onhero' + (n ? '' : ' empty');
-  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
+  const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))}${badgesHtml(presBadges(pr))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
   const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
     : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
     : !host && liveHosts().some(h => !hostOver(h)) ? 'Meč koji se igra je pun. Ne moraš čekati: kreni odmah, a ostali ti se pridruže.'
@@ -3632,7 +3799,7 @@ function renderOnbar() {
     : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? '🌐 Priključi se meču' : '🌐 Igraj online'}</button>`;
   const second = `<button class="btn go-bots" type="button" id="heroBots">🤖 S botovima</button>${!n ? '<button class="linkbtn" type="button" id="heroInvite">📲 Pozovi prijatelje</button>' : ''}`;
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
-  const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
+  const recentHtml = recent.length ? `<div class="recent"><span class="rl">Nedavno online:</span>${recent.map(a => `<span class="onp rec" data-player="${esc(a.slug)}"><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(a.color)] || COLORS[0]}"></span>${esc(String(a.name).slice(0, 14))}${badgeOf(a)} <span class="st">${fmtAgo(a.updatedAt)}</span><a class="wa" href="${comeBackLink(a.name)}" target="_blank" rel="noopener" title="Pošalji mu poruku na WhatsApp da se vrati">📲 Pozovi</a></span>`).join('')}</div>` : '';
   const best = meetBest(), voters = new Set([...(meet.votes[meetDays()[0]] || []), ...(meet.votes[meetDays()[1]] || [])].map(v => v.slug)).size;
   const tourHtml = TMODE && tourTable ? `<div class="weekbar">🏆 <b>${esc(tourTable.t.name)}</b> · ${TMODE.k ? 'kolo ' + TMODE.k + ', stol ' + TMODE.s : 'FINALE'} <span class="ms">Za stolom: ${tourTable.tb.players.map(s => esc(tourTable.t.players.find(p => p.slug === s)?.name || s)).join(', ')}. Meč kreće kad svi stignu (najkasnije 2 min).</span></div>` : '';
   const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
@@ -3760,7 +3927,7 @@ const TROLLS = {
   mirror: { e: '🪞', name: 'Zrcalo', price: 220, ms: 3000, d: 'Lijevo i desno zamijenjeni 3 sekunde' },
   fakepu: { e: '🎁', name: 'Lažni power-up', price: 110, ms: 4500, d: 'Ispred njega se pojavi lažni power-up. Prevaren!' },
   colors: { e: '🎨', name: 'Lude boje', price: 90, ms: 4000, d: 'Sve boje mu se izmiješaju na 4 sekunde' },
-  pads:   { e: '🍆', name: 'Ludi gumbi', price: 150, ms: 60000, d: 'Strelice za upravljanje mu postanu 🍆, 🍑, 🍒 ili 💩 na minutu' },
+  pads:   { e: '🐸', name: 'Ludi gumbi', price: 150, ms: 60000, d: 'Strelice za upravljanje mu postanu 🐸, 🦆, 🍒 ili 💩 na minutu' },
 };
 const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0, blockN = 0; const seenTb = {};
 const seenDm = {}, seenTr = {};
@@ -3952,7 +4119,7 @@ function receiveTroll(id, fromName, fromPeer) {
     showIgMsg(`🛡️ Štit je odbio: ${t.e} ${t.name} od ${esc(fromName)} (ostalo štitova: ${profile.inv.shield})`); beep(880, .12, 'triangle', .06); return;
   }
   if (id === 'mirror') mirrorUntil = performance.now() + t.ms;
-  if (id === 'pads') { padPrank = { e: ['🍆', '🍑', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
+  if (id === 'pads') { padPrank = { e: ['🐸', '🦆', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
   if (profile) { profile.trollsGot = (profile.trollsGot || 0) + 1; profileDirty = true; }
   const now = performance.now();
   if ($('#game').hidden || !G) { notify(`${t.e} <b>${esc(fromName)}</b> te pokušao zezati (${t.name}), ali nisi bio u igri.`, { warn: true, ms: 6000 }); return; }
@@ -4002,7 +4169,7 @@ function paintTroll(c, f, now, w, h, me, label) {
   }
   else if (f.id === 'fog') { blur = 7 * (k < .1 ? k / .1 : k > .85 ? (1 - k) / .15 : 1); }
   else if (f.id === 'sticker' && me) {
-    const STK = ['🤡', '🍆', '🍑', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(w, h) * 0.2);
+    const STK = ['🤡', '🐸', '🦆', '💩', '👻', '🐔'], e = STK[Math.floor(f.seed) % STK.length], sz = Math.round(Math.min(w, h) * 0.2);
     c.globalAlpha = k > .85 ? (1 - k) / .15 : 1; c.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
     c.fillText(e, me.x + Math.cos(me.a) * sz * 0.75, me.y + Math.sin(me.a) * sz * 0.75);
   }
@@ -4033,11 +4200,11 @@ function trollSound(id) {
 const TROLL_HOW = {
   hearts: 'Preko cijele arene mu padaju srčeka. Ne smeta igri, samo je slatko.', horn: 'Glasna truba i veliki natpis TUUUUT preko sredine ekrana.',
   poop: 'Kakice mu padaju preko arene i prekrivaju tragove.', shake: 'Cijeli ekran mu se trese, a mobitel zavibrira.',
-  sticker: 'Veliki emotikon (🤡 🍆 🍑 💩 👻 🐔) mu sjedne točno ispred glave i prati ga kamo god krene.', flash: 'Ekran mu na trenutak zabljesne potpuno bijelo.',
+  sticker: 'Veliki emotikon (🤡 🐸 🦆 💩 👻 🐔) mu sjedne točno ispred glave i prati ga kamo god krene.', flash: 'Ekran mu na trenutak zabljesne potpuno bijelo.',
   fog: 'Cijela arena mu se zamuti, kao da gleda kroz maglu.', dark: 'Sve mu se zamrači, vidi samo mali krug oko svoje glave.',
   flip: 'Arena mu se okrene naglavačke, gore je dolje.', mirror: 'Lijevo i desno su mu zamijenjeni: kad stisne lijevo, skrene desno.',
   fakepu: 'Ispred njega se pojavi power-up. Kad ga pokupi, dočeka ga natpis PREVAREN!', colors: 'Boje svih zmija i arene mu se izmiješaju.',
-  pads: 'Njegove strelice za upravljanje postanu 🍆, 🍑, 🍒 ili 💩 na cijelu minutu.',
+  pads: 'Njegove strelice za upravljanje postanu 🐸, 🦆, 🍒 ili 💩 na cijelu minutu.',
 };
 let trollPrev = null;
 function showTrollPreview(id) {
@@ -4045,7 +4212,7 @@ function showTrollPreview(id) {
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile trollprev" novalidate onsubmit="return false"><h3>${t.e} ${esc(t.name)}</h3>
     <p class="hint" style="margin:0">Ovako to vidi igrač kojem je pošalješ (traje ${(t.ms / 1000).toLocaleString('hr-HR')} s${t.ms >= 10000 ? '' : ', pa kreće ispočetka'}):</p>
-    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🍆</span><span class="j">SKOK</span><span>🍆</span></div>' : ''}</div>
+    <div class="tpv"><canvas id="tpvCv" width="640" height="400"></canvas>${id === 'pads' ? '<div class="tpvpads"><span>🐸</span><span class="j">SKOK</span><span>🐸</span></div>' : ''}</div>
     <p style="margin:0">${esc(TROLL_HOW[id] || t.d)}</p>
     <p class="hint" style="margin:0">Kad je pošalješ, svi u meču iznad njegove zmije vide ${t.e} dok traje, a njemu piše tko ga je zezao. 🛡️ Štit je odbija.</p>
     <div class="go"><button class="btn ghost" type="button" id="tpvSound">🔊 Čuj zvuk</button><button class="btn" type="button" id="tpvOk">Zatvori</button></div></form>`;
@@ -4287,7 +4454,7 @@ function renderNet() {
     html.push(`<div class="notice">${Number(host.presence.ho) > 0 ? 'Meč je upravo završio (igrači dogovaraju novi)' : 'Meč je u tijeku'}, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netReadyRun" style="margin-left:8px">✅ Uđi u meč (od sljedeće runde)</button><button class="btn sm ghost" id="netWatch" style="margin-left:8px">👀 Samo gledaj</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn ${myPres.ok ? 'ghost' : ''}" id="netStart">${myPres.ok ? '⏳ Spreman · odustani' : '✅ Spreman za meč'}</button>` : ''}${roomState.ready && !host && lobbyState().canGo ? `<button class="btn" id="netGo" title="Meč kreće odmah s onima koji su spremni; ostali ulaze od sljedeće runde">▶ Kreni odmah${readyCount() < 2 ? ' s botovima' : ''}</button>` : ''}${roomState.ready && !host && myRole() === 'master' ? `<button class="btn ghost sm" id="netForce" title="Admin: pokreni bez čekanja">▶ Pokreni odmah</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
-  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgeGlyph(pr.bd) ? '<span class="badge">' + badgeGlyph(pr.bd) + '</span>' : ''}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${kickedSlug(pr.sl) ? '🚫 izbačen' : (pr.st || pr.hs) && !hostOver(p) ? 'domaćin' : pr.ig ? 'u meču' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${myRole() === 'master' && pr.sl && !(p.isMe && p.sameTab) && roleOfSlug(pr.sl) !== 'master' ? `<button class="pingbtn kickbtn" type="button" data-kick="${esc(pr.sl)}" data-kn="${esc(String(pr.nm || ''))}" title="${kickedSlug(pr.sl) ? 'Vrati u sobu' : 'Izbaci iz sobe'}" style="margin-left:8px">${kickedSlug(pr.sl) ? '↩️' : '🚫'}</button>` : ''}${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgesHtml(presBadges(pr))}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${kickedSlug(pr.sl) ? '🚫 izbačen' : (pr.st || pr.hs) && !hostOver(p) ? 'domaćin' : pr.ig ? 'u meču' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${myRole() === 'master' && pr.sl && !(p.isMe && p.sameTab) && roleOfSlug(pr.sl) !== 'master' ? `<button class="pingbtn kickbtn" type="button" data-kick="${esc(pr.sl)}" data-kn="${esc(String(pr.nm || ''))}" title="${kickedSlug(pr.sl) ? 'Vrati u sobu' : 'Izbaci iz sobe'}" style="margin-left:8px">${kickedSlug(pr.sl) ? '↩️' : '🚫'}</button>` : ''}${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<p class="hint">Pravila meča (zidovi, power-upovi, brzina, cilj) određuje domaćin iz svoje kartice „S botovima”. Kontrole: tipke ← → ↑ ili dodir.</p>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   // the lobby is redrawn on every presence change: keep the message being typed (and the caret) across redraws
@@ -4322,7 +4489,7 @@ async function loadChatHistory(room) {
 }
 function plural(n, one, few, many) { const m10 = n % 10, m100 = n % 100; return n + ' ' + (m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many); }
 function fmtChatTime(at) { if (!at) return ''; const d = new Date(at), n = new Date(); const t = d.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }); return d.toDateString() === n.toDateString() ? t : d.toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric' }) + ' ' + t; }
-const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🍆', '🍑', '🖕', '👏', '🥳', '😈'];
+const REACTIONS = ['😂', '🤣', '🔥', '💀', '😡', '🤬', '😭', '🥵', '🤡', '💩', '👑', '🐍', '🖕', '👏', '🥳', '😈'];
 const reacts = {}; const reactSeen = {}; let reactN = 0, lastReactAt = 0;
 let chatOpen = !IS_TOUCH, unread = 0;
 let chatSeenAt = (() => { try { return Number(localStorage.getItem('vijuga-chat-seen')) || 0; } catch (e) { return 0; } })();
@@ -4372,7 +4539,7 @@ function sendChat(text) {
   text = String(text || '').trim().slice(0, 80); if (!text) return;
   if (!roomNs) { toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
   if (profile && mutedUntil(profile.slug)) { toast(`🔇 Moderator te utišao do ${new Date(mutedUntil(profile.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}.`); return; }
-  const at = Date.now(); chatN++; netPresence({ msg: [text, chatN, at] });
+  const at = Date.now(); chatN++; const cc = chatCC({ me: true, sl: profile && profile.slug }); netPresence({ msg: cc ? [text, chatN, at, null, cc] : [text, chatN, at] });
   if (profile) fetch(API_BASE + '/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ room: chatRoom, slug: profile.slug, auth: profile.pinHash || '', text, at }) }).catch(() => {});
   const me = roomState.peers.find(p => p.isMe && p.sameTab); if (me) { const mine = Object.assign({}, me, { presence: Object.assign({}, me.presence, myPres) }); roomState.peers = roomState.peers.map(p => p === me ? mine : p); } collectChat();
 }
@@ -4418,7 +4585,7 @@ function collectChat() {
     if (mutedUntil(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
     // only a plain base64 audio data URL is accepted: it is placed into HTML attributes, so no other characters may get through
     const audio = typeof m[3] === 'string' && /^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 420000 ? m[3] : null;
-    if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
+    if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, cc: typeof m[4] === 'string' && EFFECTS[m[4]] && EFFECTS[m[4]].kind === 'cc' ? m[4] : '', me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
     if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio);
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
@@ -4437,7 +4604,7 @@ function collectChat() {
   if (changed) { renderChat(); if (!$('#game').hidden) sfx.tick(); }
 }
 function renderChat() {
-  const line = (m, t) => `<div>${m.at ? `<small class="ctime">${fmtChatTime(m.at)}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${esc(m.audio)}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
+  const line = (m, t) => `<div>${m.at ? `<small class="ctime">${fmtChatTime(m.at)}</small>` : ''}<b style="color:${m.me ? 'var(--amber)' : 'var(--fg)'}">${nameHtml(m.sl, m.name)}${roleTag(m.sl)}:</b>${chatCC(m) ? `<span${ccAttr(chatCC(m))}>` : m.sl && ownsSlug(m.sl, 'pr_vip') ? '<span class="vipmsg">' : '<span>'} ${m.audio ? `<button type="button" class="vplay" data-a="${esc(m.audio)}">▶ glasovna poruka</button>` : esc(m.text)}</span></div>`;
   const empty = '<div class="hint">Još nema poruka.</div>';
   const a = $('#lchatLog'), g = $('#gchatLog'), big = $('#gchat') && $('#gchat').classList.contains('big');
   if (a) { a.innerHTML = chatLog.slice(-30).map(m => line(m, false)).join('') || empty; a.scrollTop = a.scrollHeight; }
@@ -4456,7 +4623,7 @@ function renderBoard() {
   const where = dbNs ? 'Zajednička ljestvica svih igrača.' : 'Bez veze s bazom: ljestvica igrača s ovog uređaja.';
   if (!rows.length) { b.innerHTML = `<div class="statlink"><span>Detaljna statistika svih igrača.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>` + mine + `<p class="hint">${where} Još je prazna.</p>`; return; }
   const sl = `<div class="statlink"><span>Detaljna statistika svih igrača: mečevi, pobjede, postolja, rušenja, aktivnost po danima i zadnji mečevi.</span><a class="btn sm" href="stats.html">Otvori statistiku</a></div>`;
-  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr data-player="${esc(r.slug)}"${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${nameHtml(r.slug, String(r.name || '?'))}${badgeGlyph(r.eq && r.eq.badge) ? ' ' + badgeGlyph(r.eq.badge) : ''}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
+  b.innerHTML = sl + mine + `<h2>Svi igrači <small>${where}</small></h2><div class="tablewrap"><table class="board"><thead><tr><th>#</th><th style="text-align:left">Igrač</th><th>Zlatnici</th><th>Mečevi</th><th>Pobjede</th><th>Rušenja</th></tr></thead><tbody>${rows.map((r, i) => `<tr data-player="${esc(r.slug)}"${profile && r.slug === profile.slug ? ' style="color:var(--amber)"' : ''}><td style="text-align:left;color:var(--muted)">${i + 1}.</td><td style="text-align:left"><span style="color:${COLORS[Number(r.color)] || COLORS[0]}">●</span> ${nameHtml(r.slug, String(r.name || '?'))}${badgeOf(r)}</td><td>${r.coins}</td><td>${r.matches}</td><td>${r.wins}</td><td>${r.kills}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 // host
@@ -4465,7 +4632,7 @@ const countLen = () => (net && G && (G.round === 1 || G.joinRound === G.round) ?
 function netPlayerFrom(pr, c) {
   const me = pr.isMe && pr.sameTab;
   return { id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
-      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => ownsSlug(pr.presence.sl, x)).map(x => x.slice(3)).join(',') }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null };
+      skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', badges: me ? badgeIds(profile.eq, profile.owned) : presBadges(pr.presence), starter: STARTER_PU.includes(pr.presence.pu) ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: ['pr_tomb', 'lx_heli', 'lx_yacht', 'lx_rolex'].filter(x => ownsSlug(pr.presence.sl, x)).map(x => x.slice(3)).join(',') }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null };
 }
 // a real player who is waiting (accepted an invite, sat down in the lobby) takes a bot's seat at the start of the next round
 // a guest who went back to the menu, or whose connection has been gone for a few seconds, leaves the match at the next
@@ -4495,14 +4662,14 @@ function seatQueuedHumans() {
       const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
       const c = used.has(want) ? bot.id : want;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, own ? { score: own.score || 0, kills: own.kills || 0, wins: own.wins || 0, picks: own.picks || 0, jumps: own.jumps || 0 } : (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
+      G.players[G.players.indexOf(bot)] = np; fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
     } else if (G.players.length < MAX_PLAYERS) { // free seat: join the running match from the next round
       const used = new Set(G.players.map(p => p.id));
       let c = want; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players.push(np); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
+      G.players.push(np); fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi u meč`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč od ove runde`);
     } else break;
@@ -4528,12 +4695,13 @@ function hostStart(rematch) {
   const nMatches = !rematch && !TMODE ? Math.ceil(all.length / MAX_PLAYERS) : 1;
   const peers = all.slice(0, nMatches > 1 ? Math.ceil(all.length / nMatches) : MAX_PLAYERS);
   if (!peers.length) return;
-  const used = new Set(); const players = [];
-  peers.forEach((pr, i) => {
-    let c = Number(pr.presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c);
-    players.push(netPlayerFrom(pr, c));
+  const used = new Set(); const players = [], cOf = [];
+  peers.map((pr, i) => ({ i, rk: rankOfSlug(pr.presence.sl, pr.isMe && pr.sameTab) })).sort((a, b) => rankCmp(a.rk, b.rk) || a.i - b.i).forEach(({ i }) => {
+    let c = Number(peers[i].presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c); cOf[i] = c;
   });
-  { const meP2 = players.find(p => p.mine); if (meP2 && profile && COLORS[profile.color] && meP2.color !== COLORS[profile.color]) setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${meP2.color}">${(DEFAULT_NAMES[COLORS.indexOf(meP2.color)] || '').toLowerCase()}</b>`), 1500); }
+  peers.forEach((pr, i) => players.push(netPlayerFrom(pr, cOf[i])));
+  fixColorClashes(players);
+  { const meP2 = players.find(p => p.mine); if (meP2 && profile && (meP2.nc || COLORS.indexOf(meP2.color) < 0)) setTimeout(() => showIgMsg(colorNote(meP2)), 1500); else if (meP2 && profile && COLORS[profile.color] && meP2.color !== COLORS[profile.color]) setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${meP2.color}">${(DEFAULT_NAMES[COLORS.indexOf(meP2.color)] || '').toLowerCase()}</b>`), 1500); }
   if (setup.netBots) while (players.length < 4) { const c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break; used.add(c); players.push({ id: c, name: DEFAULT_NAMES[c] + ' bot', color: COLORS[c], human: false, diff: 'teško', skin: 'sk_none', badge: 'bd_none', starter: '' }); }
   if (players.length < 2) { if (net && net.role === 'host') { net.rematching = false; net.firstReadyAt = 0; } else toast('Trebaju barem 2 igrača u predvorju, ili uključi botove.'); return; }
   { const rs = peers.map(pr => (pr.isMe && pr.sameTab) ? myArenaRatio() : Number(pr.presence.ar) || 1).filter(r => r > 0.3 && r < 3); netRatio = Math.min(1.6, Math.max(0.7, Math.exp(rs.reduce((a, r) => a + Math.log(r), 0) / Math.max(1, rs.length)))); }
@@ -4627,7 +4795,7 @@ function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
   return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -4659,8 +4827,7 @@ function clientBegin(host, key = 'st', spectate = false) {
 }
 // one piece of a snake's trail on a guest's screen: the same stroke and the same collision stamps as on the host
 function guestLine(p, x0, y0, x1, y1, rr, ang) {
-  if (p.skin === 'sk_dildo' && !p.ballsDrawn) { p.ballsDrawn = true; drawBalls(x0, y0, ang, rr); }
-  const custom = applySkin(tctx, p.skin, p.color, rr, G.gt); if (!custom) tctx.lineWidth = rr * 2;
+  const custom = applySkin(tctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) tctx.lineWidth = rr * 2;
   const d = Math.hypot(x1 - x0, y1 - y0);
   tctx.lineDashOffset = -(p.dashLen || 0); tctx.beginPath(); tctx.moveTo(x0, y0); tctx.lineTo(x1, y1); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]); tctx.lineDashOffset = 0; p.dashLen = (p.dashLen || 0) + d;
   skinAfter(tctx, p.skin, [x0, y0, x1, y1], rr, p);
@@ -4687,8 +4854,8 @@ function applyState(st, first) {
   const mePeer = roomState.me;
   if (st.te !== undefined && st.te !== net.tvE) { net.tvE = st.te; net.tv = {}; } // another host (or a match taken over): its trail numbering starts afresh
   if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
-  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
-  if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
+  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); clearLights(); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
+  if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
@@ -4705,11 +4872,11 @@ function applyState(st, first) {
     let p = byId[q.i];
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
-    if (q.co != null && COLORS[q.co] && p.color !== COLORS[q.co]) { p.color = COLORS[q.co]; hudDirty = true; }
-    if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none' }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
+    { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
+    if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.sl) p.slug = q.sl;
-    if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null, ig: 1, watch: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (net && G && net.myId != null && (G.round > 1 || G.phase !== 'count')) { const meP = G.players.find(x => x.id === net.myId); showIgMsg(meP && meP.alive && G.phase === 'run' ? '🎮 Ti si u meču! Upravljaš svojom zmijom.' : G.phase === 'count' ? '🎮 Ti si u meču! Runda kreće za koji trenutak.' : '🎮 U meču si – svojom zmijom upravljaš <b>od sljedeće runde</b>.'); } }, 0); } }
+    if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && (q.nc || q.cx)) { net.colorTold = true; setTimeout(() => showIgMsg(colorNote(p)), 300); } else if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null, ig: 1, watch: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (net && G && net.myId != null && (G.round > 1 || G.phase !== 'count')) { const meP = G.players.find(x => x.id === net.myId); showIgMsg(meP && meP.alive && G.phase === 'run' ? '🎮 Ti si u meču! Upravljaš svojom zmijom.' : G.phase === 'count' ? '🎮 Ti si u meču! Runda kreće za koji trenutak.' : '🎮 U meču si – svojom zmijom upravljaš <b>od sljedeće runde</b>.'); } }, 0); } }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
     if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { let da = q.a - p._la; da = Math.atan2(Math.sin(da), Math.cos(da)); const wa = da / (st.gt - p._lgt); p._wa = Math.abs(wa) < 12 ? (p._wa == null ? wa : p._wa * 0.5 + wa * 0.5) : 0; }
@@ -4940,7 +5107,7 @@ async function initSupabase() {
       if (hasToHost && connected) { const to = following && following !== myPeer ? following : ('vis' in toHost && lobbyPres.hs ? myPeer : null); if (to) { gsend(to, toHost); if ('j' in toHost && !('is' in toHost)) { const again = Object.assign({}, toHost); clearTimeout(resendT); resendT = setTimeout(() => gsend(to, again), 150); } } }
       const me = peersMap[myPeer] || mkPeer(myPeer, {}); peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, me.presence, patch));
       if (hasSlow) { for (const k in slow) { if (slow[k] === null) delete lobbyPres[k]; else lobbyPres[k] = slow[k]; } if (connected) scheduleTrack(); }
-      if (hasFast && connected) { for (const k of ['sl', 'nm', 'cl', 'sk', 'bd', 'pu', 'ar', 'rq']) if (lobbyPres[k] != null && !(k in fast)) fast[k] = lobbyPres[k]; ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {}); }
+      if (hasFast && connected) { for (const k of ['sl', 'nm', 'cl', 'sk', 'bd', 'bx', 'pu', 'ar', 'rq']) if (lobbyPres[k] != null && !(k in fast)) fast[k] = lobbyPres[k]; ch.send({ type: 'broadcast', event: 'p', payload: { peer: myPeer, patch: fast } }).catch(() => {}); }
       fire();
     },
     peers: toPeers,
@@ -5182,7 +5349,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor };
 })();
 </script>
 

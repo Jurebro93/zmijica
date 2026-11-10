@@ -1,7 +1,7 @@
 // Web push for Vijuga (invites and meeting reminders).
 // GET  /api/push/key                         -> VAPID public key (created once, kept in Blobs)
 // POST /api/push/subscribe {slug, auth, sub} -> save this device for the player (PIN checked)
-// POST /api/push/invite {from, to, auth}     -> notify a player that a friend calls them to play
+// POST /api/push/invite {from, to, auth, kind?} -> notify a player that a friend calls them to play (kind "poke": a nudge to come back)
 // GET  /api/push/has?slugs=a,b               -> which of these players can get notifications
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
@@ -68,7 +68,10 @@ export default async (req: Request, context: Context) => {
     const key = `rate/${from}/${to}`; const last = Number(await store.get(key)) || 0;
     if (Date.now() - last < 60000) return json({ error: "wait a minute" }, 429);
     await store.set(key, String(Date.now()));
-    const sent = await sendTo(to, { title: `🐍 ${String(acc.name ?? from).slice(0, 14)} te zove na Vijugu!`, body: "Dođi, čekamo te za meč. Dodirni da uđeš.", url: GAME, tag: "invite-" + from });
+    const who = String(acc.name ?? from).slice(0, 14), poke = b.kind === "poke";
+    const sent = await sendTo(to, poke
+      ? { title: `👉 ${who} te bocnuo!`, body: "Vrati se u igru, čekamo te za meč 🐍 Dodirni da uđeš.", url: GAME, tag: "poke-" + from }
+      : { title: `🐍 ${who} te zove na Vijugu!`, body: "Dođi, čekamo te za meč. Dodirni da uđeš.", url: GAME, tag: "invite-" + from });
     return sent ? json({ ok: true, sent }) : json({ error: "no devices" }, 404);
   }
   return json({ error: "unknown action" }, 404);
