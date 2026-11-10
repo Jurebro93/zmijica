@@ -667,7 +667,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
-        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>najskuplje animacije koje vide svi u meču. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda</small></h2><div class="shop" id="shopLux"></div></div>
+        <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>tvoj dolazak u igru: igra stane, svi gledaju tvoju animaciju, pa piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda. Ako imaš više, vrti se najskuplja</small></h2><div class="shop" id="shopLux"></div></div>
         <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
         <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
@@ -2221,13 +2221,13 @@ const PREMIUM = {
   bg_basket:   { e: '🏀', name: 'Arena: Košarkaški teren', d: 'UZORAK: parket s prozirnim linijama terena', price: 2000, bg: true },
   pr_room:     { e: '🔒', name: 'Privatna soba', d: 'Svoja soba s tajnom šifrom: ulaze samo oni kojima pošalješ link', price: 1500 },
   pr_vip:      { e: '💎', name: 'VIP paket', d: 'Zlatni chat, 5 ekskluzivnih emotikona i 10 % popusta na tragove, ikone i premium stvari', price: 4000 },
-  lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ: na početku svake runde helikopter te spusti u arenu na užetu, a svi vide „IME stiže helikopterom!”', price: 18000, lux: true },
-  lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ: kad pobijediš rundu, tvoja jahta s tvojim imenom proplovi arenom uz šampanjac', price: 20000, lux: true },
-  lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ: kad nekoga srušiš, preko ekrana se zavrti zlatni sat i padnu zlatnici: „TIK-TAK, IME!”', price: 15000, lux: true },
-  lx_fireworks:{ e: '🎆', name: 'Vatromet', d: 'LUKSUZ: kad osvojiš cijeli meč, iznad arene puca vatromet u tvojoj boji uz „IME JE PRVAK!”', price: 16000, lux: true },
-  lx_ferrari:  { e: '🏎️', name: 'Ferrari', d: 'LUKSUZ: kad u rundi prvi put pokupiš power-up, crveni Ferrari projuri arenom uz „BRRRM, IME!”', price: 17000, lux: true },
-  lx_crown:    { e: '👑', name: 'Dijamantna kruna', d: 'LUKSUZ: dijamantna kruna koja svjetluca lebdi iznad tvoje zmije cijelu rundu, da svi znaju tko je kralj', price: 22000, lux: true },
-  lx_jet:      { e: '✈️', name: 'Privatni avion', d: 'LUKSUZ: na početku svake runde tvoj privatni avion preleti arenom s transparentom „IME LETI PRIVATNO”', price: 25000, lux: true },
+  lx_heli:     { e: '🚁', name: 'Helikopter', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane i svi gledaju kako te helikopter spušta u arenu na užetu', price: 18000, lux: true },
+  lx_yacht:    { e: '🛥️', name: 'Jahta', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti uploviš u arenu svojom jahtom uz šampanjac', price: 20000, lux: true },
+  lx_rolex:    { e: '⌚', name: 'Rolex', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, preko ekrana se zavrti zlatni Rolex i padaju zlatnici', price: 15000, lux: true },
+  lx_fireworks:{ e: '🎆', name: 'Vatromet', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a iznad arene puca vatromet u tvojoj boji', price: 16000, lux: true },
+  lx_ferrari:  { e: '🏎️', name: 'Ferrari', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti projuriš arenom crvenim Ferrarijem: „BRRRM!”', price: 17000, lux: true },
+  lx_crown:    { e: '👑', name: 'Dijamantna kruna', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a dijamantna kruna se s neba spusti na tvoju zmiju', price: 22000, lux: true },
+  lx_jet:      { e: '✈️', name: 'Privatni avion', d: 'LUKSUZ · DOLAZAK: kad uđeš u igru, igra stane, a ti preletiš arenom privatnim avionom s transparentom', price: 25000, lux: true },
   bg_live:     { e: '⛈️', name: 'Arena: Šibenik uživo', d: 'UŽIVO: arena prati pravo vrijeme u Šibeniku: kad pada kiša, kiša pada po areni; kad puše bura, nosi prašinu; noću zvijezde, danju sunce', price: 3000, bg: true },
   pr_tomb:     { e: '🪦', name: 'Nadgrobni spomenik', d: 'Kad te netko sruši, na tom mjestu do kraja runde stoji veliki spomenik s tvojim imenom. Tko ga dotakne, vidi „Počivaj u miru” i tvoje ime', price: 1800 },
 };
@@ -2495,7 +2495,7 @@ function newRound() {
       jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [], tvH: [], portalCool: 0 });
   });
   hudDirty = true; showOverlay(null);
-  G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); if (hasLux(x, 'jet')) luxStart('jet', x); });
+  planIntro();
 }
 
 // ---------- effects ----------
@@ -3047,7 +3047,7 @@ function spawnPu() {
   }
 }
 function applyPu(p, k, silent) {
-  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); if (hasLux(p, 'ferrari') && p.ferrariRound !== G.round) { p.ferrariRound = G.round; luxStart('ferrari', p); } }
+  const P = POWERUPS[k]; if (!silent) { p.picks++; sfx.pick(); }
   const add = (q, kind, dur) => q.fx.push({ k: kind, until: G.gt + dur });
   const others = G.players.filter(q => q !== p && q.alive);
   switch (k) {
@@ -3111,11 +3111,10 @@ function announceDrop(d) {
 function endRound(winner) {
   G.phase = 'end'; G.phaseT = 0; G.players.forEach(p => flushTrail(p, false));
   if (winner) winner.wins++;
-  if (winner && hasLux(winner, 'yacht')) luxStart('yacht', winner);
   sfx.round(); if (winner && winner.vs) victoryFx(winner);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
-  if (G.round >= G.target) { if (sorted[0] && hasLux(sorted[0], 'fireworks')) luxStart('fireworks', sorted[0]); if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
+  if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
 }
@@ -3220,6 +3219,7 @@ function substep(lap) {
 function update(dt) {
   if (G.phase === 'run' && G.players.length && !G.players.some(p => p.alive)) { endRound(null); return; } // safety: a round with nobody alive can never hang
   if (G.phase === 'count') {
+    if (G.intro && G.introT < G.introLen) { G.introT += dt; runIntro(); return; } // a luxury entrance: everybody waits (a guest's clock is set again by every snapshot)
     G.phaseT += dt;
     const n = Math.ceil(countLen() - G.phaseT);
     if (n !== G.lastCount && n > 0) { G.lastCount = n; sfx.tick(); }
@@ -3351,7 +3351,6 @@ function render() {
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : p.color; ctx.fill();
     if (p.skin === 'sk_centi' && p.alive) drawCentiHead(ctx, p.x, p.y, p.a, hr);
-    if (p.alive && hasLux(p, 'crown') && G.phase !== 'end') drawCrown(ctx, p.x, p.y - hr - 34, performance.now() / 1000);
     if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas') && p.alive) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
     { const pm = p.alive && net ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
     if (p.alive && G.phase === 'run') { const ids = pBadges(p).filter(id => liveB(BADGES[id]) || BADGES[id].anim); if (ids.length) { ctx.globalAlpha = 0.85; drawBadgeRow(ctx, ids, p.x, p.y - hr - 12, 10, p.color); ctx.globalAlpha = 1; } }
@@ -3410,7 +3409,8 @@ function render() {
     ctx.globalAlpha = 1 - k; ctx.fillStyle = G.toast.color; ctx.font = '600 18px "Barlow Semi Condensed", sans-serif';
     ctx.fillText(G.toast.text, G.toast.x, G.toast.y - 24 - k * 24); ctx.globalAlpha = 1;
   }
-  if (G.phase === 'count') {
+  drawIntroBanner(ctx);
+  if (G.phase === 'count' && !(G.intro && G.introT < G.introLen)) {
     const n = Math.ceil(countLen() - G.phaseT);
     ctx.font = `400 ${Math.min(W, H) * 0.16}px Bungee, Impact, sans-serif`;
     ctx.fillStyle = 'rgba(233,239,246,0.9)'; ctx.fillText(n > 0 ? String(n) : '', W / 2, H / 2);
@@ -3577,7 +3577,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
-  { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Najskuplje animacije koje vide svi u meču. Za svaku trebaju nivo i posebna postignuća (za krunu i avion i drugi luksuz). ℹ️ na svakoj pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
+  { id: 'luxury2', d: '2026-11-10', e: '🛥️', t: 'Novi luksuz: Ferrari, Vatromet, Kruna, Privatni avion', x: 'Luksuz je tvoj dolazak u igru: na početku meča (ili kad zamijeniš bota) igra stane, svi gledaju tvoju animaciju i piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća. ℹ️ pokazuje kako izgleda.', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_fireworks', 'lx_ferrari', 'lx_crown', 'lx_jet'] },
   { id: 'live-pack', d: '2026-11-10', e: '🌍', t: 'Uživo: Hajduk, Dinamo i Šibenik, more, bura, tečaj…', x: 'Ikona kluba piše kad je sljedeća utakmica i protiv koga, a dok se igra svijetli zeleno s rezultatom uživo. Klik na ikonu otvara tablicu HNL-a. Dan nakon pobjede kluba navijači imaju duple nagrade. Tu su i more, bura alarm, zrak, tečaj, zlato, potresi, svemirska postaja i Formula 1.', go: 'shop:live', b: 'Pogledaj u trgovini', items: ['bd_fc_hajduk', 'bd_fc_dinamo', 'bd_fc_sibenik', 'bd_sea_sib', 'bd_sea_st', 'bd_sea_zd', 'bd_sea_du', 'bd_sea_pu', 'bd_bura', 'bd_uv', 'bd_air', 'bd_fx_usd', 'bd_fx_chf', 'bd_gold', 'bd_quake', 'bd_iss', 'bd_f1'] },
   { id: 'nameday-night', d: '2026-11-10', e: '🎉', t: 'Imendani i arena Šibenik uživo', x: 'Na naslovnoj piše tko danas slavi imendan; slavljenik dobije 🎉 uz ime i 200 zlatnika. Kad je noć u Šibeniku, arenom trepere zvijezde, a nova pozadina „Šibenik uživo” prati pravu kišu, buru i noćno nebo.', go: 'shop:bgs', b: 'Pozadine arene', items: ['bg_live'] },
   { id: 'wants', d: '2026-11-10', e: '🙋', t: 'Zahtjevi za kupnju na aukciji', x: 'Nešto je rasprodano? Na Aukciji otvori zahtjev i ponudi cijenu, a tko god tu stvar ima, proda ti je jednim klikom. U trgovini uz rasprodanu stvar stoji „Zatraži na aukciji”.', go: 'tab:auct', b: 'Otvori aukciju' },
@@ -3634,7 +3634,8 @@ function tellNews() {
   if (n) n.querySelector('[data-news]').onclick = () => { n.remove(); showNews(); };
 }
 setTimeout(tellNews, 7000);
-const LUX_WHEN = { lx_heli: 'na početku svake runde', lx_jet: 'na početku svake runde', lx_yacht: 'kad pobijediš rundu', lx_fireworks: 'kad osvojiš cijeli meč', lx_rolex: 'kad nekoga srušiš', lx_ferrari: 'kad u rundi prvi put pokupiš power-up', lx_crown: 'cijelu rundu, stalno' };
+const LUX_WHEN_ALL = 'kad uđeš u igru (početak meča ili kad zamijeniš bota); igra stoji dok se ne odvrti';
+const LUX_WHEN = new Proxy({}, { get: () => LUX_WHEN_ALL });
 let luxPrev = null;
 function showLuxPreview(id) {
   const it = PREMIUM[id]; if (!it || !it.lux) return; const type = id.slice(3);
@@ -3657,8 +3658,7 @@ function showLuxPreview(id) {
     c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(131,150,171,0.16)'; for (let gx = 25; gx < w; gx += 25) for (let gy = 25; gy < h; gy += 25) c.fillRect(gx - .8, gy - .8, 1.6, 1.6);
     c.strokeStyle = me.col; c.lineWidth = 6; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); for (let k = 0; k < trail.length; k += 2) { if (k === 0) c.moveTo(trail[k], trail[k + 1]); else c.lineTo(trail[k], trail[k + 1]); } c.stroke();
     c.fillStyle = me.col; c.beginPath(); c.arc(x, y, 7, 0, 6.283); c.fill();
-    if (type === 'crown') drawCrown(c, x, y - 36, tt);
-    else { if (!list.length && now >= next) { list.push({ type, t0: now, x, y, name: me.name, color: me.col }); } drawLux(c, list, w, h); if (!list.length && now > next) next = now + 900; }
+    if (!list.length && now >= next) { list.push({ type, t0: now, x, y, name: me.name, color: me.col }); } drawLux(c, list, w, h); if (!list.length && now > next) next = now + 900;
     luxPrev = requestAnimationFrame(loop);
   };
   luxPrev = requestAnimationFrame(loop);
@@ -4285,6 +4285,29 @@ function drawCrown(c, x, y, t) {
   for (let k = 0; k < 4; k++) { const a = t * 2 + k * 1.57, r = 18 + 3 * Math.sin(t * 5 + k), s2 = 1.5 + 1.5 * Math.max(0, Math.sin(t * 7 + k * 2)); c.fillStyle = k % 2 ? '#bff4ff' : '#ffffff'; c.beginPath(); c.moveTo(Math.cos(a) * r, Math.sin(a) * r * .6 - s2 * 2); c.lineTo(Math.cos(a) * r + s2, Math.sin(a) * r * .6); c.lineTo(Math.cos(a) * r, Math.sin(a) * r * .6 + s2 * 2); c.lineTo(Math.cos(a) * r - s2, Math.sin(a) * r * .6); c.closePath(); c.fill(); }
   c.restore();
 }
+const LUX_RANK = ['lx_jet', 'lx_crown', 'lx_yacht', 'lx_heli', 'lx_ferrari', 'lx_fireworks', 'lx_rolex']; // the dearest one owned is the entrance
+const LUX_DUR = { jet: 4.6, crown: 2.8, yacht: 5.5, heli: 3.6, ferrari: 2.4, fireworks: 4.2, rolex: 2.6 }, ENTER_BANNER = 1.4, INTRO_MAX = 3;
+function entranceOf(p) { for (const id of LUX_RANK) if (hasLux(p, id.slice(3))) return id.slice(3); return ''; }
+// who enters this round: everybody on the first round of the match, otherwise the players seated for this round
+function planIntro() {
+  G.intro = null; G.introT = 0; G.introLen = 0; G.introDone = {};
+  const who = G.players.filter(p => p.human && entranceOf(p) && (G.round === 1 || p.enterRound === G.round)).slice(0, INTRO_MAX);
+  if (!who.length) return;
+  let t = 0.3; G.intro = who.map(p => { const ty = entranceOf(p), e = { i: p.id, t: ty, s: +t.toFixed(2), d: LUX_DUR[ty] || 3 }; t += e.d + ENTER_BANNER; return e; }); G.introLen = +t.toFixed(2);
+}
+// play what is due (host and guests alike: a guest follows the host's clock)
+function runIntro() {
+  if (!G.intro) return; G.introDone = G.introDone || {};
+  for (const e of G.intro) if (!G.introDone[e.i + ':' + e.s] && G.introT >= e.s) { G.introDone[e.i + ':' + e.s] = 1; const p = G.players.find(x => x.id === e.i); if (p) { luxStart(e.t, p); const f = luxFx[luxFx.length - 1]; if (f) f.t0 = performance.now() - (G.introT - e.s) * 1000; } }
+}
+function drawIntroBanner(c) {
+  if (!G.intro || G.phase !== 'count') return;
+  for (const e of G.intro) { const a = G.introT - (e.s + e.d); if (a < 0 || a > ENTER_BANNER) continue; const p = G.players.find(x => x.id === e.i); if (!p) continue;
+    const k = Math.min(1, a / 0.25), fade = a > ENTER_BANNER - 0.3 ? (ENTER_BANNER - a) / 0.3 : 1; c.save(); c.globalAlpha = Math.max(0, fade); c.translate(W / 2, H / 2); c.scale(0.7 + 0.3 * k, 0.7 + 0.3 * k);
+    c.font = `400 ${Math.round(Math.min(W, H) * 0.075)}px Bungee, Impact, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 7; c.strokeStyle = 'rgba(0,0,0,.75)';
+    const t1 = p.name.toUpperCase(), t2 = 'JE UŠAO U IGRU! ✨'; c.strokeText(t1, 0, -28); c.fillStyle = p.color; c.fillText(t1, 0, -28);
+    c.font = `400 ${Math.round(Math.min(W, H) * 0.045)}px Bungee, Impact, sans-serif`; c.strokeText(t2, 0, 22); c.fillStyle = '#ffd23f'; c.fillText(t2, 0, 22); c.restore(); }
+}
 function luxStart(type, p) { luxFx.push({ type, t0: performance.now(), x: p.x, y: p.y, name: p.name, color: p.color }); if (luxFx.length > 6) luxFx.shift(); if (type === 'ferrari') { beep(140, .5, 'sawtooth', .05, 260); setTimeout(() => beep(220, .4, 'sawtooth', .05, 200), 250); } if (type === 'jet') beep(300, 1.4, 'sine', .025, -120); if (type === 'fireworks') [0, 550, 1100, 1650].forEach(d => setTimeout(() => beep(900 + Math.random() * 400, .15, 'triangle', .05, -700), d + 450)); if (type === 'rolex') { beep(1320, .08, 'square', .05); setTimeout(() => beep(1320, .08, 'square', .05), 160); } if (type === 'heli') beep(110, 1.2, 'sawtooth', .03, 20); }
 function luxLabel(c, t, y, size, w) { c.save(); c.font = `900 ${size}px "Barlow Semi Condensed", system-ui, sans-serif`; c.textAlign = 'center'; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(t, (w || W) / 2, y); c.fillStyle = '#ffd23f'; c.fillText(t, (w || W) / 2, y); c.restore(); }
 function drawLux(c, list, w, h) {
@@ -4306,8 +4329,16 @@ function drawLux(c, list, w, h) {
       c.fillStyle = 'rgba(30,90,140,.25)'; c.fillRect(0, h - 95, w, 95);
       for (let j = 1; j < 14; j++) { const wx = x - 40 - j * 14; c.strokeStyle = `rgba(220,245,255,${.6 - j * .04})`; c.lineWidth = 1.5; c.beginPath(); c.arc(wx, y + 16, 4 + j * 1.5, .5, 2.6); c.stroke(); }
       c.save(); c.translate(x, y); c.scale(-1, 1); c.font = `74px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🛥️', 0, 0); c.restore();
+      if (t > .5) luxLabel(c, `🛥️ ${f.name.toUpperCase()} UPLOVLJAVA`, 46, 24, w);
       c.fillStyle = f.color; c.fillRect(x - 4, y - 66, 58, 18); c.fillStyle = '#fff'; c.font = '800 12px system-ui'; c.textAlign = 'left'; c.fillText(f.name.slice(0, 8), x, y - 53); c.fillStyle = '#ddd'; c.fillRect(x - 6, y - 68, 2, 40);
       if (t > 1.2) for (let j = 0; j < 26; j++) { const a = (t - 1.2) - j / 30; if (a < 0 || a > 1.4) continue; const ang = -1.2 - (j % 7) * .08; c.fillStyle = j % 2 ? '#ffd23f' : '#fff6c0'; c.beginPath(); c.arc(x + 14 + Math.cos(ang) * a * 110, y - 36 + Math.sin(ang) * a * 110 + a * a * 90, 2.5, 0, 6.283); c.fill(); }
+    } else if (f.type === 'crown') {
+      if (t > 2.8) { list.splice(i, 1); continue; }
+      const k = Math.min(1, t / 1.3), y = -40 + (f.y - 40 + 40) * (1 - Math.pow(1 - k, 3)), x = f.x + Math.sin(t * 3) * 8 * (1 - k);
+      c.save(); c.strokeStyle = 'rgba(190,240,255,.5)'; c.lineWidth = 2; for (let j = 0; j < 6; j++) { c.beginPath(); c.moveTo(x + (j - 2.5) * 6, y - 20 - j * 6); c.lineTo(x + (j - 2.5) * 6, y - 60 - j * 10); c.stroke(); } c.restore();
+      drawCrown(c, x, y, t);
+      if (t > 1.3) { const b = t - 1.3; c.save(); c.globalAlpha = Math.max(0, 1 - b / 1.2); c.strokeStyle = '#bff4ff'; c.lineWidth = 3; c.beginPath(); c.arc(f.x, f.y - 40, 20 + b * 90, 0, 6.283); c.stroke(); c.restore(); }
+      if (t > .4) luxLabel(c, `👑 ${f.name.toUpperCase()} STIŽE S KRUNOM`, 46, 24, w);
     } else if (f.type === 'jet') {
       if (t > 4.6) { list.splice(i, 1); continue; }
       const x = -120 + t * (w + 360) / 4.6, y = h * 0.16 + 10 * Math.sin(t * 1.6);
@@ -4318,7 +4349,7 @@ function drawLux(c, list, w, h) {
       c.save(); c.translate(x, y); c.font = `54px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✈️', 0, 0); c.restore();
       if (t > .5 && t < 4) luxLabel(c, `${f.name.toUpperCase()} LETI PRIVATNO ✈️`, h - 36, 24, w);
     } else if (f.type === 'fireworks') {
-      if (t > 5.2) { list.splice(i, 1); continue; }
+      if (t > 4.2) { list.splice(i, 1); continue; }
       const cols = [f.color, '#ffd23f', '#ffffff', '#ff5d9e', '#4cc9f0'];
       for (let k = 0; k < 7; k++) {
         const t0 = k * 0.55, a = t - t0; if (a < 0 || a > 2.2) continue;
@@ -4328,14 +4359,14 @@ function drawLux(c, list, w, h) {
         for (let j = 0; j < 28; j++) { const ang = j / 28 * 6.283, r = e * 140, px = sx + Math.cos(ang) * r, py = sy + Math.sin(ang) * r + e * e * 60; c.fillStyle = cols[(j + k) % cols.length]; c.beginPath(); c.arc(px, py, 3, 0, 6.283); c.fill(); }
         c.restore();
       }
-      if (t > .6) luxLabel(c, `🎆 ${f.name.toUpperCase()} JE PRVAK! 🎆`, h * 0.12, 30, w);
+      if (t > .6) luxLabel(c, `🎆 STIŽE ${f.name.toUpperCase()}! 🎆`, h * 0.12, 30, w);
     } else if (f.type === 'ferrari') {
       if (t > 2.4) { list.splice(i, 1); continue; }
       const x = -140 + (t / 2.4) ** 1.3 * (w + 280), y = h - 70;
       c.save(); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; for (let k = 0; k < 5; k++) { c.beginPath(); c.moveTo(x - 60 - k * 22, y - 18 + k * 8); c.lineTo(x - 140 - k * 22, y - 18 + k * 8); c.stroke(); }
       for (let k = 0; k < 6; k++) { const a = (t * 6 + k) % 1.5; c.fillStyle = `rgba(180,180,180,${.35 * (1 - a / 1.5)})`; c.beginPath(); c.arc(x - 50 - a * 70, y + 14 - a * 10, 6 + a * 10, 0, 6.283); c.fill(); }
       c.translate(x, y); c.scale(-1, 1); c.font = `64px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🏎️', 0, 0); c.restore();
-      if (t > .2) luxLabel(c, `BRRRM, ${f.name.toUpperCase()}! 🏎️`, h - 120, 28, w);
+      if (t > .2) luxLabel(c, `BRRRM, STIŽE ${f.name.toUpperCase()}! 🏎️`, h - 120, 28, w);
     } else if (f.type === 'rolex') {
       if (t > 2.6) { list.splice(i, 1); continue; }
       const k = Math.min(1, t / .5), sc = (1 - Math.pow(1 - k, 3)) * .55, cx = w / 2, cy = h / 2 - 20, fade = t > 2.1 ? (2.6 - t) / .5 : 1;
@@ -4347,13 +4378,12 @@ function drawLux(c, list, w, h) {
       if (t > .5 && t < 1.5) { const sx = -150 + (t - .5) * 300; c.save(); c.beginPath(); c.arc(0, 0, 105, 0, 6.283); c.clip(); c.fillStyle = 'rgba(255,255,255,.45)'; c.beginPath(); c.moveTo(sx, -120); c.lineTo(sx + 30, -120); c.lineTo(sx - 30, 120); c.lineTo(sx - 60, 120); c.fill(); c.restore(); }
       c.restore();
       for (let j = 0; j < 16; j++) { const a = t - .4 - (j % 5) * .12; if (a < 0) continue; const x = w * (j + .5) / 16, y = -10 + a * a * 260 + (j % 3) * 18; if (y > h) continue; const gg = c.createRadialGradient(x - 3, y - 3, 1, x, y, 9); gg.addColorStop(0, '#fff6b0'); gg.addColorStop(1, '#c9961a'); c.fillStyle = gg; c.globalAlpha = fade; c.beginPath(); c.ellipse(x, y, 9 * Math.abs(Math.cos(a * 6 + j)) + 2, 9, 0, 0, 6.283); c.fill(); c.globalAlpha = 1; }
-      if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, ${f.name.toUpperCase()}! ⌚`, h - 40, 26, w); c.globalAlpha = 1; }
+      if (t > .4) { c.globalAlpha = fade; luxLabel(c, `TIK-TAK, STIŽE ${f.name.toUpperCase()}! ⌚`, h - 40, 26, w); c.globalAlpha = 1; }
     }
   }
 }
 function roar() { beep(90, .7, 'sawtooth', .1, -40); setTimeout(() => beep(70, .5, 'sawtooth', .08, -30), 200); }
 function onDeath(p, killerId) {
-  { const k = G.players.find(x => x.id === killerId); if (k && k !== p && hasLux(k, 'rolex')) luxStart('rolex', k); }
   { const k = G.players.find(x => x.id === killerId); if (k && k !== p && k.skin === 'sk_dragon') roar(); }
   if (p.pm && p.pm.includes('tomb')) (G.tombs ||= []).push({ x: p.x, y: p.y, name: p.name });
   const key = curMid() + ':' + p.id, b = bounties[key]; if (!b) return;
@@ -4939,14 +4969,14 @@ function seatQueuedHumans() {
       const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
       const c = used.has(want) ? bot.id : want;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, own ? { score: own.score || 0, kills: own.kills || 0, wins: own.wins || 0, picks: own.picks || 0, jumps: own.jumps || 0 } : (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players[G.players.indexOf(bot)] = np; fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
+      np.enterRound = G.round + 1; G.players[G.players.indexOf(bot)] = np; fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
     } else if (G.players.length < MAX_PLAYERS) { // free seat: join the running match from the next round
       const used = new Set(G.players.map(p => p.id));
       let c = want; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); if (c < 0) break;
       const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
-      G.players.push(np); fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
+      np.enterRound = G.round + 1; G.players.push(np); fixColorClashes(G.players, new Set(G.players.filter(x => x !== np))); G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi u meč`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč od ove runde`);
     } else break;
@@ -5071,7 +5101,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -5135,6 +5165,7 @@ function applyState(st, first) {
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
+  if (st.ix && st.ph === 'count') { const key = JSON.stringify(st.ix); if (G.introKey !== key) { G.introKey = key; G.intro = st.ix; G.introDone = {}; G.introLen = st.ix.reduce((a, e) => Math.max(a, e.s + e.d + ENTER_BANNER), 0); } G.introT = st.it || 0; runIntro(); } else if (st.ph !== 'count') { G.intro = null; G.introKey = ''; }
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
@@ -5151,7 +5182,6 @@ function applyState(st, first) {
     const wasAlive = p.alive;
     { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
-    if (q.pk > (p.picks || 0) && p.picks != null && hasLux(p, 'ferrari') && p.ferrariRound !== G.round) { p.ferrariRound = G.round; luxStart('ferrari', p); } // a guest sees the host's pick-up as the count going up
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.sl) p.slug = q.sl;
     if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && (q.nc || q.cx)) { net.colorTold = true; setTimeout(() => showIgMsg(colorNote(p)), 300); } else if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null, ig: 1, watch: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (net && G && net.myId != null && (G.round > 1 || G.phase !== 'count')) { const meP = G.players.find(x => x.id === net.myId); showIgMsg(meP && meP.alive && G.phase === 'run' ? '🎮 Ti si u meču! Upravljaš svojom zmijom.' : G.phase === 'count' ? '🎮 Ti si u meču! Runda kreće za koji trenutak.' : '🎮 U meču si – svojom zmijom upravljaš <b>od sljedeće runde</b>.'); } }, 0); } }
@@ -5195,8 +5225,8 @@ function applyState(st, first) {
     if (G.phase === 'run') sfx.go();
     if (G.phase === 'end' && G.over) setTimeout(refundBounties, 800);
     if (st.dr) announceDrop(st.dr);
-    if (G.phase === 'count') G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); if (hasLux(x, 'jet')) luxStart('jet', x); });
-    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && hasLux(wnr, 'yacht')) luxStart('yacht', wnr); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { const champ = ranking()[0]; if (champ && hasLux(champ, 'fireworks')) luxStart('fireworks', champ); setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
+
+    if (G.phase === 'end') { const wnr = G.players.find(x => x.id === G.winner); if (wnr && wnr.vs) victoryFx(wnr); settleBet(); sfx.round(); if (G.over) { setTimeout(() => { if (net && G.over) showResults(); }, 600); } else showRoundBanner(); }
     if (G.phase === 'count') { showOverlay(null); if (owner) owner.fill(0); }
   }
   if (first && G.phase === 'end') { if (G.over) setTimeout(() => { if (net && G && G.over) showResults(); }, 100); else showRoundBanner(); } // joining a finished match shows its results (Ready / Izađi), not a frozen arena
