@@ -16,19 +16,23 @@ function form(obj: Record<string, unknown>, prefix = "", out: string[] = []): st
   return out;
 }
 
-export async function stripe(path: string, params: Record<string, unknown> = {}, idempotencyKey?: string): Promise<Record<string, unknown>> {
+// a function runs for about 10 s at most, so Stripe gets 8 s by default (a timeout is an error: the caller retries later)
+export async function stripe(path: string, params: Record<string, unknown> = {}, idempotencyKey?: string, timeoutMs = 8000): Promise<Record<string, unknown>> {
   const headers: Record<string, string> = { authorization: "Bearer " + key(), "content-type": "application/x-www-form-urlencoded" };
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey; // the same refund asked twice is made only once
-  const r = await fetch("https://api.stripe.com/v1/" + path, { method: "POST", headers, body: form(params).join("&") });
-  const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!r.ok) throw new Error(String((j.error as Record<string, unknown> | undefined)?.message || "stripe " + r.status));
-  return j;
+  const ac = new AbortController(), timer = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    const r = await fetch("https://api.stripe.com/v1/" + path, { method: "POST", headers, body: form(params).join("&"), signal: ac.signal });
+    const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!r.ok) throw new Error(String((j.error as Record<string, unknown> | undefined)?.message || "stripe " + r.status));
+    return j;
+  } finally { clearTimeout(timer); }
 }
 
 // a refund of one payment (all of it, or `cents` of it); safe to call more than once for the same payment and amount
-export async function refund(paymentIntent: string, why: string, cents?: number) {
+export async function refund(paymentIntent: string, why: string, cents?: number, timeoutMs?: number) {
   const p: Record<string, unknown> = { payment_intent: paymentIntent, metadata: { why: why.slice(0, 200) } }; if (cents) p.amount = cents;
-  return stripe("refunds", p, (cents ? `refund-${cents}-` : "refund-") + paymentIntent);
+  return stripe("refunds", p, (cents ? `refund-${cents}-` : "refund-") + paymentIntent, timeoutMs);
 }
 
 // Stripe-Signature: t=<unix>,v1=<hex hmac of "t.body">  (several v1 values are possible while a secret is rotated)

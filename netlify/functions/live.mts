@@ -11,6 +11,7 @@
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { roleOf } from "./roles.mts";
+import { account, cas, pinGate } from "./guard.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const SLUG = /^[a-z0-9-]{1,40}$/;
@@ -18,7 +19,8 @@ const MIN = 60_000, HOUR = 60 * MIN;
 const store = () => getStore({ name: "vijuga-live", consistency: "strong" });
 const UA = "Mozilla/5.0 (compatible; VijugaGame/1.0; +https://zmijica.onrender.com)";
 
-async function get(url: string, type: "json" | "text" = "json", ms = 12000): Promise<any> {
+// a function has about 10 s: every source gets 6 s (they are asked in parallel), a slow one is simply asked again later
+async function get(url: string, type: "json" | "text" = "json", ms = 6000): Promise<any> {
   const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
   try { const r = await fetch(url, { signal: ac.signal, headers: { "user-agent": UA, accept: type === "json" ? "application/json" : "text/html" }, redirect: "follow" }); if (!r.ok) throw new Error(url.split("/")[2] + " " + r.status); return type === "json" ? await r.json() : await r.text(); }
   finally { clearTimeout(t); }
@@ -145,22 +147,26 @@ export default async (req: Request, context: Context) => {
   if (req.method === "POST" && context.params.action === "club") {
     const b = (await req.json().catch(() => null)) as Record<string, any> | null; if (!b) return Response.json({ error: "body missing" }, { status: 400, headers: cors });
     const slug = String(b.slug ?? ""); if (!SLUG.test(slug)) return Response.json({ error: "auth" }, { status: 403, headers: cors });
-    const acc = (await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(slug, { type: "json" })) as Record<string, unknown> | null;
-    const role = await roleOf(slug);
-    if (!acc || !acc.pinHash || acc.pinHash !== b.auth || !["master", "admin"].includes(role)) return Response.json({ error: "admins only" }, { status: 403, headers: cors });
+    const acc = await account(slug), role = await roleOf(slug);
+    if (!acc || !["master", "admin"].includes(role)) return Response.json({ error: "admins only" }, { status: 403, headers: cors });
+    const g = await pinGate(req, context, slug, acc.pinHash, b.auth, { requirePin: true });
+    if (!g.ok) return Response.json(g.status === 429 ? { error: g.error, wait: g.wait } : { error: "admins only" }, { status: g.status === 429 ? 429 : 403, headers: cors });
     const key = String(b.club ?? ""); if (!CLUBS[key] || CLUBS[key].hnl) return Response.json({ error: "bad club" }, { status: 400, headers: cors });
     const txt = (v: unknown, n: number) => String(v ?? "").replace(/[<>]/g, "").slice(0, n);
     const int = (v: unknown, lo: number, hi: number) => { const x = Math.floor(Number(v)); return Number.isFinite(x) ? Math.max(lo, Math.min(hi, x)) : lo; };
     const side = (v: any) => v && typeof v === "object" ? { at: int(v.at, 0, 4102444800000), opp: txt(v.opp, 30), home: !!v.home } : null;
-    const manual = ((await s.get("manual", { type: "json" })) as Record<string, Manual> | null) || {};
-    const cur: Manual = manual[key] || { name: CLUBS[key].name, league: "Prva NL", pos: null, next: null, live: null, last: null };
-    if ("next" in b) cur.next = side(b.next);
-    if ("live" in b) cur.live = b.live ? { ...side(b.live)!, gf: int(b.live.gf, 0, 99), ga: int(b.live.ga, 0, 99) } : null;
-    if ("last" in b) cur.last = b.last ? { ...side(b.last)!, gf: int(b.last.gf, 0, 99), ga: int(b.last.ga, 0, 99), res: int(b.last.gf, 0, 99) > int(b.last.ga, 0, 99) ? "W" : int(b.last.gf, 0, 99) < int(b.last.ga, 0, 99) ? "L" : "D" } : null;
-    if ("pos" in b) cur.pos = b.pos == null || b.pos === "" ? null : int(b.pos, 1, 30);
-    if ("league" in b) cur.league = txt(b.league, 30) || "Prva NL";
-    cur.by = slug; cur.updated = Date.now(); manual[key] = cur;
-    await s.setJSON("manual", manual);
+    let cur = {} as Manual;
+    await cas<Record<string, Manual>>(s, "manual", (m) => {
+      const manual = m || {};
+      cur = { ...(manual[key] || { name: CLUBS[key].name, league: "Prva NL", pos: null, next: null, live: null, last: null }) };
+      if ("next" in b) cur.next = side(b.next);
+      if ("live" in b) cur.live = b.live ? { ...side(b.live)!, gf: int(b.live.gf, 0, 99), ga: int(b.live.ga, 0, 99) } : null;
+      if ("last" in b) cur.last = b.last ? { ...side(b.last)!, gf: int(b.last.gf, 0, 99), ga: int(b.last.ga, 0, 99), res: int(b.last.gf, 0, 99) > int(b.last.ga, 0, 99) ? "W" : int(b.last.gf, 0, 99) < int(b.last.ga, 0, 99) ? "L" : "D" } : null;
+      if ("pos" in b) cur.pos = b.pos == null || b.pos === "" ? null : int(b.pos, 1, 30);
+      if ("league" in b) cur.league = txt(b.league, 30) || "Prva NL";
+      cur.by = slug; cur.updated = Date.now(); manual[key] = cur;
+      return manual;
+    });
     return Response.json({ club: cur }, { headers: cors });
   }
   return Response.json({ error: "unknown" }, { status: 404, headers: cors });
