@@ -185,7 +185,14 @@ button:disabled { cursor: default; opacity: .5; }
 .boxbox { border: 1px solid rgba(255,181,71,.5); background: linear-gradient(180deg, rgba(255,181,71,.1), transparent); border-radius: 14px; padding: 12px; }
 .boxrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 10px; }
 .boxcard { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
-.boxcard .be { font-size: 44px; line-height: 1; } .boxcard.b-silver { border-color: #b9c4d0; } .boxcard.b-gold { border-color: #ffd23f; box-shadow: 0 0 0 1px rgba(255,210,63,.25) inset; } .boxcard.b-diamond { border-color: #7df9ff; box-shadow: 0 0 14px rgba(125,249,255,.25); }
+.boxcard .be { font-size: 44px; line-height: 1; }
+.bodds { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 3px; font-size: 14px; } .bodds li { display: flex; justify-content: space-between; gap: 8px; text-align: left; color: var(--muted); } .bodds li b { color: var(--fg); } .bodds li small { font-size: 11px; } .bodds li.rare, .bodds li.rare b { color: var(--amber); }
+.infob { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; } .infob:hover { border-color: var(--amber); } .infob.mini { padding: 0 6px; font-size: 12px; margin-left: 4px; vertical-align: 1px; }
+.bxrow { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); } .bxrow.rare { border-color: color-mix(in srgb, var(--amber) 60%, var(--line)); }
+.bxrow .bxe { font-size: 26px; text-align: center; } .bxrow div { display: grid; gap: 3px; } .bxrow small { color: var(--muted); font-size: 13px; line-height: 1.3; } .bxrow .bxp { font-size: 18px; color: var(--amber); }
+.bxbar { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; } .bxbar i { display: block; height: 100%; background: var(--amber); border-radius: 3px; }
+.bxcmp summary { cursor: pointer; color: var(--amber); font-size: 14px; } .bxcmp .tscroll { overflow-x: auto; margin-top: 6px; } .bxcmp table { font-size: 13px; white-space: nowrap; } .bxcmp tr.on td { color: var(--amber); font-weight: 700; }
+.infocard h3 { padding-right: 44px; } .infol { display: grid; gap: 8px; } .infol > div { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start; } .infol span { font-size: 20px; } .infol p { margin: 0; font-size: 15px; } .boxcard.b-silver { border-color: #b9c4d0; } .boxcard.b-gold { border-color: #ffd23f; box-shadow: 0 0 0 1px rgba(255,210,63,.25) inset; } .boxcard.b-diamond { border-color: #7df9ff; box-shadow: 0 0 14px rgba(125,249,255,.25); }
 .dailyrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
 .daily { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 12px; border-radius: 12px; border: 1px solid var(--amber); background: rgba(255,181,71,.08); }
 .daily .tag { grid-column: 1 / -1; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); }
@@ -678,7 +685,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       <div class="tab" id="tab-shop" hidden>
         <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="lux"><span>🛥️</span>Luksuz</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
         <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
-        <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span></div>
+        <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span><button type="button" class="infob" data-info="coins" aria-label="Kako se zarađuju zlatnici">ℹ️ Kako zaraditi više</button></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
         <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>tvoj dolazak u igru: igra stane, svi gledaju tvoju animaciju, pa piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća; ℹ️ pokazuje kako izgleda. Ako imaš više, vrti se najskuplja</small></h2><div class="shop" id="shopLux"></div></div>
@@ -1625,17 +1632,62 @@ function openBox(kind, free) {
   if ($('#boxShop')) $('#boxShop').onclick = () => { m.hidden = true; showTab('shop'); const b = document.querySelector('#shopCats [data-c=boxes]'); if (b) b.click(); };
   return res;
 }
+// what a box really gives: the rare draw comes first, then one of item / coins / pranks (so the four add up to 100 %)
+function boxOdds(B) { const k = 1 - B.pRare; return { rare: B.pRare, item: k * B.pItem, coins: k * B.pCoins, trolls: k * (1 - B.pItem - B.pCoins) }; }
+const plTroll = (n) => n + ' ' + (n === 1 ? 'zezalica' : n < 5 ? 'zezalice' : 'zezalica');
+function rareRange() { const p = Object.keys(BADGES).filter(k => BADGES[k].anim).map(itemPrice).filter(Boolean); return p.length ? (Math.min(...p) === Math.max(...p) ? String(Math.min(...p)) : Math.min(...p) + '–' + Math.max(...p)) : ''; }
+function infoPop(html) {
+  document.querySelectorAll('.infoov').forEach(x => x.remove());
+  const ov = document.createElement('div'); ov.className = 'achov infoov';
+  ov.innerHTML = `<div class="achcard infocard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button>${html}<button type="button" class="btn" data-close>U redu</button></div>`;
+  ov.onclick = (e) => { if (e.target === ov || e.target.closest('.mclose, [data-close]')) ov.remove(); };
+  document.body.appendChild(ov); return ov;
+}
+function showBoxInfo(kind) {
+  const B = BOXES[kind]; if (!B) return; const o = boxOdds(B), lv = BOX_LV[kind] || 1, rr = rareRange(), tr = Object.values(TROLLS).slice(0, 3).map(t => t.e + ' ' + t.name.toLowerCase()).join(', ');
+  const row = (e, t, p, x, cls = '') => `<div class="bxrow ${cls}"><span class="bxe">${e}</span><div><b>${t}</b><small>${x}</small><span class="bxbar"><i style="width:${Math.max(1.5, p * 100)}%"></i></span></div><b class="bxp">${pct(p)}</b></div>`;
+  const cmp = Object.entries(BOXES).map(([k, X]) => { const q = boxOdds(X); return `<tr class="${k === kind ? 'on' : ''}"><td>${X.e}</td><td>● ${X.price}</td><td>${BOX_LV[k] || 1}</td><td>${X.coins[0]}–${X.coins[1]}</td><td>${pct(q.item)}${X.picks > 1 ? ` <small>×${X.picks}</small>` : ''}</td><td>${X.trolls}</td><td>${pct(q.rare)}</td></tr>`; }).join('');
+  infoPop(`<h3>${B.e} ${esc(B.name)}</h3>
+    <p class="hint" style="margin:0">Cijena <b>● ${B.price}</b>${lv > 1 ? ` · otključava se na <b>nivou ${lv}</b>` : ''} · najviše <b>${BOX_PER_DAY}</b> kutija dnevno (sve vrste zajedno)</p>
+    <p style="margin:0">Kad otvoriš kutiju, dobiješ <b>jednu</b> od ovih nagrada:</p>
+    ${row('🌟', 'Rijetka animirana ikona', o.rare, `Animirana premium ikona koju još nemaš (🔥 ⛷️ 📈 📶 ⏳ 🥷)${rr ? `. U trgovini vrijedi ${rr} zlatnika` : ''}.`, 'rare')}
+    ${row('🎨', 'Predmet', o.item, `Skin, ikona ili start-pojačanje koje još nemaš. ${B.picks > 1 ? `Kutija izvuče ${B.picks} predmeta i da ti <b>najvrjedniji</b>.` : 'Nasumičan predmet iz trgovine.'}`)}
+    ${row('💰', 'Zlatnici', o.coins, `Od <b>${B.coins[0]}</b> do <b>${B.coins[1]}</b> zlatnika.${B.coins[0] >= B.price ? ' Uvijek barem koliko si platio.' : ''}`)}
+    ${row('😈', 'Zezalice', o.trolls, `<b>${plTroll(B.trolls)}</b> nasumično (npr. ${tr}). U meču ih baciš na protivnika.`)}
+    <details class="bxcmp"><summary>Usporedi sve kutije</summary><div class="tscroll"><table class="board"><thead><tr><th></th><th>Cijena</th><th>Nivo</th><th>Zlatnici</th><th>Predmet</th><th>Zezalice</th><th>Rijetka</th></tr></thead><tbody>${cmp}</tbody></table></div><small class="hint">„×3” znači da kutija bira najvrjedniji od 3 izvučena predmeta.</small></details>
+    <p class="hint" style="margin:0">Ako već imaš sve rijetke ikone ili sve predmete, ta šansa prelazi na ostale nagrade.</p>`);
+}
+function showCoinInfo() {
+  infoPop(`<h3>💰 Kako se zarađuju zlatnici</h3>
+    <div class="infol">
+      <div><span>🆕</span><p><b>Početak:</b> svaki novi igrač dobije <b>500</b> zlatnika.</p></div>
+      <div><span>🏁</span><p><b>Svaki meč:</b> 1. mjesto <b>${PLACE_COINS[0]}</b>, 2. <b>${PLACE_COINS[1]}</b>, 3. <b>${PLACE_COINS[2]}</b>, ostali <b>${PLACE_COINS[3]}</b>.</p></div>
+      <div><span>💥</span><p><b>Rušenje:</b> +${KILL_COINS} za svakog protivnika koji se zabije u tebe.</p></div>
+      <div><span>👥</span><p><b>Više igrača, veća nagrada:</b> svaki dodatni čovjek u meču +30 %, svaki bot +10 %.</p></div>
+      <div><span>⚽</span><p><b>Navijači:</b> dan nakon pobjede tvog kluba nagrada za plasman je dupla.</p></div>
+      <div><span>📅</span><p><b>Dnevna prijava:</b> ${STREAK_COINS.slice(0, 6).join(', ')}, a 7. dan zaredom <b>${STREAK_COINS[6]}</b>.</p></div>
+      <div><span>⭐</span><p><b>Novi nivo:</b> 50 × nivo (npr. nivo 4 = 200).</p></div>
+      <div><span>🎁</span><p><b>Ostalo:</b> kutije iznenađenja, prodaja na aukciji i turniri.</p></div>
+    </div>`);
+}
+function showOfferInfo() {
+  infoPop(`<h3>🔥 Ponuda dana</h3>
+    <p style="margin:0">Svaki dan je jedan skin ili ikona iz trgovine <b>30 % jeftiniji</b>. Ponuda se mijenja u ponoć po hrvatskom vremenu, jednaka je za sve igrače.</p>
+    <p style="margin:0">„Pogledaj” te odvede do tog predmeta u trgovini, a popust se vidi na njegovoj cijeni.</p>
+    <p class="hint" style="margin:0">Ograničeni, premium i jedinstveni predmeti nikad nisu u ponudi dana.</p>`);
+}
+document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-info]'); if (!b) return; e.preventDefault(); e.stopPropagation(); const k = b.dataset.info; if (k === 'coins') showCoinInfo(); else if (k === 'offer') showOfferInfo(); else if (k.startsWith('box:')) showBoxInfo(k.slice(4)); });
 function renderBoxes() {
   const box = $('#shopBoxes'); if (!box) return;
   const left = boxLeftToday();
-  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b><span class="hint">zlatnici ${B.coins[0]}–${B.coins[1]} · predmet ${pct(B.pItem)}${B.picks > 1 ? ' (bolji od ' + B.picks + ')' : ''} · zezalice ×${B.trolls} · <b style="color:var(--amber)">rijetka animacija ${pct(B.pRare)}</b></span>${profile && myLevel() < (BOX_LV[k] || 1) ? `<button class="btn sm lockbtn" type="button" disabled>🔒 Nivo ${BOX_LV[k]}</button><span class="lvlock">${lockNote(BOX_LV[k])}</span>` : `<button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button>`}</div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (🔥 ⛷️ 📈 📶 ⏳ 🥷).</p>`;
+  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b>${(() => { const o = boxOdds(B); return `<ul class="bodds"><li><span>🎨 Predmet${B.picks > 1 ? ` <small>(najbolji od ${B.picks})</small>` : ''}</span><b>${pct(o.item)}</b></li><li><span>💰 ${B.coins[0]}–${B.coins[1]} zlatnika</span><b>${pct(o.coins)}</b></li><li><span>😈 ${plTroll(B.trolls)}</span><b>${pct(o.trolls)}</b></li><li class="rare"><span>🌟 Rijetka ikona</span><b>${pct(o.rare)}</b></li></ul>`; })()}<button type="button" class="infob" data-info="box:${k}" aria-label="Što je u kutiji: ${B.name}">ℹ️ Što je unutra?</button>${profile && myLevel() < (BOX_LV[k] || 1) ? `<button class="btn sm lockbtn" type="button" disabled>🔒 Nivo ${BOX_LV[k]}</button><span class="lvlock">${lockNote(BOX_LV[k])}</span>` : `<button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button>`}</div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (🔥 ⛷️ 📈 📶 ⏳ 🥷).</p>`;
   box.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
 }
 function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
 function renderDailyShop() {
   const box = $('#shopDaily'); if (!box) return;
   const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
-  box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana</span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>`;
+  box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana <button type="button" class="infob mini" data-info="offer" aria-label="Što je ponuda dana">ℹ️</button></span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>`;
   renderBoxes();
   $('#goOffer').onclick = () => { const el = [...document.querySelectorAll('#shopSkins .item, #shopBadges .item')].find(x => x.textContent.includes(it.name)); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); } };
 }
