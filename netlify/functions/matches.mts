@@ -3,8 +3,11 @@
 // GET  /api/stats    -> totals, activity per day, per-player detail and recent matches
 // POST /api/troll   {from, to, id} -> counts who pranked whom (fun stats only)
 // DELETE /api/matches/:mid (header x-admin-key) -> remove one match (maintenance)
+// /api/stats is built from three digest blobs (public profiles, the match log, troll counts: see guard.mts) instead of one
+// read per account, match and troll pair, kept for a minute and cached by the CDN for a minute.
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { account, accountsIndex, cas, digest, later, pinGate, sha256 } from "./guard.mts";
 
 const cors = {
   "access-control-allow-origin": "*",
@@ -50,12 +53,22 @@ function cleanMatch(body: unknown): Match | string {
 const PRICES: Record<string, number> = {"lx_heli": 18000, "lx_yacht": 20000, "lx_rolex": 15000, "bd_p_hdz": 1500, "bd_p_sdp": 1500, "bd_p_mozemo": 1500, "bd_p_most": 1500, "bd_p_dp": 1500, "bd_p_hss": 1500, "bd_p_ids": 1500, "bd_p_rf": 1500, "bd_lgbt": 1500, "bd_qplus": 1500, "bd_trans": 1500, "bd_bi": 1500, "bd_nb": 1500, "bd_hr": 1000, "bd_sibenik": 1000, "bd_funcut": 1000, "bd_dinamo": 1000, "bd_hajduk": 1000, "bd_mihovil": 1000, "bd_katedrala": 1000, "sk_boat": 180, "sk_dog": 180, "bd_boat": 120, "bd_dog": 120, "sk_dragon": 5000, "sk_galaxy": 3500, "sk_bolt": 3000, "sz_pumpkin": 1200, "sz_snow": 1200, "sz_love": 1200, "sz_sun": 1200, "pr_goldname": 2500, "pr_title": 2000, "pr_entrance": 2000, "bg_space": 3000, "bg_lava": 3000, "bg_sea": 3000, "pr_room": 1500, "pr_vip": 4000, "pr_tomb": 1800, "te_fire": 220, "te_spark": 180, "te_hearts": 160, "te_bubble": 140, "ds_confetti": 150, "ds_ghost": 170, "ds_poop": 150, "ds_boom": 200, "vs_fanfare": 140, "vs_fart": 120, "vs_horn": 160, "vs_laugh": 140, "sk_diamond": 900, "bd_comet": 700, "sk_neon": 120, "sk_dash": 90, "sk_pixel": 90, "sk_rainbow": 220, "sk_gold": 320, "sk_dildo": 150, "sk_vag": 160, "sk_boobs": 160, "sk_condom": 160, "sk_hairy": 170, "bd_bolt": 60, "bd_star": 100, "bd_skull": 140, "bd_gem": 180, "bd_crown": 300, "bd_ucross": 200, "bd_vag": 120, "bd_boobs": 120, "bd_hairy": 130, "bd_condom": 120, "fastS": 110, "slowS": 110, "thinS": 110, "ghostS": 110, "wrapS": 110, "jumpS": 110, "slowO": 170, "thickO": 170, "revO": 170, "sqO": 170};
 const dayKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 
+// the whole match log and every troll count, each mirrored in one blob (rebuilt from the per-match / per-pair blobs if needed)
+async function readAll<T>(name: string) {
+  const st = getStore({ name, consistency: "strong" }); const { blobs } = await st.list();
+  const vals = (await Promise.all(blobs.map((b) => st.get(b.key, { type: "json" })))) as (T | null)[];
+  return Object.fromEntries(blobs.map((b, i) => [b.key, vals[i]]).filter(([, v]) => !!v)) as Record<string, T>;
+}
+const matchLog = digest<Match>("matches", () => readAll<Match>("vijuga-matches"));
+const trollLog = digest<{ n: number; last?: number }>("trolls", () => readAll<{ n: number; last?: number }>("vijuga-trolls"), (old, nu) => Number(old.n) > Number(nu.n));
+const STATS_TTL = 60_000;
+
 async function stats() {
-  const accStore = getStore({ name: "vijuga-accounts", consistency: "strong" });
-  const mStore = getStore({ name: "vijuga-matches", consistency: "strong" });
-  const [{ blobs: accKeys }, { blobs: mKeys }] = await Promise.all([accStore.list(), mStore.list()]);
-  const accounts = ((await Promise.all(accKeys.map((k) => accStore.get(k.key, { type: "json" })))) as (Account | null)[]).filter((a): a is Account => !!a);
-  const matches = ((await Promise.all(mKeys.map((k) => mStore.get(k.key, { type: "json" })))) as (Match | null)[]).filter((m): m is Match => !!m);
+  const [accIdx, mIdx, tIdx] = await Promise.all([accountsIndex.read(), matchLog.read(), trollLog.read()]);
+  // in key order first, as the old per-blob listing read them, so ties come out in the same order as before
+  const keyOrder = <V,>(o: Record<string, V>) => Object.keys(o).sort().map((k) => [k, o[k]] as [string, V]);
+  const accounts = keyOrder(accIdx).map(([, a]) => a as unknown as Account).filter((a) => !!a && typeof a.slug === "string");
+  const matches = keyOrder(mIdx).map(([, m]) => m).filter((m): m is Match => !!m && Array.isArray(m.players));
   matches.sort((a, b) => b.at - a.at);
 
   const now = Date.now(), DAY = 86400000;
@@ -140,9 +153,7 @@ async function stats() {
   const killPairs: Record<string, number> = Object.create(null);
   for (const m of matches) for (const [k, v, n] of m.kx || []) killPairs[k + ">" + v] = (killPairs[k + ">" + v] || 0) + n;
   const kills2 = Object.entries(killPairs).map(([k, n]) => { const [a, b2] = k.split(">"); return { killer: a, killerName: nameOf(a), victim: b2, victimName: nameOf(b2), n }; }).sort((x, y) => y.n - x.n).slice(0, 15);
-  const tStore = getStore({ name: "vijuga-trolls", consistency: "strong" });
-  const { blobs: tKeys } = await tStore.list();
-  const trollPairs = ((await Promise.all(tKeys.map(async (k) => { const [a, b2] = k.key.split("/"); const v = (await tStore.get(k.key, { type: "json" })) as { n?: number } | null; return { from: a, fromName: nameOf(a), to: b2, toName: nameOf(b2), n: Number(v?.n) || 0 }; }))) as { from: string; fromName: string; to: string; toName: string; n: number }[])
+  const trollPairs = keyOrder(tIdx).map(([k, v]) => { const [a, b2] = k.split("/"); return { from: a, fromName: nameOf(a), to: b2, toName: nameOf(b2), n: Number(v?.n) || 0 }; })
     .filter((t) => t.n > 0).sort((x, y) => y.n - x.n).slice(0, 15);
   const facts: string[] = [];
   if (ranked[0]) facts.push(`👑 ${ranked[0].name} vodi rang listu s ${ranked[0].elo} bodova`);
@@ -193,27 +204,34 @@ export default async (req: Request, context: Context) => {
     const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     const from = String(b?.from ?? ""), to = String(b?.to ?? "");
     if (!SLUG.test(from) || !SLUG.test(to) || from === to) return json({ error: "bad pair" }, 400);
-    const acc = getStore({ name: "vijuga-accounts", consistency: "strong" });
-    const fa = (await acc.get(from, { type: "json" })) as Record<string, unknown> | null;
-    if (!fa || !(await acc.get(to))) return json({ error: "unknown player" }, 404);
-    if (fa.pinHash && fa.pinHash !== b?.auth) return json({ error: "auth" }, 403);
+    const [fa, ta] = await Promise.all([account(from), account(to)]);
+    if (!fa || !ta) return json({ error: "unknown player" }, 404);
+    const g = await pinGate(req, context, from, fa.pinHash, b?.auth);
+    if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "auth" }, 403);
     const t = getStore({ name: "vijuga-trolls", consistency: "strong" }), key = `${from}/${to}`;
-    const cur = ((await t.get(key, { type: "json" })) as { n?: number } | null) || {};
-    await t.setJSON(key, { n: (Number(cur.n) || 0) + 1, last: Date.now() });
+    const v = await cas<{ n: number; last: number }>(t, key, (cur) => ({ n: (Number(cur?.n) || 0) + 1, last: Date.now() }));
+    if (v) await later(context, trollLog.put(key, v));
     return json({ ok: true });
   }
   if (url.pathname.endsWith("/stats")) {
     if (req.method !== "GET") return json({ error: "method not allowed" }, 405);
-    return json(await stats());
+    // computed at most once a minute; everybody in between gets the stored answer (and the CDN keeps it a minute too)
+    const sc = getStore({ name: "vijuga-stats", consistency: "strong" });
+    const c = (await sc.get("cache", { type: "json" })) as { at: number; data: unknown } | null;
+    let data = c && Date.now() - c.at < STATS_TTL ? c.data : null;
+    if (!data) { data = await stats(); await sc.setJSON("cache", { at: Date.now(), data }); }
+    return Response.json(data, { headers: { ...cors, "cache-control": "public, max-age=0, s-maxage=60", "netlify-cdn-cache-control": "public, s-maxage=60, stale-while-revalidate=120" } });
   }
   if (req.method === "DELETE") {
     // Maintenance only: remove a match (e.g. a test) with the admin key set in the site's environment.
     const given = req.headers.get("x-admin-key") || "";
-    const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(given)))).map((b) => b.toString(16).padStart(2, "0")).join("");
-    if (!given || digest !== ADMIN_KEY_SHA256) return json({ error: "forbidden" }, 403);
+    if (!given) return json({ error: "forbidden" }, 403);
+    const g = await pinGate(req, context, "_admin", ADMIN_KEY_SHA256, await sha256(given));
+    if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "forbidden" }, 403);
     const mid = context.params.mid;
     if (!mid || !/^[a-z0-9]{4,20}$/.test(mid)) return json({ error: "bad mid" }, 400);
     await getStore({ name: "vijuga-matches", consistency: "strong" }).delete(mid);
+    await matchLog.put(mid, null);
     return json({ ok: true });
   }
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
@@ -223,10 +241,12 @@ export default async (req: Request, context: Context) => {
   // the reporter must be a logged-in player of this match (PIN checked)
   const rep = String(raw?.slug ?? "");
   if (!SLUG.test(rep) || !m.players.some((p) => p.slug === rep)) return json({ error: "reporter not in match" }, 403);
-  const racc = (await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(rep, { type: "json" })) as Record<string, unknown> | null;
-  if (!racc || (racc.pinHash && racc.pinHash !== raw?.auth)) return json({ error: "auth" }, 403);
+  const racc = await account(rep); if (!racc) return json({ error: "auth" }, 403);
+  const g = await pinGate(req, context, rep, racc.pinHash, raw?.auth);
+  if (!g.ok) return g.status === 429 ? json({ error: g.error, wait: g.wait }, 429) : json({ error: "auth" }, 403);
   const store = getStore({ name: "vijuga-matches", consistency: "strong" });
   const { modified } = await store.setJSON(m.mid, m, { onlyIfNew: true });
+  if (modified !== false) await later(context, matchLog.put(m.mid, m));
   return json({ ok: true, stored: modified !== false });
 };
 
