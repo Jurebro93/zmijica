@@ -532,6 +532,7 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 #deathCard { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 6; display: grid; justify-items: center; gap: 4px; text-align: center; padding: 10px 16px; border-radius: 14px; border: 1px solid #ff5d73; background: color-mix(in srgb, var(--ink) 88%, transparent); box-shadow: 0 8px 24px rgba(0,0,0,.45); max-width: min(92%, 340px); animation: dcin .25s ease-out; }
 #deathCard b { font-size: 16px; }
 #game.over .pad, #game.over .padmid { visibility: hidden; }
+.btn.wa { border-color: #25d366; color: #25d366; }
 #readyBtn.isready { background: var(--good); color: #062014; }
 .lvprog { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; width: min(100%, 360px); font-size: 14px; color: var(--muted); } .lvprog b { color: var(--fg); } .lvprog i { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; } .lvprog i b { display: block; height: 100%; background: var(--amber); }
 @media (max-width: 420px) { table.board .c-k, table.board .c-c { display: none; } }
@@ -1544,7 +1545,7 @@ function showProfile() {
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
     ${pushOn() ? '<p style="margin:0">🔔 Obavijesti su uključene na ovom uređaju: prijatelji te mogu bocnuti 👉 kad krene meč.</p>' : `<div class="refbox pushbox"><b>🔔 Uključi obavijesti${P.owned.includes('x_pushbonus') ? '' : ` i dobij ${PUSH_BONUS} zlatnika`}</b><span>Kad te netko <b>bocne 👉</b> ili pozove na meč, dobiješ poruku na mobitel, čak i kad Vijuga nije otvorena. Bez reklama: samo pozivi, bocanja i kad izađe nešto novo.</span><div class="row"><button class="btn sm" type="button" id="profPush">🔔 Uključi obavijesti</button></div></div>`}
     ${myRole() === 'master' ? '<div class="rolepick"><b>Master</b><button type="button" id="profGrantAll">💰 Pokloni zlatnike svim igračima</button></div>' : ''}
-    ${myRole() === 'master' || myRole() === 'admin' ? '<div class="rolepick"><b>Admin</b><button type="button" id="profEcon">📊 Ekonomija</button></div>' : ''}
+    ${myRole() === 'master' || myRole() === 'admin' ? '<div class="rolepick"><b>Admin</b><button type="button" id="profEcon">📊 Ekonomija</button><button type="button" id="profWa">📲 Tekst za WhatsApp</button></div>' : ''}
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
@@ -1554,6 +1555,7 @@ function showProfile() {
   $('#profClose').onclick = () => { m.hidden = true; };
   if ($('#profGrantAll')) $('#profGrantAll').onclick = () => grantAll();
   if ($('#profEcon')) $('#profEcon').onclick = () => showEconomy();
+  if ($('#profWa')) $('#profWa').onclick = () => showWaDigest();
   if ($('#profInvite')) $('#profInvite').onclick = () => shareInvite();
   if ($('#profCopy')) $('#profCopy').onclick = async () => { try { await navigator.clipboard.writeText(inviteLink()); toast('Link je kopiran: ' + inviteLink()); } catch (e) { toast('Tvoj link: ' + inviteLink()); } };
   if ($('#profRename')) $('#profRename').onclick = () => showRegister();
@@ -2281,6 +2283,7 @@ function renderTour() {
     }
     if (t.final) { const f = t.final, mine = f.players.includes(me); html += `<h4>🔥 Finale</h4><div class="ttable ${mine ? 'mine' : ''}">${(f.result || f.players).map((s, i) => `${f.result ? ['🥇', '🥈', '🥉'][i] || (i + 1) + '.' : ''} ${esc(t.players.find(p => p.slug === s)?.name || s)}`).join(' · ')}${mine && !f.result ? `<a class="btn" href="${tableUrl(t, 0, f)}">▶ Uđi u finale</a>` : ''}</div>`; }
     if (t.winners && t.winners.length) html += `<div class="podium3">${t.winners.map((w, i) => `<div class="pd p${i + 1}"><span>${['🥇', '🥈', '🥉'][i]}</span><b>${esc(w.name)}</b><small>${money ? fmtEur(w.prize) : '+' + w.prize + ' 💰'}</small></div>`).join('')}</div>`;
+    { const wi = (t.winners || []).findIndex(w => w.slug === me); if (wi >= 0) html += `<div class="row"><button class="btn ghost wa" type="button" data-wa-tour="${esc(t.id)}:${wi}">📲 Podijeli na WhatsApp</button></div>`; }
     if (money && t.payouts && t.payouts.length) html += `<div class="tpayouts"><b>💶 Isplate</b>${t.payouts.map(po => `<div class="tpo"><span>${['🥇', '🥈', '🥉'][po.place - 1] || po.place + '.'} ${esc(po.name)} · <b>${fmtEur(po.eur)}</b></span>${po.paid ? '<span class="ok">✓ isplaćeno</span>' : canBonus() ? `<button class="btn sm" type="button" data-paidout="${esc(po.slug)}">Označi isplaćeno</button>` : '<span class="hint">čeka isplatu</span>'}</div>`).join('')}${t.back && Object.keys(t.back).length ? `<small class="hint">Vraćeno na karticu (dio uloga koji nitko nije pratio): ${Object.entries(t.back).map(([s, v]) => `${esc(t.players.find(p => p.slug === s)?.name || s)} ${fmtEur(v)}`).join(', ')}</small>` : ''}</div>`;
     if (isAdmin() && t.status !== 'done' && t.status !== 'cancelled') html += `<div class="tadmin"><b>${ROLE_INFO[myRole()] ? ROLE_INFO[myRole()].tag : 'Admin'}</b>${t.status === 'open' ? `<button class="btn sm" type="button" id="tStart">Pokreni turnir${money ? ` (min. ${minP})` : ''}</button>` : ''}${canBonus() && !money ? '<input type="number" id="tBonusIn" min="0" step="100" placeholder="+ zlatnika u fond"><button class="btn sm ghost" type="button" id="tBonus">Dodaj u fond</button>' : ''}<button class="btn sm ghost" type="button" id="tCancel">Otkaži (${money ? 'vrati novac na kartice' : 'vrati kotizacije'})</button></div>`;
     html += '</div>';
@@ -2296,6 +2299,7 @@ function renderTour() {
   if ($('#tLeave')) $('#tLeave').onclick = async () => { const mt = isMoneyT(t); if (mt && !confirm(`Odjaviti se? ${fmtEur((t.stakes && t.stakes[me]) || t.eur || 0)} vraća se na karticu (obično za 5 do 10 dana).`)) return; const j = await tourCall(t.id, 'leave'); if (j) { toast(mt ? (j.refund === 'pending' ? 'Odjavljen si. Povrat novca je u tijeku (ponavlja se dok ne uspije).' : 'Odjavljen si. Novac se vraća na tvoju karticu.') : 'Odjavljen si. Kotizacija stiže natrag za par sekundi.'); after(j); if (!mt) setTimeout(collectGifts, 1500); } };
   if ($('#tStart')) $('#tStart').onclick = async () => { if (!confirm('Pokrenuti turnir sada? Prijave se zatvaraju i kreće 1. kolo.')) return; after(await tourCall(t.id, 'start')); };
   if ($('#tBonus')) $('#tBonus').onclick = async () => { const a = Math.floor(Number($('#tBonusIn').value) || 0); if (a <= 0) return; after(await tourCall(t.id, 'bonus', { amount: a })); };
+  $('#tab-tour').querySelectorAll('[data-wa-tour]').forEach(b => b.onclick = () => { const [tid, wi] = b.dataset.waTour.split(':'); const t = tours.find(x => x.id === tid); if (t) waOpen(tourShareText(t, Number(wi))); });
   $('#tab-tour').querySelectorAll('[data-confirm-rep]').forEach(b => b.onclick = async () => { const [k, tid, who] = b.dataset.confirmRep.split(':'); if (!confirm('Potvrditi ovaj poredak kao rezultat stola?')) return; after(await tourCall(t.id, 'confirm', { round: Number(k), table: Number(tid), reportOf: who })); });
   $('#tab-tour').querySelectorAll('[data-close-table]').forEach(b => b.onclick = async () => { const [k, tid] = b.dataset.closeTable.split(':').map(Number); if (!confirm('Zaključiti ovaj stol bez odigranog meča? Igrači se rangiraju po redoslijedu sjedenja.')) return; after(await tourCall(t.id, 'result', { round: k, table: tid, ranking: [] })); });
   if ($('#tCancel')) $('#tCancel').onclick = async () => { if (!confirm('Otkazati turnir i vratiti kotizacije svima?')) return; after(await tourCall(t.id, 'cancel')); };
@@ -2440,7 +2444,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '8b029b390dfa';
+const BUILD = '4abd69acf385';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3968,7 +3972,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
   { id: 'live-pack2', d: '2026-11-10', e: '🌅', t: 'Nove ikone iz stvarnog svijeta', x: 'Zalazak sunca u Šibeniku, mijena Mjeseca i koliko do uštapa, kad počinje jeftina noćna struja (vrijeme za perilicu), najtopliji grad u Hrvatskoj uživo i koliko još dana do sljedećeg praznika.', go: 'shop:live', b: 'Pogledaj ikone', items: ['bd_sunset', 'bd_moon', 'bd_power', 'bd_hot', 'bd_holiday'] },
-  { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Dnevni niz broji dane u kojima odigraš barem jedan meč. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju.', go: '', b: '' },
+  { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Dnevni niz broji dane u kojima odigraš barem jedan meč. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju. Rezultat meča ili osvojeni turnir podijeliš na WhatsApp jednim dodirom.', go: '', b: '' },
   { id: 'jump-chord', d: '2026-11-10', e: '🦘', t: 'Mobitel: skok je sada LIJEVO + DESNO odjednom', x: 'Gumb SKOK u sredini je maknut. Za skok pritisni LIJEVO i DESNO u isto vrijeme, s oba palca. Strelice su ostale gdje su bile, a u sredini su sad velike tipke za zezalice, chat, glasovnu poruku i emotikone.', go: '', b: '' },
   { id: 'fun-lux3', d: '2026-11-10', e: '🐉', t: 'Novi luksuz, animirane i šaljive ikone', x: 'Pet novih dolazaka u igru: Zmaj, Crveni tepih, NLO, Raketa i Jednorog. Na svakoj kartici luksuza animacija se sad vrti sama. Šest novih animiranih ikona (raketa, spavač, bomba, disko kugla, plesač, duh) i cijela polica šaljivih ikona i natpisa: Klaun, Lijenčina, Krumpir, Fjaka, Pomalo…', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_dragon', 'lx_carpet', 'lx_ufo', 'lx_rocket', 'lx_unicorn', 'bd_a_rocket', 'bd_a_zzz', 'bd_a_bomb', 'bd_a_disco', 'bd_a_dance', 'bd_a_ghost', 'bd_clown', 'bd_sloth', 'bd_chicken', 'bd_potato', 'bd_duck', 'bd_goat', 'bd_brain', 'bd_coffee', 'bd_alien', 'bd_cool', 'bd_cactus', 'bd_snail', 'bd_pizza', 'bd_monkey', 'bd_raincloud', 'bd_lemon', 'bd_t_fjaka', 'bd_t_pomalo', 'bd_t_ajme', 'bd_t_madaj'] },
   { id: 'tour-stakes', d: '2026-11-10', e: '🏆', t: 'Turniri: novi izgled i ulog po izboru', x: 'Tab Turniri ima veliki nagradni fond, nagrade za prva tri mjesta, statistiku odigranih turnira i prijavu na jednom mjestu. Na nekim turnirima svatko uloži koliko želi: tko uloži više, može više i osvojiti, a dio koji nitko nije pratio vraća se na karticu. Za sada se igra demo novcem.', go: 'tab:tour', b: 'Otvori turnire' },
@@ -4402,7 +4406,9 @@ function showResults() {
   } else {
     actions = `<div class="row"><button class="btn" id="againBtn">Nova igra</button><button class="btn ghost" id="menuBtn">Postavke i izbornik</button></div><p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Pogledaj statistiku svih igrača</a></p>`;
   }
+  if (profile && mine) actions += `<div class="row"><button class="btn ghost wa" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   showOverlay(`<div class="banner"><span class="label">Kraj meča · ${plural(G.target, 'runda', 'runde', 'rundi')}</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgesHtml(pBadges(w))}</h3>${earn}${table}${actions}</div>`);
+  if ($('#waShare')) $('#waShare').onclick = () => waOpen(matchShareText(rows, mine));
   if (net) {
     $('#readyBtn').onclick = () => { if (myPres.again === net.mid) return; netPresence({ again: net.mid }); renderReady(); }; // a second tap never cancels: that is the small link
     $('#unreadyBtn').onclick = () => { netPresence({ again: null }); renderReady(); };
@@ -4488,6 +4494,39 @@ function notify(html, opts = {}) {
   return n;
 }
 function fmtAgo(t) { const m = Math.round((Date.now() - t) / 60000); if (m < 1) return 'upravo'; if (m < 60) return `prije ${m} min`; const h = Math.round(m / 60); if (h < 24) return `prije ${h} h`; const d = Math.round(h / 24); return `prije ${d} ${d === 1 ? 'dan' : 'dana'}`; }
+// ---------- WhatsApp: a result shared with one tap (WhatsApp opens with the text ready; the player picks the chat or group)
+function waLink(text) { return 'https://wa.me/?text=' + encodeURIComponent(text); }
+function waOpen(text) { const u = waLink(text); let w = null; try { w = window.open(u, '_blank', 'noopener'); } catch (e) {} if (!w) location.href = u; }
+function matchShareText(rows, mine) {
+  const place = rows.indexOf(mine) + 1, humans = rows.filter(p => p.human).length;
+  const head = place === 1 ? '🏆 Pobijedio sam na Vijugi!' : `🐍 Bio sam ${place}. od ${rows.length} na Vijugi.`;
+  return `${head} ${plural(mine.kills || 0, 'rušenje', 'rušenja', 'rušenja')}, ${mine.wins || 0} od ${plural(G.target, 'runde', 'runde', 'rundi')}${humans > 1 ? ` protiv ${plural(humans - 1, 'igrača', 'igrača', 'igrača')}` : ' protiv botova'}. Možeš li me srušiti? 👉 ${inviteLink()}`;
+}
+function tourShareText(t, i) { return `${['🥇', '🥈', '🥉'][i]} Osvojio sam ${i + 1}. mjesto na turniru „${t.name}” na Vijugi! Sljedeći turnir je za tebe 👉 ${inviteLink()}`; }
+// admins: a weekly summary for the WhatsApp group or channel (copied, or opened straight in WhatsApp)
+function waDigestText() {
+  const day = new Intl.DateTimeFormat('hr-HR', { timeZone: 'Europe/Zagreb', day: 'numeric', month: 'numeric', year: 'numeric' }).format(Date.now());
+  const lines = [`🐍 *Vijuga · tjedni pregled* (${day})`];
+  if (weekly && weekly.name) lines.push(`⭐ Igrač tjedna: *${weekly.name}* (${plural(weekly.firsts || 0, 'pobjeda', 'pobjede', 'pobjeda')}, ${plural(weekly.matches || 0, 'meč', 'meča', 'mečeva')})`);
+  const top = accounts.list.filter(a => a && a.name && (a.wins || 0) > 0).sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 3);
+  if (top.length) lines.push('🏆 Najviše pobjeda: ' + top.map((a, i) => `${i + 1}. ${a.name} (${a.wins})`).join(', '));
+  const lastT = tours.filter(t => t.status === 'done' && t.winners && t.winners.length).sort((a, b) => (b.start || 0) - (a.start || 0))[0];
+  if (lastT) lines.push(`⚔️ Turnir „${lastT.name}”: ` + lastT.winners.map((w, i) => `${['🥇', '🥈', '🥉'][i]} ${w.name}`).join(' · '));
+  const nx = tours.filter(t => t.status === 'open').sort((a, b) => (a.start || 0) - (b.start || 0))[0];
+  if (nx) lines.push(`📝 Prijave otvorene: „${nx.name}”, ${whenText(nx.start)}`);
+  if (NEWS[0]) lines.push(`🆕 Novo: ${NEWS[0].t}`);
+  lines.push(`👉 Igraj: ${GAME_URL}`);
+  return lines.join('\n');
+}
+function showWaDigest() {
+  const m = $('#regModal'); m.hidden = false; const text = waDigestText();
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false"><h3>📲 Tekst za WhatsApp</h3><p class="hint" style="margin:0">Tjedni pregled za grupu ili kanal. Možeš ga urediti prije slanja.</p>
+    <textarea id="waText" rows="9" style="width:100%;font:13px/1.4 system-ui,sans-serif">${esc(text)}</textarea>
+    <div class="go"><button class="btn ghost" type="button" id="waBack">Zatvori</button><button class="btn ghost" type="button" id="waCopy">📋 Kopiraj</button><button class="btn" type="button" id="waGo">Otvori WhatsApp</button></div></form>`;
+  $('#waBack').onclick = () => { m.hidden = true; };
+  $('#waCopy').onclick = async () => { const t = $('#waText'); try { await navigator.clipboard.writeText(t.value); toast('Kopirano: zalijepi u WhatsApp grupu ili kanal.'); } catch (e) { t.select(); toast('Označeno: kopiraj i zalijepi u WhatsApp.'); } };
+  $('#waGo').onclick = () => waOpen($('#waText').value);
+}
 function comeBackLink(name) { return 'https://wa.me/?text=' + encodeURIComponent(`${name}, vrati se na Vijugu! 🐍 Online sam i čekam meč: ${GAME_URL}`); }
 function recentPlayers(onlineSlugs) {
   const me = profile ? profile.slug : '', week = Date.now() - 7 * 86400000;
@@ -6286,7 +6325,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
+window.__vijuga = { waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
 })();
 </script>
 
