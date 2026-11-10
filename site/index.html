@@ -2439,7 +2439,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '30355ba8dbbf';
+const BUILD = '344ed21069cc';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -4312,8 +4312,9 @@ async function shareShot() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'vijuga.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast('📸 Slika arene je spremljena.');
   } catch (e) { if (e && e.name === 'AbortError') return; toast('Slikanje nije uspjelo.'); }
 }
-// which of the three designs of the bar (until the owner picks one): ?pads=a|b|c or localStorage vijuga-padstyle
-let PAD_STYLE = (() => { try { const v = new URLSearchParams(location.search).get('pads') || localStorage.getItem('vijuga-padstyle'); return ['a', 'b', 'c'].includes(v) ? v : 'a'; } catch (e) { return 'a'; } })();
+// the design of the bar between the arrows: C (4 big buttons + quick emoji) unless the player picks another in the pause
+// menu (localStorage vijuga-padstyle) or the link says ?pads=a|b|c
+let PAD_STYLE = (() => { try { const v = new URLSearchParams(location.search).get('pads') || localStorage.getItem('vijuga-padstyle'); return ['a', 'b', 'c'].includes(v) ? v : 'c'; } catch (e) { return 'c'; } })();
 function localJump(p) { if (net && net.role === 'client') { net.jumpN = Math.max(net.jumpN + 1, Date.now()); clientInput(); } else tryJump(p); }
 function enterGame() {
   $('#game').classList.remove('over');
