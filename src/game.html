@@ -436,7 +436,8 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
   #padsBottom .pad[data-k=R] { grid-column: 3; margin-right: env(safe-area-inset-right, 0px); }
   /* only a jump pad that sits directly in the bar takes the grid slot; inside .padmid it stacks over the tool row (the old rule pushed it half off-screen) */
   #padsBottom > .pad.jump, #padsBottom .padmid { grid-column: 3; grid-row: 2; align-self: start; justify-self: center; margin-top: 12px; margin-right: env(safe-area-inset-right, 0px); }
-  #padsBottom .padtools { gap: 5px; } #padsBottom .ptool { width: 36px; height: 36px; font-size: 17px; } #padsBottom .ptool.mic { display: none; }
+  #padsBottom .padmid { width: 112px; } #padsBottom .padtools { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px; } #padsBottom .ptool { width: auto !important; height: 44px !important; border-radius: 12px !important; display: grid !important; grid-template-rows: 1fr auto; padding: 4px 0 !important; } #padsBottom .ptool .tl { display: block !important; font-size: 9px; } #padsBottom .jumpstrip { margin: 0 !important; height: 26px !important; order: 0 !important; font-size: 11px !important; }
+  #padsBottom.ps-c .pad.big { border-radius: 50%; } #padsBottom .padtools { justify-items: stretch !important; } #padsBottom .ptool .tg { font-size: 19px !important; } #padsBottom .jumpstrip .jt::before, #padsBottom .jumpstrip .jt::after { content: none !important; }
   #padsBottom .padmid .pad.big { grid-row: auto; align-self: auto; margin-bottom: 0; } /* the big SKOK inside the tool column keeps DOM order: tools first, pad under them */
   #bnav button, #bnav a { font-size: 10px !important; padding: 2px 0 !important; } #bnav span { font-size: 16px !important; }
 }
@@ -475,13 +476,33 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .pad .cap { color: #e9eff6 !important; }
 .pad .cap { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); line-height: 1; }
 .pad.big { width: 92px; height: 92px; }
-.padmid { display: grid; gap: 6px; justify-items: center; }
+.padmid { display: grid; gap: 8px; justify-items: stretch; align-content: center; min-width: 0; width: 100%; }
 .padtools { display: flex; gap: 6px; justify-content: center; }
+.pads { grid-template-columns: max-content minmax(0, 1fr) max-content !important; } .ptool { min-width: 0; } .ptool .tl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ptool .tg { font-size: 20px; line-height: 1; } .ptool .tl { font: 700 10px/1 "Barlow Semi Condensed", sans-serif; letter-spacing: .03em; color: #e6dcff; }
+.jumpstrip { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 10px; height: 26px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--pc, var(--line)) 60%, var(--line)); background: var(--panel); color: var(--fg); font: 400 12px var(--display); letter-spacing: .08em; }
+.jumpstrip .jfill { position: absolute; inset: 0 auto 0 0; width: calc(var(--jr, 1) * 100%); background: color-mix(in srgb, var(--pc, #4cc9f0) 38%, transparent); }
+.jumpstrip > span { position: relative; } .jumpstrip .ja { color: var(--pc, var(--fg)); font-size: 11px; }
+.jumpstrip.cool { color: var(--muted); } .jumpstrip.go { animation: jgo .45s ease-out; }
+@keyframes jgo { 0% { transform: scale(1); } 35% { transform: scale(1.08); box-shadow: 0 0 18px 3px var(--pc, #4cc9f0); } 100% { transform: scale(1); box-shadow: none; } }
+/* design A: one row of four tools, spread over the whole middle */
+.pads.ps-a .padtools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.pads.ps-a .ptool { width: auto; height: 50px; border-radius: 14px; } .pads.ps-a .ptool .tl { display: none; } .pads.ps-a .ptool .tg { font-size: 25px; }
+/* design B: a 2 x 2 grid of wide tiles, the jump strip on top */
+.pads.ps-b .padmid { gap: 6px; } .pads.ps-b .jumpstrip { order: -1; height: 22px; }
+.pads.ps-b .padtools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.pads.ps-b .ptool { width: auto; height: 40px; border-radius: 12px; display: flex; gap: 4px; justify-content: center; align-items: center; padding: 0 5px; overflow: hidden; } .pads.ps-b .ptool .tl { font-size: 12px; } .pads.ps-b .ptool .tg { font-size: 18px; }
+/* design C: tall paddles left and right, round tools in the middle, a bridge between the paddles */
+.pads.ps-c { align-items: stretch; } .pads.ps-c .pad.big { width: 84px; height: 124px; border-radius: 28px; }
+.pads.ps-c .padtools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; justify-items: center; }
+.pads.ps-c .ptool { width: 40px; height: 40px; border-radius: 50%; } .pads.ps-c .ptool .tl { display: none; } .pads.ps-c .ptool .tg { font-size: 22px; }
+.pads.ps-c .jumpstrip { height: 34px; border-radius: 12px; font-size: 14px; margin: 0 -14px; border-width: 2px; } .pads.ps-c .jumpstrip .ja { font-size: 14px; }
+.pads.ps-c .jumpstrip .jt::before { content: '⇠ '; color: var(--muted); } .pads.ps-c .jumpstrip .jt::after { content: ' ⇢'; color: var(--muted); }
 .ptool { width: 38px; height: 38px; padding: 0; border-radius: 12px; border: 2px solid #b48cff; background: linear-gradient(180deg, #3a2a66, #221a3d); color: #fff; font-size: 19px; line-height: 1; display: grid; place-items: center; position: relative; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .ptool.chat.has::after { content: ''; position: absolute; top: -5px; right: -5px; width: 11px; height: 11px; border-radius: 50%; background: var(--amber); border: 2px solid var(--ink); }
 .ptool.rec { background: #ff5d73; border-color: #ff5d73; animation: recp .8s infinite; }
 @media (max-width: 340px) { .ptool { width: 34px; height: 34px; font-size: 17px; } }
-@media (max-width: 430px) { .ptool.mic { display: none; } } /* narrow phones: three buttons; the microphone is inside the chat panel */
+@media (max-width: 340px) { .ptool .tl { display: none; } }
 .pad.jump { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
 .pad.on { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pc) 65%, var(--panel)), color-mix(in srgb, var(--pc) 30%, var(--panel)) 75%); transform: scale(.94); }
 .pad.cool { opacity: .45; }
@@ -721,7 +742,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
               <li>U tragu se povremeno otvori rupa kroz koju se može provući.</li>
               <li>Kad netko ispadne, svi koji su još živi dobiju 1 bod.</li>
               <li>Meč ima točno toliko rundi koliko je odabrano (3, 5, 7 ili 10); pobjeđuje tko na kraju ima najviše bodova, kod izjednačenja odlučuju rušenja.</li>
-              <li><b>Skok</b><span class="new">NOVO</span> preleti preko tragova, puni se 5 sekundi.</li>
+              <li><b>Skok</b><span class="new">NOVO</span> preleti preko tragova, puni se 5 sekundi. Na mobitelu pritisni <b>LIJEVO i DESNO odjednom</b>.</li>
               <li><b>Sužavanje</b><span class="new">NOVO</span> nakon 20 s arena se počne stezati.</li>
               <li><b>Zlatnici</b><span class="new">NOVO</span> dobivaš po plasmanu na kraju meča i trošiš ih u trgovini.</li>
               <li><b>Profil</b> biraš na ulazu klikom na svoje ime; bodovi i kupljeno ostaju i sutra. PIN je neobavezan.</li>
@@ -1907,7 +1928,7 @@ function renderSettings() {
   add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
-  add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑ ili SKOK: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
+  add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑, a na mobitelu LIJEVO i DESNO odjednom: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave i traka SKOK pokazuju punjenje.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
   add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima točno toliko rundi. Na kraju pobjeđuje tko ima najviše bodova (kod istog broja odlučuju rušenja), svi dobiju zlatnike po plasmanu i biraju novu igru.');
 }
@@ -3656,9 +3677,10 @@ function renderHud() {
   $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
 }
 function updatePads() {
-  document.querySelectorAll('.pad.jump').forEach(b => {
+  document.querySelectorAll('.jumpstrip').forEach(b => {
     const p = G.players.find(q => q.id === Number(b.dataset.pid));
     b.classList.toggle('cool', !p || !p.alive || G.gt < p.jumpReady || G.phase !== 'run');
+    const v = (!p || G.phase !== 'run' ? 1 : Math.max(0, Math.min(1, 1 - (p.jumpReady - G.gt) / JUMP_CD))).toFixed(2); if (b._jr !== v) { b._jr = v; b.style.setProperty('--jr', v); }
   });
 }
 
@@ -3984,11 +4006,11 @@ function frameStep(ts) {
 // ---------- screens ----------
 function controlHint(p) {
   if (!p.human) return '';
-  if (net && net.role === 'client') return p.id === net.myId ? (IS_TOUCH ? 'dodir  ◀ ▶  SKOK' : '← →  skok ↑') : 'online';
+  if (net && net.role === 'client') return p.id === net.myId ? (IS_TOUCH ? 'dodir ◀ ▶ · oba = skok' : '← →  skok ↑') : 'online';
   if (p.remote) return 'online';
   const humans = G.players.filter(q => q.human && !q.remote);
   const idx = humans.indexOf(p);
-  if (IS_TOUCH && idx >= 0 && idx < 2) return idx === 0 ? 'dodir dolje  ◀ ▶' : 'dodir gore  ◀ ▶';
+  if (IS_TOUCH && idx >= 0 && idx < 2) return (idx === 0 ? 'dodir dolje  ◀ ▶' : 'dodir gore  ◀ ▶') + (setup.jump ? ' · oba = skok' : '');
   const k = keysOf(p); return `${k.txt[0]}  ${k.txt[1]}   skok ${k.txt[2]}`;
 }
 function showOverlay(html) { $('#overlay').innerHTML = html || ''; }
@@ -4013,28 +4035,31 @@ function buildPads() {
       b.addEventListener('contextmenu', e => e.preventDefault());
       return b;
     };
-    const j = mkBtn('J', '<span style="font-family:var(--display);font-size:15px">SKOK</span>', '', 'jump');
-    if (!setup.jump) j.style.visibility = 'hidden';
-    let mid = j;
+    // the middle: online, the four tools spread over it (pranks, chat, reactions, voice); under them the jump strip.
+    // There is no jump button any more: pressing LIJEVO and DESNO at the same moment jumps.
+    box.classList.remove('ps-a', 'ps-b', 'ps-c'); box.classList.add('ps-' + PAD_STYLE);
+    const mid = document.createElement('div'); mid.className = 'padmid';
     if (net && !watchingNow()) {
-      // online: the jump pad keeps its full size; a row of small buttons sits above it, one per panel (pranks, chat,
-      // reactions), so the wanted one opens with a single tap; where there is room, a hold-to-talk microphone too
-      mid = document.createElement('div'); mid.className = 'padmid';
       const tools = document.createElement('div'); tools.className = 'padtools';
-      const mkTool = (cls, glyph, label) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.textContent = glyph; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
+      const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
       const openTab = (t) => (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
-      const zb = mkTool('prank', '😈', 'Zezalice'); zb.onclick = openTab('z');
-      const cb = mkTool('chat', '💬', 'Chat'); cb.onclick = openTab('c');
-      const rb = mkTool('react', '😀', 'Reakcije'); rb.onclick = openTab('r');
-      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži i govori'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb); });
-      j.classList.add('big'); tools.append(zb, cb, rb, mb); mid.append(tools, j);
+      const zb = mkTool('prank', '😈', 'Zezalice', 'Zezalice'); zb.onclick = openTab('z');
+      const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
+      const rb = mkTool('react', '😀', 'Reakcije', 'Reakcije'); rb.onclick = openTab('r');
+      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži i govori', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); startVoice(mb); });
+      tools.append(zb, cb, rb, mb); mid.append(tools);
     }
+    if (setup.jump) { const js = document.createElement('div'); js.className = 'jumpstrip'; js.dataset.pid = p.id; js.setAttribute('aria-label', 'Skok: pritisni lijevo i desno odjednom'); js.innerHTML = '<i class="jfill"></i><span class="ja">◀</span><span class="jt">SKOK</span><span class="ja">▶</span>'; mid.append(js); }
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
-    // the whole bar is one touch surface: left third turns left, right third turns right, middle jumps.
+    // the whole bar is one touch surface: the left half turns left, the right half turns right; both pressed at once jump.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
     // Touch input is read from the browser's own list of fingers (e.touches) on every event, so a lost
     // "finger up" can never leave a turn stuck; a press must start on a button, then the finger may slide.
-    const ptr = box._ptr = new Map(); const pid = p.id; const flip = box.classList.contains('top'); const MARGIN = 28;
+    const ptr = box._ptr = new Map(), downAt = new Map(); const pid = p.id; const flip = box.classList.contains('top'); const MARGIN = 28; box._chordAt = 0;
+    // a jump: LIJEVO and DESNO pressed within CHORD_MS of each other (holding one side and pressing the other later only turns)
+    const chord = () => { if (!setup.jump) return; let l = -1, r = -1; for (const [id, z] of ptr) { const t = downAt.get(id) || 0; if (z === 'L') l = Math.max(l, t); else if (z === 'R') r = Math.max(r, t); }
+      if (l < 0 || r < 0 || Math.abs(l - r) > CHORD_MS || Math.max(l, r) <= box._chordAt) return; box._chordAt = Math.max(l, r);
+      localJump(G.players.find(x => x.id === pid) || p); const js = box.querySelector('.jumpstrip'); if (js) { js.classList.remove('go'); void js.offsetWidth; js.classList.add('go'); } };
     const padAt = (x, y) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) - r.width / 2; if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
     const sideOf = (x) => { const r = box.getBoundingClientRect(); if (r.width < 10) return x < innerWidth / 2 ? 'L' : 'R'; let f = (x - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.5 ? 'L' : 'R'; };
     const sync = () => { const h = (touchHeld[pid] = { L: 0, R: 0 }); for (const z of ptr.values()) if (z !== 'J') h[z]++;
@@ -4042,9 +4067,9 @@ function buildPads() {
     box._sync = sync;
     const onTouch = (e) => {
       if (e.target && e.target.closest && e.target.closest('.padtools')) return; // the tool buttons above the jump pad are ordinary buttons
-      if (e.type === 'touchstart') { for (const t of e.changedTouches) { const z = padAt(t.clientX, t.clientY); if (z) { ptr.set(t.identifier, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); } } }
+      if (e.type === 'touchstart') { for (const t of e.changedTouches) { const z = padAt(t.clientX, t.clientY); if (z) { ptr.set(t.identifier, z); downAt.set(t.identifier, performance.now()); } } chord(); }
       else if (e.type === 'touchmove') { for (const t of e.changedTouches) { const z = ptr.get(t.identifier); if (z && z !== 'J') { const sd = sideOf(t.clientX); if (sd !== z) ptr.set(t.identifier, sd); } } }
-      else { for (const t of e.changedTouches) ptr.delete(t.identifier); }
+      else { for (const t of e.changedTouches) { ptr.delete(t.identifier); downAt.delete(t.identifier); } }
       const live = new Set(); for (const t of e.touches) live.add(t.identifier); for (const id of [...ptr.keys()]) if (!live.has(id) && typeof id === 'number') ptr.delete(id);
       if (e.cancelable && (ptr.size || e.type !== 'touchstart')) e.preventDefault();
       sync();
@@ -4054,14 +4079,17 @@ function buildPads() {
     box._onTouch = onTouch;
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.addEventListener(ev, onTouch, { passive: false });
     // mouse / pen (desktop): one button at a time
-    box.onpointerdown = (e) => { if (e.pointerType === 'touch' || (e.target.closest && e.target.closest('.padtools'))) return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); if (z === 'J') localJump(G.players.find(x => x.id === pid) || p); sync(); };
+    box.onpointerdown = (e) => { if (e.pointerType === 'touch' || (e.target.closest && e.target.closest('.padtools'))) return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); downAt.set('m' + e.pointerId, performance.now()); chord(); sync(); };
     box.onpointermove = (e) => { if (e.pointerType === 'touch') return; const k = 'm' + e.pointerId; const z = ptr.get(k); if (z && z !== 'J') { const sd = sideOf(e.clientX); if (sd !== z) { ptr.set(k, sd); sync(); } } };
-    const upM = (e) => { if (e.pointerType === 'touch') return; if (ptr.delete('m' + e.pointerId)) sync(); };
+    const upM = (e) => { if (e.pointerType === 'touch') return; downAt.delete('m' + e.pointerId); if (ptr.delete('m' + e.pointerId)) sync(); };
     box.onpointerup = upM; box.onpointercancel = upM; box.onlostpointercapture = upM;
     box.oncontextmenu = (e) => e.preventDefault();
   };
   mk($('#padsBottom'), humans[0]); mk($('#padsTop'), humans[1]);
 }
+const CHORD_MS = 250;
+// which of the three designs of the bar (until the owner picks one): ?pads=a|b|c or localStorage vijuga-padstyle
+const PAD_STYLE = (() => { try { const v = new URLSearchParams(location.search).get('pads') || localStorage.getItem('vijuga-padstyle'); return ['a', 'b', 'c'].includes(v) ? v : 'a'; } catch (e) { return 'a'; } })();
 function localJump(p) { if (net && net.role === 'client') { net.jumpN = Math.max(net.jumpN + 1, Date.now()); clientInput(); } else tryJump(p); }
 function enterGame() {
   for (const id of ['#regModal', '#inviteModal', '#pcardBg']) { const m = $(id); if (m) m.hidden = true; }
