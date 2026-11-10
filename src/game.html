@@ -237,8 +237,8 @@ button:disabled { cursor: default; opacity: .5; }
 .wchip em { font-style: normal; font-size: 18px; } .wchip i { font-style: normal; }
 .wchip canvas.wprev { width: 56px; height: 16px; border-radius: 4px; }
 .me button#profBtn { color: var(--fg); }
-#toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; transition: .25s; background: var(--fg); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); z-index: 20; pointer-events: none; word-break: break-all; }
-#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast { position: fixed; left: 16px; right: 16px; margin: 0 auto; width: fit-content; max-width: 560px; text-align: center; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateY(20px); opacity: 0; transition: opacity .25s, transform .25s; background: var(--fg); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 20; pointer-events: none; word-break: normal; overflow-wrap: anywhere; }
+#toast.show { opacity: 1; transform: translateY(0); }
 .invite { margin: 0; background: color-mix(in srgb, var(--amber) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
 .me button.inv { color: var(--amber); font-weight: 600; }
 .me button { background: transparent; border: 0; color: var(--muted); padding: 0 2px; text-decoration: underline; }
@@ -519,6 +519,14 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .qchip:hover { border-color: var(--amber); }
 .matches { display: grid; gap: 6px; margin: 4px 0 8px; } .mrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--ink); font-size: 14px; }
 .mrow.mine { border-color: var(--amber); } .mrow .who { flex: 1; min-width: 120px; } .mrow .st { color: var(--muted); font-size: 12px; }
+.item.locked .prev, .item.locked b { opacity: .55; } .lvlock { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; } .lockbtn { opacity: .85; cursor: not-allowed; background: var(--ink) !important; color: var(--muted) !important; border: 1px dashed var(--line) !important; }
+/* audit quick wins: windows never wider than the screen, the lobby never scrolls sideways, no notes over a match or a window,
+   the bottom bar out of the way of an open window, the PLAY pulse stops after a while */
+.modal form, .invite-card { box-sizing: border-box; }
+.net, .net .chat { grid-template-columns: minmax(0, 1fr); }
+body:has(#game:not([hidden])) #notes, body:has(#regModal:not([hidden])) #notes { display: none; }
+body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #bnav { display: none !important; }
+#bnav .bplay { animation-iteration-count: 6; }
 .allgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .allcard { display: grid; justify-items: center; gap: 2px; padding: 12px 4px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); text-decoration: none; text-align: center; cursor: pointer; }
 .allcard span { font-size: 26px; line-height: 1.15; } .allcard b { font-size: 14px; } .allcard small { color: var(--muted); font-size: 11px; line-height: 1.2; }
@@ -598,7 +606,7 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
         <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
-        <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div></div>
+        <div class="localbox" data-cat="local"><h2>⚓ Šibenik i navijači <small>lokalne i navijačke ikone (nošnja, kapa, sv. Mihovil, katedrala…), svake samo 2 komada</small></h2><div class="shop" id="shopLocal"></div><h2 style="margin-top:14px">〰️ Navijački tragovi <small>Funcuti, Hajduk, Dinamo</small></h2><div class="shop" id="shopFanSkins"></div></div>
         <div class="localbox" data-cat="tags"><h2>🏷️ Tagovi mjesta <small>natpis tvog mjesta uz ime (Grebaštica, Bilice, Žaborić, Brodarica, Šibenik), svaki samo 2 komada</small></h2><div class="shop" id="shopTags"></div></div>
         <div class="premiumbox" data-cat="crypto"><h2>₿ Kripto ikone <small>živa cijena (USD) stoji uz tvoje ime u predvorju, na ploči i iznad zmije dok igraš</small></h2><div class="shop" id="shopCrypto"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
@@ -758,6 +766,9 @@ const SKINS = {
   sz_love:    { name: 'Ljubav 💘', d: 'SEZONSKO: samo ovaj tjedan u trgovini', price: 1200, season: 2 },
   sz_sun:     { name: 'Ljeto ☀️', d: 'SEZONSKO: samo ovaj tjedan u trgovini', price: 1200, season: 3 },
   sk_diamond: { name: 'Dijamant 💎', d: 'RIJETKO: samo 3 igrača ga mogu imati. Ledeni sjaj.', price: 900, limit: 3 },
+  sk_funcuti: { name: 'Funcuti 🟠⚫', d: 'NAVIJAČKI: crno-narančasti trag Šibenskih Funcuta, kao navijački šal', price: 1200, fan: true },
+  sk_hajduk:  { name: 'Hajduk ⚪', d: 'NAVIJAČKI: čisti bijeli trag, boja Hajduka', price: 1200, fan: true },
+  sk_dinamo:  { name: 'Dinamo 🔵', d: 'NAVIJAČKI: posebna modra boja Dinama s plavim sjajem', price: 1200, fan: true },
   sk_dildo:   { name: 'Dildo', d: 'Ružičasti, debeli trag s glavicom. Za odrasle.', price: 150 },
   sk_vag:     { name: 'Vagina', d: 'Ružičasti trag s usnama. Za odrasle.', price: 160 },
   sk_boobs:   { name: 'Dojke', d: 'Trag boje kože s parovima dojki. Za odrasle.', price: 160 },
@@ -1358,7 +1369,7 @@ function awardCoins(place, kills, won) {
   const lv0 = levelOf(profile).lv;
   profile.coins += n; profile.matches++; profile.kills += kills; if (won) profile.wins++;
   dailyCount({ m: 1, w: won ? 1 : 0, k: kills, top3: place < 3 ? 1 : 0 });
-  const lv1 = levelOf(profile).lv; if (lv1 > lv0) { const bonus = 50 * lv1; profile.coins += bonus; notify(`⬆️ Nivo <b>${lv1}</b>! Nagrada +${bonus} zlatnika`, { ms: 6000 }); }
+  const lv1 = levelOf(profile).lv; if (lv1 > lv0) { const bonus = 50 * lv1; profile.coins += bonus; { let u = 0; for (let l = lv0 + 1; l <= lv1; l++) u += unlocksAt(l); const box = Object.entries(BOX_LV).filter(([, l]) => l > lv0 && l <= lv1).map(([k]) => BOXES[k].name); if (u) setTimeout(() => notify(`🔓 Otključano na nivou ${lv1}: <b>${u}</b> ${u === 1 ? 'nova stvar' : u < 5 ? 'nove stvari' : 'novih stvari'} u trgovini${box.length ? ' (i ' + box.join(', ') + ')' : ''}.`, { ms: 9000, actions: '<button class="pingbtn" type="button" onclick="this.closest(\'.note-card\').remove()">OK</button>' }), 1200); } notify(`⬆️ Nivo <b>${lv1}</b>! Nagrada +${bonus} zlatnika`, { ms: 6000 }); }
   saveProfile(); checkAchievements(); return n;
 }
 function skinPreview(cv, skinId, color) {
@@ -1384,6 +1395,16 @@ function drawDildoHead(c, x, y, a, r) {
 }
 function badgeOf(p) { const b = BADGES[p && p.eq && p.eq.badge]; return b && b.g ? `<span class="badge" aria-hidden="true">${b.svg || b.g}</span>` : ''; }
 function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; return b.svg && !text ? b.svg : b.g; }
+// diagonal black/orange stripes (Šibenski Funcuti); one pattern per canvas context
+const scarfPats = new WeakMap();
+function scarfPattern(c) {
+  let pt = scarfPats.get(c); if (pt) return pt;
+  const t = document.createElement('canvas'); t.width = t.height = 12; const x = t.getContext('2d');
+  x.fillStyle = '#16110c'; x.fillRect(0, 0, 12, 12); x.fillStyle = '#ff7a1a';
+  x.beginPath(); x.moveTo(0, 0); x.lineTo(6, 0); x.lineTo(0, 6); x.closePath(); x.fill();
+  x.beginPath(); x.moveTo(12, 0); x.lineTo(12, 6); x.lineTo(6, 12); x.lineTo(0, 12); x.closePath(); x.fill();
+  pt = c.createPattern(t, 'repeat') || '#ff7a1a'; scarfPats.set(c, pt); return pt;
+}
 function applySkin(c, skinId, color, r, gt) {
   c.shadowBlur = 0; c.setLineDash([]); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = color;
   switch (skinId) {
@@ -1402,6 +1423,9 @@ function applySkin(c, skinId, color, r, gt) {
     case 'sz_love': c.strokeStyle = '#ff5d9e'; break;
     case 'sz_sun': c.strokeStyle = `hsl(${40 + 15 * Math.sin(gt * 4)} 100% 58%)`; break;
     case 'sk_diamond': c.strokeStyle = `hsl(190 95% ${78 + 12 * Math.sin(gt * 9)}%)`; c.shadowBlur = 14; c.shadowColor = '#7df9ff'; break;
+    case 'sk_funcuti': c.strokeStyle = scarfPattern(c); break; // black and orange stripes, like a supporters' scarf
+    case 'sk_hajduk': c.strokeStyle = '#ffffff'; c.shadowBlur = 4; c.shadowColor = 'rgba(255,255,255,.55)'; break;
+    case 'sk_dinamo': c.strokeStyle = '#1d5be0'; c.shadowBlur = 9; c.shadowColor = '#6aa8ff'; break;
     case 'sk_dildo': c.strokeStyle = '#f29ab4'; c.lineWidth = r * 2 * 1.45; return true;
     case 'sk_vag': c.strokeStyle = '#f08aa8'; c.lineWidth = r * 2 * 1.5; return true;
     case 'sk_boobs': c.strokeStyle = '#f3c6a5'; c.lineWidth = r * 2 * 1.15; return true;
@@ -1439,6 +1463,7 @@ function openBox(kind, free) {
   if (!BOXES[kind]) kind = 'basic';
   const B = BOXES[kind]; if (!profile) return null;
   if (!free) {
+    if (myLevel() < (BOX_LV[kind] || 1)) { toast(`🔒 ${B.name} se otključava na nivou ${BOX_LV[kind]}.`); return null; }
     if (profile.coins < B.price) { toast('Nemaš dovoljno zlatnika.'); return null; }
     const day = zDay(Date.now()); if (!profile.box || profile.box.d !== day) profile.box = { d: day, n: 0 };
     if (profile.box.n >= BOX_PER_DAY) { toast(`Danas si već otvorio ${BOX_PER_DAY} kutija – sutra opet.`); return null; }
@@ -1456,7 +1481,7 @@ function openBox(kind, free) {
 function renderBoxes() {
   const box = $('#shopBoxes'); if (!box) return;
   const left = boxLeftToday();
-  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b><span class="hint">zlatnici ${B.coins[0]}–${B.coins[1]} · predmet ${pct(B.pItem)}${B.picks > 1 ? ' (bolji od ' + B.picks + ')' : ''} · zezalice ×${B.trolls} · <b style="color:var(--amber)">rijetka animacija ${pct(B.pRare)}</b></span><button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button></div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (🔥 ⛷️ 📈 📶 ⏳ 🥷).</p>`;
+  box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b><span class="hint">zlatnici ${B.coins[0]}–${B.coins[1]} · predmet ${pct(B.pItem)}${B.picks > 1 ? ' (bolji od ' + B.picks + ')' : ''} · zezalice ×${B.trolls} · <b style="color:var(--amber)">rijetka animacija ${pct(B.pRare)}</b></span>${profile && myLevel() < (BOX_LV[k] || 1) ? `<button class="btn sm lockbtn" type="button" disabled>🔒 Nivo ${BOX_LV[k]}</button><span class="lvlock">${lockNote(BOX_LV[k])}</span>` : `<button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || left <= 0 ? 'disabled' : ''}>Otvori · ● ${B.price}</button>`}</div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (🔥 ⛷️ 📈 📶 ⏳ 🥷).</p>`;
   box.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
 }
 function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
@@ -1511,15 +1536,18 @@ function renderShop() {
       const price = document.createElement('span'); price.className = 'price'; const disc = dailyOffer() === id && !owned ? Math.round(it.price * 0.7) : 0; const cost = vipCost(disc || it.price);
       price.innerHTML = it.price ? (cost !== it.price ? `<s style="opacity:.6">● ${it.price}</s> ● ${cost}` : `● ${it.price}`) : 'besplatno';
       if (it.limit) d.insertAdjacentHTML('beforeend', `<span class="rare">${limitLeft(id) > 0 ? `još ${limitLeft(id)} od ${it.limit}` : 'rasprodano'}</span>`);
-      const b = document.createElement('button'); b.type = 'button';
+      const b = document.createElement('button'); b.type = 'button'; const lockLv = lockedFor(id);
+      if (lockLv) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', `<span class="lvlock">${lockNote(lockLv)}</span>`); }
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+      else if (lockLv && !eq && !owned) { b.textContent = '🔒 Nivo ' + lockLv; b.className = 'lockbtn'; b.disabled = true; }
       else if (eq) { b.textContent = kind === 'pu' ? 'Isključi' : 'Aktivno'; b.className = 'on'; b.onclick = () => { if (kind === 'pu') { profile.eq.pu = ''; saveProfile(); } }; }
       else if (owned) { b.textContent = 'Koristi'; b.onclick = () => { profile.eq[kind] = id; saveProfile(); }; }
       else { b.textContent = it.limit && limitLeft(id) <= 0 ? 'Rasprodano' : 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < cost || (it.limit && limitLeft(id) <= 0); b.onclick = () => { if (profile.coins < cost || (it.limit && limitLeft(id) <= 0)) return; if (!okToSpend(cost, it.name)) return; const prevEq = profile.eq[kind]; profile.coins -= cost; profile.spent = (profile.spent || 0) + cost; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); profile.eq[kind] = id; sfx.pick(); saveProfile(); buyUndo(id, cost, kind, prevEq); }; }
       act.append(price, b); d.appendChild(act); box.appendChild(d);
     });
   };
-  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
+  make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
+  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && !it.fan && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
   make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto), 'badge');
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
@@ -1537,7 +1565,9 @@ function renderShop() {
       if (it.bg) d.classList.add('pic');
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${cost}`;
       const b = document.createElement('button'); b.type = 'button';
+      const lockLv = lockedFor(id); if (lockLv) { d.classList.add('locked'); d.insertAdjacentHTML('beforeend', `<span class="lvlock">${lockNote(lockLv)}</span>`); }
       if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+      else if (lockLv && !owned) { b.textContent = '🔒 Nivo ' + lockLv; b.className = 'lockbtn'; b.disabled = true; }
       else if (owned) {
         if (it.bg) { b.textContent = on ? 'Isključi' : 'Koristi'; b.className = on ? 'on' : ''; b.onclick = () => { profile.eq.bg = on ? '' : id; saveProfile(); }; }
         else if (id === 'pr_title') { b.textContent = 'Uredi titulu'; b.onclick = () => { const t = prompt('Tvoja titula (do 24 znaka):', profile.title || 'Kralj Vijuge'); if (t != null) { profile.title = t.trim().slice(0, 24); saveProfile(); toast('🏷️ Titula spremljena.'); } }; }
@@ -2200,7 +2230,7 @@ function newRound() {
     const toC = Math.atan2(H / 2 - y, W / 2 - x);
     p.roundStart = p.score || 0;
     Object.assign(p, { x, y, a: toC + rand(-1.1, 1.1), alive: true, fx: [], gapLeft: 26, nextGap: rand(1.4, 3), jumpUntil: 0,
-      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [] });
+      jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [], tvH: [], portalCool: 0 });
   });
   hudDirty = true; showOverlay(null);
   G.players.forEach(x => { if (hasLux(x, 'heli')) luxStart('heli', x); });
@@ -2258,19 +2288,21 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 // ---------- grid ----------
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
 // the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
-const SKIN_COLOR = { sk_gold: '#ffd700', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_dildo: '#f29ab4', sk_vag: '#f08aa8', sk_boobs: '#f3c6a5', sk_condom: '#cde4ff', sk_hairy: '#cf9580', sk_rainbow: null };
+const SKIN_COLOR = { sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#ffd700', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_dildo: '#f29ab4', sk_vag: '#f08aa8', sk_boobs: '#f3c6a5', sk_condom: '#cde4ff', sk_hairy: '#cf9580', sk_rainbow: null };
 function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return SKIN_COLOR[p.skin] || p.color; }
 const SKIN_W = { sk_neon: 0.7, sk_dildo: 1.45, sk_vag: 1.5, sk_boobs: 1.15, sk_condom: 1.35, sk_hairy: 1.15 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
-function stamp(p, r) {
+function stamp(p, r, grace) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
   const gx0 = cx | 0, gy0 = cy | 0, id = p.id + 1;
   for (let dy = -n; dy <= n; dy++) for (let dx = -n; dx <= n; dx++) {
     const gx = gx0 + dx, gy = gy0 + dy;
     if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) continue;
-    if ((gx + .5 - cx) ** 2 + (gy + .5 - cy) ** 2 > rc * rc) continue;
-    const i = gy * GW + gx;
-    if (owner[i] === 0 || owner[i] === id) { owner[i] = id; stampT[i] = T; }
+    if ((dx || dy) && (gx + .5 - cx) ** 2 + (gy + .5 - cy) ** 2 > rc * rc) continue; // the cell under the centre always counts: a thin trail has no holes
+    const i = gy * GW + gx, o = owner[i];
+    // my own cell is refreshed only while it still belongs to the fresh trail right behind the head. An old piece of my
+    // own trail keeps its age, so the nose dies on it (a wide stamp used to make it "fresh" before the nose got there).
+    if (o === 0 || (o === id && !(stampT[i] <= T - grace))) { owner[i] = id; stampT[i] = T; }
   }
 }
 function blockedBy(x, y, p, grace) {
@@ -2454,7 +2486,9 @@ function drawBalls(x, y, a, r) { tctx.save(); tctx.setTransform(tctx.getTransfor
 // bend, where it lifts - with a running number, and snapshots carry the newest ones. A guest draws the very line the
 // host stamped: a gap starts and ends exactly where it does on the host and a bend between two snapshots is not cut
 // short. f: 0 = the pen comes down here, 1 = a line from the previous vertex, 2 = the same, and the width changes here.
-function tvPush(p, x, y, f) { p.tvN = (p.tvN || 0) + 1; (p.tvQ || (p.tvQ = [])).push(p.tvN, Math.round(x * 10) / 10, Math.round(y * 10) / 10, f); if (p.tvQ.length > 4 * 96) p.tvQ.splice(0, 4 * 32); p.tvX = x; p.tvY = y; p.tvA = p.a; }
+function tvPush(p, x, y, f) { p.tvN = (p.tvN || 0) + 1; (p.tvQ || (p.tvQ = [])).push(p.tvN, Math.round(x * 10) / 10, Math.round(y * 10) / 10, f);
+  if (!p.tvH || !p.tvH.length) { p.tvH = []; p.tvH0 = p.tvN; } if (p.tvH.length < 4 * 6000) p.tvH.push(Math.round(x * 10) / 10, Math.round(y * 10) / 10, f, Math.round(radiusOf(p) * 10) / 10); /* the whole round, for late arrivals: x, y, flag, width from here on */
+  if (p.tvQ.length > 4 * 96) p.tvQ.splice(0, 4 * 32); p.tvX = x; p.tvY = y; p.tvA = p.a; }
 function trailVert(p, down, widthChanged) {
   if (down) {
     if (!p.tvDown) { p.tvDown = true; tvPush(p, p.x, p.y, 0); }
@@ -2585,7 +2619,7 @@ function applyPu(p, k, silent) {
     case 'sharpS': add(p, 'sharp', P.dur); break;
     case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
     case 'clearA':
-      G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; });
+      G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; q.tvH = []; });
       owner.fill(0); tctx.clearRect(0, 0, W, H); G.clr++; stampArena(); break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
   }
@@ -2593,13 +2627,19 @@ function applyPu(p, k, silent) {
 }
 
 // ---------- death ----------
-function kill(p, by) {
-  if (!p.alive || G.phase !== 'run') return;
-  p.alive = false; flushTrail(p, false); trailVert(p, false); sfx.die(); p.killer = by || null;
-  if (by && by !== p && by.human && p.human) { const ks = by.mine && profile ? profile.slug : by.slug, vs = p.mine && profile ? profile.slug : p.slug; if (ks && vs) { G.kx ||= {}; const kk = ks + '>' + vs; G.kx[kk] = (G.kx[kk] || 0) + 1; } }
-  if (by && by !== p) by.kills++;
-  G.players.forEach(q => { if (q.alive) q.score++; });
-  deathFx(p); onDeath(p, by ? by.id : -1);
+function kill(p, by) { killMany([[p, by]]); }
+// everybody on the list crashes in the same instant: nobody on it collects the point for another one's death
+function killMany(list) {
+  if (G.phase !== 'run') return;
+  list = list.filter(d => d[0].alive); if (!list.length) return;
+  for (const d of list) d[0].alive = false;
+  for (const [p, by] of list) {
+    flushTrail(p, false); trailVert(p, false); sfx.die(); p.killer = by || null;
+    if (by && by !== p && by.human && p.human) { const ks = by.mine && profile ? profile.slug : by.slug, vs = p.mine && profile ? profile.slug : p.slug; if (ks && vs) { G.kx ||= {}; const kk = ks + '>' + vs; G.kx[kk] = (G.kx[kk] || 0) + 1; } }
+    if (by && by !== p) by.kills++;
+    G.players.forEach(q => { if (q.alive) q.score++; });
+    deathFx(p); onDeath(p, by ? by.id : -1);
+  }
   hudDirty = true;
   const alive = G.players.filter(q => q.alive);
   if (G.players.some(q => q.human) && !alive.some(q => q.human) && alive.length > 1) G.ff = true;
@@ -2667,9 +2707,9 @@ function lapDeath(p) { if (!p.alive) return; p.alive = false; flushTrail(p, fals
 function substep(lap) {
   T++;
   const bd = bounds();
-  const die = lap ? (p) => lapDeath(p) : kill;
+  const moved = [], dead = [];
+  // 1) everybody steers and moves; whoever leaves the arena is out
   for (const p of G.players) {
-    if (G.phase !== (lap ? 'end' : 'run')) return;
     if (!p.alive) continue;
     if (!lap && !p.starterDone) { p.starterDone = true; if (p.starter && POWERUPS[p.starter]) applyPu(p, p.starter, true); }
     let inp;
@@ -2680,45 +2720,56 @@ function substep(lap) {
       if (inp !== 0 && p.lastIn === 0 && T >= p.sqCool) { p.a += inp * Math.PI / 2; p.sqCool = T + 20; flushTrail(p, true); }
     } else { p.tv = (p.tv || 0) + (inp - (p.tv || 0)) * Math.min(1, SUB / 0.04); if (Math.abs(p.tv) < 0.01) p.tv = 0; p.a += p.tv * TURN * SUB * (speedOf(p) / BASE_SPEED) * turnMul(p); } // steering eases in over ~40 ms: round, smooth curves
     p.lastIn = inp;
-
     const v = speedOf(p), r = radiusOf(p), step = v * SUB;
     p.x += Math.cos(p.a) * step; p.y += Math.sin(p.a) * step;
     const jumping = p.jumpUntil > G.gt;
-
     const wr = r * 0.55; // a trail may run a hair's breadth along the edge
     if (p.x - wr < bd.l || p.y - wr < bd.t || p.x + wr > bd.r || p.y + wr > bd.b) {
       if (wraps(p)) {
-        const w = bd.r - bd.l, h = bd.b - bd.t; let moved = false;
-        if (p.x < bd.l) { p.x += w; moved = true; } else if (p.x > bd.r) { p.x -= w; moved = true; }
-        if (p.y < bd.t) { p.y += h; moved = true; } else if (p.y > bd.b) { p.y -= h; moved = true; }
-        if (moved) { flushTrail(p, false); p.gapLeft = Math.max(p.gapLeft, r * 2 + 2); }
-      } else { die(p, null); continue; }
+        const w = bd.r - bd.l, h = bd.b - bd.t; let tele = false;
+        if (p.x < bd.l) { p.x += w; tele = true; } else if (p.x > bd.r) { p.x -= w; tele = true; }
+        if (p.y < bd.t) { p.y += h; tele = true; } else if (p.y > bd.b) { p.y -= h; tele = true; }
+        if (tele) { flushTrail(p, false); trailVert(p, false); p.gapLeft = Math.max(p.gapLeft, r * 2 + 2); }
+      } else { dead.push([p, null]); continue; }
     }
     portalStep(p);
-    if (!jumping && !has(p, 'ghost')) {
-      const grace = Math.ceil((2 * r + 4) / step) + 2;
-      let hit = 0;
-      const hr2 = r * 0.62; // the probe is a short nose in front of the centre: grazing a trail end or edge is forgiven
-      for (const o of [-0.6, -0.3, 0, 0.3, 0.6]) {
-        hit = blockedBy(p.x + Math.cos(p.a + o) * hr2, p.y + Math.sin(p.a + o) * hr2, p, grace);
-        if (hit) break;
-      }
-      if (hit) { die(p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)); continue; }
-    }
     if (p.gapLeft > 0) p.gapLeft -= step;
     else if (G.gt > p.nextGap) { p.gapLeft = rand(14, 22) + r * 2 * skinW(p); p.nextGap = G.gt + rand(1.5, 3.4); }
-    const drawing = p.gapLeft <= 0 && !jumping;
-    p.drawing = drawing;
-    if (drawing) {
-      stamp(p, Math.max(1, r * skinW(p) - 0.35));
-      const wch = p.pts.length > 0 && Math.abs(p.ptsR - r) > .01; if (wch) flushTrail(p, true);
-      p.ptsR = r; p.pts.push(p.x, p.y); trailVert(p, true, wch);
+    p._r = r; p._jump = jumping; p._draw = p.gapLeft <= 0 && !jumping;
+    p._rs = Math.max(1.5, r * skinW(p) - 0.35); p._grace = Math.ceil((2 * r + 4) / step) + 2;
+    p._rh = p._rs + 1.5 + step; // the head itself as other noses meet it: just outside the cells it stamped a moment ago
+    moved.push(p);
+  }
+  // 2) everybody is tested against the same picture: the trails as they were before this substep, plus the spot each other
+  //    head stamps in this substep. A head-on is seen by both snakes at once, whatever their place in the list.
+  for (const p of moved) {
+    if (p._jump || has(p, 'ghost')) continue;
+    let hit = 0;
+    const hr2 = p._r * 0.62; // the probe is a short nose in front of the centre: grazing a trail end or edge is forgiven
+    for (const o of [-0.6, -0.3, 0, 0.3, 0.6]) {
+      const px = p.x + Math.cos(p.a + o) * hr2, py = p.y + Math.sin(p.a + o) * hr2;
+      for (const q of moved) if (q !== p && q._draw && (px - q.x) ** 2 + (py - q.y) ** 2 <= q._rh * q._rh) { hit = q.id + 1; break; }
+      if (!hit) hit = blockedBy(px, py, p, p._grace);
+      if (hit) break;
+    }
+    if (hit) dead.push([p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)]);
+  }
+  // 3) the survivors leave their trail and collect power-ups
+  for (const p of moved) {
+    if (dead.some(d => d[0] === p)) continue;
+    p.drawing = p._draw;
+    if (p._draw) {
+      stamp(p, p._rs, p._grace);
+      const wch = p.pts.length > 0 && Math.abs(p.ptsR - p._r) > .01; if (wch) flushTrail(p, true);
+      p.ptsR = p._r; p.pts.push(p.x, p.y); trailVert(p, true, wch);
     } else { if (p.pts.length) flushTrail(p, false); trailVert(p, false); }
     if (!lap) for (let i = G.pus.length - 1; i >= 0; i--) {
       const u = G.pus[i];
-      if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + r) { G.pus.splice(i, 1); applyPu(p, u.k); }
+      if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + p._r) { G.pus.splice(i, 1); applyPu(p, u.k); }
     }
   }
+  // 4) everybody who crashed in this substep dies together
+  if (dead.length) { if (lap) dead.forEach(d => lapDeath(d[0])); else killMany(dead); }
 }
 function update(dt) {
   if (G.phase === 'run' && G.players.length && !G.players.some(p => p.alive)) { endRound(null); return; } // safety: a round with nobody alive can never hang
@@ -2978,6 +3029,21 @@ function dailyHtml() {
   const st = dailyState(); if (!st) return '';
   return `<div class="dailych"><b>🎯 Dnevni izazovi</b>${dailyList().map(ch => { const v = Math.min(ch.goal, st.c[ch.k] || 0), ok = st.done.includes(ch.id); return `<span class="dc ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(ch.n)} <small>${v}/${ch.goal} · +${ch.r}</small></span>`; }).join('')}</div>`;
 }
+// The economy rewards playing: dearer boxes and special items (premium, animated, crypto, limited and unique ones,
+// arena backgrounds, luxury) unlock at a level. Things already owned stay usable; only buying is locked.
+const BOX_LV = { basic: 1, silver: 3, gold: 5, diamond: 8 };
+function lvReq(id) {
+  const it = SKINS[id] || BADGES[id] || PREMIUM[id] || EFFECTS[id]; if (!it) return 1;
+  if (it.lv) return it.lv;
+  const special = it.premium || it.anim || it.crypto || it.limit || it.unique || it.fan || it.bg || PREMIUM[id];
+  if (!special) return 1;
+  const p = Number(it.price) || 0;
+  return p >= 15000 ? 12 : p >= 7000 ? 8 : p >= 4000 ? 6 : p >= 3000 ? 5 : p >= 2000 ? 4 : p >= 1200 ? 3 : p >= 900 ? 2 : 1;
+}
+function myLevel() { return profile ? levelOf(profile).lv : 1; }
+function lockedFor(id) { const need = lvReq(id); return profile && !profile.owned.includes(id) && myLevel() < need ? need : 0; }
+function lockNote(need) { const L = profile ? levelOf(profile) : null; const xp = L ? 40 * (need - 1) ** 2 - L.xp : 0; return `🔒 Otključava se na nivou ${need}` + (xp > 0 ? ` (još ${xp} XP: igraj mečeve, pobjeđuj, ruši)` : ''); }
+function unlocksAt(lv) { const n = [...Object.keys(SKINS), ...Object.keys(BADGES), ...Object.keys(PREMIUM)].filter(id => lvReq(id) === lv).length + Object.values(BOX_LV).filter(x => x === lv).length; return n; }
 function xpOf(P) { return Math.round((P.matches || 0) * 10 + (P.wins || 0) * 25 + (P.kills || 0) * 3 + (P.playMs || 0) / 60000 * 2 + (P.trollsSent || 0) * 2); }
 function levelOf(P) { const xp = xpOf(P), lv = Math.floor(Math.sqrt(xp / 40)) + 1, a = 40 * (lv - 1) ** 2, b = 40 * lv ** 2; return { lv, xp, pct: Math.max(0, Math.min(100, Math.round(100 * (xp - a) / (b - a)))), next: b - xp }; }
 const ACH = [
@@ -3059,7 +3125,7 @@ function frameStep(ts) {
   if (!G) return false;
   if (profile && G.phase === 'run' && !watchingNow()) { profile.playMs = (profile.playMs || 0) + dt * 1000; profileDirty = true; }
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return false; }
-  else { if (net && net.role === 'host') hostReadInputs(); const away = net && net.role === 'host' && hostAwayPause(); if (!paused && !away) update(dt); if (net && net.role === 'host') { hostSend(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); } }
+  else { if (net && net.role === 'host') hostReadInputs(); const away = net && net.role === 'host' && hostAwayPause(); if (!paused && !away) update(dt); if (net && net.role === 'host') { hostSend(); sendTrailHistory(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); sendTrailHistory(); } }
   if (G && ts - (G.fitChk || 0) > 500 && !$('#game').hidden) { G.fitChk = ts; const r = $('#stage').getBoundingClientRect(); if (Math.round(r.width) + 'x' + Math.round(r.height) !== lastFit) fitCanvas(); }
   recordFrame(ts); render(); renderHud(); updatePads(); tickCountdown(); chatAutoHide(); if (DEBUG) drawDebug(ts);
   if (G && G.phase === 'end' && lastReplay && (frameN & 15) === 0) addReplayButton();
@@ -3211,7 +3277,9 @@ function showResults() {
   const w = rows[0]; // the fanfare already played when the last round ended
   let earn = '';
   const mine = net ? (net.role === 'client' ? rows.find(p => p.id === net.myId) : rows.find(p => p.mine)) : rows.find(p => p.mine);
-  if (mine && profile && !G.awarded) { G.awarded = true; const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
+  const pmid = net && net.mid ? String(net.mid) : null, paidMids = profile ? (Array.isArray(profile.paidMids) ? profile.paidMids : (profile.paidMids = [])) : [];
+  if (mine && profile && !G.awarded && pmid && paidMids.includes(pmid)) G.awarded = true; // this match was paid already (results reopened)
+  if (mine && profile && !G.awarded) { G.awarded = true; if (pmid) { paidMids.push(pmid); paidMids.splice(0, Math.max(0, paidMids.length - 20)); } const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
     ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}${badgeGlyph(p.badge) ? ' ' + badgeGlyph(p.badge) : ''}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (Math.round((PLACE_COINS[i] || 12) * coinMult()) + p.kills * KILL_COINS) : '–'}</td></tr>`).join('')}
@@ -3917,7 +3985,7 @@ function hostStale(p) {
   return now - r.at > HOST_STALE_MS;
 }
 function hostOver(h) { return !!(h && h.presence && Number(h.presence.ho) >= REMATCH_HOLD_S); }
-function isHosting(p) { return !!(p.presence && ((p.presence.st && typeof p.presence.st === 'object') || p.presence.hs)); }
+function isHosting(p) { const q = p.presence; return !!(q && (q.hs || (q.st && typeof q.st === 'object' && (!window.__srvMode || q.hs !== null)))); }
 // Every match being played in the room, a running match before a finished one.
 function liveHosts() {
   const ov = (h) => (Number(h.presence.ho) > 0 ? 1 : 0);
@@ -3955,7 +4023,7 @@ function findHost() { return pickHost(liveHosts()); }
 // brand-new match has nobody else in it while another match has room (two quick starts at once fold into one).
 function hostConflict() {
   if (!net || net.role !== 'host') return null;
-  const hosts = roomState.peers.filter(p => !(p.isMe && p.sameTab) && isHosting(p) && !hostStale(p));
+  const hosts = roomState.peers.filter(p => !(p.isMe && p.sameTab) && isHosting(p) && (!window.__srvMode || p.presence.hs) && !hostStale(p));
   if (!hosts.length) return null;
   const mySl = profile ? profile.slug : null, myPls = Array.isArray(myPres.pls) ? myPres.pls : [];
   const midOf = (o) => { const q = o.presence; return (q.st && typeof q.st === 'object' && q.st.mid) || q.pmid || ''; };
@@ -4206,10 +4274,11 @@ function seatQueuedHumans() {
   for (const pr of q) {
     const want = Number(pr.presence.cl) || 0;
     if (bots.length) { // take a bot's seat (preferably the bot wearing my colour)
-      const bi = bots.findIndex(x => x.id === want); const bot = bots.splice(bi >= 0 ? bi : 0, 1)[0];
+      let bi = bots.findIndex(x => x.slug && x.slug === pr.presence.sl); const own = bi >= 0 ? bots[bi] : null; // my own snake played on as a bot while I was away
+      if (bi < 0) bi = bots.findIndex(x => x.id === want); const bot = bots.splice(bi >= 0 ? bi : 0, 1)[0];
       const used = new Set(G.players.filter(p => p !== bot).map(p => p.id));
       const c = used.has(want) ? bot.id : want;
-      const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
+      const np = Object.assign(netPlayerFrom(pr, c), { score: 0, kills: 0, wins: 0, picks: 0, jumps: 0 }, own ? { score: own.score || 0, kills: own.kills || 0, wins: own.wins || 0, picks: own.picks || 0, jumps: own.jumps || 0 } : (G.goneStats && G.goneStats[pr.presence.sl]) || {}); if (G.goneStats) delete G.goneStats[pr.presence.sl];
       G.players[G.players.indexOf(bot)] = np; G.joinRound = G.round + 1; G.plDirty = true; netPresence(hostSeats());
       G.toast = { text: `${np.name} ulazi umjesto bota ${bot.name}`, color: np.color, x: W / 2, y: H * 0.3, t: 0 };
       showIgMsg(`👋 <b>${esc(np.name)}</b> ulazi u meč umjesto bota <b>${esc(bot.name)}</b>`);
@@ -4229,7 +4298,7 @@ function hostStart(rematch) {
   // up to MAX_PLAYERS: me first, then whoever waited in the queue longest, then (rematch) last match by place
   const lastIds = new Set(rematch && G ? G.players.filter(p => p.human).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : []);
   const order = rematch && G && G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean).map(p => p.remote || p.peerId || (p.mine ? roomState.me : null)) : [];
-  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && ((p.isMe && p.sameTab) || (rematch ? (p.presence.again === lastMid || (p.presence.rd && p.presence.ok && !p.presence.again)) : (p.presence.rd && p.presence.ok))) && !invitePending(p.peer) && !kickedSlug(p.presence.sl));
+  const cand = roomState.peers.filter(p => p.kind === 'viewer' && p.presence && (!TMODE || !tourTable || tourTable.tb.players.includes(p.presence.sl)) && ((p.isMe && p.sameTab) || (rematch ? (p.presence.again === lastMid || (p.presence.rd && p.presence.ok && !p.presence.again)) : (p.presence.rd && (p.presence.ok || (TMODE && tourTable && tourTable.tb.players.includes(p.presence.sl)))))) && !invitePending(p.peer) && !kickedSlug(p.presence.sl));
   { const bySl = {}; for (const c of [...cand].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))) { const sl = c.presence.sl; if (sl) { if (bySl[sl]) c._dup = true; else bySl[sl] = c; } } }
   // not somebody who already sits in (or queues for) another match
   const taken = splitSeated(), others = new Set(liveHosts().filter(h => !(h.isMe && h.sameTab)).map(h => h.peer));
@@ -4317,6 +4386,21 @@ function hostAwayPause() {
   }
   G.pz = null; return false; // the match never pauses for one absent player
 }
+// Whoever starts following in the middle of a round gets the trails drawn so far, once: without them the snakes would
+// seem to crash into nothing. People who were there when the round began need nothing (they drew it all themselves).
+function sendTrailHistory() {
+  if (!roomNs || !roomNs.to || !G || !roomState.me) return;
+  const TH = net || G, now = performance.now(); if (now - (TH.thAt || 0) < 400) return; TH.thAt = now;
+  if (TH.thRound !== G.round) { TH.thRound = G.round; TH.thSent = {}; TH.thFresh = true; }
+  const me = roomState.me, fans = roomState.peers.filter(p => !(p.isMe && p.sameTab) && p.presence && (p.presence.fol === me || p.presence.watch === me));
+  if (TH.thFresh || G.phase === 'count') { for (const p of fans) TH.thSent[p.peer] = 1; TH.thFresh = false; return; } // here from the start of the round
+  if (!(G.phase === 'run' || G.phase === 'end')) return;
+  for (const f of fans) {
+    if (TH.thSent[f.peer]) continue; TH.thSent[f.peer] = 1;
+    const pl = G.players.filter(p => p.tvH && p.tvH.length).map(p => [p.id, p.tvH0 || 1].concat(p.tvH));
+    if (pl.length) roomNs.to(f.peer, { th: { r: G.round, e: TH.tvE || 0, c: G.clr, id: G.round + ':' + Math.round(now), pl } });
+  }
+}
 function snapTrail(p, from) {
   if (p.tvDown && p.alive && (p.x !== p.tvX || p.y !== p.tvY)) tvPush(p, p.x, p.y, 1); // every snapshot ends at the head: the trail never lags behind it
   const q = p.tvQ; if (!q || !q.length) return undefined;
@@ -4366,6 +4450,23 @@ function guestLine(p, x0, y0, x1, y1, rr, ang) {
   skinAfter(tctx, p.skin, [x0, y0, x1, y1], rr, p);
   const n = Math.max(1, Math.ceil(d * 2)), g = { id: p.id, x: 0, y: 0 }, sr = Math.max(1, rr * skinW(p) - 0.35); for (let k = 0; k <= n; k++) { g.x = x0 + (x1 - x0) * k / n; g.y = y0 + (y1 - y0) * k / n; stamp(g, sr); }
 }
+function drawTrailHistory(th) {
+  if (!th || !Array.isArray(th.pl) || !G || th.r !== G.round || (th.e && net.tvE && th.e !== net.tvE) || th.c !== net.clr) return;
+  const tm = net.tv || (net.tv = {});
+  for (const row of th.pl) {
+    const p = G.players.find(q => q.id === row[0]); if (!p) continue;
+    const ts = tm[p.id] || (tm[p.id] = { n: 0, has: false, x: 0, y: 0, r: radiusOf(p) });
+    const upTo = ts.first != null ? ts.first : Infinity; // live drawing began at this vertex: everything before it is still missing
+    let n = row[1], px = 0, py = 0, pr = 0, have = false;
+    for (let k = 2; k + 3 < row.length; k += 4, n++) {
+      const x = row[k], y = row[k + 1], f = row[k + 2], r = row[k + 3];
+      if (n > upTo) break;
+      if (f && have && Math.hypot(x - px, y - py) < 60) guestLine(p, px, py, x, y, pr || r, p.a);
+      px = x; py = y; pr = r; have = true;
+    }
+    if (ts.first == null && have) { ts.n = Math.max(ts.n, n - 1); ts.x = px; ts.y = py; ts.has = true; ts.first = n - 1; } // nothing was live yet: carry on from the end of the history
+  }
+}
 function applyState(st, first) {
   const mePeer = roomState.me;
   if (st.te !== undefined && st.te !== net.tvE) { net.tvE = st.te; net.tv = {}; } // another host (or a match taken over): its trail numbering starts afresh
@@ -4409,6 +4510,7 @@ function applyState(st, first) {
           const x = q.tv[k], y = q.tv[k + 1], f = q.tv[k + 2];
           if (f && ts.has && (n === ts.n + 1 || Math.hypot(x - ts.x, y - ts.y) < 60)) guestLine(p, ts.x, ts.y, x, y, r, q.a);
           if (f === 2) r = q.rr;
+          if (ts.first == null) ts.first = n;
           ts.x = x; ts.y = y; ts.has = true; ts.n = n;
         }
         ts.r = q.rr;
@@ -4448,7 +4550,7 @@ function migrateHost() {
   if (roomNs && roomNs.pongAge && roomNs.pongAge() > 3500) return; // the server is silent too: my own connection is down, not the host
   net.deadHosts = net.deadHosts || new Set(); net.deadHosts.add(net.hostPeer); // never go back to a host that stopped answering
   // did somebody already take this match over? then follow them
-  const taken = roomState.peers.find(p => p.presence && p.presence.hm && p.presence.st && typeof p.presence.st === 'object' && p.presence.st.mid === net.mid && !net.deadHosts.has(p.peer) && p.peer !== roomState.me);
+  const taken = roomState.peers.find(p => p.presence && p.presence.hm && ((p.presence.st && typeof p.presence.st === 'object' && p.presence.st.mid) || p.presence.pmid) === net.mid && !net.deadHosts.has(p.peer) && p.peer !== roomState.me);
   const cands = hostCandidates(); if (!taken && !cands.length) return;
   const pick = taken ? taken.peer : cands[0];
   if (pick === roomState.me && performance.now() - (net.lastSnapAt || 0) > 12000) return; // my picture of the match is too old to run it (I was away myself)
@@ -4477,6 +4579,7 @@ function takeOverHost2() {
 }
 function clientTick() {
   const host = roomState.peers.find(p => p.peer === net.hostPeer);
+  { const th = host && host.presence && host.presence.th; if (th && th.id !== net.thId && G && th.r === G.round && net.round === th.r) { net.thId = th.id; try { drawTrailHistory(th); } catch (e) {} } }
   const st = host && host.presence && host.presence[net.key || 'st'];
   if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target, saved = net.savedSetup; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) { net.target = tg || net.target; if (saved) net.savedSetup = saved; } return 'restarted'; } // a rematch keeps my own settings for when I leave
   if (net.myId != null && G && (G.phase === 'run' || lapOn()) && performance.now() - (net.inSentAt || 0) > 250) clientInput(true);
@@ -4488,7 +4591,9 @@ function clientTick() {
     else if (performance.now() - net.lastSeen > 6500 && !net.spectate && !G.over && net.myId != null && hostCandidates().length) { migrateHost(); return; }
     else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
   else if (host && net.switchedAt && performance.now() - net.switchedAt < 8000) { /* the new host's first snapshot is on its way */ }
-  else { net.connected = false; if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 2500 && !net.spectate && !G.over && net.myId != null) { migrateHost(); if (!net || net.role !== 'client') return; } else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
+  else { net.connected = false;
+    if (net.myId == null && net.mid) { const nh = roomState.peers.find(p => p.peer !== net.hostPeer && p.presence && p.presence.hm && p.presence.hs && p.presence.pmid === net.mid); if (nh) { net.hostPeer = nh.peer; net.switchedAt = performance.now(); net.lostAt = 0; net.lostShown = false; followHost(nh.peer); showOverlay(null); return; } } // a watcher or a player waiting for a seat follows whoever took this match over
+    if (!net.lostAt) net.lostAt = performance.now(); else if (performance.now() - net.lostAt > 2500 && !net.spectate && !G.over && net.myId != null) { migrateHost(); if (!net || net.role !== 'client') return; } else if (performance.now() - net.lostAt > 4000 && !net.lostShown && net.spectate) { net.lostShown = true; showOverlay(`<div class="banner"><h3>Igra je završila</h3><p>Igrač je izašao iz igre.</p><div class="row"><button class="btn" id="menuBtn">Natrag</button></div></div>`); $('#menuBtn').onclick = () => { toMenu(); showTab('online'); }; }
   else if (performance.now() - net.lostAt > 4000 && !net.lostShown) { net.lostShown = true; showOverlay(`<div class="banner"><h3>${G.over ? 'Domaćin je izašao iz meča' : 'Domaćin je otišao'}</h3><p>${G.over ? 'Vjerojatno mijenja postavke. Vrati se u predvorje i pričekaj novi meč.' : 'Meč je prekinut.'}</p><div class="row"><button class="btn" id="menuBtn">Natrag u predvorje</button></div></div>`); $('#menuBtn').onclick = () => { roomState.ready = true; netPresence({ again: null, rd: 1 }); toMenu(); showTab('online'); }; } }
   if (G.over && $('#readyBox') && ((net.rrN = (net.rrN || 0) + 1) % 20 === 0)) renderReady();
   updateParts(1 / 60);
@@ -4656,8 +4761,8 @@ async function initWsRoom() {
     sock.onmessage = (ev) => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.t === 'hello') { setConnected(true); if (Object.keys(lobbyPres).length) sendRaw({ t: 'pres', patch: lobbyPres }); if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); lastPong = performance.now(); return; }
-      if (m.t === 'peers') { const seen = new Set([myPeer]); for (const q of m.peers || []) { if (q.peer === myPeer || (q.presence && q.presence.obs)) continue; seen.add(q.peer); const prev = peersMap[q.peer]; const keep = prev ? { st: prev.presence.st, sp: prev.presence.sp, in: prev.presence.in, j: prev.presence.j, is: prev.presence.is, vis: prev.presence.vis } : {}; peersMap[q.peer] = mkPeer(q.peer, Object.assign({}, keep, q.presence || {})); } for (const k in peersMap) if (!seen.has(k)) delete peersMap[k]; fire(); return; }
-      if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; peersMap[m.peer] = mkPeer(m.peer, Object.assign({}, prev.presence, m.patch)); fire(); return; }
+      if (m.t === 'peers') { const seen = new Set([myPeer]); for (const q of m.peers || []) { if (q.peer === myPeer || (q.presence && q.presence.obs)) continue; seen.add(q.peer); const prev = peersMap[q.peer]; const keep = prev ? { st: q.presence && q.presence.hs ? prev.presence.st : undefined, sp: prev.presence.sp, in: prev.presence.in, j: prev.presence.j, is: prev.presence.is, vis: prev.presence.vis } : {}; peersMap[q.peer] = mkPeer(q.peer, Object.assign({}, keep, q.presence || {})); } for (const k in peersMap) if (!seen.has(k)) delete peersMap[k]; fire(); return; }
+      if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; const np = Object.assign({}, prev.presence, m.patch); if ('hs' in m.patch && m.patch.hs == null) delete np.st; /* stopped hosting: its last snapshot is history */ peersMap[m.peer] = mkPeer(m.peer, np); fire(); return; }
       if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
       if (m.t === 'pong') { lastPong = performance.now(); netStats.rtt = Math.round(performance.now() - m.n); return; }
       if (m.t === 'err' && m.e === 'taken') { // my old connection still looks alive to the server: come back under a fresh id (the game knows me by account)
@@ -4688,6 +4793,7 @@ async function initWsRoom() {
       fire();
     },
     peers: toPeers,
+    to(peer, patch) { sendRaw({ t: 'to', peer, patch }); },
     follow(peer) { if (following === peer) return; following = peer; sendRaw({ t: 'follow', peer: peer && peer !== myPeer ? peer : null }); },
     rejoin() { if (ws && ws.readyState === 1) { if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); return; } /* a healthy socket stays; only a dead one is reopened */ if (!ws || ws.readyState > 1) { backoff = 300; connect(); } },
     busy() { return !ws || ws.readyState !== 1 || ws.bufferedAmount > 6000; },
@@ -4750,7 +4856,7 @@ async function initCapabilities() {
       roomState.peers = ch.peers;
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
       collectChat(); collectSocial(); collectDirect(); collectKicks(); tryWatchSlug(); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
-      if (net && net.role === 'host') { const h = hostConflict(); if (h) { const same = h.presence.st && typeof h.presence.st === 'object' && h.presence.st.mid === net.mid, fold = !!net.fold, playing = !(G && G.over) || (net.startedAt && performance.now() - net.startedAt < 8000); net = null; netPresence({ st: null, pls: null, pn: null, nj: null, pmid: null, hm: null, hb: null, ho: null }); if (same) { followHost(h.peer); clientBegin(h); if (net) net.deadHosts = new Set(); showIgMsg('Dva domaćina istog meča – nastavljaš kao igrač.'); } else { toMenu(); if ((fold || playing) && profile && !iAmKicked()) { if (!roomState.ready) joinLobby(true); netPresence({ ok: 1 }); joinHost(h); toast('Drugi meč je krenuo u isto vrijeme – spajam te s njim.'); } } } } // whoever was starting or playing goes on in the match that stays, instead of being left in the menu // net is dropped first: toMenu's own presence patch re-enters this handler
+      if (net && net.role === 'host') { const h = hostConflict(); if (h) { const same = ((h.presence.st && typeof h.presence.st === 'object' && h.presence.st.mid) || h.presence.pmid) === net.mid, fold = !!net.fold, playing = !(G && G.over) || (net.startedAt && performance.now() - net.startedAt < 8000); net = null; netPresence({ st: null, pls: null, pn: null, nj: null, pmid: null, hm: null, hb: null, ho: null }); if (same) { roomState.ready = true; netPresence({ rd: 1, ok: 1 }); followHost(h.peer); if (h.presence.st && typeof h.presence.st === 'object') clientBegin(h); else joinHost(h); if (net) net.deadHosts = new Set(); showIgMsg('Dva domaćina istog meča – nastavljaš kao igrač.'); } else { toMenu(); if ((fold || playing) && profile && !iAmKicked()) { if (!roomState.ready) joinLobby(true); netPresence({ ok: 1 }); joinHost(h); toast('Drugi meč je krenuo u isto vrijeme – spajam te s njim.'); } } } } // whoever was starting or playing goes on in the match that stays, instead of being left in the menu // net is dropped first: toMenu's own presence patch re-enters this handler
       if (!net && roomState.ready && myPres.ok && $('#game').hidden) { const h = liveHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
       else if (!net && $('#game').hidden && profile && !iAmKicked()) { const h = findHost(); let leftMid = ''; try { leftMid = localStorage.getItem('vijuga-left') || ''; } catch (e) {} if (h && !(h.isMe && h.sameTab) && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(profile.slug) && h.presence.pmid && h.presence.pmid !== leftMid) { if (!roomState.ready) joinLobby(true); joinHost(h); } }
       if (curTab === 'online' && !$('#menu').hidden) renderNet();
@@ -4860,6 +4966,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
+window.__vijuga = { get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; } };
 })();
 </script>
