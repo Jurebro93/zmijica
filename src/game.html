@@ -570,9 +570,10 @@ button.arm { background: var(--good) !important; color: #062014 !important; }
 .rmini li { display: grid; grid-template-columns: 1.6em 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 5px 12px; border-radius: 10px; background: color-mix(in srgb, var(--panel) 85%, transparent); font-size: 17px; }
 .rmini li .n { color: var(--muted); } .rmini li .dot { width: 12px; height: 12px; border-radius: 50%; } .rmini li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; } .rmini li em { font-style: normal; font-weight: 800; }
 .rmini li:first-child em { color: var(--amber); } .rmini li.mine { outline: 1px solid var(--amber); }
+.rres.rfin { width: min(100%, 340px); } .rres.rfin .rrow { font-size: 18px; } .rres.rfin .rrow.mine .nm span { color: var(--amber); } .rres.rfin .rrow:first-child .sc { color: var(--amber); }
 .banner.fin .earn { font-size: 16px; margin: 0; } .banner.fin .readybox .rchip { font-size: 12.5px; padding: 2px 8px; gap: 5px; } .banner.fin .readybox .rchip .dot { width: 8px; height: 8px; }
-@media (max-height: 700px) { .banner.fin { gap: 7px; } .banner.fin .rmini li { padding: 3px 10px; font-size: 15px; } .banner.fin h3 { font-size: 26px; } }
-@media (max-height: 560px) { .banner.fin .rmini { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 520px); } .banner.fin .rmini li { font-size: 15px; padding: 3px 10px; } .banner.fin .rmore { order: 4; } } /* a phone on its side: the buttons first, the points in two columns under them */
+@media (max-height: 700px) { .banner.fin .rres.rfin { gap: 4px; } .banner.fin .rres.rfin .rrow { font-size: 15px; } .banner.fin { gap: 7px; } .banner.fin .rmini li { padding: 3px 10px; font-size: 15px; } .banner.fin h3 { font-size: 26px; } }
+@media (max-height: 560px) { .banner.fin .rres.rfin { order: 3; width: min(100%, 520px); grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; } .banner.fin .rres.rfin .rrow { font-size: 15px; } .banner.fin .rmini { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 520px); } .banner.fin .rmini li { font-size: 15px; padding: 3px 10px; } .banner.fin .rmore { order: 4; } } /* a phone on its side: the buttons first, the points in two columns under them */
 .rmore { width: min(100%, 520px); } .rmore summary { cursor: pointer; color: var(--muted); font-size: 14px; list-style: none; text-align: center; padding: 4px; } .rmore summary::-webkit-details-marker { display: none; } .rmore summary::after { content: ' ▾'; } .rmore[open] summary::after { content: ' ▴'; } .rmore[open] { display: grid; gap: 10px; justify-items: center; }
 #game.hasov .gticker { display: none; }
 .rchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; font-size: 14px; }
@@ -4938,12 +4939,6 @@ function togglePause(force) {
   } else { showOverlay(null); lastTs = performance.now(); if (G.phase === 'end') showRoundBanner(); }
 }
 const fmtN = (n) => Math.round(Number(n) || 0).toLocaleString('hr-HR');
-// a few funny titles for the match, only for a clear leader
-function matchAwards(rows) {
-  const pick = (key, e, t) => { const best = [...rows].sort((a, b) => (b[key] || 0) - (a[key] || 0)); const a = best[0]; if (!a || !(a[key] > 0) || (best[1] && best[1][key] === a[key])) return ''; return `<span>${e} ${t}: <b style="color:${dispColor(a)}">${esc(a.name)}</b> (${a[key]})</span>`; };
-  const list = [pick('kills', '💥', 'Najviše rušenja'), pick('jumps', '🦘', 'Najviše skokova'), pick('picks', '⚡', 'Najviše pojačanja')].filter(Boolean);
-  return list.length ? `<p class="awards">${list.join('')}</p>` : '';
-}
 function showResults() {
   hideDeathCard();
   if (TMODE && net && !net.spectate) { const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking(); const mine = rows.find(p => p.mine || p.id === net.myId); reportTour(rows); if (mine && profile && !G.awarded) { G.awarded = true; awardCoins(rows.indexOf(mine), mine.kills, rows.indexOf(mine) === 0); }
@@ -4965,11 +4960,9 @@ function showResults() {
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   let more = (G.earnWhy || '') + (profile ? `<p class="hint" style="margin:0">Ukupno ${fmtN(profile.coins)} zlatnika.</p>` : '');
   if (profile && mine) { const L = levelOf(profile); more += `<div class="lvprog"><span>⭐ Nivo <b>${L.lv}</b></span><i><b style="width:${L.pct}%"></b></i><span>još ${fmtN(L.next)} XP</span></div>`; }
-  more += matchAwards(rows); $('#game').classList.add('over');
-  const mini = `<ol class="rmini">${rows.map((p, i) => `<li class="${p === mine ? 'mine' : ''}"><span class="n">${i + 1}.</span><span class="dot" style="background:${dispColor(p)}"></span><b>${esc(p.name)}</b><em>${p.score}</em></li>`).join('')}</ol>`;
-  const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (p === mine && G.earnN != null ? G.earnN : Math.round(((PLACE_COINS[i] || 12) * coinMult() + p.kills * KILL_COINS) * Math.min(1, (Number(G.target) || 5) / 5))) : '–'}</td></tr>`).join('')}
-    </tbody></table></div>`;
+  $('#game').classList.add('over');
+  const topSc = Math.max(1, ...rows.map(p => p.score || 0));
+  const mini = `<div class="rres rfin">${rows.map((p, i) => `<div class="rrow ${p === mine ? 'mine' : ''}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${dispColor(p)}"></span><span class="nm"><span>${i + 1}. ${esc(p.name)}</span></span><span class="sc">${p.score}</span><span class="bar"><i style="width:${Math.min(100, Math.round(100 * (p.score || 0) / topSc))}%;background:${dispColor(p)}"></i></span></div>`).join('')}</div>`; // the same see-through scoreboard as between the rounds
   let actions, extra = '';
   if (net) {
     actions = `<div class="row"><button class="btn go-online" id="readyBtn">▶ Igraj opet</button>${net.role === 'host' ? '<button class="btn ghost" id="goAgainBtn" hidden title="Nova igra kreće odmah s onima koji su spremni">▶ Kreni odmah</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><div class="readybox" id="readyBox"></div><p class="hint" id="readyHint"></p><p class="hint" id="unreadyRow" hidden><button type="button" class="linkbtn" id="unreadyBtn">odustani od nove igre</button></p>`;
@@ -4979,7 +4972,7 @@ function showResults() {
   }
   if (profile && mine) extra += `<div class="row"><button class="btn ghost wa sm" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   extra += `<p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Statistika svih igrača</a></p>`;
-  showOverlay(`<div class="banner fin"><span class="label">Kraj meča</span><h3 style="color:${w.color}">🏆 ${esc(w.name)}</h3>${mini}${earn}${actions}<details class="rmore"><summary>Više</summary>${more}${table}${extra}</details></div>`);
+  showOverlay(`<div class="banner fin lap"><span class="label">Kraj meča</span><h3 style="color:${w.color}">🏆 ${esc(w.name)}</h3>${mini}${earn}${actions}<details class="rmore"><summary>Više</summary>${more}${extra}</details></div>`);
   if ($('#waShare')) $('#waShare').onclick = () => waOpen(matchShareText(rows, mine));
   if (newBuild) offerUpdate(); else checkVersion();
   if (net) {
