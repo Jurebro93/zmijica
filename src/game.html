@@ -124,6 +124,8 @@ button:disabled { cursor: default; opacity: .5; }
 #voiceHint.ingame { top: calc(env(safe-area-inset-top, 0px) + 3px); padding: 5px 12px 7px; gap: 8px; min-width: 0; border-width: 1px; border-radius: 999px; } #voiceHint.ingame .ve { font-size: 18px; } #voiceHint.ingame div { display: flex; flex-wrap: wrap; gap: 0 6px; align-items: baseline; } #voiceHint.ingame b { font-size: 14px; } #voiceHint.ingame small { margin-top: 0; font-size: 12px; } #voiceHint.ingame .vbar { height: 3px; } #voiceHint.v-rec { border-color: #ff5d73; } #voiceHint.v-short { border-color: var(--muted); }
 #voiceHint .ve { font-size: 26px; line-height: 1; } #voiceHint.v-rec .ve { animation: recp .8s infinite; } #voiceHint b { display: block; font-size: 16px; } #voiceHint small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
 #voiceHint .vbar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: #ff5d73; animation: vbar linear forwards; } @keyframes vbar { to { width: 100%; } }
+#voicePill { position: fixed; left: 50%; top: max(64px, 14%); z-index: 81; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; max-width: min(92vw, 420px); border: 2px solid var(--amber); background: #1b2633; color: var(--fg); border-radius: 999px; padding: 9px 16px; font: 700 15px/1.25 "Barlow Semi Condensed", sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,.5); animation: vpill 1s ease-in-out infinite alternate; }
+#voicePill[hidden] { display: none; } #voicePill.ingame { top: calc(env(safe-area-inset-top, 0px) + 44px); padding: 6px 13px; font-size: 14px; } #voicePill span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } @keyframes vpill { to { box-shadow: 0 0 0 4px rgba(255,181,71,.35), 0 8px 24px rgba(0,0,0,.5); } }
 .vplay { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
 #replayBox { position: fixed; inset: 0; z-index: 60; background: rgba(5,9,14,.9); display: grid; place-items: center; padding: 12px; }
 #replayBox[hidden] { display: none; }
@@ -2675,6 +2677,7 @@ function wakeAudio() { try { actx = actx || new (window.AudioContext || window.w
 addEventListener('pointerdown', wakeAudio, { capture: true, passive: true });
 addEventListener('touchend', wakeAudio, { capture: true, passive: true });
 addEventListener('keydown', wakeAudio, { capture: true });
+addEventListener('touchend', unlockVoice, { capture: true, passive: true }); addEventListener('click', unlockVoice, { capture: true }); addEventListener('keydown', unlockVoice, { capture: true });
 function beep(freq, dur, type = 'square', vol = 0.06, slide = 0) {
   if (!soundOn) return;
   try {
@@ -5782,18 +5785,72 @@ function chatAutoHide() {
   if (ph === 'run' && chatOpen && IS_TOUCH && document.activeElement && document.activeElement.id !== 'gchatIn') setChatOpen(false);
 }
 // auto: a message that just arrived (no tap); a ▶ in the chat plays the same clip on demand
-function playVoice(src, auto) {
-  try { const au = new Audio(src); au.volume = 1;
-    au.play().then(() => { if (auto) volumeHint(false); }, (err) => {
-      if (auto && err && err.name === 'NotAllowedError') volumeHint(true); // the browser wants a tap first
-      else if (!auto || !playVoice.warned) { playVoice.warned = true; toast('Ova glasovna se ne može pustiti na ovom uređaju (pošiljatelj neka osvježi igru: nove glasovne rade na svim mobitelima).'); } });
-  } catch (e) {}
+// Voice messages play through ONE <audio> element. iOS lets a media element start without a tap only after a tap has
+// played that very element once, so a fresh new Audio() for every message (as before) never played by itself on an
+// iPhone: it is unlocked with a silent clip on the first tap anywhere, and then reused. An <audio> element is also not
+// muted by the iPhone's silent switch (game sounds are, they are Web Audio); while a voice plays, the page asks for the
+// "playback" audio session where the browser has one. Messages play one after another, never on top of each other; a
+// message that arrives while the game is in the background plays when it is back. If the browser still refuses, a
+// big "tap to listen" pill appears (the tap is the permission, and it unlocks the next ones too).
+const voicePlayer = (() => { try { const a = new Audio(); a.preload = 'auto'; a.setAttribute('playsinline', ''); a.setAttribute('webkit-playsinline', ''); return a; } catch (e) { return null; } })();
+let voiceUnlocked = false, voiceNow = null, voiceLater = null; const voiceQ = [];
+let silentWavUrl = '';
+function silentWav() { // 0.05 s of silence as a WAV data URL (what unlocks the element)
+  if (silentWavUrl) return silentWavUrl;
+  const n = 400, b = new Uint8Array(44 + n * 2), dv = new DataView(b.buffer), W = (o, t) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); };
+  W(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 16000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, n * 2, true);
+  let bin = ''; for (let i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]); return (silentWavUrl = 'data:audio/wav;base64,' + btoa(bin));
+}
+function unlockVoice() {
+  if (voiceUnlocked || !voicePlayer || voiceNow || voicePlayer._unlocking) return;
+  const a = voicePlayer; a._unlocking = true; a._silent = true;
+  try { a.muted = true; a.src = silentWav(); const p = a.play(); /* muted: a tap must not stop the player's own music; the tap alone is what unlocks the element */ Promise.resolve(p).then(() => { a._unlocking = false; voiceUnlocked = true; if (a._silent) { try { a.pause(); } catch (e) {} } voiceNext(); }, () => { a._unlocking = false; }); } catch (e) { a._unlocking = false; }
+}
+function audioSession(t) { try { if (navigator.audioSession && navigator.audioSession.type !== t) navigator.audioSession.type = t; } catch (e) {} }
+if (voicePlayer) {
+  const done = () => { if (voicePlayer._silent || !voiceNow) return; voiceNow = null; audioSession('auto'); setTimeout(voiceNext, 250); };
+  voicePlayer.addEventListener('ended', done); voicePlayer.addEventListener('error', done);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden || !voiceLater) return; const v = voiceLater; voiceLater = null; if (Date.now() - v.at < 90000) playVoice(v.src, true, v.from); });
+// auto: it just arrived (else: a tap on ▶, which plays it now, from the start). from: who sent it (for the pill)
+function playVoice(src, auto, from) {
+  if (!voicePlayer) { try { const au = new Audio(src); au.play().catch(() => toast('Ova glasovna se ne može pustiti na ovom uređaju.')); } catch (e) {} return; }
+  if (!auto) { voiceQ.length = 0; voicePill(null); voiceStart({ src, from }, false); return; }
+  if (document.hidden) { voiceLater = { src, from, at: Date.now() }; return; } // the phone is in a pocket: play it when the game is back
+  voiceQ.push({ src, from }); if (voiceQ.length > 4) voiceQ.shift();
+  if (!voiceNow) voiceNext();
+}
+function voiceNext() { if (voiceNow || !voiceQ.length || (voicePill.shown && !voiceUnlocked)) return; voiceStart(voiceQ.shift(), true); }
+function voiceStart(it, auto) {
+  const a = voicePlayer; voiceNow = it; a._silent = false;
+  audioSession('playback');
+  try { a.pause(); } catch (e) {}
+  a.muted = false; a.volume = 1; a.src = it.src;
+  let p; try { p = a.play(); } catch (e) { p = Promise.reject(e); }
+  Promise.resolve(p).then(() => { voiceUnlocked = true; voicePill(null); if (auto) volumeHint(); }, (err) => {
+    if (voiceNow === it) { voiceNow = null; audioSession('auto'); }
+    const n = err && err.name;
+    if (n === 'AbortError') return; // another message (or a tap on ▶) took over
+    if (n === 'NotAllowedError') { voicePill(it); return; } // the browser wants a tap first: one big button for it
+    if (!auto || !playVoice.warned) { playVoice.warned = true; toast('Ova glasovna se ne može pustiti na ovom uređaju (pošiljatelj neka osvježi igru: nove glasovne rade na svim mobitelima).'); }
+    setTimeout(voiceNext, 100);
+  });
+}
+// "🔊 Glasovna od Ane: dodirni za slušanje" — shown only when the browser refused to start it by itself
+function voicePill(it) {
+  let el = document.getElementById('voicePill');
+  if (!it) { if (el) el.hidden = true; voicePill.shown = false; clearTimeout(voicePill.t); return; }
+  if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'voicePill'; document.body.appendChild(el); }
+  el.innerHTML = `🔊 <span>Glasovna${it.from ? ' od <b>' + esc(it.from) + '</b>' : ''}: dodirni za slušanje</span>`;
+  el.classList.toggle('ingame', !$('#game').hidden); el.hidden = false; voicePill.shown = true;
+  el.onclick = (e) => { e.stopPropagation(); const rest = voiceQ.splice(0); voicePill(null); voiceStart(it, false); voiceQ.push(...rest); };
+  clearTimeout(voicePill.t); voicePill.t = setTimeout(() => voicePill(null), 25000);
 }
 let volumeHinted = false;
-function volumeHint(blocked) {
+function volumeHint() {
   if (volumeHinted) return; volumeHinted = true;
-  const up = IS_TOUCH ? 'pojačaj zvuk tipkama sa strane mobitela' : 'pojačaj zvuk na računalu';
-  toast(blocked ? `🔊 Stigla je glasovna poruka: dodirni ▶ u chatu i ${up}.` : `🔊 Stigla je glasovna poruka. Ako je ne čuješ, ${up}; ▶ u chatu je pušta ponovno.`);
+  const up = IS_TOUCH ? 'pojačaj zvuk tipkama sa strane mobitela dok poruka svira' : 'pojačaj zvuk na računalu';
+  toast(`🔊 Stigla je glasovna poruka. Ako je ne čuješ, ${up}; ▶ u chatu je pušta ponovno.`);
 }
 function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; if (net) markChatSeen(); } updateUnread(); }
 function updateUnread() { document.querySelectorAll('.ptool.chat').forEach(b => b.classList.toggle('has', !!unread && !chatOpen)); const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
@@ -5858,7 +5915,7 @@ async function startVoice(btn, ptrId) {
     if (!roomNs) { voiceHint(null); toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
     voiceHint('send');
     voiceWav(blob).catch(() => null).then((wav) => {
-    const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 120000) { voiceHint(null); toast('Poruka je preduga: snimi kraće.'); return; } chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint(onlineOthers().length ? 'sent' : 'alone'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(wav && wav.size > 44 ? wav : blob); }); };
+    const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 120000) { voiceHint(null); toast('Poruka je preduga: snimi kraće.'); return; } chatN++; window.__voiceSentAt = performance.now(); netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint(onlineOthers().length ? 'sent' : 'alone'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(wav && wav.size > 44 ? wav : blob); }); };
   try { mr.start(); } catch (e) { clearTimeout(rs.timer); stream.getTracks().forEach(t => t.stop()); voiceWanted = false; voiceHint(null); toast('Ovaj preglednik ne može snimiti zvuk.'); return; }
   recState = rs; btn.classList.add('rec'); voiceHint('rec'); beep(880, .06, 'sine', .04);
 }
@@ -5874,7 +5931,7 @@ async function voiceWav(blob) {
   const len = Math.max(1, Math.min(Math.floor(audio.duration * VOICE_RATE), Math.ceil((VOICE_MAX + 600) / 1000 * VOICE_RATE))), step = sr / VOICE_RATE, out = new Float32Array(len);
   let peak = 0;
   for (let i = 0; i < len; i++) { const a = Math.floor(i * step), b = Math.max(a + 1, Math.min(chs[0].length, Math.floor((i + 1) * step))); let sum = 0, k = 0; for (let j = a; j < b; j++) for (let c = 0; c < nch; c++) { sum += chs[c][j] || 0; k++; } const v = k ? sum / k : 0; out[i] = v; if (Math.abs(v) > peak) peak = Math.abs(v); }
-  const gain = peak > 0.02 ? Math.min(4, 0.9 / peak) : 1; // a quiet phone microphone is brought up, never clipped
+  const gain = peak > 0.002 ? Math.min(30, 0.9 / peak) : 1; // a quiet phone microphone is brought up (up to x30) to the same loudness, never clipped
   const dv = new DataView(new ArrayBuffer(44 + len * 2)), W = (o, t) => { for (let i = 0; i < t.length; i++) dv.setUint8(o + i, t.charCodeAt(i)); };
   W(0, 'RIFF'); dv.setUint32(4, 36 + len * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
   dv.setUint32(24, VOICE_RATE, true); dv.setUint32(28, VOICE_RATE * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, len * 2, true);
@@ -5900,14 +5957,14 @@ function collectChat() {
   let changed = false;
   for (const p of roomState.peers) {
     const m = p.presence && p.presence.msg;
-    if (!Array.isArray(m) || typeof m[0] !== 'string') continue;
+    if (!Array.isArray(m) || typeof m[0] !== 'string') { if (!(p.peer in chatSeen)) chatSeen[p.peer] = null; continue; } // known, with nothing said yet: whatever it says next is said now
     const key = p.peer; if (chatSeen[key] === m[1]) continue;
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
     if (mutedUntil(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
     // only a plain base64 audio data URL is accepted: it is placed into HTML attributes, so no other characters may get through
     const audio = typeof m[3] === 'string' && /^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 130000 ? m[3] : null;
     if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, cc: typeof m[4] === 'string' && EFFECTS[m[4]] && EFFECTS[m[4]].kind === 'cc' ? m[4] : '', me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
-    if (audio && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) < 15000) playVoice(audio, true);
+    if (audio && !(p.isMe && p.sameTab) && (!first || Date.now() - (Number(m[2]) || 0) < 15000)) playVoice(audio, true, String(p.presence.nm || '').slice(0, 14));
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
   }
   for (const p of roomState.peers) {
@@ -6492,6 +6549,7 @@ async function initWsRoom() {
       if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
       if (m.t === 'pong') { lastPong = performance.now(); netStats.rtt = Math.round(performance.now() - m.n); return; }
       if (m.t === 'err' && m.e === 'big') { toast('Poruka je prevelika i nije poslana.'); return; }
+      if (m.t === 'err' && m.e === 'rate' && performance.now() - (window.__voiceSentAt || -1e9) < 4000) { voiceHint(null); toast('🎤 Glasovna nije poslana: previše poruka zaredom. Pričekaj par sekundi pa pošalji opet.'); return; }
       if (m.t === 'err' && m.e === 'taken') { // my old connection still looks alive to the server: come back under a fresh id (the game knows me by account)
         const oldMe = myPeer; myPeer = Math.random().toString(36).slice(2, 10); myKey = newKey(); delete peersMap[oldMe]; peersMap[myPeer] = mkPeer(myPeer, Object.assign({}, lobbyPres)); try { sock.close(); } catch (e) {} ws = null; backoff = 300; setTimeout(connect, 200); return; }
       if (m.t === 'replaced') { replaced = true; window.__replaced = true; try { sock.close(); } catch (e) {} for (const k in peersMap) if (k !== myPeer) delete peersMap[k]; setConnected(false); fire(); showReplaced(); return; }
@@ -6707,6 +6765,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
