@@ -362,6 +362,7 @@ button.pu:hover { border-color: var(--line); }
 .item.pic .prev:has(.livecard) { height: auto; min-height: 84px; } .livecard { padding: 10px; min-height: 84px; } .livecard .wd { text-align: center; } .livecard .wd b { font-size: 15px; } .livecard .lv { font: 700 19px/1.15 "Barlow Semi Condensed", sans-serif; color: #fff; overflow-wrap: anywhere; }
 .livecard .lv.live { color: #3ddc97; } .livecard .lv.alarm { color: #ff8a8a; }
 .lbd.live { --cc: #3ddc97 !important; box-shadow: 0 0 0 1px #3ddc97 inset; } .lbd.live .cg::before { content: ""; display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: #3ddc97; margin-right: .3em; vertical-align: .05em; animation: livePulse 1.2s infinite; }
+.exitbtn { background: #2f80ed !important; border-color: #2f80ed !important; color: #fff !important; font: 900 22px/1 system-ui, sans-serif !important; min-width: 52px; min-height: 44px; border-radius: 12px !important; } .exitbtn:active { transform: scale(.94); }
 .lbd.alarm { --cc: #ff6b6b !important; animation: lbdShake .4s infinite; } @keyframes lbdShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
 .lbd[data-l^="club:"] { cursor: pointer; }
 .gticker .tk.l b, .ticker .tk.l b { color: #4cc9f0; } .ticker .tk.live b, .gticker .tk.live b { color: #3ddc97; }
@@ -889,7 +890,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
       <button class="iconbtn netonly" id="reactBtn" aria-label="Brze reakcije" hidden>😀</button>
       <button class="iconbtn netonly" id="chatBtn" aria-label="Chat" hidden>💬<span class="unread" id="unread" hidden></span></button>
       <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
-      <button class="iconbtn" id="pauseBtn" aria-label="Pauza">II</button>
+      <button class="iconbtn exitbtn" id="pauseBtn" aria-label="Izađi iz igre" title="Izađi iz igre">✕</button>
     </div>
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
@@ -1708,6 +1709,7 @@ function openAll() {
 const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
 function openChat() {
   if (!profile) { showLogin(); return; }
+  setTimeout(markChatSeen, 300); // opened = read: the dot and the glow go at once
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile chatsheet" novalidate onsubmit="return false"><h3>💬 Chat</h3><p class="hint" id="schatWho" style="margin:0"></p>
     <div class="chatlog" id="schatLog"></div>
@@ -6138,11 +6140,11 @@ let chatOpen = !IS_TOUCH, unread = 0;
 let chatSeenAt = (() => { try { return Number(localStorage.getItem('vijuga-chat-seen')) || 0; } catch (e) { return 0; } })();
 function chatUnseen() { let n = 0; for (const m of chatLog) if (m.at > chatSeenAt && !m.me && !(profile && m.sl === profile.slug)) n++; return n; }
 function updateChatBadges() { const n = chatUnseen(); document.querySelectorAll('.cunread').forEach(el => { el.hidden = !n; el.textContent = n > 9 ? '9+' : String(n); }); const t = $('#chatTeaser'); if (t) t.classList.toggle('new', n > 0); }
-function markChatSeen() { const last = chatLog.length ? chatLog[chatLog.length - 1].at : 0; if (last > chatSeenAt) { chatSeenAt = last; try { localStorage.setItem('vijuga-chat-seen', String(last)); } catch (e) {} } updateChatBadges(); }
+function markChatSeen() { let last = 0; for (const m of chatLog) if (m.at > last) last = m.at; /* the newest message, wherever it sits in the log */ if (last > chatSeenAt) { chatSeenAt = last; try { localStorage.setItem('vijuga-chat-seen', String(last)); } catch (e) {} } updateChatBadges(); }
 // is a chat log really in front of the player right now (the chat sheet, the lobby chat on screen, the chat in a match)?
 function chatLooking() {
   if (document.hidden) return false;
-  if ($('#schatLog')) return true;
+  if ($('#schatLog') && !$('#regModal').hidden) return true; // the chat window is open (a closed one keeps its markup)
   if (!$('#game').hidden) { const tp = $('#tpChatLog'); return !!net && (chatOpen || (!!tp && !$('#trollPop').hidden)); }
   const a = $('#lchatLog'); if (!a || $('#menu').hidden || curTab !== 'online') return false;
   const r = a.getBoundingClientRect(); return r.height > 0 && r.top < innerHeight - 40 && r.bottom > 40;
@@ -7168,22 +7170,27 @@ $('#gchatBig').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.tog
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
 $('#chatBtn').onclick = () => setChatOpen(!chatOpen);
 document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });
-$('#pauseBtn').onclick = () => {
-  if (net && net.role === 'client') {
-    // a client cannot pause the host's match: ask in a separate layer so the round banner / results (Ready, Izađi) underneath stay intact
-    let ask = $('#leaveAsk');
-    if (ask) { ask.remove(); return; }
-    ask = document.createElement('div'); ask.className = 'overlay'; ask.id = 'leaveAsk'; ask.style.zIndex = '30';
-    ask.innerHTML = `<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div>${kickRowHtml()}</div>`;
-    $('#overlay').after(ask); wireKick(ask);
-    $('#resumeBtn').onclick = () => ask.remove(); $('#quitBtn').onclick = () => { ask.remove(); leaveOnline(); };
-  } else togglePause();
+$('#pauseBtn').onclick = () => { // the big X: out of the match at once (online or with bots)
+  const xb = $('#pauseBtn'); if (xb._held) { xb._held = false; return; }
+  if (net) { const a = $('#leaveAsk'); if (a) a.remove(); leaveOnline(); } else toMenu();
 };
+// the master holds the X for a moment: the old window with the kick buttons (the match goes on underneath)
+function showLeaveAsk() {
+  let ask = $('#leaveAsk'); if (ask) { ask.remove(); return; }
+  ask = document.createElement('div'); ask.className = 'overlay'; ask.id = 'leaveAsk'; ask.style.zIndex = '30';
+  ask.innerHTML = `<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izađi</button></div>${kickRowHtml()}</div>`;
+  $('#overlay').after(ask); wireKick(ask);
+  $('#resumeBtn').onclick = () => ask.remove(); $('#quitBtn').onclick = () => { ask.remove(); if (net) leaveOnline(); else toMenu(); };
+}
+{ const xb = $('#pauseBtn');
+  xb.addEventListener('pointerdown', () => { clearTimeout(xb._hold); xb._held = false; if (!net || myRole() !== 'master') return; xb._hold = setTimeout(() => { xb._held = true; showLeaveAsk(); }, 700); });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) xb.addEventListener(ev, () => clearTimeout(xb._hold));
+  xb.addEventListener('contextmenu', (e) => e.preventDefault()); }
 $('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').style.opacity = soundOn ? 1 : .4; try { localStorage.setItem('vijuga-sound', soundOn ? '1' : '0'); } catch (e) {} };
 $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { showLeaveAsk, togglePause, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>

@@ -385,6 +385,7 @@ button.pu:hover { border-color: var(--line); }
 .item.pic .prev:has(.livecard) { height: auto; min-height: 84px; } .livecard { padding: 10px; min-height: 84px; } .livecard .wd { text-align: center; } .livecard .wd b { font-size: 15px; } .livecard .lv { font: 700 19px/1.15 "Barlow Semi Condensed", sans-serif; color: #fff; overflow-wrap: anywhere; }
 .livecard .lv.live { color: #3ddc97; } .livecard .lv.alarm { color: #ff8a8a; }
 .lbd.live { --cc: #3ddc97 !important; box-shadow: 0 0 0 1px #3ddc97 inset; } .lbd.live .cg::before { content: ""; display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: #3ddc97; margin-right: .3em; vertical-align: .05em; animation: livePulse 1.2s infinite; }
+.exitbtn { background: #2f80ed !important; border-color: #2f80ed !important; color: #fff !important; font: 900 22px/1 system-ui, sans-serif !important; min-width: 52px; min-height: 44px; border-radius: 12px !important; } .exitbtn:active { transform: scale(.94); }
 .lbd.alarm { --cc: #ff6b6b !important; animation: lbdShake .4s infinite; } @keyframes lbdShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
 .lbd[data-l^="club:"] { cursor: pointer; }
 .gticker .tk.l b, .ticker .tk.l b { color: #4cc9f0; } .ticker .tk.live b, .gticker .tk.live b { color: #3ddc97; }
@@ -513,7 +514,8 @@ html, body { touch-action: manipulation; }
 .overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .banner { max-height: calc(100% - 12px); overflow-y: auto; overscroll-behavior: contain; text-align: center; pointer-events: auto; background: var(--ink); background: color-mix(in srgb, var(--ink) 85%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 18px 26px; max-width: min(92%, 560px); display: grid; gap: 10px; justify-items: center; }
 .banner.lap { background: var(--ink); background: color-mix(in srgb, var(--ink) 34%, transparent); border-color: var(--line); border-color: color-mix(in srgb, var(--line) 60%, transparent); text-shadow: 0 1px 3px #000, 0 0 8px rgba(0,0,0,.9); }
-.banner.lap .rrow .bar { opacity: .75; }
+.banner.lap .rrow .bar { opacity: .75; height: 4px; }
+.banner.lap { max-width: min(86%, 340px); padding: 12px 16px; gap: 8px; background: color-mix(in srgb, var(--ink) 20%, transparent); } .banner.lap h3 { font-size: 22px; margin: 0; } .banner.lap .rres { gap: 3px; } .banner.lap .rrow { font-size: 14px; row-gap: 2px; } .banner.lap .rrow .dot { width: 9px !important; height: 9px !important; } .banner.lap .rrow .bar { height: 3px; } /* the see-through scoreboard: smaller, more see-through */
 .banner h3 { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 5vw, 34px); margin: 0; line-height: 1.05; text-wrap: balance; }
 .banner p { margin: 0; color: var(--muted); }
 .banner .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
@@ -588,12 +590,12 @@ button.arm { background: var(--good) !important; color: #062014 !important; }
 .rrow .sc { font-variant-numeric: tabular-nums; } .rrow .gain { color: var(--good); font-size: 13px; margin-left: 6px; }
 .rrow.dead .nm { opacity: .55; }
 .readybox { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-.banner.fin { gap: 10px; } .banner.fin h3 { font-size: clamp(26px, 8vw, 40px); margin: 0; }
+.banner.fin { gap: 10px; } .banner.fin h3 { font-size: clamp(22px, 6vw, 30px); margin: 0; }
 .rmini { list-style: none; margin: 0; padding: 0; width: min(100%, 340px); display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
 .rmini li { display: grid; grid-template-columns: 1.6em 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 5px 12px; border-radius: 10px; background: color-mix(in srgb, var(--panel) 85%, transparent); font-size: 17px; }
 .rmini li .n { color: var(--muted); } .rmini li .dot { width: 12px; height: 12px; border-radius: 50%; } .rmini li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; } .rmini li em { font-style: normal; font-weight: 800; }
 .rmini li:first-child em { color: var(--amber); } .rmini li.mine { outline: 1px solid var(--amber); }
-.rres.rfin { width: min(100%, 340px); } .rres.rfin .rrow { font-size: 18px; } .rres.rfin .rrow.mine .nm span { color: var(--amber); } .rres.rfin .rrow:first-child .sc { color: var(--amber); }
+.rres.rfin { width: min(100%, 280px); } .rres.rfin .rrow { font-size: 14px; } .rres.rfin .rrow.mine .nm span { color: var(--amber); } .rres.rfin .rrow:first-child .sc { color: var(--amber); }
 .banner.fin .earn { font-size: 16px; margin: 0; } .banner.fin .readybox .rchip { font-size: 12.5px; padding: 2px 8px; gap: 5px; } .banner.fin .readybox .rchip .dot { width: 8px; height: 8px; }
 @media (max-height: 700px) { .banner.fin .rres.rfin { gap: 4px; } .banner.fin .rres.rfin .rrow { font-size: 15px; } .banner.fin { gap: 7px; } .banner.fin .rmini li { padding: 3px 10px; font-size: 15px; } .banner.fin h3 { font-size: 26px; } }
 @media (max-height: 560px) { .banner.fin .rres.rfin { order: 3; width: min(100%, 520px); grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; } .banner.fin .rres.rfin .rrow { font-size: 15px; } .banner.fin .rmini { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 520px); } .banner.fin .rmini li { font-size: 15px; padding: 3px 10px; } .banner.fin .rmore { order: 4; } } /* a phone on its side: the buttons first, the points in two columns under them */
@@ -745,8 +747,10 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
   .pads.v2 .padhint { border: 0; background: none; gap: 2px; } .pads.v2 .padhint b { font-size: 16px; color: var(--muted); } .pads.v2 .padhint span { font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
 }
 
+.troll.hot { border-color: #ffd23f !important; box-shadow: 0 0 0 2px rgba(255,210,63,.35); }
 /* ---- the simple mode (body.lite): only what is needed */
-#liteTop, #liteNav, #liteMore { display: none; }
+#liteTop, #liteNav, #liteMore, #liteSet { display: none; }
+body.lite.lhome #liteSet { display: block; width: 100%; margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px; color: var(--fg); font: 700 16px var(--body); }
 body.lite.lhome #liteMore { display: block; width: 100%; margin-top: 12px; background: none; border: 1px dashed var(--line); border-radius: 14px; padding: 12px; color: var(--muted); font: 600 15px var(--body); }
 body.lite #liteTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0 4px; }
 body.lite #liteTop .ll { background: none; border: 0; padding: 0; font: 400 24px var(--display); letter-spacing: .02em; color: var(--good); }
@@ -783,6 +787,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
         <div class="me" id="me"></div>
       </header>
       <div class="onhero" id="onbar" aria-live="polite"></div>
+      <button type="button" id="liteSet">⚙️ Postavke igre</button>
       <button type="button" id="liteMore">☰ Sve ostalo: turnir, ljestvica, aukcija, pravila</button>
       <div class="ticker" id="ticker" aria-label="Kripto i vrijeme uživo"></div>
       <div class="todayline" id="todayLine" hidden></div>
@@ -908,7 +913,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
       <button class="iconbtn netonly" id="reactBtn" aria-label="Brze reakcije" hidden>😀</button>
       <button class="iconbtn netonly" id="chatBtn" aria-label="Chat" hidden>💬<span class="unread" id="unread" hidden></span></button>
       <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
-      <button class="iconbtn" id="pauseBtn" aria-label="Pauza">II</button>
+      <button class="iconbtn exitbtn" id="pauseBtn" aria-label="Izađi iz igre" title="Izađi iz igre">✕</button>
     </div>
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
@@ -955,18 +960,18 @@ const POWERUPS = {
   fastS:  { t: 's', g: '»', name: 'Brzina', d: 'Ti ubrzavaš', dur: 5 },
   slowS:  { t: 's', g: '«', name: 'Usporenje', d: 'Ti usporavaš, lakše skrećeš', dur: 6 },
   thinS:  { t: 's', g: '—', name: 'Tanki trag', d: 'Tvoj trag je upola tanji', dur: 7 },
-  ghostS: { t: 's', g: '○', name: 'Duh', d: 'Prolaziš kroz tragove', dur: 3.5 },
-  wrapS:  { t: 's', g: '□', name: 'Bez zidova', d: 'Izlaziš na suprotnoj strani', dur: 7 },
+  ghostS: { t: 's', g: '○', name: 'Duh', d: 'Prolaziš kroz tragove', dur: 3.5, off: true }, // off: no longer falls (kept for old states)
+  wrapS:  { t: 's', g: '□', name: 'Bez zidova', d: 'Izlaziš na suprotnoj strani', dur: 7, off: true },
   jumpS:  { t: 's', g: '↑', name: 'Puni skok', d: 'Skok je odmah spreman', dur: 0 },
   fastO:  { t: 'o', g: '»', name: 'Ubrzaj druge', d: 'Svi ostali ubrzavaju', dur: 5 },
   slowO:  { t: 'o', g: '«', name: 'Uspori druge', d: 'Svi ostali usporavaju', dur: 5 },
   thickO: { t: 'o', g: '●', name: 'Debeli trag', d: 'Ostali ostavljaju dvostruki trag', dur: 6 },
-  revO:   { t: 'o', g: '⇄', name: 'Obrnuto', d: 'Ostalima su lijevo i desno zamijenjeni', dur: 5 },
+  revO:   { t: 'o', g: '⇄', name: 'Obrnuto', d: 'Ostalima su lijevo i desno zamijenjeni', dur: 3 },
   sqO:    { t: 'o', g: '┐', name: 'Kutovi', d: 'Ostali skreću samo pod 90°', dur: 5 },
   sharpS: { t: 's', g: '↺', name: 'Oštro skretanje', d: 'Skrećeš puno oštrije (uski krugovi)', dur: 6 },
   wideO:  { t: 'o', g: '◡', name: 'Tromo skretanje', d: 'Ostali skreću jako široko, teško naprave krug', dur: 6 },
-  clearA: { t: 'a', g: '×', name: 'Brisanje', d: 'Svi tragovi nestaju', dur: 0 },
-  wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7 },
+  clearA: { t: 's', g: '×', name: 'Brisanje traga', d: 'Tvoj trag nestaje (tragovi ostalih ostaju)', dur: 0 },
+  wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7, off: true },
   shieldS: { t: 's', g: '🛡️', name: 'Štit', d: 'Preživiš jedan sudar (8 s)', dur: 8 },
   freezeO: { t: 'o', g: '❄️', name: 'Zamrzni', d: 'Ostali skoro stanu na 1,5 s', dur: 1.5 },
   teleS:  { t: 's', g: '🌀', name: 'Teleport', d: 'Odmah si na slobodnom mjestu arene', dur: 0 },
@@ -976,7 +981,7 @@ const POWERUPS = {
   pp_dia:   { t: 'p', prem: true, g: '💠', name: 'Dijamantni štit', d: '15 s: preživiš dva sudara (i metak)', dur: 15, price: 7000 },
   pp_ice:   { t: 'p', prem: true, g: '🧊', name: 'Ledeno doba', d: 'Svi ostali 2,5 s skoro stoje', dur: 2.5, price: 8000 },
 };
-const PU_KEYS = Object.keys(POWERUPS).filter(k => !POWERUPS[k].prem); // what can fall for everybody (and be switched off in the rules)
+const PU_KEYS = Object.keys(POWERUPS).filter(k => !POWERUPS[k].prem && !POWERUPS[k].off); // what can fall for everybody (and be switched off in the rules)
 const PREM_PU = Object.keys(POWERUPS).filter(k => POWERUPS[k].prem);
 const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff', p: '#c08cff' };
 const PU_R = 17; // pickup radius in arena units (was 13)
@@ -1180,10 +1185,10 @@ const BADGES = {
   bd_br_rolex: { g: 'Rolex', brand: 1, tag: '#00603a', svg: TAGB('Rolex ⌚', '#00603a'), name: 'Natpis: Rolex ⌚', d: 'LUKSUZNI BREND: natpis uz ime (samo ime, nije službeni logo)', price: 6000 },
   bd_t_madaj: { g: 'Ma daj!', fun: true, tag: '#c77d1a', svg: TAGB('Ma daj!', '#c77d1a'), name: 'Natpis: Ma daj!', d: 'ŠALJIVO: natpis MA DAJ! uz ime i iznad zmije: kad te sruše u zadnjoj sekundi', price: 500 },
 };
-const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
+const STARTER_PU = ['thinS', 'jumpS', 'thickO', 'sqO']; // (Duh and Bez zidova were taken out: their owners got the price back)
 const STARTER_PRICE = { s: 110, o: 170 };
 
-const PU_RATE = { rijetko: { min: 6, max: 10, cap: 3 }, normalno: { min: 2.5, max: 5, cap: 4 }, 'često': { min: 1.2, max: 2.5, cap: 6 }, ludnica: { min: 0.5, max: 1.2, cap: 8 } };
+const PU_RATE = { rijetko: { min: 9, max: 14, cap: 2 }, normalno: { min: 5, max: 9, cap: 3 }, 'često': { min: 2.5, max: 5, cap: 5 }, ludnica: { min: 1, max: 2.5, cap: 7 } }, PU_GRACE = 10; // seconds: nothing falls at the very start of a round
 const DIFF = {
   lako:    { every: 5, look: 120, noise: 0.08, jump: true,  seek: false, step: 6, space: 0 },
   srednje: { every: 3, look: 200, noise: 0.01, jump: true,  seek: true,  step: 5, space: 0.25 },
@@ -1219,7 +1224,7 @@ const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
 function itemPrice(id) { return (PREMIUM[id] && PREMIUM[id].price) || (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
-const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, bg_kat: 2500,
+const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, ghostS: 110, wrapS: 110, bg_kat: 2500,
   // adult items, removed for a wider audience
   sk_dildo: 150, sk_vag: 160, sk_boobs: 160, sk_condom: 160, sk_hairy: 170, bd_ucross: 200, bd_vag: 120, bd_boobs: 120, bd_hairy: 130, bd_condom: 120 };
 function refundRetired(P) {
@@ -1403,7 +1408,7 @@ function renderLiteTop() {
   t.innerHTML = `<button type="button" class="ll" id="liteHome">VIJUGA</button>${profile ? `<button type="button" class="lcoins" id="liteMe"><span class="av" style="background:${COLORS[profile.color] || COLORS[0]}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>● ${c}</b></button>` : '<button type="button" class="lcoins" id="liteMe"><b>Prijava</b></button>'}`;
   $('#liteMe').onclick = () => profile ? showProfile() : showLogin(); $('#liteHome').onclick = () => setLiteView('home');
 }
-setTimeout(() => { liteReady = true; { const lm = $('#liteMore'); if (lm) lm.onclick = () => openAll(); } document.querySelectorAll('#liteNav [data-ln]').forEach(b => b.onclick = () => { const g = b.dataset.ln; if (g === 'home') setLiteView('home'); else if (g === 'shop') showTab('shop'); else if (g === 'chat') openChat(); else if (g === 'me') showProfile(); }); setLiteView('home'); renderLiteTop(); }, 1200);
+setTimeout(() => { liteReady = true; { const lm = $('#liteMore'); if (lm) lm.onclick = () => openAll(); const ls = $('#liteSet'); if (ls) ls.onclick = () => showTab('local'); } document.querySelectorAll('#liteNav [data-ln]').forEach(b => b.onclick = () => { const g = b.dataset.ln; if (g === 'home') setLiteView('home'); else if (g === 'shop') showTab('shop'); else if (g === 'chat') openChat(); else if (g === 'me') showProfile(); }); setLiteView('home'); renderLiteTop(); }, 1200);
 function renderMe() {
   setTimeout(() => { try { renderOnbar(); } catch (e) {} }, 0);
   try { renderLiteTop(); } catch (e) {}
@@ -1727,6 +1732,7 @@ function openAll() {
 const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
 function openChat() {
   if (!profile) { showLogin(); return; }
+  setTimeout(markChatSeen, 300); // opened = read: the dot and the glow go at once
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile chatsheet" novalidate onsubmit="return false"><h3>💬 Chat</h3><p class="hint" id="schatWho" style="margin:0"></p>
     <div class="chatlog" id="schatLog"></div>
@@ -2452,7 +2458,7 @@ function renderSettings() {
   add('Timovi (2 na 2 / 3 na 3)', seg([[false, 'Svatko za sebe'], [true, 'Timovi']], !!setup.teams, upd('teams')), 'S 4 zmije: dva tima (crveni i plavi). Runda je gotova kad preživi samo jedan tim; svaki član pobjedničkog tima dobiva bod.');
   add('Sužavanje arene', seg([[true, 'Uključeno'], [false, 'Isključeno']], setup.shrink, upd('shrink')), 'Nakon 20 s rub arene se polako steže prema sredini, da runda ne traje predugo.');
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
-  add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
+  add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju (prvih 10 s runde ništa): rijetko ~ svakih 11 s (najviše 2 na ploči), normalno ~7 s (3), često ~4 s (5), ludnica ~2 s (7). Pištolj ili dimna bomba: jednom po rundi.');
   add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑, a na mobitelu LIJEVO i DESNO odjednom: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
   add('Pištolj i dimna bomba', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.weapons !== false, upd('weapons')), 'Jednom po rundi negdje na ploči padne 🔫 pištolj ili 💣 dimna bomba. Tko ga pokupi, koristi ga kao skok: LIJEVO i DESNO odjednom (ili ↑). Metak sruši zmiju koju pogodi u glavu ili blizu nje; dimna bomba odskakuje, stane i pušta dim koji 13 s sakrije dio arene.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
@@ -2834,7 +2840,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'c308b5a422da';
+const BUILD = 'bb4dfae4579a';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3234,9 +3240,9 @@ function newRound() {
   if (G.round >= 1) openLocalForWatchers();
   if (G.round >= 1) seatQueuedHumans();
   if (net && net.role === 'host' && G.round >= 1) { const r = matchRatio(); if (r && Math.abs(r / (netRatio || r) - 1) > 0.08) { netRatio = r; sizeArena(); } }
-  G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
+  G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = PU_GRACE + rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
-  G.wpick = null; G.wpAt = setup.weapons === false ? null : rand(3, 9); G.shots = []; G.clouds = []; G.bombs = []; G.ppAt = setup.powerups ? rand(4, 10) : null;
+  G.wpick = null; G.wpAt = setup.weapons === false ? null : rand(12, 30); G.shots = []; G.clouds = []; G.bombs = []; G.ppAt = setup.powerups ? rand(PU_GRACE, 20) : null;
   owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
   tctx.clearRect(0, 0, W, H); clearLights();
   const placed = [];
@@ -3349,6 +3355,11 @@ function fixColorClashes(players, keep) {
 const colorNote = (p) => `🎨 ${p.clashWith ? '<b>' + esc(p.clashWith) + '</b> (viši nivo ili više mečeva)' : 'Netko s višim nivoom (ili više mečeva)'} ima sličnu boju, pa si u ovom meču <b style="color:${p.color}">● ovakve boje</b>`;
 const SKIN_W = { sk_neon: 0.7 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
+// one snake's trail goes (the power-up "Brisanje traga"): its cells and the pixels under them; the others stay
+function clearTrailOf(pid) {
+  const id = pid + 1; if (!owner) return;
+  for (let i = 0; i < owner.length; i++) if (owner[i] === id) { owner[i] = 0; const gx = i % GW, gy = (i / GW) | 0; tctx.clearRect(gx * CELL - 1, gy * CELL - 1, CELL + 2, CELL + 2); }
+}
 function stamp(p, r, grace) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
   const gx0 = cx | 0, gy0 = cy | 0, id = p.id + 1;
@@ -3994,9 +4005,9 @@ function applyPu(p, k, silent) {
     case 'sqO': others.forEach(q => add(q, 'square', P.dur)); break;
     case 'sharpS': add(p, 'sharp', P.dur); break;
     case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
-    case 'clearA':
-      G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; q.tvH = []; });
-      owner.fill(0); tctx.clearRect(0, 0, W, H); clearLights(); G.clr++; stampArena(); break;
+    case 'clearA': // only the trail of the one who took it
+      flushTrail(p, false); p.tvDown = false; p.tvQ = []; p.tvH = [];
+      clearTrailOf(p.id); G.clrS = [((G.clrS && G.clrS[0]) || 0) + 1, p.id]; break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
     case 'shieldS': add(p, 'shield', P.dur); break;
     case 'freezeO': others.forEach(q => add(q, 'freeze', P.dur)); break;
@@ -4445,13 +4456,13 @@ function drawBoard(c) {
   const rows = ranking(); if (!rows.length) return;
   const s = cv.width / W; c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
   const many = rows.length > 6 && cv.width < 900; // 7-8 snakes on a phone: a tighter list that covers less of the arena
-  const fs = many ? Math.max(10, Math.min(12, Math.round(cv.width / 36))) : Math.max(11, Math.min(14, Math.round(cv.width / 32))), lh = fs + (many ? 3 : 6), pad = many ? 5 : 7;
+  const fs = many ? Math.max(9, Math.min(11, Math.round(cv.width / 40))) : Math.max(10, Math.min(12, Math.round(cv.width / 36))), lh = fs + (many ? 3 : 5), pad = many ? 4 : 6; // a little smaller than before
   c.font = `600 ${fs}px "Barlow Semi Condensed", sans-serif`; c.textBaseline = 'middle';
   const nm = (p) => many && p.name.length > 11 ? p.name.slice(0, 10) + '…' : p.name;
   let wmax = 0; for (const p of rows) wmax = Math.max(wmax, c.measureText(nm(p)).width);
   const w = Math.round(pad + 12 + 6 + wmax + 10 + c.measureText('999').width + pad), h = rows.length * lh + pad;
   const x0 = 8, y0 = 8;
-  c.globalAlpha = 0.55; c.fillStyle = '#0b121b'; c.beginPath(); c.roundRect ? c.roundRect(x0, y0, w, h, 8) : c.rect(x0, y0, w, h); c.fill();
+  c.globalAlpha = 0.3; c.fillStyle = '#0b121b'; c.beginPath(); c.roundRect ? c.roundRect(x0, y0, w, h, 8) : c.rect(x0, y0, w, h); c.fill();
   c.globalAlpha = 0.9;
   rows.forEach((p, i) => {
     const y = y0 + pad / 2 + lh * i + lh / 2, dead = !p.alive && G.phase !== 'count';
@@ -4785,6 +4796,7 @@ function showReplay() {
   };
 }
 function addReplayButton() {
+  return; // no replay button any more (not needed)
   const b = $('#overlay .banner'); if (!b || !lastReplay || b.querySelector('.rpbtn')) return;
   b.insertAdjacentHTML('beforeend', '<p style="margin:6px 0 0"><button class="btn sm ghost rpbtn" type="button">🎬 Snimka runde</button></p>');
   b.querySelector('.rpbtn').onclick = () => showReplay();
@@ -4848,7 +4860,7 @@ function buildPads() {
       const tools = document.createElement('div'); tools.className = 'padtools';
       const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
-      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); zb.onclick = openTab('z');
+      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); zb.onclick = (e) => { const t = performance.now(); if (t - (zb._tap || 0) < 380) { zb._tap = 0; e.stopPropagation(); $('#trollPop').hidden = true; fireHotPrank(); return; } zb._tap = t; open(e); }; } // two quick taps: the hotkey prank
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
       const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'GLAS'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const id = e.pointerId; try { mb.setPointerCapture(id); } catch (er) {} clearTimeout(mb._hold); voiceHint('wait'); mb._hold = setTimeout(() => { mb._hold = 0; startVoice(mb, id); }, 250); });
       const mbUp = (e) => { if (mb._hold) { clearTimeout(mb._hold); mb._hold = 0; voiceHint('short'); return; } voiceUp(e); }; mb.addEventListener('pointerup', mbUp); mb.addEventListener('pointercancel', mbUp);
@@ -5030,10 +5042,10 @@ function showResults() {
   const mini = `<div class="rres rfin">${rows.map((p, i) => `<div class="rrow ${p === mine ? 'mine' : ''}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${dispColor(p)}"></span><span class="nm"><span>${i + 1}. ${esc(p.name)}</span></span><span class="sc">${p.score}</span><span class="bar"><i style="width:${Math.min(100, Math.round(100 * (p.score || 0) / topSc))}%;background:${dispColor(p)}"></i></span></div>`).join('')}</div>`; // the same see-through scoreboard as between the rounds
   let actions, extra = '';
   if (net) {
-    actions = `<div class="row"><button class="btn go-online" id="readyBtn">▶ Igraj opet</button>${net.role === 'host' ? '<button class="btn ghost" id="goAgainBtn" hidden title="Nova igra kreće odmah s onima koji su spremni">▶ Kreni odmah</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><div class="readybox" id="readyBox"></div><p class="hint" id="readyHint"></p><p class="hint" id="unreadyRow" hidden><button type="button" class="linkbtn" id="unreadyBtn">odustani od nove igre</button></p>`;
-    extra = `${net.role === 'host' ? '<div class="row"><button class="btn ghost sm" id="setBtn">Promijeni postavke</button></div>' : ''}<p class="hint">Nova igra kreće kad su svi iz ovog meča spremni, ili ${REMATCH_MS / 1000} s nakon prvog „Spreman” s onima koji su tada spremni. Tko izađe, ne čeka se.</p>${kickRowHtml()}`;
+    actions = `<div class="row"><button class="btn go-online" id="readyBtn">▶ Igraj opet</button>${net.role === 'host' ? '<button class="btn ghost" id="goAgainBtn" hidden title="Nova igra kreće odmah s onima koji su spremni">▶ Kreni odmah</button><button class="btn ghost" id="setBtn" title="Promijeni postavke igre (power-upovi, brzina, runde…)">⚙️ Postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><div class="readybox" id="readyBox"></div><p class="hint" id="readyHint"></p><p class="hint" id="unreadyRow" hidden><button type="button" class="linkbtn" id="unreadyBtn">odustani od nove igre</button></p>`;
+    extra = `<p class="hint">Nova igra kreće kad su svi iz ovog meča spremni, ili ${REMATCH_MS / 1000} s nakon prvog „Spreman” s onima koji su tada spremni. Tko izađe, ne čeka se.</p>${kickRowHtml()}`;
   } else {
-    actions = `<div class="row"><button class="btn" id="againBtn">▶ Nova igra</button><button class="btn ghost" id="menuBtn">Izbornik</button></div>`;
+    actions = `<div class="row"><button class="btn" id="againBtn">▶ Nova igra</button><button class="btn ghost" id="setLocalBtn" title="Promijeni postavke igre (power-upovi, brzina, runde…)">⚙️ Postavke</button><button class="btn ghost" id="menuBtn">Izbornik</button></div>`;
   }
   if (profile && mine) extra += `<div class="row"><button class="btn ghost wa sm" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   extra += `<p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Statistika svih igrača</a></p>`;
@@ -5051,6 +5063,7 @@ function showResults() {
   } else {
     $('#againBtn').onclick = () => { showOverlay(null); newMatch(); buildPads(); };
     $('#menuBtn').onclick = toMenu;
+    $('#setLocalBtn').onclick = () => { toMenu(); showTab('local'); }; // straight to the game settings
   }
 }
 // who is in the finished match and still here, and who pressed ready
@@ -6150,11 +6163,11 @@ let chatOpen = !IS_TOUCH, unread = 0;
 let chatSeenAt = (() => { try { return Number(localStorage.getItem('vijuga-chat-seen')) || 0; } catch (e) { return 0; } })();
 function chatUnseen() { let n = 0; for (const m of chatLog) if (m.at > chatSeenAt && !m.me && !(profile && m.sl === profile.slug)) n++; return n; }
 function updateChatBadges() { const n = chatUnseen(); document.querySelectorAll('.cunread').forEach(el => { el.hidden = !n; el.textContent = n > 9 ? '9+' : String(n); }); const t = $('#chatTeaser'); if (t) t.classList.toggle('new', n > 0); }
-function markChatSeen() { const last = chatLog.length ? chatLog[chatLog.length - 1].at : 0; if (last > chatSeenAt) { chatSeenAt = last; try { localStorage.setItem('vijuga-chat-seen', String(last)); } catch (e) {} } updateChatBadges(); }
+function markChatSeen() { let last = 0; for (const m of chatLog) if (m.at > last) last = m.at; /* the newest message, wherever it sits in the log */ if (last > chatSeenAt) { chatSeenAt = last; try { localStorage.setItem('vijuga-chat-seen', String(last)); } catch (e) {} } updateChatBadges(); }
 // is a chat log really in front of the player right now (the chat sheet, the lobby chat on screen, the chat in a match)?
 function chatLooking() {
   if (document.hidden) return false;
-  if ($('#schatLog')) return true;
+  if ($('#schatLog') && !$('#regModal').hidden) return true; // the chat window is open (a closed one keeps its markup)
   if (!$('#game').hidden) { const tp = $('#tpChatLog'); return !!net && (chatOpen || (!!tp && !$('#trollPop').hidden)); }
   const a = $('#lchatLog'); if (!a || $('#menu').hidden || curTab !== 'online') return false;
   const r = a.getBoundingClientRect(); return r.height > 0 && r.top < innerHeight - 40 && r.bottom > 40;
@@ -6592,7 +6605,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -6653,6 +6666,7 @@ function applyState(st, first) {
   if (st.te !== undefined && st.te !== net.tvE) { net.tvE = st.te; net.tv = {}; } // another host (or a match taken over): its trail numbering starts afresh
   if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
   if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); clearLights(); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
+  if (st.cs && st.cs[0] !== net.clrS) { const was = net.clrS; net.clrS = st.cs[0]; if (was != null || !first) { clearTrailOf(st.cs[1]); if (net.prev) delete net.prev[st.cs[1]]; } } // one snake's trail was wiped on the host
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
@@ -7108,6 +7122,16 @@ $('#start').onclick = startGame;
 document.addEventListener('selectstart', (e) => { if (!$('#game').hidden && !(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); });
 $('#game').addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
 let trollPick = null;
+const hotPrank = () => lsGet('vijuga-hotprank') || '';
+function setHotPrank(id) { if (!TROLLS[id]) return; lsSet('vijuga-hotprank', id); toast(`⭐ Prečac: ${TROLLS[id].e} ${TROLLS[id].name}. 2× brzo dodirni ZEZALICE i ode.`); }
+function fireHotPrank() { // two quick taps on ZEZALICE: the hotkey prank at the chosen (or the first) player
+  const id = hotPrank(); if (!id || !TROLLS[id]) { toast('⭐ Prečac nije postavljen: otvori ZEZALICE i drži zezalicu 2 s.'); return; }
+  if (!profile || !((profile.inv || {})[id] > 0)) { toast(`Nemaš više: ${TROLLS[id].e} ${TROLLS[id].name}. Kupi u trgovini.`); return; }
+  const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
+  if (!trollPick) { toast('U meču nema koga zezati.'); return; }
+  if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
+  sendTroll(trollPick, id);
+}
 function trollTargets() {
   if (!net || !G) return [];
   return G.players.filter(p => p.human).map(p => ({ peer: peerOfPlayer(p), name: p.name, color: p.color })).filter(x => x.peer && x.peer !== roomState.me);
@@ -7150,12 +7174,16 @@ function renderTrollPop() {
   }
   pop.innerHTML = tabs + `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
-    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''}" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
-    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}`;
+    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Drži zezalicu 2 s = prečac. Onda 2× brzo dodirni ZEZALICE i ode${hotPrank() && TROLLS[hotPrank()] ? `: <b>${TROLLS[hotPrank()].e} ${TROLLS[hotPrank()].name}</b>` : '.'}</p>` : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
-  pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); pop.hidden = true; });
+  pop.querySelectorAll('.troll').forEach(b => { // a tap sends it (and the panel closes); holding it 2 s makes it the hotkey (two quick taps on ZEZALICE)
+    b.addEventListener('pointerdown', () => { clearTimeout(b._hold); b._held = false; b._hold = setTimeout(() => { b._held = true; setHotPrank(b.dataset.id); buzz(30); renderTrollPop(); }, 2000); });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, () => clearTimeout(b._hold));
+    b.addEventListener('contextmenu', (e) => e.preventDefault());
+    b.onclick = (e) => { e.stopPropagation(); if (b._held) { b._held = false; return; } if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); pop.hidden = true; }; });
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
@@ -7165,23 +7193,28 @@ $('#gchatBig').onclick = (e) => { e.stopPropagation(); $('#gchat').classList.tog
 $('#reactBtn').onclick = (e) => { e.stopPropagation(); buildReactPop(); $('#reactPop').hidden = !$('#reactPop').hidden; };
 $('#chatBtn').onclick = () => setChatOpen(!chatOpen);
 document.addEventListener('pointerdown', (e) => { const p = $('#reactPop'); if (!p.hidden && !p.contains(e.target) && e.target.id !== 'reactBtn') p.hidden = true; });
-$('#pauseBtn').onclick = () => {
-  if (net && net.role === 'client') {
-    // a client cannot pause the host's match: ask in a separate layer so the round banner / results (Ready, Izađi) underneath stay intact
-    let ask = $('#leaveAsk');
-    if (ask) { ask.remove(); return; }
-    ask = document.createElement('div'); ask.className = 'overlay'; ask.id = 'leaveAsk'; ask.style.zIndex = '30';
-    ask.innerHTML = `<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izbornik</button></div>${kickRowHtml()}</div>`;
-    $('#overlay').after(ask); wireKick(ask);
-    $('#resumeBtn').onclick = () => ask.remove(); $('#quitBtn').onclick = () => { ask.remove(); leaveOnline(); };
-  } else togglePause();
+$('#pauseBtn').onclick = () => { // the big X: out of the match at once (online or with bots)
+  const xb = $('#pauseBtn'); if (xb._held) { xb._held = false; return; }
+  if (net) { const a = $('#leaveAsk'); if (a) a.remove(); leaveOnline(); } else toMenu();
 };
+// the master holds the X for a moment: the old window with the kick buttons (the match goes on underneath)
+function showLeaveAsk() {
+  let ask = $('#leaveAsk'); if (ask) { ask.remove(); return; }
+  ask = document.createElement('div'); ask.className = 'overlay'; ask.id = 'leaveAsk'; ask.style.zIndex = '30';
+  ask.innerHTML = `<div class="banner"><h3>Napustiti meč?</h3><div class="row"><button class="btn" id="resumeBtn">Ostani</button><button class="btn ghost" id="quitBtn">Izađi</button></div>${kickRowHtml()}</div>`;
+  $('#overlay').after(ask); wireKick(ask);
+  $('#resumeBtn').onclick = () => ask.remove(); $('#quitBtn').onclick = () => { ask.remove(); if (net) leaveOnline(); else toMenu(); };
+}
+{ const xb = $('#pauseBtn');
+  xb.addEventListener('pointerdown', () => { clearTimeout(xb._hold); xb._held = false; if (!net || myRole() !== 'master') return; xb._hold = setTimeout(() => { xb._held = true; showLeaveAsk(); }, 700); });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) xb.addEventListener(ev, () => clearTimeout(xb._hold));
+  xb.addEventListener('contextmenu', (e) => e.preventDefault()); }
 $('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').style.opacity = soundOn ? 1 : .4; try { localStorage.setItem('vijuga-sound', soundOn ? '1' : '0'); } catch (e) {} };
 $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { showLeaveAsk, togglePause, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
 
