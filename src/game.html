@@ -652,6 +652,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 .tpayouts { display: grid; gap: 6px; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; } .tpo { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .tpo .ok { color: var(--good); font-weight: 700; }
 .achbtn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); background: var(--amber); background: color-mix(in srgb, var(--amber) 6%, var(--ink)); color: var(--fg); text-align: left; cursor: pointer; }
 .achbtn .ai { font-size: 24px; } .achbtn .at { flex: 1; display: grid; } .achbtn .at small { color: var(--muted); } .achbtn .ar { font-size: 22px; color: var(--amber); }
+.updov { z-index: 70; } .updcard { justify-items: center; text-align: center; } .updcard .updico { font-size: 44px; line-height: 1; } .updcard h3 { margin: 0; } .updcard p { margin: 0; color: var(--muted, #9fb0c8); } .updcard .btn { width: 100%; } .updbtn { background: #3ddc97; color: #062014; }
 .achov { position: fixed; inset: 0; z-index: 60; background: rgba(5,9,14,.72); display: grid; place-items: center; padding: 16px; }
 .achcard { position: relative; box-sizing: border-box; width: min(100%, 460px); max-height: calc(100dvh - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; }
 .achcard h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; } .achcard .mclose { position: absolute; top: 10px; right: 10px; margin: 0; }
@@ -1184,7 +1185,6 @@ function streakState() { const e = ((profile && profile.owned) || []).find(x => 
 function claimStreak() {
   if (!profile) return null;
   const today = zDay(Date.now()), st = streakState(); if (st.date === today) return null;
-  if (profile.lastMatchDay !== today) return null; // the day's reward comes after the day's first match
   const day = st.date === zDay(Date.now() - 86400000) ? (st.day % 7) + 1 : 1; // a missed day starts again from day 1
   profile.owned = profile.owned.filter(x => !x.startsWith('x_s:')); profile.owned.push(`x_s:${today}:${day}`);
   const n = STREAK_COINS[day - 1]; profile.coins += n; saveProfile();
@@ -1194,7 +1194,7 @@ function showStreak(st, then) {
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><h3>🔥 Dnevna nagrada: ${st.day}. dan zaredom</h3><p style="font-size:22px;margin:0;color:var(--amber);font-weight:700">+${st.n} zlatnika</p>
     <div class="streak">${STREAK_COINS.map((c, i) => `<div class="sd ${i + 1 < st.day ? 'done' : i + 1 === st.day ? 'now' : ''}"><small>${i + 1}. dan</small><b>${i + 1 < st.day ? '✓' : '●'} ${c}</b></div>`).join('')}</div>
-    <p class="hint" style="margin:0">${st.day < 7 ? `Dođi i sutra i odigraj meč: ${st.day + 1}. dan nosi <b>${STREAK_COINS[st.day]}</b> zlatnika, a 7. dan <b>${STREAK_COINS[6]}</b>. Preskočiš li dan, brojanje kreće ispočetka.` : 'Cijeli tjedan! Sutra kreće novi krug od 1. dana.'}</p>
+    <p class="hint" style="margin:0">${st.day < 7 ? `Dođi i sutra: ${st.day + 1}. dan nosi <b>${STREAK_COINS[st.day]}</b> zlatnika, a 7. dan <b>${STREAK_COINS[6]}</b>. Preskočiš li dan, brojanje kreće ispočetka.` : 'Cijeli tjedan! Sutra kreće novi krug od 1. dana.'}</p>
     <div class="go" style="justify-content:center"><button class="btn" type="button" id="streakOk">Super!</button></div></form>`;
   sfx.pick();
   $('#streakOk').onclick = () => { m.hidden = true; if (then) then(); };
@@ -1819,7 +1819,7 @@ function showCoinInfo() {
       <div><span>💥</span><p><b>Rušenje:</b> +${KILL_COINS} za svakog protivnika koji se zabije u tebe.</p></div>
       <div><span>👥</span><p><b>Više igrača, veća nagrada:</b> svaki dodatni čovjek u meču +30 %, svaki bot +10 %.</p></div>
       <div><span>⚽</span><p><b>Navijači:</b> dan nakon pobjede tvog kluba nagrada za plasman je dupla.</p></div>
-      <div><span>📅</span><p><b>Dnevni niz:</b> nakon prvog meča u danu ${STREAK_COINS.slice(0, 6).join(', ')}, a 7. dan zaredom <b>${STREAK_COINS[6]}</b>.</p></div>
+      <div><span>📅</span><p><b>Dnevna prijava:</b> ${STREAK_COINS.slice(0, 6).join(', ')}, a 7. dan zaredom <b>${STREAK_COINS[6]}</b>.</p></div>
       <div><span>⭐</span><p><b>Novi nivo:</b> 50 × nivo (npr. nivo 4 = 200).</p></div>
       <div><span>🎁</span><p><b>Ostalo:</b> kutije iznenađenja, prodaja na aukciji i turniri.</p></div>
     </div>`);
@@ -2430,15 +2430,42 @@ async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
 }
+// A new version of the game is live. Nobody is interrupted in a match: the pop-up comes in the menu, and on the
+// results screen there is a button. A tab nobody is looking at refreshes by itself (once per version). The refresh
+// saves the profile first and asks for the new page past every cache (?v=), then says what is new.
+let newBuild = null; const upd = { snooze: 0 };
 function newVersion(v) {
-  const idle = $('#game').hidden && $('#regModal').hidden && $('#inviteModal').hidden && !net && !myPres.ok && !recState && !(document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+  newBuild = v;
   let tried = ''; try { tried = sessionStorage.getItem('vijuga-reloaded') || ''; } catch (e) { tried = v; }
-  if (idle && tried !== v) { try { sessionStorage.setItem('vijuga-reloaded', v); } catch (e) {} location.reload(); return; }
-  if (newVersion.shown) return; newVersion.shown = true;
-  const n = notify('🆕 Izašla je <b>nova verzija</b> igre. Osvježi da igraš po istim pravilima kao ostali.', { ms: 0, actions: '<button class="pingbtn" type="button" data-reload="1">Osvježi</button>' });
-  if (n) { n.querySelector('[data-reload]').onclick = () => location.reload(); n.querySelector('.x').addEventListener('click', () => { setTimeout(() => { newVersion.shown = false; }, 10 * 60000); }); }
+  if (document.hidden && !inMatchNow() && !recState && !net && tried !== v) { try { sessionStorage.setItem('vijuga-reloaded', v); } catch (e) {} reloadToNew(true); return; }
+  offerUpdate();
 }
-setTimeout(checkVersion, 45000); setInterval(checkVersion, 4 * 60000);
+function offerUpdate() {
+  if (!newBuild) return;
+  if (inMatchNow()) { // a match: never a pop-up; on its results a button
+    const b = G && G.over ? $('#overlay .banner') : null;
+    if (b && !b.querySelector('.updrow')) { const row = document.createElement('div'); row.className = 'row updrow'; row.innerHTML = '<button class="btn updbtn" type="button">🆕 Nova verzija · 🔄 Osvježi</button>'; b.insertBefore(row, b.children[2] || null); row.querySelector('button').onclick = () => reloadToNew(); }
+    return;
+  }
+  if (document.querySelector('.updov') || Date.now() < upd.snooze || recState) return;
+  const ov = document.createElement('div'); ov.className = 'achov updov';
+  ov.innerHTML = `<div class="achcard updcard" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updico">🆕</div><h3 id="updT">Nova verzija igre</h3><p>Stigle su nove stvari i popravci. Osvježi igru da ih dobiješ i da igraš po istim pravilima kao ostali. Traje par sekundi, tvoj napredak ostaje spremljen.</p><button class="btn updgo" type="button">🔄 Osvježi</button><button class="btn ghost updlater" type="button">Kasnije</button></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('.updgo').onclick = () => reloadToNew();
+  ov.querySelector('.updlater').onclick = () => { ov.remove(); upd.snooze = Date.now() + 10 * 60000; };
+}
+async function reloadToNew(quiet) {
+  document.querySelectorAll('.updgo, .updbtn').forEach(b => { b.disabled = true; b.textContent = '⏳ Osvježavam…'; });
+  try { sessionStorage.setItem('vijuga-updated', newBuild || '1'); if (quiet) sessionStorage.setItem('vijuga-updated-quiet', '1'); } catch (e) {}
+  try { if (profile) { localSave(profile); if (profileDirty) { profileDirty = false; saveProfile(); } const t0 = Date.now(); while (saveBusy && Date.now() - t0 < 3000) await new Promise(r => setTimeout(r, 100)); } } catch (e) {}
+  const u = new URL(location.href); u.searchParams.set('v', newBuild || String(Date.now())); location.replace(u.toString());
+}
+// after a refresh to a new version: a clean address and a word about what is new
+(() => { let was = null, quiet = false; try { was = sessionStorage.getItem('vijuga-updated'); quiet = !!sessionStorage.getItem('vijuga-updated-quiet'); sessionStorage.removeItem('vijuga-updated'); sessionStorage.removeItem('vijuga-updated-quiet'); } catch (e) {}
+  try { const u = new URL(location.href); if (u.searchParams.has('v')) { u.searchParams.delete('v'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch (e) {}
+  if (was && !quiet) setTimeout(() => { const n = notify('✅ Igra je osvježena na <b>najnoviju verziju</b>.', { ms: 9000, actions: '<button class="pingbtn" type="button" data-news="1">Što je novo</button>' }); const b = n && n.querySelector('[data-news]'); if (b) b.onclick = () => { n.remove(); showNews(); }; }, 1500);
+})();
+setTimeout(checkVersion, 30000); setInterval(() => { if (!document.hidden) checkVersion(); }, 2 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(checkVersion, 1500); });
 function showTab(t) {
   curTab = t;
@@ -3953,7 +3980,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
   { id: 'live-pack2', d: '2026-11-10', e: '🌅', t: 'Nove ikone iz stvarnog svijeta', x: 'Zalazak sunca u Šibeniku, mijena Mjeseca i koliko do uštapa, kad počinje jeftina noćna struja (vrijeme za perilicu), najtopliji grad u Hrvatskoj uživo i koliko još dana do sljedećeg praznika.', go: 'shop:live', b: 'Pogledaj ikone', items: ['bd_sunset', 'bd_moon', 'bd_power', 'bd_hot', 'bd_holiday'] },
-  { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Dnevni niz broji dane u kojima odigraš barem jedan meč. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju. Rezultat meča ili osvojeni turnir podijeliš na WhatsApp jednim dodirom.', go: '', b: '' },
+  { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju. Rezultat meča ili osvojeni turnir podijeliš na WhatsApp jednim dodirom.', go: '', b: '' },
   { id: 'jump-chord', d: '2026-11-10', e: '🦘', t: 'Mobitel: skok je sada LIJEVO + DESNO odjednom', x: 'Gumb SKOK u sredini je maknut. Za skok pritisni LIJEVO i DESNO u isto vrijeme, s oba palca. Strelice su ostale gdje su bile, a u sredini su sad velike tipke za zezalice, chat, glasovnu poruku i emotikone.', go: '', b: '' },
   { id: 'fun-lux3', d: '2026-11-10', e: '🐉', t: 'Novi luksuz, animirane i šaljive ikone', x: 'Pet novih dolazaka u igru: Zmaj, Crveni tepih, NLO, Raketa i Jednorog. Na svakoj kartici luksuza animacija se sad vrti sama. Šest novih animiranih ikona (raketa, spavač, bomba, disko kugla, plesač, duh) i cijela polica šaljivih ikona i natpisa: Klaun, Lijenčina, Krumpir, Fjaka, Pomalo…', go: 'shop:lux', b: 'Pogledaj luksuz', items: ['lx_dragon', 'lx_carpet', 'lx_ufo', 'lx_rocket', 'lx_unicorn', 'bd_a_rocket', 'bd_a_zzz', 'bd_a_bomb', 'bd_a_disco', 'bd_a_dance', 'bd_a_ghost', 'bd_clown', 'bd_sloth', 'bd_chicken', 'bd_potato', 'bd_duck', 'bd_goat', 'bd_brain', 'bd_coffee', 'bd_alien', 'bd_cool', 'bd_cactus', 'bd_snail', 'bd_pizza', 'bd_monkey', 'bd_raincloud', 'bd_lemon', 'bd_t_fjaka', 'bd_t_pomalo', 'bd_t_ajme', 'bd_t_madaj'] },
   { id: 'tour-stakes', d: '2026-11-10', e: '🏆', t: 'Turniri: novi izgled i ulog po izboru', x: 'Tab Turniri ima veliki nagradni fond, nagrade za prva tri mjesta, statistiku odigranih turnira i prijavu na jednom mjestu. Na nekim turnirima svatko uloži koliko želi: tko uloži više, može više i osvojiti, a dio koji nitko nije pratio vraća se na karticu. Za sada se igra demo novcem.', go: 'tab:tour', b: 'Otvori turnire' },
@@ -4349,6 +4376,7 @@ function toMenu() {
   netPresence({ ok: null, again: null });
   $('#game').hidden = true; $('#menu').hidden = false; if (onbarDirty) renderOnbar(); showOverlay(null); $('#gchat').hidden = true; $('#reactPop').hidden = true;
   renderPlayers(); renderMe(); renderShop(); pvStart(); if (curTab === 'online') renderNet();
+  if (newBuild) setTimeout(offerUpdate, 600);
   if (profile) setTimeout(dailyGreeting, 900); // after a match: the day's streak reward (and, the first time, the welcome box)
 }
 function togglePause(force) {
@@ -4400,6 +4428,7 @@ function showResults() {
   if (profile && mine) actions += `<div class="row"><button class="btn ghost wa" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   showOverlay(`<div class="banner"><span class="label">Kraj meča · ${plural(G.target, 'runda', 'runde', 'rundi')}</span><h3 style="color:${w.color}">Pobjednik: ${esc(w.name)}${badgesHtml(pBadges(w))}</h3>${actions}${earn}${table}</div>`);
   if ($('#waShare')) $('#waShare').onclick = () => waOpen(matchShareText(rows, mine));
+  if (newBuild) offerUpdate(); else checkVersion();
   if (net) {
     $('#readyBtn').onclick = () => { if (myPres.again === net.mid) return; netPresence({ again: net.mid }); renderReady(); }; // a second tap never cancels: that is the small link
     $('#unreadyBtn').onclick = () => { netPresence({ again: null }); renderReady(); };
@@ -6337,6 +6366,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
+window.__vijuga = { checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
 })();
 </script>
