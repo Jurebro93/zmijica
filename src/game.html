@@ -1319,6 +1319,7 @@ function claimStreak() {
   return { day, n };
 }
 function showStreak(st, then) {
+  sfx.pick(); notify(`🔥 <b>${st.day}. dan zaredom: +${st.n} zlatnika</b>${st.day < 7 ? ` · sutra ${STREAK_COINS[st.day]}` : ''}`, { ms: 7000 }); if (then) setTimeout(then, 800); return; // no window: the coins and one line
   const m = $('#regModal'); m.hidden = false;
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><h3>🔥 Dnevna nagrada: ${st.day}. dan zaredom</h3><p style="font-size:22px;margin:0;color:var(--amber);font-weight:700">+${st.n} zlatnika</p>
     <div class="streak">${STREAK_COINS.map((c, i) => `<div class="sd ${i + 1 < st.day ? 'done' : i + 1 === st.day ? 'now' : ''}"><small>${i + 1}. dan</small><b>${i + 1 < st.day ? '✓' : '●'} ${c}</b></div>`).join('')}</div>
@@ -1449,7 +1450,7 @@ function pushState() {
   let perm = 'default'; try { perm = Notification.permission; } catch (e) {}
   return perm === 'denied' ? 'denied' : 'ask'; // granted, but not for this player on this device: asks too (no browser prompt then)
 }
-const PUSHPOP_DAYS = { ask: 1, denied: 3, 'ios-home': 3, 'ios-old': 60, unsupported: 60 };
+const PUSHPOP_DAYS = { ask: 3, denied: 7, 'ios-home': 7, 'ios-old': 60, unsupported: 60 };
 function pushPopDue(st) {
   let o = null; try { o = JSON.parse(localStorage.getItem('vijuga-pushpop') || 'null'); } catch (e) {}
   if (!o || o.slug !== profile.slug) return true;
@@ -4667,7 +4668,7 @@ let achKnown = null;
 function checkAchievements() {
   if (!profile) return; const now = achOf(profile).map(a => a.id);
   let seen = null; try { seen = JSON.parse(localStorage.getItem('vijuga-ach-' + profile.slug) || 'null'); } catch (e) {}
-  if (!seen) { seen = now; } else { for (const id of now) if (!seen.includes(id)) { const a = ACH.find(x => x.id === id); notify(`🏅 Novo postignuće: <b>${a.e} ${esc(a.n)}</b>`, { ms: 6000 }); } }
+  if (!seen) { seen = now; } else { for (const id of now) if (!seen.includes(id)) { void id; } } // no pop-up per achievement: the profile shows them
   try { localStorage.setItem('vijuga-ach-' + profile.slug, JSON.stringify(now)); } catch (e) {}
 }
 function fmtDur(ms) { const m = Math.round((ms || 0) / 60000); if (m < 60) return m + ' min'; const h = Math.floor(m / 60); return h + ' h ' + (m % 60) + ' min'; }
@@ -5057,12 +5058,13 @@ function notify(html, opts = {}) {
   const box = $('#notes'); if (!box) return null;
   for (const old of box.querySelectorAll('.note-card')) if (old.querySelector('.txt') && old.querySelector('.txt').innerHTML === html) old.remove();
   const n = document.createElement('div'); n.className = 'note-card' + (opts.warn ? ' warn' : ''); n.innerHTML = `<div class="txt">${html}</div>` + (opts.actions || '') + '<button class="x" type="button" aria-label="Zatvori">×</button>';
-  n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > (innerWidth < 700 ? 2 : 3)) box.firstChild.remove();
-  if (inMatch() && !opts.warn) { n.hidden = true; n._ms = opts.ms; return n; } // a notice in the middle of a match waits until the player is back in the menu
+  n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > 3) box.firstChild.remove();
+  if (inMatch() && !opts.warn) { n.hidden = true; n._ms = opts.ms; return n; }
+  { const vis = [...box.querySelectorAll('.note-card:not([hidden])')]; while (vis.length > 1) vis.shift().remove(); } // one notice at a time: the newest // a notice in the middle of a match waits until the player is back in the menu
   if (opts.ms !== 0) setTimeout(() => n.remove(), opts.ms || 9000);
   return n;
 }
-function flushNotes() { document.querySelectorAll('#notes .note-card[hidden]').forEach(n => { n.hidden = false; if (n._ms !== 0) setTimeout(() => n.remove(), n._ms || 9000); }); }
+function flushNotes() { const later = [...document.querySelectorAll('#notes .note-card[hidden]')]; later.slice(0, -1).forEach(n => n.remove()); const n = later[later.length - 1]; if (!n) return; document.querySelectorAll('#notes .note-card:not([hidden])').forEach(x => x.remove()); n.hidden = false; if (n._ms !== 0) setTimeout(() => n.remove(), n._ms || 9000); } // back in the menu: only the latest waiting notice
 function fmtAgo(t) { const m = Math.round((Date.now() - t) / 60000); if (m < 1) return 'upravo'; if (m < 60) return `prije ${m} min`; const h = Math.round(m / 60); if (h < 24) return `prije ${h} h`; const d = Math.round(h / 24); return `prije ${d} ${d === 1 ? 'dan' : 'dana'}`; }
 // ---------- WhatsApp: a result shared with one tap (WhatsApp opens with the text ready; the player picks the chat or group)
 function waLink(text) { return 'https://wa.me/?text=' + encodeURIComponent(text); }
@@ -5297,17 +5299,17 @@ function collectSocial() {
     if (social.lastNotice[who] && Date.now() - social.lastNotice[who] < 120000) continue;
     social.lastNotice[who] = Date.now(); fresh.push(p);
   }
-  if (fresh.length && social.settled && profile && $('#game').hidden) {
+  if (false && fresh.length && social.settled && profile && $('#game').hidden) { // who comes online shows in the online bar, not as a notice
     const p = fresh[0], names = fresh.map(q => esc(String(q.presence.nm).slice(0, 14)));
     const n = notify(`🟢 <b>${names.join(', ')}</b> ${fresh.length > 1 ? 'su' : 'je'} online.${fresh.length > 1 ? '' : ' Igrajte zajedno!'}`, { actions: fresh.length === 1 ? `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}">Pozovi na igru</button>` : '' });
     if (n && fresh.length === 1) n.querySelector('.pingbtn').onclick = (e) => { sendPing(p.peer); n.remove(); };
-  } else if (fresh.length && social.settled && profile && !$('#game').hidden && !net) {
+  } else if (false && fresh.length && social.settled && profile && !$('#game').hidden && !net) {
     // playing locally: a quiet note only
     notify(`🟢 <b>${esc(String(fresh[0].presence.nm))}</b> je online. Možeš ga pozvati u izborniku.`, { ms: 5000 });
   }
   renderOnbar();
 }
-setTimeout(() => { social.settled = true; if (profile) { const o = onlineOthers(); if (o.length) { const names = o.slice(0, 3).map(q => esc(String(q.presence.nm).slice(0, 14))); const n = notify(`🟢 Online sada: <b>${names.join(', ')}</b>${o.length > 3 ? ' i još ' + (o.length - 3) : ''}.`, { actions: o.length === 1 ? `<button class="pingbtn" type="button">Pozovi na igru</button>` : '' }); if (n && o.length === 1) n.querySelector('.pingbtn').onclick = () => { sendPing(o[0].peer); n.remove(); }; } } }, 3500);
+setTimeout(() => { social.settled = true; if (false && profile) { const o = onlineOthers(); if (o.length) { const names = o.slice(0, 3).map(q => esc(String(q.presence.nm).slice(0, 14))); const n = notify(`🟢 Online sada: <b>${names.join(', ')}</b>${o.length > 3 ? ' i još ' + (o.length - 3) : ''}.`, { actions: o.length === 1 ? `<button class="pingbtn" type="button">Pozovi na igru</button>` : '' }); if (n && o.length === 1) n.querySelector('.pingbtn').onclick = () => { sendPing(o[0].peer); n.remove(); }; } } }, 3500);
 // ---------- spectating and teasing ----------
 const TROLLS = {
   hearts: { e: '💖', name: 'Srčeka', price: 40, ms: 2500, d: 'Kiša srčeka (lijepa gesta)' },
@@ -5709,7 +5711,7 @@ function receiveTroll(id, fromName, fromPeer) {
   if (id === 'pads') { padPrank = { e: ['🐸', '🦆', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
   if (profile) { profile.trollsGot = (profile.trollsGot || 0) + 1; profileDirty = true; }
   const now = performance.now();
-  if ($('#game').hidden || !G) { notify(`${t.e} <b>${esc(fromName)}</b> te pokušao zezati (${t.name}), ali nisi bio u igri.`, { warn: true, ms: 6000 }); return; }
+  if ($('#game').hidden || !G) return; // a prank while I am not playing: nothing to show
   const fx = { id, start: now, until: now + t.ms, from: fromName, seed: Math.random() * 1000 };
   trollFx.push(fx); if (trollFx.length > 4) trollFx.shift();
   trollSound(id); if (roomState.me) markPrank(roomState.me, id);
