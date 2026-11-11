@@ -1,5 +1,6 @@
 // Player roles for Vijuga. The master admin (jure) gives and takes roles; moderators can mute chat.
-// GET  /api/roles                       -> { master, roles: {slug: role}, mutes: {slug: until} }
+// GET  /api/roles                       -> { master, roles: {slug: role}, mutes: {slug: until}, rules: {...} | null }
+// POST /api/roles/rules {slug, auth, rules}            (master only: the match rules every game uses; null clears them)
 // POST /api/roles/set  {slug, auth, target, role}      (master only; role "" removes it)
 // POST /api/roles/mute {slug, auth, target, minutes}   (moderator, admin, master; minutes 0 lifts it)
 // POST /api/roles/grant {slug, auth, target, amount | item, note?}  (master only)
@@ -34,18 +35,35 @@ export async function treasury(change = 0) {
   await cas<number>(store, "treasury", (cur) => { const v = cur == null ? 10000 : Number(cur) || 0; ok = v + change >= 0; value = ok ? v + change : v; return ok ? value : undefined; });
   return { ok, value };
 }
+// the match rules the master sets for every game: only known keys and plain values pass
+const RULE_STR: Record<string, RegExp> = { walls: /^(smrt|prolaz)$/, arena: /^[a-z0-9-]{1,20}$/, puRate: /^(rijetko|normalno|često|ludnica)$/, speed: /^(sporo|normalno|brzo)$/, rounds: /^(3|5|7|10)$/, target: /^(auto|\d{1,3})$/ };
+const RULE_BOOL = ["teams", "shrink", "powerups", "jump", "weapons"];
+export function cleanRules(r: unknown) {
+  if (!r || typeof r !== "object") return null; const o = r as Record<string, unknown>, out: Record<string, unknown> = {};
+  for (const [k, re] of Object.entries(RULE_STR)) if (typeof o[k] === "string" && re.test(o[k] as string)) out[k] = o[k];
+  for (const k of RULE_BOOL) if (typeof o[k] === "boolean") out[k] = o[k];
+  if (o.puEnabled && typeof o.puEnabled === "object") { const pe: Record<string, boolean> = {}; for (const [k, v] of Object.entries(o.puEnabled as Record<string, unknown>).slice(0, 60)) if (/^[a-zA-Z]{2,12}$/.test(k) && typeof v === "boolean") pe[k] = v; out.puEnabled = pe; }
+  return Object.keys(out).length ? out : null;
+}
 export async function roleOf(slug: string) { if (slug === MASTER) return "master"; const { roles } = await loadRoles(); return roles[slug] || ""; }
 
 export default async (req: Request, context: Context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const { store, roles, mutes } = await loadRoles();
-  if (req.method === "GET") return json({ master: MASTER, roles, mutes });
+  if (req.method === "GET") return json({ master: MASTER, roles, mutes, rules: (await store.get("rules", { type: "json" })) || null });
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null; if (!b) return json({ error: "body missing" }, 400);
   const slug = String(b.slug ?? ""), target = String(b.target ?? "");
   // every action here is privileged: an account without a PIN proves nothing (anyone can act as it)
   const { gate } = await authedReq(req, context, slug, b.auth, { requirePin: true });
   if (!gate.ok) return gate.status === 429 ? json({ error: gate.error, wait: gate.wait }, 429) : json({ error: gate.error === "pin needed" ? "pin needed" : "auth" }, 403);
+  if (context.params.action === "rules") { // the master sets the rules of every match (null clears them)
+    if (slug !== MASTER) return json({ error: "master only" }, 403);
+    const rules = b.rules === null ? null : cleanRules(b.rules);
+    if (b.rules !== null && !rules) return json({ error: "bad rules" }, 400);
+    if (rules) await store.setJSON("rules", rules); else await store.delete("rules");
+    return json({ ok: true, rules });
+  }
   if (context.params.action !== "treasury" && context.params.action !== "economy" && (!SLUG.test(target) || (target === MASTER && context.params.action !== "grant"))) return json({ error: "bad target" }, 400);
   const mine = slug === MASTER ? "master" : roles[slug] || "";
   if (context.params.action === "set") {

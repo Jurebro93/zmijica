@@ -51,11 +51,29 @@ const SOURCES: Record<string, { ttl: number; load: () => Promise<unknown> }> = {
     const h = list.find((x: any) => x.date === today) || null, nx = list.find((x: any) => String(x.date) > today) || null;
     return { date: today, names: names === "n/a" ? "" : names.slice(0, 120), holiday: h ? String(h.localName || h.name).slice(0, 80) : "", next: nx ? { date: String(nx.date).slice(0, 10), name: String(nx.localName || nx.name).slice(0, 60) } : null };
   } },
+  fuel: { ttl: 6 * HOUR, load: async () => parseFuel(await get("https://www.hak.hr/info/cijene-goriva/", "text")) },
   hnl: { ttl: 30 * MIN, load: async () => {
     const [home, fx] = await Promise.all([get("https://hnl.hr/", "text"), get("https://hnl.hr/supersport-hnl/raspored-i-rezultati/", "text")]);
     return { table: parseTable(home), matches: parseFixtures(fx) };
   } },
 };
+
+// ---- HAK's fuel prices: a table per fuel (one row per company and product: min, max, median EUR/l). The price of the day
+// is the most common median of the fuel's rows (the plain products all sit on the government's cap)
+export function parseFuel(html: string) {
+  const fuel = (id: string) => {
+    const i = html.indexOf(`id="${id}"`); if (i < 0) return null;
+    const t = html.slice(i, html.indexOf("</table>", i)), med: number[] = [];
+    for (const m of t.matchAll(/<tr>\s*<td>[\s\S]*?<\/td>\s*<td>[\s\S]*?<\/td>\s*<td>[\s\S]*?<\/td>\s*<td>[\s\S]*?<\/td>\s*<td>\s*([0-9]+,[0-9]+)\s*€/g)) { const v = Number(m[1].replace(",", ".")); if (v > 0.3 && v < 5) med.push(v); }
+    if (!med.length) return null;
+    const n = new Map<number, number>(); for (const v of med) n.set(v, (n.get(v) || 0) + 1);
+    return [...n.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+  };
+  const es = fuel("div_eurosuper95"), dz = fuel("div_eurodizel"), lpg = fuel("div_autoplin");
+  if (es == null && dz == null) return null;
+  const d = /Zadnje ažurirano:\s*([0-9]{1,2}\.[0-9]{1,2}\.[0-9]{4})/.exec(html);
+  return { es, dz, lpg, date: d ? d[1] : null };
+}
 
 // ---- hnl.hr pages
 const strip = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
@@ -133,7 +151,7 @@ export function view(c: Cache, manual: Record<string, Manual>, now = Date.now())
     else { const m = manual[k]; clubs[k] = m ? { ...m, live: m.live ? { ...m.live, min: m.live.min ?? minuteOf(m.live.at, now) } : null, next: m.next && m.next.at > now - 130 * MIN ? m.next : null } : { name: CLUBS[k].name, league: "Prva NL", pos: null, next: null, live: null, last: null }; }
   }
   const w = d("wind") || {};
-  return { at: now, sea: d("sea"), wind: { senj: w.senj, st: w.st, sib: w.sib }, sun: w.sun || null, air: d("air"), fx: d("fx"), quake: d("quake"), iss: d("iss"), f1: d("f1"), day: d("day"), hnl: { table: hnl.table || [] }, clubs };
+  return { at: now, sea: d("sea"), wind: { senj: w.senj, st: w.st, sib: w.sib }, sun: w.sun || null, air: d("air"), fx: d("fx"), quake: d("quake"), iss: d("iss"), f1: d("f1"), day: d("day"), fuel: d("fuel"), hnl: { table: hnl.table || [] }, clubs };
 }
 
 export default async (req: Request, context: Context) => {

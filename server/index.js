@@ -235,3 +235,8 @@ setInterval(() => {
 }, 1000);
 
 server.listen(PORT, () => console.log(`vijuga-server listening on ${PORT}`));
+// a new version is being deployed (the platform stops this process): everybody is told first, so the game can say
+// "update in progress, please wait" instead of just losing the connection
+let closing = false;
+const shutdown = (sig) => { if (closing) return; closing = true; let n = 0; for (const ws of wss.clients) { if (ws.readyState === 1) { send(ws, { t: "note", m: "update" }); n++; } } console.log(`${sig}: told ${n} connections about the update`); setTimeout(() => process.exit(0), 1500).unref(); };
+process.on("SIGTERM", () => shutdown("SIGTERM")); process.on("SIGINT", () => shutdown("SIGINT"));

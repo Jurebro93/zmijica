@@ -202,6 +202,9 @@ h2.hs small { margin-left: 0; }
 <div class="shbg" id="shareBg" hidden><div class="shcard" id="shareCard" role="dialog" aria-modal="true" aria-label="Slika za dijeljenje"></div></div>
 <div class="pcard-bg" id="pcardBg" hidden><div class="pcard" id="pcard" role="dialog" aria-modal="true"></div></div>
 <script>
+// time played is for the master's eyes only
+const IS_MASTER = (() => { try { return localStorage.getItem('vijuga-login') === 'jure'; } catch (e) { return false; } })();
+
 (() => {
 'use strict';
 const API = 'https://vijuga.netlify.app/api/stats';
@@ -258,8 +261,7 @@ function tiles() {
     ['Rušenja', nf.format(t.kills), 'udarci u tuđi trag'],
     ['Zlatnici kod igrača', nf.format(t.coinsHeld), 'nakon kupovina'],
     ['Došli preko pozivnice', nf.format(t.invitedPlayers), 'igrači s pozivnim linkom igrača'],
-    ['Vrijeme u igri', fmtDur(t.playMs || 0), 'svi igrači zajedno, dok traje runda', true],
-    ['Vrijeme na stranici', fmtDur(t.siteMs || 0), 'izbornik, trgovina, predvorje…'],
+    ...(IS_MASTER ? [['Vrijeme u igri', fmtDur(t.playMs || 0), 'svi igrači zajedno, dok traje runda', true], ['Vrijeme na stranici', fmtDur(t.siteMs || 0), 'izbornik, trgovina, predvorje…']] : []),
     ['Potrošeni zlatnici', nf.format(t.coinsSpent || 0), 'trgovina i zezancije'],
     ['Kupljene stvari', nf.format(t.itemsOwned || 0), `${nf.format(t.purchases || 0)} kupnji ukupno`],
     ['Zezancije', nf.format(t.trolls || 0), 'bljeskovi, potresi, kakice…'],
@@ -299,7 +301,7 @@ function chart() {
 
 const COLS = [
   ['name', 'Igrač', 'l'], ['matches', 'Mečevi'], ['wins', 'Pobjede'], ['winRate', '% pobjeda'], ['podiums', 'Postolje'], ['roundsWon', 'Runde'],
-  ['kills', 'Rušenja'], ['coins', 'Zlatnici'], ['spent', 'Potrošio'], ['items', 'Stvari'], ['playMs', 'U igri'], ['trollsSent', 'Zezao'], ['trollsGot', 'Zezan'], ['online', 'Online'], ['invited', 'Pozvao'], ['created', 'Registriran'], ['lastSeen', 'Zadnje igrao'],
+  ['kills', 'Rušenja'], ['coins', 'Zlatnici'], ['spent', 'Potrošio'], ['items', 'Stvari'], ...(IS_MASTER ? [['playMs', 'U igri']] : []), ['trollsSent', 'Zezao'], ['trollsGot', 'Zezan'], ['online', 'Online'], ['invited', 'Pozvao'], ['created', 'Registriran'], ['lastSeen', 'Zadnje igrao'],
 ];
 function players() {
   const q = $('#q').value.trim().toLowerCase();
@@ -334,7 +336,7 @@ function showCard(slug) {
   const inv = Object.entries(p.inv || {}).filter(([k, v]) => v > 0 && TROLL[k]);
   const on = onlineSlugs.has(p.slug);
   $('#pcard').innerHTML = `<button type="button" class="pcx" id="pcX" aria-label="Zatvori">×</button><div style="display:flex;gap:12px;align-items:center"><span class="dot" style="width:40px;height:40px;background:${COLORS[p.color] || COLORS[0]}"></span><div><h3>${esc(p.name)}</h3><span class="note">${on ? '<b style="color:var(--good)">● online sada</b>' : 'zadnji put online ' + fmtAgo(p.lastSeen)} · registriran ${fmtDate(p.created)}${p.invitedBy ? ' · pozvao ga ' + esc((data.players.find(x => x.slug === p.invitedBy) || {}).name || p.invitedBy) : ''}</span></div></div>
-    <div class="ps">${st('zlatnika', nf.format(p.coins))}${st('mečeva', p.matches)}${st('pobjeda', p.wins + (p.matches ? ' · ' + p.winRate + '%' : ''))}${st('postolja', p.podiums)}${st('rušenja', p.kills)}${st('u igri', dur(p.playMs))}${st('potrošeno', nf.format(p.spent))}${st('kupljeno', p.purchases)}${st('zezao', p.trollsSent)}${st('zezan', p.trollsGot)}${st('pozvao', p.invited)}</div>
+    <div class="ps">${st('zlatnika', nf.format(p.coins))}${st('mečeva', p.matches)}${st('pobjeda', p.wins + (p.matches ? ' · ' + p.winRate + '%' : ''))}${st('postolja', p.podiums)}${st('rušenja', p.kills)}${IS_MASTER ? st('u igri', dur(p.playMs)) : ''}${st('potrošeno', nf.format(p.spent))}${st('kupljeno', p.purchases)}${st('zezao', p.trollsSent)}${st('zezan', p.trollsGot)}${st('pozvao', p.invited)}</div>
     <span class="lbl">Sve stvari u vlasništvu (${owned.filter(id => id !== 'sk_none' && id !== 'bd_none').length})</span>
     ${ITEM_GROUPS.map(([t, f]) => { const ids = owned.filter(id => id !== 'sk_none' && id !== 'bd_none' && f(id)); return ids.length ? `<span class="lbl" style="font-size:12px;opacity:.8">${t} (${ids.length})</span>${chips(ids, ALLN, null, eqSet)}` : ''; }).join('') || '<span class="note">ništa još</span>'}
     <span class="lbl">Zezalice u džepu</span>${inv.length ? `<div class="chips">${inv.map(([k, v]) => `<span>${TROLL[k]} ×${v}</span>`).join('')}</div>` : '<span class="note">ništa još</span>'}
