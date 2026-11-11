@@ -730,7 +730,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 .troll.hot { border-color: #ffd23f !important; box-shadow: 0 0 0 2px rgba(255,210,63,.35); }
 /* ---- the simple mode (body.lite): only what is needed */
 #liteTop, #liteNav, #liteMore, #liteSet { display: none; }
-body.lite.lhome #liteSet { display: block; width: 100%; margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px; color: var(--fg); font: 700 16px var(--body); }
+body.lite.lhome #liteSet.mo { display: block; width: 100%; margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px; color: var(--fg); font: 700 16px var(--body); }
 body.lite.lhome #liteMore { display: block; width: 100%; margin-top: 12px; background: none; border: 1px dashed var(--line); border-radius: 14px; padding: 12px; color: var(--muted); font: 600 15px var(--body); }
 body.lite #liteTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0 4px; }
 body.lite #liteTop .ll { background: none; border: 0; padding: 0; font: 400 24px var(--display); letter-spacing: .02em; color: var(--good); }
@@ -1390,7 +1390,7 @@ function renderLiteTop() {
   t.innerHTML = `<button type="button" class="ll" id="liteHome">VIJUGA</button>${profile ? `<button type="button" class="lcoins" id="liteMe"><span class="av" style="background:${COLORS[profile.color] || COLORS[0]}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>● ${c}</b></button>` : '<button type="button" class="lcoins" id="liteMe"><b>Prijava</b></button>'}`;
   $('#liteMe').onclick = () => profile ? showProfile() : showLogin(); $('#liteHome').onclick = () => setLiteView('home');
 }
-setTimeout(() => { liteReady = true; { const lm = $('#liteMore'); if (lm) lm.onclick = () => openAll(); const ls = $('#liteSet'); if (ls) ls.onclick = () => showTab('local'); } document.querySelectorAll('#liteNav [data-ln]').forEach(b => b.onclick = () => { const g = b.dataset.ln; if (g === 'home') setLiteView('home'); else if (g === 'shop') showTab('shop'); else if (g === 'chat') openChat(); else if (g === 'me') showProfile(); }); setLiteView('home'); renderLiteTop(); }, 1200);
+setTimeout(() => { liteReady = true; { const lm = $('#liteMore'); if (lm) lm.onclick = () => openAll(); const ls = $('#liteSet'); if (ls) { ls.onclick = () => showTab('local'); ls.classList.toggle('mo', isMasterUI()); } } document.querySelectorAll('#liteNav [data-ln]').forEach(b => b.onclick = () => { const g = b.dataset.ln; if (g === 'home') setLiteView('home'); else if (g === 'shop') showTab('shop'); else if (g === 'chat') openChat(); else if (g === 'me') showProfile(); }); setLiteView('home'); renderLiteTop(); }, 1200);
 function renderMe() {
   setTimeout(() => { try { renderOnbar(); } catch (e) {} }, 0);
   try { renderLiteTop(); } catch (e) {}
@@ -1422,7 +1422,7 @@ function showPlayer(slug) {
   const none = '<span class="hint">ništa još</span>';
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${nameHtml(P.slug, P.name)} ${badgeOf(P)} ${roleTag(P.slug)}</h3><span class="hint">${mutedUntil(P.slug) ? '🔇 utišan do ' + new Date(mutedUntil(P.slug)).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + ' · ' : ''}${online ? `<b style="color:var(--good)">● online</b> · ${esc(peerStatus(pe.presence))}` : `zadnji put online ${fmtSeen(P.updatedAt)}`} · igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
-    <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('u igri', fmtDur(P.playMs))}</div><details class="pmore"><summary>Sva statistika</summary><div class="pstats">${stat('rušenja', P.kills)}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div></details>
+    <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${isMasterUI() ? stat('u igri', fmtDur(P.playMs)) : stat('rušenja', P.kills)}</div><details class="pmore"><summary>Sva statistika</summary><div class="pstats">${isMasterUI() ? stat('rušenja', P.kills) + stat('na stranici', fmtDur(P.siteMs)) : ''}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div></details>
     ${levelHtml(P)}
     ${achBtnHtml(P)}
     <h4>Kolekcija <small>✓ = trenutno koristi</small></h4>
@@ -1764,8 +1764,9 @@ setTimeout(() => {
 const CUR_SOBA = (() => { try { return (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); } catch (e) { return ''; } })();
 function renderRoomPick() {
   const b = $('#roomPick'); if (!b) return;
-  const rooms = [['', 'Soba 1'], ['2', 'Soba 2']]; if (CUR_SOBA && CUR_SOBA !== '2') rooms.push([CUR_SOBA, 'Soba ' + CUR_SOBA]);
-  b.innerHTML = `<div class="seg">${rooms.map(([k, n]) => `<button type="button" data-soba="${k}" class="${k === CUR_SOBA ? 'on' : ''}">🚪 ${esc(n)}</button>`).join('')}</div><button type="button" class="btn sm ghost" id="roomSet">⚙️ Postavke igre</button><small class="hint">Svaka soba ima svoje mečeve i chat. Pravila meča bira onaj tko pokrene meč.</small>`;
+  if (!isMasterUI()) { b.innerHTML = ''; return; } // one room for everybody; only the master sets the rules
+  const rooms = CUR_SOBA ? [['', 'Soba 1'], [CUR_SOBA, 'Soba ' + CUR_SOBA]] : [];
+  b.innerHTML = `${rooms.length ? `<div class="seg">${rooms.map(([k, n]) => `<button type="button" data-soba="${k}" class="${k === CUR_SOBA ? 'on' : ''}">🚪 ${esc(n)}</button>`).join('')}</div>` : ''}<button type="button" class="btn sm ghost" id="roomSet">⚙️ Pravila za sve (admin)</button>`;
   b.querySelectorAll('[data-soba]').forEach(x => x.onclick = () => { const k = x.dataset.soba; if (k === CUR_SOBA) return; if (net && G && !G.over && !confirm('Napustiti ovaj meč i prijeći u drugu sobu?')) return; const u = new URL(location.href); if (k) u.searchParams.set('soba', k); else u.searchParams.delete('soba'); u.hash = 'online'; location.href = u.toString(); }); // only the room changes in the address
   $('#roomSet').onclick = () => showTab('local');
 }
@@ -1798,7 +1799,7 @@ function showProfile() {
   const chip = (kind, id, label, prev) => `<button type="button" class="wchip ${P.eq[kind] === id ? 'on' : ''}" data-kind="${kind}" data-id="${id}">${prev}<span>${esc(label)}</span>${P.eq[kind] === id ? '<i>✓</i>' : ''}</button>`;
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
-    <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('u igri', fmtDur(P.playMs))}</div><details class="pmore"><summary>Sva statistika</summary><div class="pstats">${stat('rušenja', P.kills)}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div></details>
+    <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${isMasterUI() ? stat('u igri', fmtDur(P.playMs)) : stat('rušenja', P.kills)}</div><details class="pmore"><summary>Sva statistika</summary><div class="pstats">${isMasterUI() ? stat('rušenja', P.kills) + stat('na stranici', fmtDur(P.siteMs)) : ''}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div></details>
     <div class="refbox"><b>📲 Pozovi igrača i zaradi ${REF_COINS} zlatnika</b><span>Pošalji svoj link: za svakog tko preko njega stvarno igra dobivaš <b>${REF_COINS}</b> zlatnika. Dosad pozvano: <b>${refInvited().length}</b> · isplaćeno: <b>${Math.max(refPaid(), refPaidSet().size)}</b>.</span>${refListHtml()}<div class="row"><button class="btn sm" type="button" id="profInvite">📲 Podijeli svoj link</button><button class="btn sm ghost" type="button" id="profCopy">Kopiraj link</button></div></div>
     ${levelHtml(P)}
     ${achBtnHtml(P)}
@@ -2443,6 +2444,7 @@ function roundsFor() { const n = Number(setup.rounds); return n >= 1 && n <= 20 
 function targetFor(n) { return roundsFor(); }
 function renderSettings() {
   const box = $('#settings'); box.innerHTML = '';
+  if (!isMasterUI()) { box.innerHTML = `<p class="hint" style="margin:0">⚙️ Pravila meča postavlja admin i vrijede za sve mečeve: zidovi ${setup.walls === 'prolaz' ? 'propuštaju' : 'ubijaju'}, power-upovi ${setup.powerups ? (setup.puRate || 'normalno') : 'isključeni'}, brzina ${setup.speed || 'normalno'}, ${setup.rounds || 5} rundi.</p>`; return; }
   const add = (label, node, note) => { const d = document.createElement('div'); d.className = 'setting'; const l = document.createElement('span'); l.className = 'label'; l.textContent = label; d.append(l, node); if (note) { const n = document.createElement('span'); n.className = 'note'; n.textContent = note; d.appendChild(n); } box.appendChild(d); };
   const upd = (k) => (v) => { setup[k] = v; saveSetup(); renderSettings(); renderPlayers(); renderLegend(); };
   add('Zidovi', seg([['smrt', 'Ubijaju'], ['prolaz', 'Propuštaju']], setup.walls, upd('walls')), 'Ubijaju: udarac u rub arene znači ispadanje. Propuštaju: izlaziš na suprotnoj strani.');
@@ -2454,6 +2456,7 @@ function renderSettings() {
   add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑, a na mobitelu LIJEVO i DESNO odjednom: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
   add('Pištolj i dimna bomba', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.weapons !== false, upd('weapons')), 'Jednom po rundi negdje na ploči padne 🔫 pištolj ili 💣 dimna bomba. Tko ga pokupi, koristi ga kao skok: LIJEVO i DESNO odjednom (ili ↑). Metak sruši zmiju koju pogodi u glavu ili blizu nje; dimna bomba odskakuje, stane i pušta dim koji 13 s sakrije dio arene.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
+  { const d = document.createElement('div'); d.className = 'setting'; d.innerHTML = `<button type="button" class="btn" id="rulesSave">💾 Spremi kao pravila za sve igrače</button><span class="hint">${roleState.rules ? 'Svi mečevi sad idu po spremljenim pravilima.' : 'Dok ne spremiš, svatko igra po svojim postavkama.'}</span>`; setTimeout(() => { const b = $('#rulesSave'); if (b) b.onclick = async () => { const rules = {}; for (const k of RULE_KEYS) if (setup[k] !== undefined) rules[k] = k === 'puEnabled' ? Object.assign({}, setup[k]) : setup[k]; if (typeof rules.rounds === 'number') rules.rounds = String(rules.rounds); const j = await roleCall('rules', { rules }); if (j && j.ok) { roleState.rules = j.rules; toast('✅ Pravila spremljena: svi mečevi idu po njima.'); renderSettings(); } }; }, 0); box.appendChild(d); }
   add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima točno toliko rundi. Na kraju pobjeđuje tko ima najviše bodova (kod istog broja odlučuju rušenja), svi dobiju zlatnike po plasmanu i biraju novu igru.');
 }
 function renderLegend() {
@@ -2462,7 +2465,7 @@ function renderLegend() {
     const p = POWERUPS[k], on = setup.puEnabled[k] !== false;
     const d = document.createElement('button'); d.type = 'button'; d.className = 'pu' + (on ? '' : ' off'); d.setAttribute('aria-pressed', String(on));
     d.innerHTML = `<i class="${p.t}">${p.g}</i><span><b>${p.name}</b><small>${p.d}${p.dur ? ' · ' + p.dur + ' s' : ''}</small></span><span class="chk">${on ? '✓' : ''}</span>`;
-    d.onclick = () => { setup.puEnabled[k] = !on; saveSetup(); renderLegend(); };
+    d.onclick = () => { if (!isMasterUI()) { toast('Power-upove bira admin.'); return; } setup.puEnabled[k] = !on; saveSetup(); renderLegend(); };
     box.appendChild(d);
   });
   const n = PU_KEYS.filter(k => setup.puEnabled[k] !== false).length;
@@ -2532,7 +2535,11 @@ const ROLE_INFO = {
   turnir: { tag: '🏆 VODITELJ', n: 'Voditelj turnira', d: 'Raspisuje, pokreće i otkazuje turnire. Ne može dodavati zlatnike u fond ni dirati račune igrača.' },
   moderator: { tag: '🛡️ MOD', n: 'Moderator', d: 'Čuva red u chatu: može utišati igrača na 10 min, 1 h ili 1 dan (njegove poruke tada nitko ne vidi) i ukinuti utišavanje. Ne može utišati admina.' },
 };
-let roleState = { master: 'jure', roles: {}, mutes: {} };
+let roleState = { master: 'jure', roles: {}, mutes: {}, rules: null };
+// the master's match rules: every game (online and with bots) follows them; only the master sees and changes the settings
+const RULE_KEYS = ['walls', 'arena', 'teams', 'shrink', 'powerups', 'puRate', 'jump', 'weapons', 'speed', 'rounds', 'puEnabled'];
+const isMasterUI = () => myRole() === 'master';
+function applyAdminRules() { const r = roleState.rules; if (!r || isMasterUI()) return; for (const k of RULE_KEYS) if (r[k] !== undefined) setup[k] = k === 'puEnabled' ? Object.assign({}, r[k]) : r[k]; }
 function roleOfSlug(slug) { return !slug ? '' : slug === roleState.master ? 'master' : roleState.roles[slug] || ''; }
 const myRole = () => roleOfSlug(profile && profile.slug);
 const isAdmin = () => ['master', 'admin', 'turnir'].includes(myRole());
@@ -2584,7 +2591,7 @@ function collectKicks() {
 // master only: a row of buttons to kick a human player of the current match (pause / leave dialogs, results)
 function kickRowHtml() { if (myRole() !== 'master' || !net || !G || !profile) return ''; const hs = G.players.filter(p => p.human && p.slug && p.slug !== profile.slug); return hs.length ? `<div class="kickrow"><span class="label">🚫 Izbaci igrača (master)</span><div class="row">${hs.map(p => `<button type="button" class="btn sm ghost" data-kick="${esc(p.slug)}" data-kn="${esc(p.name)}">${esc(p.name)}</button>`).join('')}</div></div>` : ''; }
 function wireKick(root) { (root || document).querySelectorAll('[data-kick]').forEach(b => { b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); askKick(b.dataset.kick, b.dataset.kn); }; }); }
-async function loadRoles() { try { const r = await fetch(ROLES_API, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); roleState = { master: (j && typeof j.master === 'string' && j.master) || 'jure', roles: (j && j.roles && typeof j.roles === 'object') ? j.roles : {}, mutes: (j && j.mutes && typeof j.mutes === 'object') ? j.mutes : {} }; renderNet(); renderBoard(); } } catch (e) {} } // an odd answer from the server must not break every screen that shows a role tag
+async function loadRoles() { try { const r = await fetch(ROLES_API, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); roleState = { master: (j && typeof j.master === 'string' && j.master) || 'jure', roles: (j && j.roles && typeof j.roles === 'object') ? j.roles : {}, mutes: (j && j.mutes && typeof j.mutes === 'object') ? j.mutes : {}, rules: (j && j.rules && typeof j.rules === 'object') ? j.rules : null }; applyAdminRules(); try { renderSettings(); renderLegend(); renderRoomPick(); } catch (e) {} renderNet(); renderBoard(); } } catch (e) {} } // an odd answer from the server must not break every screen that shows a role tag
 setTimeout(() => { loadRoles(); const h = $('#rolesHelp'); if (h) h.innerHTML = rolesHelpHtml(); }, 1200); setInterval(() => { if (!document.hidden) loadRoles(); }, 120000);
 async function roleCall(action, extra) {
   if (!profile) return null;
@@ -5034,10 +5041,10 @@ function showResults() {
   const mini = `<div class="rres rfin">${rows.map((p, i) => `<div class="rrow ${p === mine ? 'mine' : ''}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${dispColor(p)}"></span><span class="nm"><span>${i + 1}. ${esc(p.name)}</span></span><span class="sc">${p.score}</span><span class="bar"><i style="width:${Math.min(100, Math.round(100 * (p.score || 0) / topSc))}%;background:${dispColor(p)}"></i></span></div>`).join('')}</div>`; // the same see-through scoreboard as between the rounds
   let actions, extra = '';
   if (net) {
-    actions = `<div class="row"><button class="btn go-online" id="readyBtn">▶ Igraj opet</button>${net.role === 'host' ? '<button class="btn ghost" id="goAgainBtn" hidden title="Nova igra kreće odmah s onima koji su spremni">▶ Kreni odmah</button><button class="btn ghost" id="setBtn" title="Promijeni postavke igre (power-upovi, brzina, runde…)">⚙️ Postavke</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><div class="readybox" id="readyBox"></div><p class="hint" id="readyHint"></p><p class="hint" id="unreadyRow" hidden><button type="button" class="linkbtn" id="unreadyBtn">odustani od nove igre</button></p>`;
+    actions = `<div class="row"><button class="btn go-online" id="readyBtn">▶ Igraj opet</button>${net.role === 'host' ? '<button class="btn ghost" id="goAgainBtn" hidden title="Nova igra kreće odmah s onima koji su spremni">▶ Kreni odmah</button>' + (isMasterUI() ? '<button class="btn ghost" id="setBtn" title="Pravila za sve mečeve">⚙️ Postavke</button>' : '') : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><div class="readybox" id="readyBox"></div><p class="hint" id="readyHint"></p><p class="hint" id="unreadyRow" hidden><button type="button" class="linkbtn" id="unreadyBtn">odustani od nove igre</button></p>`;
     extra = `<p class="hint">Nova igra kreće kad su svi iz ovog meča spremni, ili ${REMATCH_MS / 1000} s nakon prvog „Spreman” s onima koji su tada spremni. Tko izađe, ne čeka se.</p>${kickRowHtml()}`;
   } else {
-    actions = `<div class="row"><button class="btn" id="againBtn">▶ Nova igra</button><button class="btn ghost" id="setLocalBtn" title="Promijeni postavke igre (power-upovi, brzina, runde…)">⚙️ Postavke</button><button class="btn ghost" id="menuBtn">Izbornik</button></div>`;
+    actions = `<div class="row"><button class="btn" id="againBtn">▶ Nova igra</button>${isMasterUI() ? '<button class="btn ghost" id="setLocalBtn" title="Pravila za sve mečeve">⚙️ Postavke</button>' : ''}<button class="btn ghost" id="menuBtn">Izbornik</button></div>`;
   }
   if (profile && mine) extra += `<div class="row"><button class="btn ghost wa sm" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   extra += `<p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Statistika svih igrača</a></p>`;
@@ -5055,7 +5062,7 @@ function showResults() {
   } else {
     $('#againBtn').onclick = () => { showOverlay(null); newMatch(); buildPads(); };
     $('#menuBtn').onclick = toMenu;
-    $('#setLocalBtn').onclick = () => { toMenu(); showTab('local'); }; // straight to the game settings
+    if ($('#setLocalBtn')) $('#setLocalBtn').onclick = () => { toMenu(); showTab('local'); }; // straight to the game settings
   }
 }
 // who is in the finished match and still here, and who pressed ready
@@ -6428,7 +6435,7 @@ function dropDeparted() {
   if (!net || net.role !== 'host' || !G) return;
   const now = performance.now();
   // at a round boundary a guest who is back in the menu goes at once (leftAt), a vanished connection gets a few seconds to return
-  const gone = G.players.filter(p => p.remote && (p.left || p.kicked || (p.leftAt && now - p.leftAt > 800) || (p.goneAt && now - p.goneAt > 4000)));
+  const gone = G.players.filter(p => p.remote && (p.left || p.kicked || (p.leftAt && now - p.leftAt > 800) || (p.goneAt && now - p.goneAt > 12000)));
   if (!gone.length) return;
   G.players = G.players.filter(p => !gone.includes(p));
   G.goneStats = G.goneStats || {}; for (const p of gone) if (p.slug && !p.kicked) G.goneStats[p.slug] = { score: p.score, kills: p.kills, wins: p.wins, picks: p.picks, jumps: p.jumps };
