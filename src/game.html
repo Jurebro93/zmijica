@@ -1227,6 +1227,9 @@ async function saveProfileNow() {
   if (roomNs) netPresence(myLobbyPres());
 }
 function rememberLogin(slug) { try { if (slug) localStorage.setItem('vijuga-login', slug); else localStorage.removeItem('vijuga-login'); } catch (e) {} }
+let digestAsked = (() => { try { return new URLSearchParams(location.search).get('digest') === '1'; } catch (e) { return false; } })();
+function maybeDigestOnOpen() { if (!digestAsked || !profile || !(myRole() === 'master' || myRole() === 'admin')) return; digestAsked = false; setTimeout(showDigestShare, 1200); }
+if (digestAsked) { let tries = 0; const chk = () => { if (!digestAsked) return; try { maybeDigestOnOpen(); } catch (e) {} if (digestAsked && ++tries < 40) setTimeout(chk, 1500); }; setTimeout(chk, 2500); } // opened from the 15:00 / 20:00 notification: once logged in (and the role is known), the post is ready
 function loginAs(doc) {
   doc._rev = doc.updatedAt || null;
   const local = localAccounts()[doc.slug];
@@ -1697,7 +1700,7 @@ function showProfile() {
     <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
     ${pushOn() ? '<p style="margin:0">🔔 Obavijesti su uključene na ovom uređaju: prijatelji te mogu bocnuti 👉 kad krene meč.</p>' : `<div class="refbox pushbox"><b>🔔 Uključi obavijesti${P.owned.includes('x_pushbonus') ? '' : ` i dobij ${PUSH_BONUS} zlatnika`}</b><span>Kad te netko <b>bocne 👉</b> ili pozove na meč, dobiješ poruku na mobitel, čak i kad Vijuga nije otvorena. Bez reklama: samo pozivi, bocanja i kad izađe nešto novo.</span><div class="row"><button class="btn sm" type="button" id="profPush">🔔 Uključi obavijesti</button></div></div>`}
     ${myRole() === 'master' ? '<div class="rolepick"><b>Master</b><button type="button" id="profGrantAll">💰 Pokloni zlatnike svim igračima</button></div>' : ''}
-    ${myRole() === 'master' || myRole() === 'admin' ? '<div class="rolepick"><b>Admin</b><button type="button" id="profEcon">📊 Ekonomija</button><button type="button" id="profWa">📲 Tekst za WhatsApp</button></div>' : ''}
+    ${myRole() === 'master' || myRole() === 'admin' ? '<div class="rolepick"><b>Admin</b><button type="button" id="profEcon">📊 Ekonomija</button><button type="button" id="profWa">📲 Tekst za WhatsApp</button><button type="button" id="profDigest">📣 Objava za grupu</button></div>' : ''}
     <div class="go"><button class="btn" type="button" id="profClose">Zatvori</button><button class="btn ghost" type="button" id="profShop">Trgovina</button><button class="btn ghost" type="button" id="profRename">Promijeni ime</button></div>
   </form>`;
   m.querySelectorAll('canvas.wprev').forEach(cv => { skinPreview(cv, cv.dataset.skin, COLORS[P.color] || COLORS[0]); });
@@ -1708,6 +1711,7 @@ function showProfile() {
   if ($('#profGrantAll')) $('#profGrantAll').onclick = () => grantAll();
   if ($('#profEcon')) $('#profEcon').onclick = () => showEconomy();
   if ($('#profWa')) $('#profWa').onclick = () => showWaDigest();
+  if ($('#profDigest')) $('#profDigest').onclick = () => showDigestShare();
   if ($('#profInvite')) $('#profInvite').onclick = () => shareInvite();
   if ($('#liteChk')) $('#liteChk').onchange = () => setLite($('#liteChk').checked);
   if ($('#profCopy')) $('#profCopy').onclick = async () => { try { await navigator.clipboard.writeText(inviteLink()); toast('Link je kopiran: ' + inviteLink()); } catch (e) { toast('Tvoj link: ' + inviteLink()); } };
@@ -5022,6 +5026,70 @@ function waDigestText() {
   lines.push(`👉 Igraj: ${GAME_URL}`);
   return lines.join('\n');
 }
+// ---- the daily post for the WhatsApp group (15:00 and 20:00 the owner gets a notification that opens this): a picture
+// and a formatted text with what is new in the game, who is online and who leads; shared in two taps (WhatsApp lets no
+// app post into a group by itself)
+function digestSeen() { try { return JSON.parse(localStorage.getItem('vijuga-digest-seen') || '[]') || []; } catch (e) { return []; } }
+function digestPick() { const seen = new Set(digestSeen()), fresh = NEWS.filter(n => !seen.has(n.id)); return { fresh: fresh.length > 0, list: (fresh.length ? fresh : NEWS).slice(0, 4) }; }
+function digestText() {
+  const day = new Intl.DateTimeFormat('hr-HR', { timeZone: 'Europe/Zagreb', day: 'numeric', month: 'numeric', year: 'numeric' }).format(Date.now());
+  const { fresh, list } = digestPick(), lines = [`🐍 *VIJUGA* · ${day}`, '', fresh ? '🆕 *Novo u igri:*' : '✨ *Zadnje novosti u igri:*'];
+  for (const n of list) lines.push(`${n.e} *${n.t}*`);
+  const on = new Set(roomState.peers.filter(p => p.presence && p.presence.sl && p.presence.pg !== 'stats').map(p => p.presence.sl)).size;
+  lines.push('');
+  if (on) lines.push(`🟢 Sad online: *${on}* ${on === 1 ? 'igrač' : on < 5 ? 'igrača' : 'igrača'}`);
+  const top = accounts.list.filter(a => a && a.name && (a.wins || 0) > 0).sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 3);
+  if (top.length) lines.push('🏆 Najviše pobjeda: ' + top.map((a, i) => `${['🥇', '🥈', '🥉'][i]} ${a.name} (${a.wins})`).join(' · '));
+  const nx = (typeof tours !== 'undefined' ? tours : []).filter(t => t.status === 'open').sort((a, b) => (a.start || 0) - (b.start || 0))[0];
+  if (nx) lines.push(`⚔️ Turnir „${nx.name}”: prijave otvorene, ${whenText(nx.start)}`);
+  lines.push('', `👉 *Ajmo igrati:* ${GAME_URL}`);
+  return lines.join('\n');
+}
+async function digestImage() {
+  try { if (document.fonts && document.fonts.ready) await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+  const W2 = 1080, H2 = 1350, c = document.createElement('canvas'); c.width = W2; c.height = H2; const g = c.getContext('2d');
+  const bgG = g.createLinearGradient(0, 0, 0, H2); bgG.addColorStop(0, '#101b29'); bgG.addColorStop(1, '#0b121b'); g.fillStyle = bgG; g.fillRect(0, 0, W2, H2);
+  // a few snake trails as decoration
+  g.lineCap = 'round'; g.lineWidth = 14; COLORS.forEach((col, i) => { g.strokeStyle = col; g.globalAlpha = 0.18; g.beginPath(); for (let x = -40; x <= W2 + 40; x += 20) { const y = 140 + i * 150 + Math.sin(x / 110 + i * 1.7) * 38; if (x === -40) g.moveTo(x, y); else g.lineTo(x, y); } g.stroke(); }); g.globalAlpha = 1;
+  const title = 'VIJUGA'; g.font = '400 132px Bungee, Impact, sans-serif'; g.textBaseline = 'alphabetic'; let tx = (W2 - g.measureText(title).width) / 2; for (let i = 0; i < title.length; i++) { g.fillStyle = COLORS[i % COLORS.length]; g.fillText(title[i], tx, 190); tx += g.measureText(title[i]).width; }
+  const day = new Intl.DateTimeFormat('hr-HR', { timeZone: 'Europe/Zagreb', weekday: 'long', day: 'numeric', month: 'long' }).format(Date.now());
+  g.font = '600 40px "Barlow Semi Condensed", sans-serif'; g.fillStyle = '#9fb0c3'; g.textAlign = 'center'; g.fillText(day, W2 / 2, 250); g.textAlign = 'left';
+  const { fresh, list } = digestPick();
+  const panel = (x, y, w, h) => { g.fillStyle = 'rgba(23,35,51,.92)'; g.strokeStyle = '#2a3b52'; g.lineWidth = 3; g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, 28) : g.rect(x, y, w, h); g.fill(); g.stroke(); };
+  panel(60, 300, W2 - 120, 760);
+  g.font = '400 50px Bungee, Impact, sans-serif'; g.fillStyle = '#ffb547'; g.fillText(fresh ? 'NOVO U IGRI' : 'NOVOSTI', 100, 380);
+  const wrap = (text, x, y, maxW, lh, maxL) => { const words = String(text).split(/\s+/); let line = '', n = 0; for (const w of words) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > maxW && line) { if (n === maxL - 1) { g.fillText(line.replace(/[,.;:]?$/, '…'), x, y); return y + lh; } g.fillText(line, x, y); y += lh; n++; line = w; } else line = t; } if (line) { g.fillText(line, x, y); y += lh; } return y; };
+  let y = 450; const EMOF = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  for (const n of list) { if (y > 990) break;
+    g.font = `60px ${EMOF}`; g.fillText(n.e, 100, y + 20);
+    g.font = '700 42px "Barlow Semi Condensed", sans-serif'; g.fillStyle = '#ffffff'; const yy = wrap(n.t, 190, y, W2 - 300, 46, 2);
+    g.font = '500 31px "Barlow Semi Condensed", sans-serif'; g.fillStyle = '#b8c6d6'; y = wrap(n.x || '', 190, yy + 2, W2 - 300, 36, list.length > 3 ? 2 : 3) + 30; g.fillStyle = '#ffffff'; }
+  // who is playing and who leads
+  panel(60, 1090, W2 - 120, 150);
+  const on = new Set(roomState.peers.filter(p => p.presence && p.presence.sl && p.presence.pg !== 'stats').map(p => p.presence.sl)).size;
+  const top = accounts.list.filter(a => a && a.name && (a.wins || 0) > 0).sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 3);
+  g.font = '700 38px "Barlow Semi Condensed", sans-serif'; g.fillStyle = '#3ddc97'; g.fillText(on ? `🟢 Sad online: ${on}` : '🟢 Uđi i igraj', 100, 1150);
+  g.fillStyle = '#ffd23f'; g.font = '600 34px "Barlow Semi Condensed", sans-serif'; wrap(top.length ? '🏆 ' + top.map((a, i) => `${i + 1}. ${a.name} (${a.wins})`).join('  ') : '🏆 Tko će biti prvi?', 100, 1205, W2 - 200, 40, 1);
+  g.font = '400 40px Bungee, Impact, sans-serif'; g.fillStyle = '#ffb547'; g.textAlign = 'center'; g.fillText('IGRAJ SA MNOM', W2 / 2, 1300); g.font = '600 32px "Barlow Semi Condensed", sans-serif'; g.fillStyle = '#e9eff6'; g.fillText('zmijica.onrender.com', W2 / 2, 1336); g.textAlign = 'left';
+  return new Promise(r => c.toBlob(b => r(b), 'image/png'));
+}
+async function showDigestShare() {
+  const m = $('#regModal'); m.hidden = false; const text = digestText();
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false"><h3>📣 Objava za WhatsApp grupu</h3><p class="hint" style="margin:0">Slika i tekst s novostima. Stisni <b>Podijeli</b> i odaberi grupu (npr. Vijugica). Tekst možeš urediti.</p>
+    <div id="dgImgBox" style="text-align:center"><span class="hint">Slažem sliku…</span></div>
+    <textarea id="dgText" rows="10" style="width:100%;font:13px/1.4 system-ui,sans-serif">${esc(text)}</textarea>
+    <div class="go"><button class="btn ghost" type="button" id="dgClose">Zatvori</button><button class="btn ghost" type="button" id="dgSave">⬇️ Spremi sliku</button><button class="btn ghost" type="button" id="dgCopy">📋 Kopiraj tekst</button><button class="btn" type="button" id="dgShare">📲 Podijeli</button></div></form>`;
+  const blob = await digestImage(); let url = '';
+  if (blob) { url = URL.createObjectURL(blob); const b = $('#dgImgBox'); if (b) b.innerHTML = `<img src="${url}" alt="Objava" style="max-width:100%;max-height:46vh;border-radius:12px;border:1px solid var(--line)">`; }
+  const markSeen = () => { try { const seen = new Set(digestSeen()); for (const n of NEWS) seen.add(n.id); localStorage.setItem('vijuga-digest-seen', JSON.stringify([...seen].slice(-200))); } catch (e) {} };
+  const file = blob ? new File([blob], 'vijuga-novosti.png', { type: 'image/png' }) : null;
+  $('#dgClose').onclick = () => { m.hidden = true; if (url) URL.revokeObjectURL(url); };
+  $('#dgCopy').onclick = async () => { const t = $('#dgText'); try { await navigator.clipboard.writeText(t.value); toast('Tekst kopiran.'); } catch (e) { t.select(); toast('Označeno: kopiraj.'); } };
+  $('#dgSave').onclick = () => { if (!url) return; const a = document.createElement('a'); a.href = url; a.download = 'vijuga-novosti.png'; document.body.appendChild(a); a.click(); a.remove(); };
+  $('#dgShare').onclick = async () => { const t = $('#dgText').value;
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text: t }); markSeen(); toast('Podijeljeno 👍'); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    $('#dgSave').click(); try { await navigator.clipboard.writeText(t); } catch (e) {} waOpen(t); markSeen(); toast('Slika je spremljena, tekst kopiran: priloži sliku u WhatsAppu.'); };
+}
 function showWaDigest() {
   const m = $('#regModal'); m.hidden = false; const text = waDigestText();
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false"><h3>📲 Tekst za WhatsApp</h3><p class="hint" style="margin:0">Tjedni pregled za grupu ili kanal. Možeš ga urediti prije slanja.</p>
@@ -6982,6 +7050,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
