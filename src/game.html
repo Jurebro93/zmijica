@@ -51,7 +51,8 @@ button:disabled { cursor: default; opacity: .5; }
 #coinFloat span { color: var(--amber); font-weight: 800; margin-left: 4px; }
 .shopfind { display: grid; gap: 8px; margin-bottom: 12px; position: sticky; top: 0; z-index: 4; background: var(--ink); padding: 6px 0; }
 .scatbox { margin-bottom: 12px; } .scatbox .label { display: block; margin-bottom: 6px; }
-.scats { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; -webkit-overflow-scrolling: touch; } .scats::-webkit-scrollbar { display: none; } .scats > button { flex: none; min-width: 84px; }
+.scats { display: grid; gap: 8px; } .sgroups, .ssubs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; -webkit-overflow-scrolling: touch; } .sgroups::-webkit-scrollbar, .ssubs::-webkit-scrollbar { display: none; } .sgroups > button { flex: none; min-width: 84px; }
+.ssubs { flex-wrap: wrap; } .ssubs[hidden] { display: none; } .scats .ssubs button { min-height: 0; min-width: 0; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font-size: 14px; } .scats .ssubs button span { font-size: 17px; } .scats .ssubs button[hidden] { display: none; } .scats .ssubs button.sall { font-weight: 800; }
 .scats button { display: grid; justify-items: center; align-content: center; gap: 3px; min-height: 68px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 12px; padding: 8px 4px; font-weight: 700; font-size: 13px; line-height: 1.15; text-align: center; }
 .scats button span { font-size: 24px; line-height: 1; }
 .scats button.on { border-color: var(--good); box-shadow: 0 0 0 2px var(--good) inset; background: var(--good); background: color-mix(in srgb, var(--good) 18%, var(--panel)); }
@@ -199,6 +200,7 @@ button:disabled { cursor: default; opacity: .5; }
 body.lite *, body.lite *::before, body.lite *::after { animation: none !important; transition: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !important; } body.lite .btn, body.lite .card, body.lite .banner { box-shadow: none !important; }
 .watchpop { position: fixed; z-index: 60; top: 64px; right: 12px; max-width: min(320px, calc(100vw - 24px)); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.5); } .watchpop .wrow1 { display: flex; align-items: center; gap: 8px; } .watchpop .wrow1 small { margin-left: auto; color: var(--muted); } .watchpop .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; } button.chip.watchers { cursor: pointer; font: inherit; color: inherit; }
+.srvupd { position: fixed; left: 50%; top: max(10px, env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 90; max-width: calc(100vw - 24px); background: #ffb547; color: #1b1206; font-weight: 700; border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.5); text-align: center; }
 .litebox { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--ink); } .litebox label { display: flex; gap: 8px; align-items: center; font-size: 15px; } .litebox input { width: 20px; height: 20px; } .boxcard.b-xp { border-color: #ffd23f66; background: linear-gradient(180deg, rgba(255,210,63,.08), transparent 60%), var(--panel); } .boxcard.b-xp small { font-size: 13px; }
 .bodds { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 3px; font-size: 14px; } .bodds li { display: flex; justify-content: space-between; gap: 8px; text-align: left; color: var(--muted); } .bodds li b { color: var(--fg); } .bodds li small { font-size: 11px; } .bodds li.rare, .bodds li.rare b { color: var(--amber); }
 .infob { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; } .infob:hover { border-color: var(--amber); } .infob.mini { padding: 0 6px; font-size: 12px; margin-left: 4px; vertical-align: 1px; }
@@ -749,7 +751,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 
       <div class="tab" id="tab-shop" hidden>
         <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve stvari</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
-        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="brands"><span>🛍️</span>Brendovi</button><button type="button" data-c="potions"><span>🧪</span>Napitci</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="lux"><span>🛥️</span>Luksuz</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
+        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><div class="sgroups"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="g_box"><span>🎁</span>Kutije</button><button type="button" data-c="g_snake"><span>🐍</span>Zmija</button><button type="button" data-c="g_icons"><span>⭐</span>Ikone i natpisi</button><button type="button" data-c="g_live"><span>🌍</span>Uživo</button><button type="button" data-c="g_fun"><span>😈</span>Zabava</button><button type="button" data-c="g_prem"><span>💎</span>Premium</button></div><div class="ssubs" hidden><button type="button" data-c="g_box" data-g="g_box" class="sall" hidden>Sve: Kutije</button><button type="button" data-c="boxes" data-g="g_box" hidden><span>🎁</span>Kutije</button><button type="button" data-c="g_snake" data-g="g_snake" class="sall" hidden>Sve: Zmija</button><button type="button" data-c="skins" data-g="g_snake" hidden><span>〰️</span>Tragovi</button><button type="button" data-c="fx" data-g="g_snake" hidden><span>✨</span>Efekti</button><button type="button" data-c="pu" data-g="g_snake" hidden><span>⚡</span>Power-upovi</button><button type="button" data-c="bgs" data-g="g_snake" hidden><span>🖼️</span>Pozadine arene</button><button type="button" data-c="g_icons" data-g="g_icons" class="sall" hidden>Sve: Ikone i natpisi</button><button type="button" data-c="badges" data-g="g_icons" hidden><span>⭐</span>Ikone</button><button type="button" data-c="brands" data-g="g_icons" hidden><span>🛍️</span>Brendovi</button><button type="button" data-c="local" data-g="g_icons" hidden><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags" data-g="g_icons" hidden><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="g_live" data-g="g_live" class="sall" hidden>Sve: Uživo</button><button type="button" data-c="live" data-g="g_live" hidden><span>🌍</span>Uživo</button><button type="button" data-c="weather" data-g="g_live" hidden><span>🌦️</span>Vrijeme</button><button type="button" data-c="crypto" data-g="g_live" hidden><span>₿</span>Kripto</button><button type="button" data-c="g_fun" data-g="g_fun" class="sall" hidden>Sve: Zabava</button><button type="button" data-c="trolls" data-g="g_fun" hidden><span>😈</span>Zezalice</button><button type="button" data-c="potions" data-g="g_fun" hidden><span>🧪</span>Napitci</button><button type="button" data-c="chatc" data-g="g_fun" hidden><span>🎨</span>Boje chata</button><button type="button" data-c="g_prem" data-g="g_prem" class="sall" hidden>Sve: Premium</button><button type="button" data-c="premium" data-g="g_prem" hidden><span>💎</span>Premium</button><button type="button" data-c="lux" data-g="g_prem" hidden><span>🛥️</span>Luksuz</button><button type="button" data-c="unique" data-g="g_prem" hidden><span>🗳️</span>Unikati</button></div></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span><button type="button" class="infob" data-info="coins" aria-label="Kako se zarađuju zlatnici">ℹ️ Kako zaraditi više</button></div>
         <div class="dailyrow" id="shopDaily"></div>
         <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div><h2 style="margin-top:16px">⭐ XP kutije <small>skupo, ali odmah si bliže novom nivou (i stvarima koje se na njemu otključavaju)</small></h2><div class="boxrow" id="shopXp"></div></div>
@@ -764,7 +766,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div><h2 style="margin-top:16px">😜 Šaljive ikone <small>za smijeh u predvorju i u meču</small></h2><div class="shop" id="shopFun"></div><h2 style="margin-top:16px">🌊 Dalmatinski natpisi <small>uzrečice i dalmatinska kuhinja: natpis uz ime i iznad zmije</small></h2><div class="shop" id="shopDalm"></div></div>
-        <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
+        <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div><h2 style="margin-top:16px">💎 Premium power-upovi <small>samo tvoji: jednom po rundi jedan od njih padne samo tebi, samo ga ti vidiš i samo ga ti pokupiš</small></h2><div class="shop" id="shopPremPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
         <div data-cat="chatc"><h2>🎨 Boje slova u chatu <small>kričavo roza, neon, duga, disko: tvoje poruke svi vide u toj boji</small></h2><div class="shop" id="shopChat"></div></div>
         <div data-cat="brands"><h2>🛍️ Brendovi <small>natpis brenda uz tvoje ime: sportski i luksuzni (samo ime, ne službeni logo)</small></h2><div class="shop" id="shopBrands"></div></div>
@@ -882,9 +884,18 @@ const POWERUPS = {
   wideO:  { t: 'o', g: '◡', name: 'Tromo skretanje', d: 'Ostali skreću jako široko, teško naprave krug', dur: 6 },
   clearA: { t: 'a', g: '×', name: 'Brisanje', d: 'Svi tragovi nestaju', dur: 0 },
   wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7 },
+  shieldS: { t: 's', g: '🛡️', name: 'Štit', d: 'Preživiš jedan sudar (8 s)', dur: 8 },
+  freezeO: { t: 'o', g: '❄️', name: 'Zamrzni', d: 'Ostali skoro stanu na 1,5 s', dur: 1.5 },
+  teleS:  { t: 's', g: '🌀', name: 'Teleport', d: 'Odmah si na slobodnom mjestu arene', dur: 0 },
+  magnetS: { t: 's', g: '🧲', name: 'Magnet', d: 'Power-upovi lete k tebi (6 s)', dur: 6 },
+  // PREMIUM: bought in the shop; once a round one of yours falls on the board, only you see it and only you can take it
+  pp_nitro: { t: 'p', prem: true, g: '🚀', name: 'Nitro', d: '3 s brže i prolaziš kroz tragove', dur: 3, price: 6000 },
+  pp_dia:   { t: 'p', prem: true, g: '💠', name: 'Dijamantni štit', d: '15 s: preživiš dva sudara (i metak)', dur: 15, price: 7000 },
+  pp_ice:   { t: 'p', prem: true, g: '🧊', name: 'Ledeno doba', d: 'Svi ostali 2,5 s skoro stoje', dur: 2.5, price: 8000 },
 };
-const PU_KEYS = Object.keys(POWERUPS);
-const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff' };
+const PU_KEYS = Object.keys(POWERUPS).filter(k => !POWERUPS[k].prem); // what can fall for everybody (and be switched off in the rules)
+const PREM_PU = Object.keys(POWERUPS).filter(k => POWERUPS[k].prem);
+const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff', p: '#c08cff' };
 const PU_R = 17; // pickup radius in arena units (was 13)
 // once a round a pistol or a smoke bomb lands somewhere; whoever picks it up uses it with the jump (LIJEVO + DESNO / ↑)
 const WEAPONS = { gun: { e: '🔫', name: 'Pištolj', verb: 'pucaj' }, smoke: { e: '💣', name: 'Dimna bomba', verb: 'baci dimnu bombu' } };
@@ -909,7 +920,7 @@ function drawPuIcon(c, k, x, y, R) {
     case 'sharpS': c.beginPath(); c.arc(0, 0.1 * s, 0.55 * s, Math.PI * 0.2, Math.PI * 1.75); c.stroke(); c.beginPath(); c.moveTo(0.35 * s, -0.75 * s); c.lineTo(0.62 * s, -0.35 * s); c.lineTo(0.2 * s, -0.3 * s); c.stroke(); break;
     case 'wideO': c.beginPath(); c.arc(0, -1.2 * s, 1.75 * s, Math.PI * 0.3, Math.PI * 0.7); c.stroke(); c.beginPath(); c.moveTo(-0.9 * s, 0.1 * s); c.lineTo(-0.55 * s, 0.55 * s); c.lineTo(-0.2 * s, 0.1 * s); c.stroke(); break;
     case 'clearA': c.beginPath(); c.moveTo(-0.7 * s, -0.7 * s); c.lineTo(0.7 * s, 0.7 * s); c.moveTo(0.7 * s, -0.7 * s); c.lineTo(-0.7 * s, 0.7 * s); c.stroke(); break;
-    default: c.font = `800 ${Math.round(R)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText((POWERUPS[k] || {}).g || '?', 0, 0);
+    default: { const g = (POWERUPS[k] || {}).g || '?', emo = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/u.test(g); c.font = emo ? `${Math.round(R * 1.05)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif` : `800 ${Math.round(R)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(g, 0, emo ? R * 0.06 : 0); }
   }
   c.restore();
 }
@@ -978,6 +989,7 @@ const BADGES = {
   bd_sunset: LVB('sunset', '🌅', '#ff9a5a', 'Zalazak sunca', 'UŽIVO: kad sunce zalazi u Šibeniku, a noću kad izlazi. Pola sata prije zalaska ikona zasvijetli', 700),
   bd_moon: LVB('moon', '🌙', '#d9d9ff', 'Mjesečeva mijena', 'Mijena Mjeseca i za koliko dana je pun Mjesec (uštap). Na pun Mjesec ikona zasvijetli', 600),
   bd_power: LVB('power', '💡 Struja', '#ffe066', 'Jeftina struja', 'Kad počinje jeftinija noćna tarifa struje (HEP, dvotarifno brojilo: zimi 21–7 h, ljeti 22–8 h). Dok traje, ikona svijetli: vrijeme za perilicu', 600),
+  bd_fuel: LVB('fuel', '⛽', '#f4a261', 'Cijena goriva', 'UŽIVO: koliko danas stoji litra Eurosupera 95 i Eurodizela u Hrvatskoj (najčešća cijena na pumpama, HAK)', 700),
   bd_hot: LVB('hot', '🌡️', '#ff6b6b', 'Najtopliji grad', 'UŽIVO: koji je grad u Hrvatskoj sad najtopliji (Zagreb, Split, Rijeka, Zadar, Osijek, Dubrovnik, Šibenik)', 700),
   bd_holiday: LVB('holiday', '🎒', '#7ee08a', 'Do praznika', 'Koliko je dana do sljedećeg državnog praznika ili blagdana. Na sam praznik ikona slavi', 500),
   bd_w_sib: WXB('sib', 900), bd_w_zg: WXB('zg', 900), bd_w_st: WXB('st', 900), bd_w_ri: WXB('ri', 900), bd_w_zd: WXB('zd', 900), bd_w_os: WXB('os', 900), bd_w_du: WXB('du', 900),
@@ -1632,7 +1644,9 @@ setTimeout(() => {
   document.querySelectorAll('.sfilt button').forEach(b => b.onclick = () => { shopFilter = b.dataset.f; document.querySelectorAll('.sfilt button').forEach(x => x.classList.toggle('on', x === b)); if (shopFilter === 'premium') { shopCat = 'all'; document.querySelectorAll('#shopCats button').forEach(x => x.classList.toggle('on', x.dataset.c === 'all')); } applyShopFilter(); });
   { const e = $('#shopEmptyAll'); if (e) e.onclick = () => { shopFilter = 'all'; shopCat = 'all'; const q = $('#shopQ'); if (q) q.value = ''; document.querySelectorAll('.sfilt button').forEach(x => x.classList.toggle('on', x.dataset.f === 'all')); document.querySelectorAll('#shopCats button').forEach(x => x.classList.toggle('on', x.dataset.c === 'all')); applyShopFilter(); }; }
   const setShopFilter = (f) => { shopFilter = f; document.querySelectorAll('.sfilt button').forEach(x => x.classList.toggle('on', x.dataset.f === f)); };
-  const setShopCat = (c) => { shopCat = c; document.querySelectorAll('#shopCats button').forEach(x => x.classList.toggle('on', x.dataset.c === c)); };
+  const setShopCat = (c) => { shopCat = c; const g = c === 'all' || SHOP_GROUPS[c] ? c : CAT_GROUP[c] || 'all';
+    document.querySelectorAll('#shopCats .sgroups button').forEach(x => x.classList.toggle('on', x.dataset.c === g));
+    const subs = $('#shopCats .ssubs'); if (subs) { subs.hidden = g === 'all' || (SHOP_GROUPS[g] || []).length < 2; subs.querySelectorAll('button').forEach(x => { x.hidden = x.dataset.g !== g; x.classList.toggle('on', x.dataset.c === c); }); } };
   document.querySelectorAll('#shopCats button').forEach(b => b.onclick = () => { setShopCat(b.dataset.c); setShopFilter('all'); const q = $('#shopQ'); if (q) q.value = ''; applyShopFilter(); const f = document.querySelector('#tab-shop .shopfind'); if (f && shopCat !== 'all') f.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 }, 500);
 // deep links: ?tab=trgovina or #trgovina (also aukcija, turnir, ljestvica, pomoc, online, botovi)
@@ -1947,6 +1961,18 @@ function buyPotion(k) {
   else { profile.xpx = (Number(profile.xpx) || 0) + P0.n; toast(`${P0.e} Glup glup… dvostruki XP još ${profile.xpx} mečeva!`); }
   saveProfile(); renderShop();
 }
+function renderPremPu() {
+  const box = $('#shopPremPu'); if (!box) return; box.innerHTML = '';
+  for (const id of PREM_PU) { const P = POWERUPS[id], own = !!(profile && profile.owned.includes(id));
+    const d = document.createElement('div'); d.className = 'item' + (own ? ' eq' : ''); d.dataset.id = id; d.dataset.owned = own ? '1' : '';
+    d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${P.g}</span></div><div><b>💎 ${esc(P.name)}</b><small>${esc(P.d)}. Pada samo tebi, jednom po rundi.${own ? ' · <b style="color:var(--amber)">imaš ✓</b>' : ''}</small></div>`;
+    const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = own ? '✓' : `● ${fmtN(P.price)}`;
+    const b = document.createElement('button'); b.type = 'button';
+    if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+    else if (own) { b.textContent = 'Imaš'; b.disabled = true; }
+    else { b.textContent = 'Kupi'; b.className = 'buy'; b.disabled = profile.coins < P.price; b.onclick = () => { if (profile.owned.includes(id) || profile.coins < P.price) return; if (!armTap(b, P.price)) return; profile.coins -= P.price; profile.spent = (profile.spent || 0) + P.price; profile.purchases = (profile.purchases || 0) + 1; profile.owned.push(id); sfx.pick(); saveProfile(); renderShop(); toast(`💎 ${P.name} je tvoj: od sada ti jednom po rundi padne samo tebi.`); }; }
+    act.append(pr, b); d.appendChild(act); box.appendChild(d); }
+}
 function renderXpShop() {
   const xb = $('#shopXp');
   if (xb) xb.innerHTML = Object.entries(XP_BOXES).map(([k, B]) => `<div class="boxcard b-xp"><div class="be">${B.e}</div><b>${B.name}</b><small class="hint">+${fmtN(B.xp)} XP odmah: brže do novog nivoa i stvari koje se otključavaju</small><button class="btn sm" type="button" data-xpbox="${k}" ${!profile || profile.coins < B.price ? 'disabled' : ''}>Kupi · ● ${fmtN(B.price)}</button></div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (() => { const L = levelOf(profile); return `Ti si na nivou <b>${L.lv}</b> (${fmtN(L.xp)} XP), do sljedećeg još ${fmtN(L.next)} XP.`; })() : 'Prijavi se da kupuješ XP.'} XP se inače skuplja igranjem: što više igrača u meču, to više XP-a.</p>`;
@@ -2117,6 +2143,10 @@ function armTap(b, cost) {
   setTimeout(() => { if (b._armed) { b._armed = 0; b.textContent = was; b.classList.remove('arm'); } }, 3500); return false;
 }
 let shopFilter = 'all', shopCat = 'all';
+// the shop's categories in a few groups (the top row); a group shows all its categories, a chip under it one of them
+const SHOP_GROUPS = { g_box: ['boxes'], g_snake: ['skins', 'fx', 'pu', 'bgs'], g_icons: ['badges', 'brands', 'local', 'tags'], g_live: ['live', 'weather', 'crypto'], g_fun: ['trolls', 'potions', 'chatc'], g_prem: ['premium', 'lux', 'unique'] };
+const CAT_GROUP = Object.fromEntries(Object.entries(SHOP_GROUPS).flatMap(([g, cs]) => cs.map(c => [c, g])));
+const shopCatShows = (cat) => shopCat === 'all' || cat === shopCat || (SHOP_GROUPS[shopCat] || []).includes(cat);
 function applyShopFilter() {
   const q = (($('#shopQ') || {}).value || '').trim().toLowerCase();
   document.querySelectorAll('#tab-shop .item').forEach(it => { const t = it.textContent.toLowerCase(); const okQ = !q || t.includes(q); const okF = shopFilter === 'all' || (shopFilter === 'have' && it.dataset.owned === '1') || (shopFilter === 'not' && it.dataset.owned !== '1') || (shopFilter === 'premium' && it.dataset.premium === '1'); it.style.display = okQ && okF ? '' : 'none'; });
@@ -2124,8 +2154,8 @@ function applyShopFilter() {
   // a section with two grids (Premium) stays when either has something to show
   document.querySelectorAll('#tab-shop [data-cat]').forEach(sec => { const grids = [...sec.querySelectorAll('.shop')]; if (grids.length > 1) sec.style.display = grids.some(g => [...g.children].some(c => c.style.display !== 'none')) ? '' : 'none'; });
   // category cards: one category at a time; a search looks through all of them
-  if (shopCat !== 'all' && !q) document.querySelectorAll('#tab-shop [data-cat]').forEach(sec => { if (sec.dataset.cat !== shopCat) sec.style.display = 'none'; });
-  { const bx = document.querySelector('#tab-shop [data-cat=boxes]'); if (bx) bx.style.display = q ? 'none' : (shopCat === 'all' || shopCat === 'boxes' ? '' : 'none'); }
+  if (shopCat !== 'all' && !q) document.querySelectorAll('#tab-shop [data-cat]').forEach(sec => { if (!shopCatShows(sec.dataset.cat)) sec.style.display = 'none'; });
+  { const bx = document.querySelector('#tab-shop [data-cat=boxes]'); if (bx) bx.style.display = q ? 'none' : (shopCatShows('boxes') ? '' : 'none'); }
   { const any = [...document.querySelectorAll('#tab-shop [data-cat]')].some(sec => sec.style.display !== 'none' && (sec.dataset.cat === 'boxes' || [...sec.querySelectorAll('.item')].some(it => it.style.display !== 'none'))); const em = $('#shopEmpty'); if (em) em.hidden = any; }
   const extra = shopCat === 'all' || !!q; for (const sel of ['#tab-shop .coinnote', '#shopDaily']) { const el = document.querySelector(sel); if (el) el.style.display = extra ? '' : 'none'; }
 }
@@ -2241,6 +2271,7 @@ function renderShopNow() {
       act.append(price, b); d.appendChild(act); tb.appendChild(d);
     });
   }
+  renderPremPu();
   make($('#shopPu'), STARTER_PU.map(k => [k, { name: 'Start: ' + POWERUPS[k].name, d: POWERUPS[k].d + (POWERUPS[k].dur ? ' · ' + POWERUPS[k].dur + ' s' : ''), price: STARTER_PRICE[POWERUPS[k].t] }]), 'pu');
 }
 
@@ -3078,7 +3109,7 @@ function newRound() {
   if (net && net.role === 'host' && G.round >= 1) { const r = matchRatio(); if (r && Math.abs(r / (netRatio || r) - 1) > 0.08) { netRatio = r; sizeArena(); } }
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
-  G.wpick = null; G.wpAt = setup.weapons === false ? null : rand(3, 9); G.shots = []; G.clouds = [];
+  G.wpick = null; G.wpAt = setup.weapons === false ? null : rand(3, 9); G.shots = []; G.clouds = []; G.ppAt = setup.powerups ? rand(4, 10) : null;
   owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
   tctx.clearRect(0, 0, W, H); clearLights();
   const placed = [];
@@ -3102,7 +3133,7 @@ const MAX_STACK = 2;
 function fxCount(p, k) { let n = 0; for (const f of p.fx) if (f.k === k && f.until > G.gt) n++; return Math.min(MAX_STACK, n); }
 function turnMul(p) { return Math.pow(1.8, Math.min(2, fxCount(p, 'sharp'))) * Math.pow(0.42, Math.min(2, fxCount(p, 'wide'))); } // stacks like speed and width (two at most, or nobody could turn)
 function cloudSlow(p) { const cs = G.clouds; if (!cs || !cs.length) return 1; for (const c of cs) if (c.k === 'perfume' && c.from !== p.id && c.until > G.gt && (p.x - c.x) ** 2 + (p.y - c.y) ** 2 < c.r * c.r) return 0.5; return 1; }
-function speedOf(p) { return BASE_SPEED * G.speedMul * Math.pow(1.6, fxCount(p, 'fast')) * Math.pow(0.62, fxCount(p, 'slow')) * cloudSlow(p); }
+function speedOf(p) { return BASE_SPEED * G.speedMul * Math.pow(1.6, fxCount(p, 'fast')) * Math.pow(0.62, fxCount(p, 'slow')) * cloudSlow(p) * (fxCount(p, 'freeze') ? 0.2 : 1); }
 function radiusOf(p) { return Math.max(1.1, BASE_R * Math.pow(0.5, fxCount(p, 'thin')) * Math.pow(2.1, fxCount(p, 'thick'))); }
 const OBST = 254;
 function arenaShapes() {
@@ -3373,6 +3404,7 @@ function liveTextFull(k) {
   if (t === 'sunset') { const s = sunTimes(); if (!s) return '…'; return s.up ? `zalazak ${s.set}${s.toSet < 3 * 3600e3 ? ' · ' + untilText(s.toSet) : ''}` : `izlazak ${s.rise}`; }
   if (t === 'moon') { const m = moonNow(); return `${m.e} ${m.name}${m.full ? '' : ' · pun ' + (m.toFull < 1.5 ? 'sutra' : 'za ' + Math.round(m.toFull) + ' d')}`; }
   if (t === 'power') { const p = powerNow(); return p.cheap ? `jeftina još ${untilText(p.ms).slice(3)}` : `jeftina ${untilText(p.ms)}`; }
+  if (t === 'fuel') { const f = L.fuel; if (!f || (f.es == null && f.dz == null)) return '…'; const e = (v) => v == null ? '–' : v.toFixed(2).replace('.', ',') + ' €'; return `ES95 ${e(f.es)} · Dizel ${e(f.dz)}`; }
   if (t === 'hot') { const h = hottest(); return h ? `${h.n} ${Math.round(h.t)}°` : '…'; }
   if (t === 'holiday') { const d = L.day || {}; const cut = (x) => (x = String(x || ''), x.length > 17 ? x.slice(0, 16).trimEnd() + '…' : x); if (d.holiday && d.date === zDay(Date.now())) return '🎉 ' + cut(d.holiday); const n = d.next; if (!n || !n.date) return '…'; const days = Math.round((Date.parse(n.date + 'T00:00:00Z') - Date.parse(zDay(Date.now()) + 'T00:00:00Z')) / 864e5); return `${cut(n.name)} · ${days <= 1 ? 'sutra' : 'za ' + days + ' d'}`; }
   return '…';
@@ -3647,6 +3679,15 @@ function tryJump(p) {
   flushTrail(p, false); sfx.jump();
 }
 
+// the game server says a new version is being put up: a banner for everybody until the connection is back
+let srvUpdAt = 0;
+function srvUpdating(on) {
+  if (on) srvUpdAt = Date.now(); else if (!srvUpdAt || Date.now() - srvUpdAt < 1500) return; // (the old connection may still say "connected" for a moment)
+  let b = document.getElementById('srvUpd');
+  if (!on) { srvUpdAt = 0; if (b) { b.textContent = '✅ Nadogradnja gotova, igra je ponovno spojena.'; setTimeout(() => { const x = document.getElementById('srvUpd'); if (x && !srvUpdAt) x.remove(); }, 2500); } return; }
+  if (!b) { b = document.createElement('div'); b.id = 'srvUpd'; b.className = 'srvupd'; document.body.appendChild(b); }
+  b.textContent = '🔧 Nadogradnja u tijeku – molimo pričekajte, igra se sama ponovno spaja…';
+}
 function setLite(v) {
   LITE = !!v; try { localStorage.setItem('vijuga-lite', LITE ? '1' : '0'); } catch (e) {}
   document.body.classList.toggle('lite', LITE); hudDirty = true;
@@ -3680,6 +3721,7 @@ function weaponsTick() {
   if (!G || G.phase !== 'run') return;
   if (G.clouds && G.clouds.length) G.clouds = G.clouds.filter(c => c.until > G.gt);
   if (G.wpAt != null && G.gt >= G.wpAt && !G.wpick) { G.wpAt = null; spawnWeapon(); }
+  if (G.ppAt != null && G.gt >= G.ppAt) { G.ppAt = null; spawnPrivate(); }
   if (G.wpick) { const b = bounds(); if (G.wpick.x < b.l + 8 || G.wpick.y < b.t + 8 || G.wpick.x > b.r - 8 || G.wpick.y > b.b - 8) G.wpick = null; } // the arena shrank over it
 }
 function pickWeapon(p) {
@@ -3769,7 +3811,7 @@ function botThink(p) {
   }
   if (D.seek && best >= look * 0.9 && G.pus.length) {
     let tgt = null, td = 320;
-    for (const u of G.pus) { const t = POWERUPS[u.k].t; if (t === 'o' && Math.random() < .3) continue; const d = Math.hypot(u.x - p.x, u.y - p.y); if (d < td) { td = d; tgt = u; } }
+    for (const u of G.pus) { if (u.own != null && u.own !== p.id) continue; const t = POWERUPS[u.k].t; if (t === 'o' && Math.random() < .3) continue; const d = Math.hypot(u.x - p.x, u.y - p.y); if (d < td) { td = d; tgt = u; } }
     if (tgt) {
       let diff = Math.atan2(tgt.y - p.y, tgt.x - p.x) - p.a; diff = Math.atan2(Math.sin(diff), Math.cos(diff));
       const c = Math.abs(diff) < 0.12 ? 0 : Math.sign(diff);
@@ -3822,8 +3864,46 @@ function applyPu(p, k, silent) {
       G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; q.tvH = []; });
       owner.fill(0); tctx.clearRect(0, 0, W, H); clearLights(); G.clr++; stampArena(); break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
+    case 'shieldS': add(p, 'shield', P.dur); break;
+    case 'freezeO': others.forEach(q => add(q, 'freeze', P.dur)); break;
+    case 'teleS': teleport(p); break;
+    case 'magnetS': add(p, 'magnet', P.dur); break;
+    case 'pp_nitro': add(p, 'fast', P.dur); add(p, 'ghost', P.dur); break;
+    case 'pp_dia': add(p, 'shield', P.dur); add(p, 'shield', P.dur); break;
+    case 'pp_ice': others.forEach(q => add(q, 'freeze', P.dur)); break;
   }
-  G.toast = { text: P.name, color: PU_COLOR[P.t], x: p.x, y: p.y, t: G.gt };
+  G.toast = { text: (P.prem ? '💎 ' : '') + P.name, color: PU_COLOR[P.t], x: p.x, y: p.y, t: G.gt };
+}
+
+// a shield takes the crash: one charge goes, the snake rides through for a moment
+function useShield(p) { const i = p.fx.findIndex(f => f.k === 'shield' && f.until > G.gt); if (i >= 0) p.fx.splice(i, 1); p.fx.push({ k: 'ghost', until: G.gt + 0.8 }); G.toast = { text: '🛡️ Štit!', color: '#3ddc97', x: p.x, y: p.y - 18, t: G.gt }; beep(880, 0.08, 'triangle', 0.06); }
+function teleport(p) {
+  const bd = bounds(), m = 60;
+  for (let tries = 0; tries < 60; tries++) {
+    const x = rand(bd.l + m, bd.r - m), y = rand(bd.t + m, bd.b - m);
+    if (inArenaWall(x, y, 30) || G.players.some(q => q !== p && q.alive && Math.hypot(q.x - x, q.y - y) < 90)) continue;
+    let free = true; for (let a = 0; a < 8 && free; a++) for (const d of [0, 12, 24, 40]) { const ci = cellIdx(x + Math.cos(a * 0.785) * d, y + Math.sin(a * 0.785) * d); if (ci >= 0 && owner[ci]) { free = false; break; } }
+    if (!free) continue;
+    flushTrail(p, false); trailVert(p, false); p.x = x; p.y = y; p.path = []; p.gapLeft = Math.max(p.gapLeft, 30); trailVert(p, false); p.fx.push({ k: 'ghost', until: G.gt + 0.4 }); return;
+  }
+}
+// the premium power-ups: once a round (a few seconds in) each player who owns some gets one of theirs, for them alone
+function ownsPu(p, id) { return p.mine ? !!(profile && profile.owned.includes(id)) : !!(p.human && p.slug && ownsSlug(p.slug, id)); }
+function spawnPrivate() {
+  const bd = bounds(), m = 40;
+  for (const p of G.players) {
+    if (!p.alive || !p.human) continue; const mine = PREM_PU.filter(id => ownsPu(p, id)); if (!mine.length) continue;
+    for (let tries = 0; tries < 30; tries++) {
+      const x = rand(bd.l + m, bd.r - m), y = rand(bd.t + m, bd.b - m);
+      if (inArenaWall(x, y, PU_R + 6) || G.players.some(q => q.alive && Math.hypot(q.x - x, q.y - y) < 70) || G.pus.some(u => Math.hypot(u.x - x, u.y - y) < 50)) continue;
+      G.pus.push({ k: mine[Math.floor(Math.random() * mine.length)], x, y, born: G.gt, own: p.id }); break;
+    }
+  }
+}
+// Magnet: the power-ups on the board drift towards whoever has it
+function magnetTick(dt) {
+  for (const p of G.players) { if (!p.alive || !has(p, 'magnet')) continue;
+    for (const u of G.pus) { if (u.own != null && u.own !== p.id) continue; const dx = p.x - u.x, dy = p.y - u.y, d = Math.hypot(dx, dy); if (d < 1 || d > 420) continue; const st = Math.min(d, 160 * dt); u.x += dx / d * st; u.y += dy / d * st; } }
 }
 
 // ---------- death ----------
@@ -3929,7 +4009,8 @@ function substep(lap) {
         if (p.x < bd.l) { p.x += w; tele = true; } else if (p.x > bd.r) { p.x -= w; tele = true; }
         if (p.y < bd.t) { p.y += h; tele = true; } else if (p.y > bd.b) { p.y -= h; tele = true; }
         if (tele) { flushTrail(p, false); trailVert(p, false); p.gapLeft = Math.max(p.gapLeft, r * 2 + 2); }
-      } else { dead.push([p, null]); continue; }
+      } else if (has(p, 'shield')) { useShield(p); p.x = Math.max(bd.l + wr + 1, Math.min(bd.r - wr - 1, p.x)); p.y = Math.max(bd.t + wr + 1, Math.min(bd.b - wr - 1, p.y)); p.a += Math.PI; flushTrail(p, false); trailVert(p, false); }
+      else { dead.push([p, null]); continue; }
     }
     portalStep(p);
     if (p.gapLeft > 0) p.gapLeft -= step;
@@ -3952,7 +4033,7 @@ function substep(lap) {
       if (!hit) hit = blockedBy(px, py, p, p._grace);
       if (hit) break;
     }
-    if (hit) dead.push([p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)]);
+    if (hit) { if (has(p, 'shield')) useShield(p); else dead.push([p, hit === OBST ? null : G.players.find(q => q.id === hit - 1)]); }
   }
   // 2b) bullets fly; one that meets a head (or the snake just behind it) fells that snake
   if (!lap && G.shots && G.shots.length) for (let i = G.shots.length - 1; i >= 0; i--) {
@@ -3966,6 +4047,7 @@ function substep(lap) {
       for (let k = pa.length - 1, m = 0; k >= 0 && m < n; k--, m++) if ((sh.x - pa[k][0]) ** 2 + (sh.y - pa[k][1]) ** 2 <= rr * rr) { hitP = q; break; }
       if (hitP) break;
     }
+    if (hitP && has(hitP, 'shield')) { G.shots.splice(i, 1); useShield(hitP); continue; }
     if (hitP) { G.shots.splice(i, 1); const by = G.players.find(q => q.id === sh.from) || null; dead.push([hitP, by]); G.toast = { text: '🎯 Pogodak!', color: by ? dispColor(by) : '#ffd23f', x: hitP.x, y: hitP.y - 22, t: G.gt }; }
   }
   // 3) the survivors leave their trail and collect power-ups
@@ -3978,7 +4060,7 @@ function substep(lap) {
       p.ptsR = p._r; p.pts.push(p.x, p.y); trailVert(p, true, wch);
     } else { if (p.pts.length) flushTrail(p, false); trailVert(p, false); }
     if (!lap) for (let i = G.pus.length - 1; i >= 0; i--) {
-      const u = G.pus[i];
+      const u = G.pus[i]; if (u.own != null && u.own !== p.id) continue; // somebody's premium power-up: only they can take it
       if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + p._r) { G.pus.splice(i, 1); applyPu(p, u.k); }
     }
     if (!lap && G.wpick && !p.wp && Math.hypot(G.wpick.x - p.x, G.wpick.y - p.y) < PU_R + p._r + 2) pickWeapon(p);
@@ -4012,7 +4094,7 @@ function update(dt) {
   if (setup.shrink && G.gt > 20) G.inset = Math.min(Math.min(W, H) * 0.32, G.inset + dt * mul * 7);
   if (setup.powerups && G.gt > G.nextPu) { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; if (G.pus.length < R.cap) spawnPu(); G.nextPu = G.gt + rand(R.min, R.max); }
   G.pus = G.pus.filter(u => G.gt - u.born < 14);
-  weaponsTick();
+  weaponsTick(); magnetTick(dt * mul);
   for (const p of G.players) p.fx = p.fx.filter(f => f.until > G.gt);
   updateParts(dt);
 }
@@ -4048,7 +4130,9 @@ function render() {
   ctx.setLineDash([]);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const puScale = Math.min(1.9, Math.max(1, 0.7 / Math.max(0.05, (cv.clientWidth || W) / W)));
+  const myPid = (myMatchPlayer() || {}).id;
   for (const u of G.pus) {
+    if (u.own != null && u.own !== myPid) continue; // a premium power-up only its owner sees
     const P = POWERUPS[u.k], age = G.gt - u.born, c = PU_COLOR[P.t];
     const fade = age > 11 ? (Math.sin(age * 20) > 0 ? 1 : .35) : 1;
     const pop = Math.max(0.01, Math.min(1, age * 5));
@@ -4060,6 +4144,7 @@ function render() {
     ctx.fillStyle = '#0b121b'; ctx.fill(); ctx.fillStyle = c + '33'; ctx.fill();
     ctx.lineWidth = Math.max(2.5, R * 0.16); ctx.strokeStyle = c; ctx.stroke();
     drawPuIcon(ctx, u.k, u.x, u.y, R);
+    if (P.prem) { ctx.save(); ctx.strokeStyle = '#fff'; ctx.globalAlpha = 0.5 + 0.4 * Math.sin(G.gt * 6); ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(u.x, u.y, R * 1.55, G.gt * 2, G.gt * 2 + 6.283); ctx.stroke(); ctx.restore(); }
     ctx.globalAlpha = 1;
   }
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
@@ -4070,7 +4155,7 @@ function render() {
   if (G.rings && G.rings.length) { const now = performance.now(); G.rings = G.rings.filter(r => now - r.t0 < 450); for (const r of G.rings) { const k = (now - r.t0) / 450; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, 6 + 34 * k, 0, 6.283); ctx.stroke(); ctx.restore(); } }
   { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
     if (me && me.alive && G.phase === 'run') {
-      const PUN = { fast: ['»', 'Brzina'], slow: ['«', 'Usporenje'], thin: ['—', 'Tanki trag'], ghost: ['○', 'Duh'], wrap: ['□', 'Bez zidova'], thick: ['●', 'Debeli trag'], reverse: ['⇄', 'Obrnuto'], square: ['┐', 'Kutovi'], sharp: ['↺', 'Oštro'], wide: ['◡', 'Tromo'] };
+      const PUN = { shield: ['🛡️', 'Štit'], freeze: ['❄️', 'Zamrznut'], magnet: ['🧲', 'Magnet'], fast: ['»', 'Brzina'], slow: ['«', 'Usporenje'], thin: ['—', 'Tanki trag'], ghost: ['○', 'Duh'], wrap: ['□', 'Bez zidova'], thick: ['●', 'Debeli trag'], reverse: ['⇄', 'Obrnuto'], square: ['┐', 'Kutovi'], sharp: ['↺', 'Oštro'], wide: ['◡', 'Tromo'] };
       const list = me.fx.filter(f => f.until > G.gt && PUN[f.k]).map(f => ({ k: f.k, left: f.until - G.gt, total: (POWERUPS[f.k + 'S'] || POWERUPS[f.k + 'O'] || { dur: 6 }).dur || 6 }));
       if (mirrorOn()) list.push({ k: 'mirror', left: (mirrorUntil - performance.now()) / 1000, total: (TROLLS.mirror || { ms: 8000 }).ms / 1000 });
       for (const f of trollFx) if (f.until > performance.now() && TROLLS[f.id] && f.id !== 'mirror') list.push({ k: 'troll:' + f.id, left: (f.until - performance.now()) / 1000, total: TROLLS[f.id].ms / 1000 });
@@ -6298,7 +6383,7 @@ function buildSnap(full = true) {
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
   return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
-    pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
+    pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
 }
@@ -6362,7 +6447,7 @@ function applyState(st, first) {
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
   if (st.ix && st.ph === 'count') { const key = JSON.stringify(st.ix); if (G.introKey !== key) { G.introKey = key; G.intro = st.ix; G.introDone = {}; G.introLen = st.ix.reduce((a, e) => Math.max(a, e.s + e.d + ENTER_BANNER), 0); } G.introT = st.it || 0; runIntro(); } else if (st.ph !== 'count') { G.intro = null; G.introKey = ''; }
   Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
-  G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3] })).filter(u => POWERUPS[u.k]);
+  G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3], own: u[4] != null && u[4] >= 0 ? u[4] : null })).filter(u => POWERUPS[u.k]);
   G.wpick = Array.isArray(st.wk) && WEAPONS[st.wk[0]] ? { k: st.wk[0], x: Number(st.wk[1]) || 0, y: Number(st.wk[2]) || 0 } : null;
   { const ns = Array.isArray(st.sh) ? st.sh.map(x => ({ x: Number(x[0]) || 0, y: Number(x[1]) || 0, a: Number(x[2]) || 0 })) : []; if (ns.length > (G.shots || []).length) beep(190, 0.12, 'square', 0.09, -120); G.shots = ns; }
   G.clouds = Array.isArray(st.cl) ? st.cl.map(c => ({ k: c[0] === 1 ? 'smoke' : 'perfume', x: Number(c[1]) || 0, y: Number(c[2]) || 0, r: Math.min(200, Number(c[3]) || 0), until: Number(c[4]) || 0, from: c[5], t0: Number(c[6]) || 0 })) : [];
@@ -6662,6 +6747,7 @@ async function initWsRoom() {
     sock.onmessage = (ev) => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.t === 'hello') { setConnected(true); if (Object.keys(lobbyPres).length) sendRaw({ t: 'pres', patch: lobbyPres }); if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); lastPong = performance.now(); return; }
+      if (m.t === 'note' && m.m === 'update') { srvUpdating(true); return; }
       if (m.t === 'peers') { const seen = new Set([myPeer]); for (const q of m.peers || []) { if (q.peer === myPeer || (q.presence && q.presence.obs)) continue; seen.add(q.peer); const prev = peersMap[q.peer]; const keep = prev ? { st: q.presence && q.presence.hs ? prev.presence.st : undefined, sp: prev.presence.sp, in: prev.presence.in, j: prev.presence.j, is: prev.presence.is, vis: prev.presence.vis } : {}; peersMap[q.peer] = mkPeer(q.peer, Object.assign({}, keep, q.presence || {})); } for (const k in peersMap) if (!seen.has(k)) delete peersMap[k]; fire(); return; }
       if (m.t === 'p') { if (typeof m.peer !== 'string' || m.peer === myPeer || !m.patch) return; const prev = peersMap[m.peer]; if (!prev) return; const np = Object.assign({}, prev.presence, m.patch); if ('hs' in m.patch && m.patch.hs == null) delete np.st; /* stopped hosting: its last snapshot is history */ peersMap[m.peer] = mkPeer(m.peer, np); (gameOnly(m.patch) ? fireGame() : fire()); return; }
       if (m.t === 'bye') { if (peersMap[m.peer]) { delete peersMap[m.peer]; fire(); } return; }
@@ -6754,7 +6840,7 @@ async function initCapabilities() {
   await bootAccounts();
   renderPlayers(); renderMe(); renderShop();
   if (roomNs) {
-    roomNs.onConnection(c => { roomState.connected = c; if (c && net && net.role === 'client') { net.lastSeen = performance.now(); net.lostAt = 0; } /* back online: give the host a moment before judging it */ renderOnbar(); if (curTab === 'online' && $('#menu').hidden === false) renderNet(); }, () => { roomNs = null; roomState.connected = false; renderNet(); });
+    roomNs.onConnection(c => { roomState.connected = c; if (c) srvUpdating(false); if (c && net && net.role === 'client') { net.lastSeen = performance.now(); net.lostAt = 0; } /* back online: give the host a moment before judging it */ renderOnbar(); if (curTab === 'online' && $('#menu').hidden === false) renderNet(); }, () => { roomNs = null; roomState.connected = false; renderNet(); });
     roomNs.onPeers(ch => {
       roomState.peers = ch.peers; if (ch.game) return; // a game-state patch: the match reads roomState.peers itself
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
@@ -6883,6 +6969,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>

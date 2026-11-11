@@ -14,6 +14,7 @@ const cat = await page.evaluate(() => { const v = window.__vijuga, items = {};
   const add = (tbl, k) => { for (const [id, it] of Object.entries(tbl)) { const p = v.itemPrice(id) || Number(it.price) || 0; items[id] = Object.assign({ p, k }, it.limit ? { l: it.limit } : {}); } };
   add(v.SKINS, 'skin'); add(v.BADGES, 'badge'); add(v.PREMIUM, 'premium'); add(v.EFFECTS, 'effect');
   for (const id of v.STARTER_PU) items[id] = { p: v.itemPrice(id), k: 'pu' };
+  for (const [id, it] of Object.entries(v.POWERUPS)) if (it.prem) items[id] = { p: Number(it.price) || 0, k: 'premium' }; // premium power-ups (owned, they fall only for their owner)
   const inv = {}; for (const [id, t] of Object.entries(v.TROLLS)) inv[id] = Number(t.price) || 0; inv.shield = v.SHIELD_PRICE;
   for (const [id, t] of Object.entries(v.POTIONS || {})) if (t.inv) inv[id] = Number(t.price) || 0;
   return { items, inv }; });
