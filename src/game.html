@@ -1864,12 +1864,32 @@ function goShopItem(id) {
   if (shopDirty) renderShopNow();
   let tries = 0; const find = () => {
     const el = document.querySelector(`#tab-shop .item[data-id="${CSS.escape(id)}"]`);
-    if (el && el.offsetParent !== null) { const d = el.closest('details'); if (d) d.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2400);
-      // the shop may still move under it (the other categories coming back): once it has settled, make sure the card is on screen
-      setTimeout(() => { const r = el.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) el.scrollIntoView({ block: 'center' }); }, 750); return; }
+    if (el && el.offsetParent !== null) { const d = el.closest('details'); if (d) d.open = true; showCard(el); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2400); return; }
     if (++tries < 10) setTimeout(find, 80); else toast(itemName(id) + ': nije pronađeno u trgovini.');
   };
   setTimeout(find, 60);
+}
+// a card brought to the middle of what the player really sees: below the shop's search bar (it stays stuck at the top
+// on a phone) and above the bottom bar. One jump (the shop is tens of thousands of pixels long; a smooth scroll that
+// far lands wherever the page has moved meanwhile), then checked again while pictures load and the shop settles,
+// unless the player has started scrolling by then.
+function showCard(el) {
+  let sc = el.parentElement; while (sc && sc !== document.body && !(/(auto|scroll)/.test(getComputedStyle(sc).overflowY) && sc.scrollHeight > sc.clientHeight)) sc = sc.parentElement;
+  const win = !sc || sc === document.body;
+  let moved = false; const stop = () => { moved = true; };
+  const tgt = win ? window : sc; ['touchstart', 'wheel', 'pointerdown', 'keydown'].forEach(e => tgt.addEventListener(e, stop, { once: true, passive: true }));
+  const place = () => {
+    if (moved || !el.isConnected || el.offsetParent === null) return;
+    const box = win ? { top: 0, bottom: innerHeight } : sc.getBoundingClientRect();
+    let top = Math.max(0, box.top), bot = Math.min(innerHeight, box.bottom);
+    const f = el.closest('#tab-shop') && document.querySelector('#tab-shop .shopfind'); if (f && f.offsetParent !== null && getComputedStyle(f).position === 'sticky') top += f.offsetHeight;
+    const nav = document.getElementById('bnav'); if (nav && getComputedStyle(nav).display !== 'none') { const nr = nav.getBoundingClientRect(); if (nr.top < bot) bot = nr.top - 28; } // (the round Igraj button sticks out above the bar)
+    const r = el.getBoundingClientRect(), room = bot - top;
+    const want = top + (r.height + 16 < room ? (room - r.height) / 2 : 8);
+    const dy = Math.round(r.top - want); if (Math.abs(dy) < 4) return;
+    if (win) window.scrollTo(0, window.scrollY + dy); else sc.scrollTop += dy;
+  };
+  place(); requestAnimationFrame(place); [200, 600, 1200].forEach(t => setTimeout(place, t));
 }
 function renderDailyShop() {
   const box = $('#shopDaily'); if (!box) return;
