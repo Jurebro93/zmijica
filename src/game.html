@@ -1037,7 +1037,7 @@ const BADGES = {
   bd_t_brudet: { g: 'Brudet 🐟', fun: true, dalm: true, tag: '#b5522e', svg: TAGB('Brudet 🐟', '#b5522e'), name: 'Natpis: Brudet 🐟', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: riblji brudet s palentom', price: 500 },
   bd_t_crnirizot: { g: 'Crni rižot 🦑', fun: true, dalm: true, tag: '#2b2b33', svg: TAGB('Crni rižot 🦑', '#2b2b33'), name: 'Natpis: Crni rižot 🦑', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: crni rižot od sipe: zubi crni, igra jaka', price: 500 },
   bd_t_peka: { g: 'Ispod peke 🔥', fun: true, dalm: true, tag: '#8c5a2b', svg: TAGB('Ispod peke 🔥', '#8c5a2b'), name: 'Natpis: Ispod peke 🔥', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: janjetina ili hobotnica ispod peke', price: 500 },
-  bd_t_makaruli: { g: 'Šporki makaruli 🍝', fun: true, dalm: true, tag: '#a8402f', svg: TAGB('Šporki makaruli 🍝', '#a8402f'), name: 'Natpis: Šporki makaruli 🍝', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: šibenski specijalitet: „prljavi” makaruli s mesom', price: 500 },
+  bd_t_prsut: { g: 'Pršut 🥓', fun: true, dalm: true, tag: '#a8402f', svg: TAGB('Pršut 🥓', '#a8402f'), name: 'Natpis: Pršut 🥓', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: dalmatinski pršut, sušen na buri', price: 500 },
   bd_t_fritule: { g: 'Fritule 🍩', fun: true, dalm: true, tag: '#c9902c', svg: TAGB('Fritule 🍩', '#c9902c'), name: 'Natpis: Fritule 🍩', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: fritule za Božić i blagdane', price: 500 },
   bd_t_soparnik: { g: 'Soparnik 🥬', fun: true, dalm: true, tag: '#4f8a3a', svg: TAGB('Soparnik 🥬', '#4f8a3a'), name: 'Natpis: Soparnik 🥬', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: poljički soparnik s blitvom', price: 500 },
   bd_t_marenda: { g: 'Marenda 🥪', fun: true, dalm: true, tag: '#3c7f8f', svg: TAGB('Marenda 🥪', '#3c7f8f'), name: 'Natpis: Marenda 🥪', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: marenda: dalmatinski gablec oko 10', price: 500 },
@@ -1455,7 +1455,7 @@ function openAll() {
   m.querySelector('.allgrid').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) navGo(b.dataset.go); };
 }
 // the chat, reachable from anywhere in the menu: text, quick lines and voice messages
-const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂', 'Ae! 👍', 'Ostav me se! 🙄', 'Napravi mi pašticadu! 🍲', 'Ajmo na marendu! 🥪', 'Fjaka je… 😴'];
+const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
 function openChat() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -4013,7 +4013,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
-  { id: 'dalmacija', d: '2026-11-11', e: '🍲', t: 'Dalmatinski natpisi i poruke', x: 'Uz Ajme i Fjaku stižu nove dalmatinske uzrečice uz ime: Ae!, Ostav me se, Ća je?, Ća ćeš, Ne moren, Lipo!, Gušt, Bokun, Ne beri brigu i Fala. I dalmatinska kuhinja: Pašticada, Brudet, Crni rižot, Ispod peke, Šporki makaruli, Fritule, Soparnik i Marenda. U meču i u chatu nove brze poruke: „Napravi mi pašticadu!”, „Ajmo na marendu!”, „Ostav me se!”…', go: 'shop:badges', b: 'Pogledaj natpise', items: ['bd_t_ae', 'bd_t_ostav', 'bd_t_ca', 'bd_t_caces', 'bd_t_nemoren', 'bd_t_lipo', 'bd_t_gust', 'bd_t_bokun', 'bd_t_neberi', 'bd_t_fala', 'bd_t_pasticada', 'bd_t_brudet', 'bd_t_crnirizot', 'bd_t_peka', 'bd_t_makaruli', 'bd_t_fritule', 'bd_t_soparnik', 'bd_t_marenda'] },
+  { id: 'dalmacija', d: '2026-11-11', e: '🍲', t: 'Dalmatinski natpisi', x: 'Uz Ajme i Fjaku stižu nove dalmatinske uzrečice uz ime: Ae!, Ostav me se, Ća je?, Ća ćeš, Ne moren, Lipo!, Gušt, Bokun, Ne beri brigu i Fala. I dalmatinska kuhinja: Pašticada, Brudet, Crni rižot, Ispod peke, Pršut, Fritule, Soparnik i Marenda.', go: 'shop:badges', b: 'Pogledaj natpise', items: ['bd_t_ae', 'bd_t_ostav', 'bd_t_ca', 'bd_t_caces', 'bd_t_nemoren', 'bd_t_lipo', 'bd_t_gust', 'bd_t_bokun', 'bd_t_neberi', 'bd_t_fala', 'bd_t_pasticada', 'bd_t_brudet', 'bd_t_crnirizot', 'bd_t_peka', 'bd_t_prsut', 'bd_t_fritule', 'bd_t_soparnik', 'bd_t_marenda'] },
   { id: 'live-pack2', d: '2026-11-10', e: '🌅', t: 'Nove ikone iz stvarnog svijeta', x: 'Zalazak sunca u Šibeniku, mijena Mjeseca i koliko do uštapa, kad počinje jeftina noćna struja (vrijeme za perilicu), najtopliji grad u Hrvatskoj uživo i koliko još dana do sljedećeg praznika.', go: 'shop:live', b: 'Pogledaj ikone', items: ['bd_sunset', 'bd_moon', 'bd_power', 'bd_hot', 'bd_holiday'] },
   { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju. Rezultat meča ili osvojeni turnir podijeliš na WhatsApp jednim dodirom.', go: '', b: '' },
   { id: 'jump-chord', d: '2026-11-10', e: '🦘', t: 'Mobitel: skok je sada LIJEVO + DESNO odjednom', x: 'Gumb SKOK u sredini je maknut. Za skok pritisni LIJEVO i DESNO u isto vrijeme, s oba palca. Strelice su ostale gdje su bile, a u sredini su sad velike tipke za zezalice, chat, glasovnu poruku i emotikone.', go: '', b: '' },
@@ -4332,7 +4332,7 @@ function padsReady() {
     const dead = !!(p && !p.alive && G.phase === 'run'); if (box._dead !== dead) { box._dead = dead; box.classList.toggle('dead', dead); } }
 }
 const QUICK_REACT = ['😂', '🔥', '👏', '🥳']; // must be in REACTIONS, the others drop anything else
-const QUICK_MSG = ['gg 👏', '🔊 Pojačajte zvuk! 🎤', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈', 'Ae! 👍', 'Ostav me se! 🙄', 'Ća je? 🤨', 'Lipo! 👌', 'Napravi mi pašticadu! 🍲', 'Ajmo na marendu! 🥪', 'Fjaka je… 😴', 'Bura puše! 💨'];
+const QUICK_MSG = ['gg 👏', '🔊 Pojačajte zvuk! 🎤', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
 // players used to the old SKOK button: a notice over the pads for their first matches, until they have jumped the new way
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); toast('👍 Tako je! LIJEVO + DESNO odjednom = skok.'); } }
