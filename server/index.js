@@ -25,7 +25,7 @@
 // players, host migration, spectators, rematches; plus the trail-history and voice tests): a host sends <= 19 messages
 // and <= 24 kB in any second (~12 kB/s on average); one snapshot ('own') is <= 2.2 kB (6 players); a peer's whole stored
 // presence is <= 0.3 kB (17 keys); one 'pres' message without voice is <= 0.2 kB; a 5 s voice clip is 13 kB (Chromium,
-// 16 kbit/s); a late arrival's trail history ('th') was 14 kB after a 28 s round (its cap: ~650 kB for 6 snakes at 6000
+// 16 kbit/s); a late arrival's trail history ('th') was 14 kB after a 28 s round (its cap: ~870 kB for 8 snakes at 6000
 // vertices each). Every limit below has at least x4 headroom over the measured values; going over one drops that
 // message (the sender gets {t:'err'}), and only sustained abuse (more than ABUSE_CLOSE dropped messages within about
 // ABUSE_DECAY_MS) closes the socket.
@@ -36,7 +36,7 @@ import { WebSocketServer } from "ws";
 const PORT = Number(process.env.PORT) || 8787;
 const ROOM_RE = /^vijuga-lobby(-[a-z0-9-]{1,24})?$/, PEER_RE = /^[a-z0-9]{4,16}$/, KEY_RE = /^[A-Za-z0-9_-]{32,128}$/;
 const NAME_RE = /^[A-Za-z][A-Za-z0-9_]{0,23}$/; // a stored presence key ('__proto__' and friends never become one)
-const MAX_MSG = 700_000; // bytes, hard frame limit (ws closes the socket above it): a late arrival's trail history ('th') in a very long 6-player round reaches ~650 kB
+const MAX_MSG = 1_000_000; // bytes, hard frame limit (ws closes the socket above it): a late arrival's trail history ('th') in a very long 8-player round reaches ~870 kB
 const TRANSIENT = new Set(["msg", "re", "ping", "pong", "dm", "bt"]); // relayed, never kept in presence
 const IDENTITY = ["sl", "nm", "st", "hs", "pls", "pmid", "cl"]; // a direct message may not forge who the sender is or what match they host
 const PRES_MAX = 8_000; // bytes, a peer's whole stored presence (legit <= 0.3 kB: lobby flags, name, badges, seats; x30)

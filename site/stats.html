@@ -110,6 +110,20 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
 .weekp { background: linear-gradient(90deg, rgba(255,215,0,.14), var(--panel)); border-color: rgba(255,215,0,.45); }
 .pcard { position: relative; } .pcx { position: sticky; top: 0; justify-self: end; margin-bottom: -34px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 20px; z-index: 2; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* share a table or a card as a picture (WhatsApp): the button sits at the end of its title and never widens the layout */
+h2.hs, .lead h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+h2.hs small { margin-left: 0; }
+.wabtn { margin-left: auto; flex: none; border: 1px solid #25d366; background: rgba(37,211,102,.12); color: #8ff0b3; border-radius: 999px; padding: 3px 10px; font: 600 13px/1.35 var(--body); letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.wabtn:hover { background: rgba(37,211,102,.22); }
+.wabtn:disabled { opacity: .55; }
+.tilebar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.stoast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); background: var(--panel); border: 1px solid #25d366; border-radius: 10px; padding: 10px 14px; font-weight: 600; z-index: 70; box-shadow: 0 8px 28px rgba(0,0,0,.45); }
+.shbg { position: fixed; inset: 0; background: rgba(5,9,14,.86); display: grid; place-items: center; padding: 16px; z-index: 60; }
+.shbg[hidden] { display: none; }
+.shcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; width: min(100%, 460px); max-height: calc(100vh - 32px); overflow: auto; display: grid; gap: 10px; }
+.shcard img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.shcard .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.shcard .btn.wa { margin-left: 0; }
 </style>
 </head>
 <body>
@@ -142,16 +156,16 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
 
   <section aria-labelledby="sumH">
     <h2 id="sumH" class="sr">Pregled</h2>
-    <div class="tiles" id="tiles"></div>
+    <div class="tilebar"><button class="wabtn" type="button" data-share="tiles" aria-label="Podijeli kao sliku na WhatsAppu: pregled">📲 WhatsApp</button></div><div class="tiles" id="tiles"></div>
   </section>
 
   <section class="panel" aria-labelledby="actH">
-    <h2 id="actH">Odigrani mečevi po danima <small>zadnjih 14 dana</small></h2>
+    <h2 class="hs" id="actH">Odigrani mečevi po danima <small>zadnjih 14 dana</small><button class="wabtn" type="button" data-share="chart" aria-label="Podijeli kao sliku na WhatsAppu: mečevi po danima">📲 WhatsApp</button></h2>
     <div class="chart" id="chart"></div>
   </section>
 
   <section class="panel" aria-labelledby="plH">
-    <h2 id="plH">Igrači <small id="plCount"></small></h2>
+    <h2 class="hs" id="plH">Igrači <small id="plCount"></small><button class="wabtn" type="button" data-share="players" aria-label="Podijeli kao sliku na WhatsAppu: igrači">📲 WhatsApp</button></h2>
     <div class="filter"><input id="q" type="search" placeholder="Traži igrača…" aria-label="Traži igrača"></div>
     <div class="tablewrap"><table id="players"></table></div>
     <p class="note">Mečevi i pobjede uključuju i mečeve odigrane prije uvođenja statistike (iz profila igrača). Postolje = 1.–3. mjesto. Runde = osvojene runde. Rušenja = koliko je puta netko udario u igračev trag.</p>
@@ -170,21 +184,22 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
 
   <div class="cols">
     <section class="panel" aria-labelledby="recH">
-      <h2 id="recH">Zadnji mečevi</h2>
+      <h2 class="hs" id="recH">Zadnji mečevi<button class="wabtn" type="button" data-share="recent" aria-label="Podijeli kao sliku na WhatsAppu: zadnji mečevi">📲 WhatsApp</button></h2>
       <div id="recent"></div>
     </section>
     <section class="panel" aria-labelledby="skH">
-      <h2 id="skH">Popularni skinovi i ikone</h2>
+      <h2 class="hs" id="skH">Popularni skinovi i ikone<button class="wabtn" type="button" data-share="popular" aria-label="Podijeli kao sliku na WhatsAppu: popularni skinovi i ikone">📲 WhatsApp</button></h2>
       <div class="bars" id="skins"></div>
       <div style="height:14px"></div>
       <div class="bars" id="badges"></div>
     </section>
     <section class="panel" aria-labelledby="buyH">
-      <h2 id="buyH">Najkupovanije u trgovini <small>koliko igrača ima stvar</small></h2>
+      <h2 class="hs" id="buyH">Najkupovanije u trgovini <small>koliko igrača ima stvar</small><button class="wabtn" type="button" data-share="bought" aria-label="Podijeli kao sliku na WhatsAppu: najkupovanije">📲 WhatsApp</button></h2>
       <div class="bars" id="bought"></div>
     </section>
   </div>
 </div>
+<div class="shbg" id="shareBg" hidden><div class="shcard" id="shareCard" role="dialog" aria-modal="true" aria-label="Slika za dijeljenje"></div></div>
 <div class="pcard-bg" id="pcardBg" hidden><div class="pcard" id="pcard" role="dialog" aria-modal="true"></div></div>
 <script>
 (() => {
@@ -192,7 +207,7 @@ tr[data-player]:hover td { background: rgba(255,255,255,.03); }
 const API = 'https://vijuga.netlify.app/api/stats';
 const GAME = 'https://zmijica.onrender.com/';
 const INVITE = GAME + '?pozivnica';
-const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42'];
+const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42', '#ff4fd8', '#b5f23d'];
 const SKIN = { lx_heli: '🚁 Helikopter', lx_yacht: '🛥️ Jahta', lx_rolex: '⌚ Rolex', sk_boat: 'Brodić ⛵', sk_dog: 'Psić 🐶', sk_dragon: 'Zmaj 🐉', sk_galaxy: 'Galaksija 🌌', sk_bolt: 'Munja ⚡', sz_pumpkin: 'Bundeva 🎃', sz_snow: 'Snježni ❄️', sz_love: 'Ljubav 💘', sz_sun: 'Ljeto ☀️', pr_goldname: '👑 Zlatno ime', pr_title: '🏷️ Titula', pr_entrance: '📣 Ulazak s pompom', bg_space: '🌌 Arena Svemir', bg_lava: '🌋 Arena Lava', bg_sea: '🌊 Arena More', pr_room: '🔒 Privatna soba', pr_vip: '💎 VIP', pr_tomb: '🪦 Spomenik', sk_diamond: 'Dijamant 💎', sk_none: 'Obični', sk_neon: 'Neon', sk_dash: 'Crtice', sk_pixel: 'Piksel', sk_rainbow: 'Duga', sk_gold: 'Zlato', sk_dildo: 'Dildo', sk_vag: 'Vagina', sk_boobs: 'Dojke', sk_condom: 'Kondom', sk_hairy: 'Dlakava jaja' };
 const BADGE = { bd_p_hdz: 'HDZ', bd_p_sdp: 'SDP', bd_p_mozemo: 'Možemo!', bd_p_most: 'Most', bd_p_dp: 'Domovinski pokret', bd_p_hss: 'HSS', bd_p_ids: 'IDS', bd_p_rf: 'Radnička fronta', bd_lgbt: '🏳️‍🌈 LGBT', bd_qplus: 'Progress Pride', bd_trans: 'Trans zastava', bd_bi: 'Bi zastava', bd_nb: 'Nebinarna zastava', bd_hr: '🇭🇷 Hrvatska', bd_sibenik: 'Šibenska zastava', bd_funcut: 'Šibenski Funcuti', bd_dinamo: 'Dinamo Zagreb', bd_hajduk: 'Hajduk Split', bd_mihovil: 'Sveti Mihovil', bd_katedrala: 'Katedrala sv. Jakova', bd_boat: '⛵ Brodić', bd_dog: '🐶 Psić', bd_comet: '☄ Komet', bd_none: 'Bez ikone', bd_bolt: '⚡ Munja', bd_star: '★ Zvijezda', bd_skull: '☠ Lubanja', bd_gem: '◆ Dragulj', bd_crown: '♛ Kruna', bd_ucross: 'U s križem', bd_vag: 'Vagina', bd_boobs: 'Dojke', bd_condom: 'Kondom', bd_hairy: 'Dlakava jaja' };
 const $ = s => document.querySelector(s);
@@ -356,7 +371,7 @@ function leaders() {
   const L = data.leaders || {};
   const box = [['playMs', 'Najviše vremena u igri', fmtDur], ['spent', 'Najveći potrošač', v => nf.format(v) + ' 🪙'], ['items', 'Najveći kolekcionar', v => v + ' stvari'],
     ['trollsSent', 'Glavni zezator', v => v + '×'], ['trollsGot', 'Najzezaniji', v => v + '×'], ['kills', 'Najviše rušenja', v => nf.format(v)], ['invited', 'Najviše pozvanih', v => v]];
-  $('#leaders').innerHTML = box.map(([k, t, f]) => `<div class="lead"><h3>${t}</h3>${(L[k] || []).length ? '<ol>' + L[k].map(x => `<li>${esc(x.name)}<span>${f(x.value)}</span></li>`).join('') + '</ol>' : '<p class="empty">Još nitko.</p>'}</div>`).join('');
+  $('#leaders').innerHTML = box.map(([k, t, f]) => `<div class="lead"><h3>${t}${waBtn('leaders:' + k, t)}</h3>${(L[k] || []).length ? '<ol>' + L[k].map(x => `<li>${esc(x.name)}<span>${f(x.value)}</span></li>`).join('') + '</ol>' : '<p class="empty">Još nitko.</p>'}</div>`).join('');
 }
 function ranked() {
   const li = (a, f) => a.length ? '<ol>' + a.map(f).join('') + '</ol>' : '<p class="empty">Još nema online mečeva između igrača.</p>';
@@ -367,10 +382,190 @@ function ranked() {
     ['💀 Tko koga najviše ruši', li(data.killPairs || [], x => `<li>${esc(x.killerName)} → ${esc(x.victimName)}<span>${x.n}×</span></li>`)],
     ['🤡 Tko koga najviše zeza', li(data.trollPairs || [], x => `<li>${esc(x.fromName)} → ${esc(x.toName)}<span>${x.n}×</span></li>`)],
     ['💡 Fun facts', facts.length ? '<ul style="margin:0;padding-left:18px;display:grid;gap:4px">' + facts.map(f => `<li>${esc(f)}</li>`).join('') + '</ul>' : '<p class="empty">Još nema.</p>'],
-  ].map(([t, h]) => `<div class="lead"><h3>${t}</h3>${h}</div>`).join('');
+  ].map(([t, h], i) => `<div class="lead"><h3>${t}${waBtn('ranked:' + i, t)}</h3>${h}</div>`).join('');
 }
-function renderWeek() { const w = data.weekly, b = $('#weekBox'); if (!w) { b.hidden = true; return; } b.hidden = false; b.innerHTML = `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap" data-player="${esc(w.slug)}"><span style="font-size:46px">🏆</span><div><div class="note" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Igrač tjedna</div><div style="font-family:var(--display);font-size:28px;color:var(--amber)">${esc(w.name)}</div><div class="note">${w.firsts} pobjeda · ${w.podiums} postolja · ${w.kills} rušenja · ${w.matches} mečeva u zadnjih 7 dana</div></div></div>`; }
+function renderWeek() { const w = data.weekly, b = $('#weekBox'); if (!w) { b.hidden = true; return; } b.hidden = false; b.innerHTML = `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap" data-player="${esc(w.slug)}"><span style="font-size:46px">🏆</span><div><div class="note" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Igrač tjedna</div><div style="font-family:var(--display);font-size:28px;color:var(--amber)">${esc(w.name)}</div><div class="note">${w.firsts} pobjeda · ${w.podiums} postolja · ${w.kills} rušenja · ${w.matches} mečeva u zadnjih 7 dana</div></div>${waBtn('week', 'igrač tjedna')}</div>`; }
 function render() { renderRecent(); renderWeek(); ranked(); tiles(); chart(); players(); leaders(); recent(); popularity('#skins', data.skins, SKIN); popularity('#badges', data.badges, BADGE); popularity('#bought', Object.fromEntries(Object.entries(data.owned || {}).filter(([k]) => !k.startsWith('x_'))), Object.assign({}, SKIN, BADGE, PU)); }
+// ---- share a table or card as a picture (WhatsApp). The picture is drawn from the data (not a screenshot), 1080 px
+// wide, in the game's colours. The tap itself has to open the share sheet, so the drawing is synchronous; the fonts
+// are loaded once in advance.
+const waBtn = (k, t) => `<button class="wabtn" type="button" data-share="${esc(k)}" aria-label="Podijeli kao sliku na WhatsAppu: ${esc(String(t).replace(/<[^>]*>/g, ''))}">📲 WhatsApp</button>`;
+const STATS_URL = GAME + 'stats.html';
+const SW = 540, SC = 2, PAD = 20, IN = 14; // logical width (the PNG is SC times that), outer and panel padding
+const EMO = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"';
+const FB = (w, px) => `${w} ${px}px "Barlow Semi Condensed", "Arial Narrow", ${EMO}, sans-serif`;
+const FD = (px) => `400 ${px}px Bungee, Impact, "Arial Black", ${EMO}, sans-serif`;
+let fontsOk = false;
+const fontsReady = () => { try { return Promise.all([document.fonts.load(FD(20)), document.fonts.load(FB(400, 16)), document.fonts.load(FB(600, 16)), document.fonts.load(FB(700, 16))]).then(() => document.fonts.ready).then(() => { fontsOk = true; }, () => { fontsOk = true; }); } catch (e) { fontsOk = true; return Promise.resolve(); } };
+fontsReady();
+const plain = s => String(s == null ? '' : s).replace(/<[^>]*>/g, '');
+const colorOf = (slug, name) => { const p = data && data.players.find(x => (slug && x.slug === slug) || (!slug && x.name === name)); return p ? COLORS[p.color] || COLORS[0] : null; };
+function fitText(x, s, w) { s = plain(s); if (x.measureText(s).width <= w) return s; while (s.length > 1 && x.measureText(s + '…').width > w) s = s.slice(0, -1); return s.trimEnd() + '…'; }
+function wrapText(x, s, w) { const out = []; let line = ''; for (const word of plain(s).split(/(\s+)/)) { const t = line + word; if (line.trim() && x.measureText(t.trimEnd()).width > w) { out.push(line.trimEnd()); line = word.trimStart(); } else line = t; } if (line.trim()) out.push(line.trimEnd()); return out.map(l => fitText(x, l, w)); }
+function rrect(x, a, b, w, h, r) { x.beginPath(); if (x.roundRect) x.roundRect(a, b, w, h, r); else { x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); } }
+const dotAt = (x, cx, cy, col, r = 5) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); };
+const BW = SW - 2 * PAD - 2 * IN; // body width inside the panel
+// body painters: called without y they return their height, with y they paint
+const BODY = {
+  table(x, sp, y) { // { cols: [{h}], rows: [{rank, c: [..], col, hi}] }: the first column takes what is left
+    const rh = 30, hh = 24, n = sp.cols.length; if (y == null) return hh + rh * Math.max(1, sp.rows.length);
+    const ws = sp.cols.map((c, i) => { if (!i) return 0; x.font = FB(600, 12); let w = x.measureText(c.h.toUpperCase()).width; x.font = FB(600, 15); for (const r of sp.rows) w = Math.max(w, x.measureText(plain(r.c[i])).width); return w + 16; });
+    for (let guard = 0; BW - ws.reduce((a, b) => a + b, 0) < 140 && guard < 60; guard++) { const k = ws.indexOf(Math.max(...ws.slice(1))); if (ws[k] <= 54) break; ws[k] -= 6; }
+    ws[0] = Math.max(100, BW - ws.reduce((a, b) => a + b, 0)); const xs = []; let cx = PAD + IN; for (let i = 0; i < n; i++) { xs.push(cx); cx += ws[i]; }
+    x.textBaseline = 'middle'; x.font = FB(600, 12); x.fillStyle = '#8396ab';
+    sp.cols.forEach((c, i) => { x.textAlign = i ? 'right' : 'left'; x.fillText(fitText(x, c.h.toUpperCase(), ws[i] - 6), i ? xs[i] + ws[i] : xs[i], y + hh / 2); });
+    if (!sp.rows.length) { x.textAlign = 'left'; x.font = FB(500, 15); x.fillText(sp.empty || 'Još nema podataka.', xs[0], y + hh + rh / 2); return; }
+    sp.rows.forEach((r, ri) => { const ry = y + hh + ri * rh, cy = ry + rh / 2;
+      x.strokeStyle = '#24364a'; x.lineWidth = 1; x.beginPath(); x.moveTo(PAD + IN, ry + .5); x.lineTo(PAD + IN + BW, ry + .5); x.stroke();
+      r.c.forEach((v, i) => {
+        x.font = FB(i ? 600 : 700, 15); x.fillStyle = (r.hi && !i) || (i === n - 1 && sp.lastAmber) ? '#ffb547' : '#e9eff6';
+        if (!i) { let tx = xs[0]; const keep = x.fillStyle; if (r.rank) { x.fillStyle = '#8396ab'; x.textAlign = 'left'; x.fillText(r.rank, tx, cy); tx += 24; } if (r.col) { dotAt(x, tx + 5, cy, r.col); tx += 16; } x.fillStyle = keep; x.textAlign = 'left'; x.fillText(fitText(x, v, ws[0] - (tx - xs[0]) - 8), tx, cy); }
+        else { x.textAlign = 'right'; x.fillText(fitText(x, v, ws[i] - 6), xs[i] + ws[i], cy); }
+      }); });
+  },
+  bars(x, sp, y) { // { groups: [{t, items: [{l, v, f}], empty}] }
+    const rh = 28, gh = 26; let h = 0; for (const g of sp.groups) h += (g.t ? gh : 0) + rh * Math.max(1, g.items.length); h += 8 * (sp.groups.length - 1); if (y == null) return h;
+    const lw = 170, vw = 46, tw = BW - lw - vw - 16;
+    for (const g of sp.groups) {
+      x.textBaseline = 'middle'; x.textAlign = 'left';
+      if (g.t) { x.font = FB(700, 13); x.fillStyle = '#8396ab'; x.fillText(g.t.toUpperCase(), PAD + IN, y + gh / 2); y += gh; }
+      if (!g.items.length) { x.font = FB(500, 15); x.fillStyle = '#8396ab'; x.fillText(g.empty || 'Još ništa.', PAD + IN, y + rh / 2); y += rh; }
+      for (const it of g.items) { const cy = y + rh / 2; x.textAlign = 'left'; x.font = FB(600, 15); x.fillStyle = '#e9eff6'; x.fillText(fitText(x, it.l, lw - 8), PAD + IN, cy);
+        x.fillStyle = '#101b27'; rrect(x, PAD + IN + lw, cy - 5, tw, 10, 5); x.fill(); x.fillStyle = '#ffb547'; rrect(x, PAD + IN + lw, cy - 5, Math.max(10, tw * it.f), 10, 5); x.fill();
+        x.textAlign = 'right'; x.fillStyle = '#e9eff6'; x.fillText(String(it.v), PAD + IN + BW, cy); y += rh; }
+      y += 8;
+    }
+  },
+  tiles(x, sp, y) { // { tiles: [{k, v, s, hero}] }, two in a row
+    const th = 92, gap = 10, cw = (BW - gap) / 2, rows = Math.ceil(sp.tiles.length / 2); if (y == null) return rows * th + Math.max(0, rows - 1) * gap;
+    sp.tiles.forEach((t, i) => { const tx = PAD + IN + (i % 2) * (cw + gap), ty = y + Math.floor(i / 2) * (th + gap);
+      x.fillStyle = '#101b27'; rrect(x, tx, ty, cw, th, 10); x.fill(); x.strokeStyle = '#24364a'; x.lineWidth = 1; x.stroke();
+      x.textAlign = 'left'; x.textBaseline = 'alphabetic'; x.font = FB(600, 11); x.fillStyle = '#8396ab'; x.fillText(fitText(x, t.k.toUpperCase(), cw - 24), tx + 12, ty + 22);
+      x.font = FD(t.v.length > 9 ? 18 : 23); x.fillStyle = t.hero ? '#ffb547' : '#e9eff6'; x.fillText(fitText(x, t.v, cw - 24), tx + 12, ty + 54);
+      x.font = FB(500, 13); x.fillStyle = '#8396ab'; x.fillText(fitText(x, t.s, cw - 24), tx + 12, ty + 78); });
+  },
+  chart(x, sp, y) { // { days: [{day, matches}] }
+    const H = 210; if (y == null) return H;
+    const days = sp.days, max = Math.max(4, ...days.map(d => d.matches)), step = Math.ceil(max / 4), top = step * 4, padL = 26, padB = 24;
+    const x0 = PAD + IN + padL, iw = BW - padL, ih = H - padB - 14, bw = iw / Math.max(1, days.length), barW = Math.max(6, bw - 6), yy = v => y + 14 + ih - v / top * ih;
+    x.font = FB(500, 11); x.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) { const v = i * step; x.strokeStyle = '#24364a'; x.lineWidth = 1; x.beginPath(); x.moveTo(x0, yy(v) + .5); x.lineTo(x0 + iw, yy(v) + .5); x.stroke(); x.fillStyle = '#8396ab'; x.textAlign = 'right'; x.fillText(String(v), x0 - 6, yy(v)); }
+    days.forEach((d, i) => { const bx = x0 + i * bw + (bw - barW) / 2;
+      if (d.matches > 0) { x.fillStyle = '#ffb547'; rrect(x, bx, yy(d.matches), barW, yy(0) - yy(d.matches), Math.min(4, barW / 2)); x.fill(); x.fillStyle = '#e9eff6'; x.textAlign = 'center'; x.font = FB(700, 11); x.fillText(String(d.matches), bx + barW / 2, yy(d.matches) - 8); x.font = FB(500, 11); }
+      if (i % (bw < 30 ? 2 : 1) === 0) { x.fillStyle = '#8396ab'; x.textAlign = 'center'; x.fillText(d.day.slice(8, 10) + '.' + d.day.slice(5, 7) + '.', bx + barW / 2, y + H - 9); } });
+  },
+  matches(x, sp, y) { // { list: [{top, ents: [{t, c}]}] }: whole entries ("2. Ana Marija · 16") wrap, never split
+    x.font = FB(600, 15); const gap = 16;
+    const lines = sp.list.map(m => { const ls = [[]]; let w = 0; for (const e of m.ents) { const ew = Math.min(BW, x.measureText(e.t).width); if (ls[ls.length - 1].length && w + gap + ew > BW) { ls.push([]); w = 0; } ls[ls.length - 1].push({ ...e, w: ew }); w += (w ? gap : 0) + ew; } return ls; });
+    let h = 0; lines.forEach(l => { h += 22 + 21 * l.length + 12; }); if (y == null) return Math.max(h, 30);
+    x.textAlign = 'left'; x.textBaseline = 'middle';
+    if (!sp.list.length) { x.font = FB(500, 15); x.fillStyle = '#8396ab'; x.fillText('Još nema zabilježenih mečeva.', PAD + IN, y + 15); return; }
+    sp.list.forEach((m, i) => { x.font = FB(600, 13); x.fillStyle = '#8396ab'; x.fillText(fitText(x, m.top, BW), PAD + IN, y + 10); y += 22;
+      x.font = FB(600, 15); for (const l of lines[i]) { let lx = PAD + IN; for (const e of l) { x.fillStyle = e.c; x.fillText(fitText(x, e.t, BW), lx, y + 10); lx += e.w + gap; } y += 21; }
+      y += 6; if (i < sp.list.length - 1) { x.strokeStyle = '#24364a'; x.lineWidth = 1; x.beginPath(); x.moveTo(PAD + IN, y + .5); x.lineTo(PAD + IN + BW, y + .5); x.stroke(); } y += 6; });
+  },
+  facts(x, sp, y) { // { lines: [..] }
+    x.font = FB(600, 15); const ls = sp.lines.map(t => wrapText(x, t, BW - 14)); const h = ls.reduce((a, l) => a + 21 * l.length + 6, 0); if (y == null) return Math.max(30, h);
+    x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillStyle = '#e9eff6';
+    if (!ls.length) { x.fillStyle = '#8396ab'; x.fillText('Još nema.', PAD + IN, y + 15); return; }
+    ls.forEach(l => { l.forEach((t, k) => { x.fillText((k ? '   ' : '• ') + t, PAD + IN, y + 10); y += 21; }); y += 6; });
+  },
+  hero(x, sp, y) { // { e, big, line, col }
+    if (y == null) return 108;
+    x.textAlign = 'left'; x.textBaseline = 'middle'; x.font = `56px ${EMO}, sans-serif`; x.fillText(sp.e || '🏆', PAD + IN, y + 50);
+    x.font = FD(30); x.fillStyle = sp.col || '#ffb547'; x.fillText(fitText(x, sp.big, BW - 80), PAD + IN + 76, y + 36);
+    x.font = FB(600, 15); x.fillStyle = '#e9eff6'; wrapText(x, sp.line, BW - 80).slice(0, 2).forEach((l, i) => x.fillText(l, PAD + IN + 76, y + 70 + 20 * i));
+  },
+};
+function drawShare(sp) {
+  const m = document.createElement('canvas').getContext('2d');
+  const bodyH = BODY[sp.kind](m, sp); m.font = FD(21); const titleLines = wrapText(m, sp.title, BW); m.font = FB(500, 14); const subLines = sp.sub ? wrapText(m, sp.sub, BW) : [];
+  const head = 44, tH = 28 * titleLines.length + 19 * subLines.length + 14, foot = 46;
+  const H = Math.ceil(PAD + head + IN + tH + bodyH + IN + foot);
+  const c = document.createElement('canvas'); c.width = SW * SC; c.height = H * SC; const x = c.getContext('2d'); x.scale(SC, SC);
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#101b27'); g.addColorStop(1, '#0b121b'); x.fillStyle = g; x.fillRect(0, 0, SW, H);
+  // header: the game's name in its colours, and the date
+  x.textBaseline = 'middle'; x.textAlign = 'left'; x.font = FD(22); let hx = PAD;
+  for (const [i, ch] of [...'VIJUGA'].entries()) { x.fillStyle = COLORS[i]; x.fillText(ch, hx, PAD + 14); hx += x.measureText(ch).width; }
+  x.font = FB(600, 14); x.fillStyle = '#8396ab'; x.fillText('statistika', hx + 8, PAD + 15);
+  x.textAlign = 'right'; x.fillText(new Date().toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric', year: 'numeric' }), SW - PAD, PAD + 15);
+  // the panel with the title and the body
+  const py = PAD + head, ph = IN + tH + bodyH + IN; x.fillStyle = '#152232'; rrect(x, PAD, py, SW - 2 * PAD, ph, 14); x.fill(); x.strokeStyle = '#24364a'; x.lineWidth = 1; x.stroke();
+  let y = py + IN; x.textAlign = 'left'; x.font = FD(21); x.fillStyle = '#e9eff6'; for (const l of titleLines) { x.fillText(l, PAD + IN, y + 14); y += 28; }
+  x.font = FB(500, 14); x.fillStyle = '#8396ab'; for (const l of subLines) { x.fillText(l, PAD + IN, y + 9); y += 19; } y += 14;
+  BODY[sp.kind](x, sp, y);
+  // footer
+  x.textAlign = 'left'; x.textBaseline = 'middle'; x.font = FB(700, 15); x.fillStyle = '#ffb547'; x.fillText('Vijuga', PAD, H - 24);
+  const vw = x.measureText('Vijuga').width; x.font = FB(600, 15); x.fillStyle = '#8396ab'; x.fillText(' · zmijica.onrender.com', PAD + vw, H - 24);
+  x.textAlign = 'right'; x.fillText('igraj sa mnom 🐍', SW - PAD, H - 24);
+  return c;
+}
+// what each button shares: built from the same data (and the same order) the page shows
+function shareSpec(key) {
+  if (!data) return null;
+  const P = data.players;
+  if (key === 'week') { const w = data.weekly; if (!w) return null; return { kind: 'hero', title: 'Igrač tjedna', big: w.name, col: colorOf(w.slug, w.name), line: `${w.firsts} pobjeda · ${w.podiums} postolja · ${w.kills} rušenja · ${w.matches} mečeva u zadnjih 7 dana`, sum: `🏆 Igrač tjedna na Vijugi: ${w.name} (${w.firsts} pobjeda, ${w.matches} mečeva)` }; }
+  if (key === 'tiles') { const t = data.totals; return { kind: 'tiles', title: 'Vijuga u brojkama', tiles: [...document.querySelectorAll('#tiles .tile')].map(el => ({ k: el.querySelector('.k').textContent, v: el.querySelector('.v').textContent, s: el.querySelector('.s').textContent, hero: el.classList.contains('hero') })), sum: `📊 Vijuga u brojkama: ${nf.format(t.players)} igrača, ${nf.format(t.matches)} mečeva, ${nf.format(t.kills)} rušenja` }; }
+  if (key === 'chart') { const tot = data.days.reduce((a, d) => a + d.matches, 0); return { kind: 'chart', title: 'Odigrani mečevi po danima', sub: `zadnjih 14 dana · ukupno ${tot}`, days: data.days, sum: `📈 Vijuga: ${tot} mečeva u zadnjih 14 dana` }; }
+  if (key === 'players') {
+    const q = $('#q').value.trim().toLowerCase(); let rows = P.filter(p => !q || p.name.toLowerCase().includes(q));
+    rows = [...rows].sort((a, b) => { const x = a[sortKey], y = b[sortKey]; return (typeof x === 'string' ? x.localeCompare(y, 'hr') : (x - y)) * sortDir; }).slice(0, 15);
+    const show = ['matches', 'wins', 'winRate', 'kills', 'coins']; if (sortKey !== 'name' && !show.includes(sortKey)) show[show.length - 1] = sortKey;
+    const val = (p, k) => k === 'winRate' ? (p.matches ? p.winRate + ' %' : '–') : k === 'coins' || k === 'spent' ? nf.format(p[k] || 0) : k === 'playMs' ? fmtDur(p.playMs || 0) : k === 'created' ? fmtDate(p.created) : k === 'lastSeen' ? fmtWhen(p.lastSeen) : String(p[k] == null ? 0 : p[k]);
+    const head = Object.fromEntries(COLS.map(([k, n]) => [k, n])), byName = head[sortKey] || '', k0 = sortKey === 'name' ? 'matches' : sortKey;
+    return { kind: 'table', title: 'Igrači' + (q ? ` („${$('#q').value.trim()}”)` : ''), sub: `poredano po: ${byName.toLowerCase()} · prikazano ${rows.length} od ${P.length}`, cols: [{ h: 'Igrač' }, ...show.map(k => ({ h: head[k] }))],
+      rows: rows.map((p, i) => ({ rank: (i + 1) + '.', c: [p.name, ...show.map(k => val(p, k))], col: COLORS[p.color] || COLORS[0], hi: i === 0 })),
+      sum: `🐍 Vijuga, igrači (${byName.toLowerCase()}): ` + rows.slice(0, 3).map((p, i) => `${i + 1}. ${p.name} (${val(p, k0)})`).join(', ') };
+  }
+  if (key.startsWith('ranked:')) { const i = +key.slice(7), T = (o) => Object.assign({ kind: 'table', lastAmber: true }, o);
+    if (i === 0) { const r = (data.ranked || []).slice(0, 10); return T({ title: '🏅 Rang lista', sub: 'online mečevi igrač protiv igrača, Elo (svi počinju s 1000)', empty: 'Još nema online mečeva između igrača.', cols: [{ h: 'Igrač' }, { h: 'Mečevi' }, { h: 'Elo' }], rows: r.map((x, k) => ({ rank: (k + 1) + '.', c: [x.name, x.games, x.elo], col: colorOf(x.slug, x.name), hi: k === 0 })), sum: '🏅 Vijuga rang lista: ' + r.slice(0, 3).map((x, k) => `${k + 1}. ${x.name} ${x.elo}`).join(', ') }); }
+    if (i === 1) { const r = (data.rivals || []).slice(0, 10); return T({ title: '⚔️ Međusobni susreti', sub: 'tko je završio više', empty: 'Još nema susreta.', cols: [{ h: 'Par' }, { h: 'Susreti' }, { h: 'Omjer' }], rows: r.map(x => ({ c: [`${x.aName} – ${x.bName}`, x.games, `${x.aw}:${x.bw}`] })), sum: '⚔️ Vijuga, međusobni susreti: ' + r.slice(0, 3).map(x => `${x.aName} – ${x.bName} ${x.aw}:${x.bw}`).join(', ') }); }
+    if (i === 2) { const r = (data.killPairs || []).slice(0, 10); return T({ title: '💀 Tko koga najviše ruši', empty: 'Još nitko nikoga.', cols: [{ h: 'Tko → koga' }, { h: 'Puta' }], rows: r.map(x => ({ c: [`${x.killerName} → ${x.victimName}`, x.n + '×'], col: colorOf(x.killer, x.killerName) })), sum: '💀 Vijuga, tko koga ruši: ' + r.slice(0, 3).map(x => `${x.killerName} → ${x.victimName} ${x.n}×`).join(', ') }); }
+    if (i === 3) { const r = (data.trollPairs || []).slice(0, 10); return T({ title: '🤡 Tko koga najviše zeza', empty: 'Još nitko nikoga.', cols: [{ h: 'Tko → koga' }, { h: 'Puta' }], rows: r.map(x => ({ c: [`${x.fromName} → ${x.toName}`, x.n + '×'], col: colorOf(x.from, x.fromName) })), sum: '🤡 Vijuga, tko koga zeza: ' + r.slice(0, 3).map(x => `${x.fromName} → ${x.toName} ${x.n}×`).join(', ') }); }
+    if (i === 4) { const f = data.facts || []; return { kind: 'facts', title: '💡 Fun facts', lines: f.slice(0, 10), sum: '💡 Vijuga fun facts: ' + f.slice(0, 2).join(' · ') }; }
+    return null;
+  }
+  if (key.startsWith('leaders:')) { const k = key.slice(8), L = (data.leaders || {})[k] || [];
+    const meta = { playMs: ['Najviše vremena u igri', fmtDur], spent: ['Najveći potrošač', v => nf.format(v) + ' zlatnika'], items: ['Najveći kolekcionar', v => v + ' stvari'], trollsSent: ['Glavni zezator', v => v + '×'], trollsGot: ['Najzezaniji', v => v + '×'], kills: ['Najviše rušenja', v => nf.format(v)], invited: ['Najviše pozvanih', v => String(v)] }[k];
+    if (!meta) return null;
+    return { kind: 'table', lastAmber: true, title: '🏆 ' + meta[0], sub: 'Rekorderi', empty: 'Još nitko.', cols: [{ h: 'Igrač' }, { h: '' }], rows: L.map((x, i) => ({ rank: (i + 1) + '.', c: [x.name, meta[1](x.value)], col: colorOf(x.slug, x.name), hi: i === 0 })), sum: `🏆 Vijuga, ${meta[0].toLowerCase()}: ` + L.slice(0, 3).map((x, i) => `${i + 1}. ${x.name} (${meta[1](x.value)})`).join(', ') };
+  }
+  if (key === 'recent') { const r = (data.recent || []).slice(0, 6);
+    return { kind: 'matches', title: 'Zadnji mečevi', list: r.map(m => ({ top: `${m.mode === 'online' ? 'ONLINE' : 'LOKALNO'} · ${fmtWhen(m.at)} · ${m.rounds} rundi`, ents: [...m.players].sort((a, b) => a.place - b.place).map(p => ({ t: `${p.place}. ${p.name}${p.human ? '' : ' (bot)'} · ${p.score}`, c: p.place === 1 ? '#ffb547' : p.human ? '#e9eff6' : '#8396ab' })) })), sum: '🐍 Zadnji mečevi na Vijugi: ' + r.slice(0, 3).map(m => ((m.players.find(p => p.place === 1) || {}).name || '?') + ' pobijedio').join(', ') }; }
+  const top = (map) => Object.entries(map || {}).filter(([k]) => k !== 'sk_none' && k !== 'bd_none' && !k.startsWith('x_')).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const items = (e, names) => { const max = Math.max(1, ...e.map(x => x[1])); return e.map(([k, v]) => ({ l: names[k] || k, v, f: v / max })); };
+  if (key === 'popular') { const s = top(data.skins), b = top(data.badges); return { kind: 'bars', title: 'Popularni skinovi i ikone', groups: [{ t: 'Skinovi', items: items(s, SKIN), empty: 'Nitko još nema kupljen skin.' }, { t: 'Ikone', items: items(b, BADGE), empty: 'Nitko još nema kupljenu ikonu.' }], sum: '🎨 Najpopularnije na Vijugi: ' + [...s.slice(0, 2).map(x => SKIN[x[0]] || x[0]), ...b.slice(0, 2).map(x => BADGE[x[0]] || x[0])].join(', ') }; }
+  if (key === 'bought') { const names = Object.assign({}, SKIN, BADGE, PU), e = top(data.owned); return { kind: 'bars', title: 'Najkupovanije u trgovini', sub: 'koliko igrača ima stvar', groups: [{ items: items(e, names), empty: 'Još ništa.' }], sum: '🛒 Najkupovanije na Vijugi: ' + e.slice(0, 3).map(x => names[x[0]] || x[0]).join(', ') }; }
+  return null;
+}
+function toast(msg) { document.querySelectorAll('.stoast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'stoast'; t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4500); }
+function pngOf(c) { const u = c.toDataURL('image/png'), b = atob(u.split(',')[1]), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return { url: u, blob: new Blob([a], { type: 'image/png' }) }; }
+const savePng = (img, name) => { const a = document.createElement('a'); a.href = img.url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+// the picture once more, with buttons: when the phone did not open the share sheet straight away
+function sharePreview(img, file, text) {
+  const canFile = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
+  $('#shareCard').innerHTML = `<b>Slika je spremna</b><img alt="Slika statistike" src="${img.url}"><div class="row">${canFile ? '<button class="btn wa" type="button" id="shGo">📲 Podijeli</button>' : ''}<button class="btn ghost" type="button" id="shSave">⬇️ Spremi sliku</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(text)}">Otvori WhatsApp</a><button class="btn ghost" type="button" id="shX">Zatvori</button></div>`;
+  $('#shareBg').hidden = false;
+  if ($('#shGo')) $('#shGo').onclick = () => navigator.share({ files: [file], text }).then(() => { $('#shareBg').hidden = true; }, e => { if (e && e.name !== 'AbortError') toast('Dijeljenje nije uspjelo. Spremi sliku pa je priloži u WhatsAppu.'); });
+  $('#shSave').onclick = () => { savePng(img, file.name); toast('Slika je spremljena, priloži je u WhatsAppu.'); };
+  $('#shX').onclick = () => { $('#shareBg').hidden = true; };
+}
+$('#shareBg').addEventListener('click', e => { if (e.target.id === 'shareBg') $('#shareBg').hidden = true; });
+function shareBlock(key) {
+  const sp = shareSpec(key); if (!sp) { toast('Još nema podataka za tu sliku.'); return; }
+  if (!fontsOk) fontsReady(); // a tap before the fonts arrived still draws (with the fallback font)
+  const img = pngOf(drawShare(sp)), name = 'vijuga-' + key.replace(/[^a-z0-9]+/gi, '-') + '.png', text = sp.sum + '\n' + STATS_URL;
+  let file = null; try { file = new File([img.blob], name, { type: 'image/png' }); } catch (e) {}
+  window.__lastShare = { key, bytes: img.blob.size, url: img.url, text }; // (for the tests)
+  if (file && navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], text }).catch(e => { if (e && e.name === 'AbortError') return; sharePreview(img, file, text); });
+    return;
+  }
+  // no sharing of files here (a computer, an old browser): the picture is saved and WhatsApp opens with the text
+  savePng(img, name); window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  toast('Slika je spremljena, priloži je u WhatsAppu.');
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-share]'); if (!b) return; e.preventDefault(); e.stopPropagation(); shareBlock(b.dataset.share); }, true);
 addEventListener('resize', () => data && chart());
 load(); setInterval(load, 60000);
 

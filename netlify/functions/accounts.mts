@@ -45,7 +45,7 @@ function clean(input: unknown, slug: string): Doc | string {
   const doc: Doc = {
     slug,
     name,
-    color: num(d.color, 5),
+    color: num(d.color, 7), // an index into the game's 8 colours
     coins: num(d.coins, 10_000_000),
     matches: num(d.matches, 1_000_000),
     wins: num(d.wins, 1_000_000),
@@ -57,6 +57,8 @@ function clean(input: unknown, slug: string): Doc | string {
     siteMs: num(d.siteMs, 1e12),
     trollsSent: num(d.trollsSent, 1_000_000),
     trollsGot: num(d.trollsGot, 1_000_000),
+    xpb: num(d.xpb, 100_000_000), // XP bought (XP kutije) and bonus XP (bigger matches, the double-XP potion)
+    xpx: num(d.xpx, 9_999), // matches left with double XP
     daily: d.daily && typeof d.daily === "object" && typeof (d.daily as Record<string, unknown>).d === "string" ? { d: String((d.daily as Record<string, unknown>).d).slice(0, 10), c: Object.fromEntries(Object.entries(((d.daily as Record<string, unknown>).c as Record<string, unknown>) || {}).slice(0, 10).map(([k, v]) => [k.slice(0, 6), num(v, 10000)])), done: strArr((d.daily as Record<string, unknown>).done).slice(0, 10) } : undefined,
     inv: Object.fromEntries(Object.entries(d.inv && typeof d.inv === "object" ? (d.inv as Record<string, unknown>) : {}).filter(([k]) => /^[a-z]{2,12}$/.test(k)).slice(0, 30).map(([k, v]) => [k, num(v, 999)]).filter(([, v]) => (v as number) > 0)),
     eq: { skin: String(eq.skin ?? "sk_none").slice(0, 20), badge: String(eq.badge ?? "bd_none").slice(0, 20), pu: String(eq.pu ?? "").slice(0, 20), te: String(eq.te ?? "").slice(0, 20), ds: String(eq.ds ?? "").slice(0, 20), vs: String(eq.vs ?? "").slice(0, 20), bg: String(eq.bg ?? "").slice(0, 20), cc: String(eq.cc ?? "").slice(0, 20), lux: String(eq.lux ?? "").replace(/[^a-z]/g, "").slice(0, 12), bx: (Array.isArray(eq.bx) ? eq.bx : []).map((x) => String(x)).filter((x) => /^bd_[a-z0-9_]{1,20}$/.test(x)).slice(0, 3) },
