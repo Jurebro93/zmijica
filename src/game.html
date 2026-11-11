@@ -193,7 +193,7 @@ button:disabled { cursor: default; opacity: .5; }
 .boxbox { border: 1px solid rgba(255,181,71,.5); background: linear-gradient(180deg, rgba(255,181,71,.1), transparent); border-radius: 14px; padding: 12px; }
 .boxrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 10px; }
 .boxcard { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
-.boxcard .be { font-size: 44px; line-height: 1; }
+.boxcard .be { font-size: 44px; line-height: 1; } .boxcard.b-xp { border-color: #ffd23f66; background: linear-gradient(180deg, rgba(255,210,63,.08), transparent 60%), var(--panel); } .boxcard.b-xp small { font-size: 13px; }
 .bodds { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 3px; font-size: 14px; } .bodds li { display: flex; justify-content: space-between; gap: 8px; text-align: left; color: var(--muted); } .bodds li b { color: var(--fg); } .bodds li small { font-size: 11px; } .bodds li.rare, .bodds li.rare b { color: var(--amber); }
 .infob { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; } .infob:hover { border-color: var(--amber); } .infob.mini { padding: 0 6px; font-size: 12px; margin-left: 4px; vertical-align: 1px; }
 .bxrow { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); } .bxrow.rare { border-color: var(--amber); border-color: color-mix(in srgb, var(--amber) 60%, var(--line)); }
@@ -250,7 +250,9 @@ button:disabled { cursor: default; opacity: .5; }
 .igmsg { background: var(--ink); background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid var(--line); border-left: 4px solid var(--all); border-radius: 10px; padding: 7px 10px; font-size: 15px; animation: noteIn .2s ease-out; }
 .igmsg.warn { border-left-color: var(--amber); }
 .profile { width: min(100%, 520px) !important; max-height: calc(100dvh - 40px); overflow-y: auto; }
-.phead { display: flex; align-items: center; gap: 12px; }
+.phead { display: flex; align-items: center; gap: 12px; min-width: 0; } .phead > div { min-width: 0; flex: 1 1 auto; } .phead .av { flex: none; } .phead h3 { overflow-wrap: anywhere; } .phead h3 .badges { display: flex; flex-wrap: wrap; margin: 4px 0 0; }
+@media (max-width: 520px) { .phead { flex-direction: column; text-align: center; gap: 8px; } .phead > div { width: 100%; } .phead h3 .badges { justify-content: center; } } /* a phone: the letter on top, name and icons centred under it */
+.profile { min-width: 0; max-width: 100%; } .profile .row { flex-wrap: wrap; } .pstat { min-width: 0; } .pstat b { overflow-wrap: anywhere; }
 .phead h3 { margin: 0; }
 .av.big { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 24px; color: #0b121b; flex: none; }
 .pstats { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
@@ -267,6 +269,7 @@ button:disabled { cursor: default; opacity: .5; }
 .pushnag { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); background: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--panel)); border-radius: 12px; padding: 9px 12px; font-size: 14px; }
 .pushnag span { flex: 1 1 200px; } .pushnag .x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 2px 6px; }
 .wchip em { font-style: normal; font-size: 18px; } .wchip i { font-style: normal; }
+.wchip { max-width: 100%; min-width: 0; text-align: left; } .wchip > span { min-width: 0; overflow-wrap: anywhere; } .wchip em { flex: none; min-width: 0; max-width: 62%; overflow: hidden; } .wchip .cbd .cp { max-width: 6em; } /* a live icon's long text never widens the wardrobe */
 .wchip canvas.wprev { width: 56px; height: 16px; border-radius: 4px; }
 .me button#profBtn { color: var(--fg); }
 #toast { position: fixed; left: 16px; right: 16px; margin: 0 auto; width: fit-content; max-width: 560px; text-align: center; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateY(20px); opacity: 0; transition: opacity .25s, transform .25s; background: var(--fg); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 20; pointer-events: none; word-break: normal; overflow-wrap: anywhere; }
@@ -356,7 +359,9 @@ button.pu:hover { border-color: var(--line); }
 .item .prev canvas.bgprev { width: 100%; height: 84px; display: block; }
 .item.pic .prev { height: 84px; } .item.pic .prev .ic { font-size: 56px; line-height: 1; }
 .cbd { display: inline-flex; align-items: center; gap: .25em; padding: 0 .5em; border-radius: 999px; border: 1px solid var(--cc); color: var(--cc); background: rgba(11,18,27,.6); font: 700 .74em/1.5 "Barlow Semi Condensed", sans-serif; vertical-align: .08em; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.tagbd { display: inline-block; padding: 0 .55em; border-radius: 999px; color: #fff; font: 700 .7em/1.55 "Barlow Semi Condensed", sans-serif; letter-spacing: .04em; text-transform: uppercase; vertical-align: .1em; white-space: nowrap; }
+.cbd { max-width: 100%; min-width: 0; overflow: hidden; } .cbd .cg { flex: none; } .cbd .cp { min-width: 0; max-width: min(13em, calc(100vw - 150px)); overflow: hidden; text-overflow: ellipsis; } /* a fixed cap (screen-relative): a % cannot limit how wide the text asks to be */
+.badges, .badge { max-width: 100%; min-width: 0; }
+.tagbd { max-width: min(15em, calc(100vw - 120px)); overflow: hidden; text-overflow: ellipsis; display: inline-block; padding: 0 .55em; border-radius: 999px; color: #fff; font: 700 .7em/1.55 "Barlow Semi Condensed", sans-serif; letter-spacing: .04em; text-transform: uppercase; vertical-align: .1em; white-space: nowrap; }
 canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .item b { font-size: 17px; } .item small { color: var(--muted); display: block; }
 .item .price { color: var(--amber); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -579,7 +584,7 @@ button.arm { background: var(--good) !important; color: #062014 !important; }
   .banner .earn { font-size: 16px; }
   .podium { font-size: 14px; }
   .podium th, .podium td { padding: 4px 3px; }
-  .podium td:nth-child(2) { white-space: nowrap; }
+  .podium td:nth-child(2) { white-space: normal; min-width: 7.5em; } .podium td:nth-child(2) .badges { display: flex; flex-wrap: wrap; margin: 2px 0 0; }
   .podium th:nth-child(2), .podium td:nth-child(2) { text-align: left; }
   .podium th:nth-child(4), .podium td:nth-child(4) { display: none; }
   .pad { width: 64px; height: 64px; }
@@ -683,7 +688,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
     <div class="wrap">
       <header class="brand">
         <h1 aria-label="Vijuga"><span>V</span><span>I</span><span>J</span><span>U</span><span>G</span><span>A</span></h1>
-        <p>Do šest zmija na jednoj ploči. Skreći, preskači tragove i ostani zadnji živ.</p>
+        <p>Do osam zmija na jednoj ploči. Skreći, preskači tragove i ostani zadnji živ.</p>
         <div class="me" id="me"></div>
       </header>
       <div class="onhero" id="onbar" aria-live="polite"></div>
@@ -735,10 +740,10 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 
       <div class="tab" id="tab-shop" hidden>
         <div class="shopfind"><input type="search" id="shopQ" placeholder="🔎 Traži u trgovini…" aria-label="Traži u trgovini"><div class="sfilt"><button type="button" data-f="all" class="on">Sve stvari</button><button type="button" data-f="have">Imam</button><button type="button" data-f="not">Nemam</button><button type="button" data-f="premium">💎 Premium</button></div></div>
-        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="lux"><span>🛥️</span>Luksuz</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
+        <div class="scatbox"><span class="label">Kategorije</span><div class="scats" id="shopCats" role="tablist" aria-label="Kategorije trgovine"><button type="button" data-c="all" class="on"><span>🛒</span>Sve</button><button type="button" data-c="boxes"><span>🎁</span>Kutije</button><button type="button" data-c="skins"><span>〰️</span>Tragovi</button><button type="button" data-c="badges"><span>⭐</span>Ikone</button><button type="button" data-c="local"><span>⚓</span>Šibenik i navijači</button><button type="button" data-c="tags"><span>🏷️</span>Tagovi mjesta</button><button type="button" data-c="crypto"><span>₿</span>Kripto</button><button type="button" data-c="weather"><span>🌦️</span>Vrijeme</button><button type="button" data-c="live"><span>🌍</span>Uživo</button><button type="button" data-c="bgs"><span>🖼️</span>Pozadine arene</button><button type="button" data-c="pu"><span>⚡</span>Power-upovi</button><button type="button" data-c="fx"><span>✨</span>Efekti</button><button type="button" data-c="chatc"><span>🎨</span>Boje chata</button><button type="button" data-c="potions"><span>🧪</span>Napitci</button><button type="button" data-c="trolls"><span>😈</span>Zezalice</button><button type="button" data-c="lux"><span>🛥️</span>Luksuz</button><button type="button" data-c="premium"><span>💎</span>Premium</button><button type="button" data-c="unique"><span>🗳️</span>Unikati</button></div></div>
         <div class="coinnote"><span>Svaki igrač počinje s <b>500</b> zlatnika. Po plasmanu: <b>1. mjesto 60</b> · <b>2. 35</b> · <b>3. 20</b> · ostali <b>12</b> · svako rušenje <b>+3</b></span><button type="button" class="infob" data-info="coins" aria-label="Kako se zarađuju zlatnici">ℹ️ Kako zaraditi više</button></div>
         <div class="dailyrow" id="shopDaily"></div>
-        <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div></div>
+        <div class="boxbox" data-cat="boxes"><h2>🎁 Kutije iznenađenja <small>skuplja kutija = više zlatnika i veća šansa za rijetku animiranu ikonu</small></h2><div class="boxrow" id="shopBoxes"></div><h2 style="margin-top:16px">⭐ XP kutije <small>skupo, ali odmah si bliže novom nivou (i stvarima koje se na njemu otključavaju)</small></h2><div class="boxrow" id="shopXp"></div></div>
         <div class="premiumbox luxbox" data-cat="lux"><h2>🛥️ Luksuz <small>tvoj dolazak u igru: igra stane, svi gledaju tvoju animaciju, pa piše da si ušao u igru. Za svaku trebaju nivo i posebna postignuća. Na kartici se animacija vrti sama, ℹ️ je pokaže u velikom. Ako imaš više, vrti se najskuplja</small></h2><div class="shop" id="shopLux"></div></div>
         <div class="premiumbox" data-cat="premium"><h2>💎 Premium <small>skupe stvari koje svi primijete</small></h2><div class="shop" id="shopPremiumSkins"></div><div class="shop" id="shopPremiumBadges" style="margin-top:10px"></div><div class="shop" id="shopPremium" style="margin-top:10px"></div></div>
         <div class="uniquebox" data-cat="unique"><h2>🗳️ Unikati <small>stranke i zastave: od svake postoji samo 1 primjerak</small></h2><p class="hint" style="margin:0 0 8px">Tko prvi kupi, jedini ga ima. Ostali ga mogu dobiti samo ako ga vlasnik proda na <b>Aukciji 🔨</b>. Ikone su pojednostavljene, ne službeni logotipi.</p><div class="shop" id="shopUnique"></div></div>
@@ -753,6 +758,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
         <div data-cat="chatc"><h2>🎨 Boje slova u chatu <small>kričavo roza, neon, duga, disko: tvoje poruke svi vide u toj boji</small></h2><div class="shop" id="shopChat"></div></div>
+        <div data-cat="potions"><h2>🧪 Napitci <small>Kameleon: u meču izgledaš kao drugi igrač · dvostruki XP za sljedećih 5 mečeva</small></h2><div class="shop" id="shopPotions"></div></div>
         <div data-cat="trolls"><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><p class="hint trollhelp">Zezalica je mala šala koju u online meču pošalješ drugom igraču: njemu se nakratko nešto dogodi na ekranu (trese se, zamrači, okrene, padaju kakice…). Ti i ostali iznad njegove zmije vidite znak zezalice dok traje. Stisni <b>ℹ️ Kako izgleda</b> na svakoj da vidiš što točno dobije. 🛡️ Štit odbija jednu zezanciju.</p><div class="shop" id="shopTrolls"></div></div>
         <div class="notice" id="shopEmpty" hidden>Ovdje nema ničega za odabrani filtar ili pretragu. <button type="button" class="btn sm" id="shopEmptyAll" style="margin-left:8px">Prikaži sve</button></div>
       </div>
@@ -828,8 +834,8 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 (() => {
 'use strict';
 // ================= CONFIG =================
-const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42'];
-const DEFAULT_NAMES = ['Crvena', 'Žuta', 'Zelena', 'Plava', 'Ljubičasta', 'Narančasta'];
+const COLORS = ['#ff5d73', '#ffd23f', '#3ddc97', '#4cc9f0', '#b48cff', '#ff8c42', '#ff4fd8', '#b5f23d'];
+const DEFAULT_NAMES = ['Crvena', 'Žuta', 'Zelena', 'Plava', 'Ljubičasta', 'Narančasta', 'Ružičasta', 'Limeta'];
 const KEYS = [
   { l: 'ArrowLeft', r: 'ArrowRight', j: 'ArrowUp', txt: ['←', '→', '↑'] },
   { l: 'KeyA', r: 'KeyD', j: 'KeyW', txt: ['A', 'D', 'W'] },
@@ -837,6 +843,8 @@ const KEYS = [
   { l: 'Numpad4', r: 'Numpad6', j: 'Numpad8', txt: ['Num4', 'Num6', 'Num8'] },
   { l: 'KeyZ', r: 'KeyC', j: 'KeyX', txt: ['Z', 'C', 'X'] },
   { l: 'KeyB', r: 'KeyM', j: 'KeyN', txt: ['B', 'M', 'N'] },
+  { l: 'KeyT', r: 'KeyU', j: 'KeyY', txt: ['T', 'U', 'Y'] },
+  { l: 'Numpad1', r: 'Numpad3', j: 'Numpad2', txt: ['Num1', 'Num3', 'Num2'] },
 ];
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
@@ -1067,7 +1075,7 @@ let setup = {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('vijuga-setup') || 'null');
-  if (saved && saved.players && saved.players.length === 6) { setup = Object.assign(setup, saved); setup.puEnabled = Object.assign(Object.fromEntries(PU_KEYS.map(k => [k, true])), saved.puEnabled || {}); }
+  if (saved && saved.players && saved.players.length >= 6 && saved.players.length <= COLORS.length) { const def = setup.players; setup = Object.assign(setup, saved); setup.players = def.map((d, i) => saved.players[i] ? Object.assign(d, saved.players[i]) : Object.assign(d, { type: 'off' })); setup.puEnabled = Object.assign(Object.fromEntries(PU_KEYS.map(k => [k, true])), saved.puEnabled || {}); }
 } catch (e) {}
 function saveSetup() { try { localStorage.setItem('vijuga-setup', JSON.stringify(setup)); } catch (e) {} }
 
@@ -1125,7 +1133,7 @@ async function saveProfile() {
 // What the server held when this device last agreed with it. When a save is refused because the server copy has moved on
 // (another device or tab of the same player), this device's own changes since then - coins won or spent, things bought,
 // matches played - are applied on top of the server copy instead of being thrown away.
-const SYNC_NUMS = ['coins', 'matches', 'wins', 'kills', 'spent', 'purchases', 'playMs', 'siteMs', 'trollsSent', 'trollsGot'];
+const SYNC_NUMS = ['coins', 'matches', 'wins', 'kills', 'spent', 'purchases', 'playMs', 'siteMs', 'trollsSent', 'trollsGot', 'xpb', 'xpx'];
 function syncBase(p) { const b = { owned: (p.owned || []).slice(), inv: Object.assign({}, p.inv || {}) }; for (const k of SYNC_NUMS) b[k] = Number(p[k]) || 0; return b; }
 function mergeOntoServer(srv, loc, base) {
   for (const k of SYNC_NUMS) { const d = (Number(loc[k]) || 0) - (Number(base[k]) || 0); if (d) srv[k] = Math.max(0, (Number(srv[k]) || 0) + d); }
@@ -1350,6 +1358,7 @@ function giftOptions(P) {
   for (const [id, it] of Object.entries(BADGES)) if (it.price > 0 && !it.limit && !P.owned.includes(id)) out.push({ id, name: it.name, price: it.price, kind: 'Ikona' });
   for (const [id, t] of Object.entries(TROLLS)) out.push({ id, name: t.e + ' ' + t.name, price: t.price, kind: 'Zezalica' });
   out.push({ id: 'shield', name: '🛡️ Štit', price: SHIELD_PRICE, kind: 'Zezalica' });
+  out.push({ id: 'cham', name: '🧪 Kameleon napitak', price: POTIONS.cham.price, kind: 'Napitak' });
   return out;
 }
 function showGift(P) {
@@ -1676,11 +1685,21 @@ function awardCoins(place, kills, won) {
   const fan = fanBonus(); // the day after my club won: double rewards
   const rf = rewardFactor(), n = Math.round(((PLACE_COINS[place] || 12) * mult * (fan ? 2 : 1) + kills * KILL_COINS) * rf) + myRevenge * 10;
   { const today = zDay(Date.now()); profile.lastMatchDay = today; profile.dayM = profile.dayM && profile.dayM.d === today ? { d: today, n: profile.dayM.n + 1 } : { d: today, n: 1 }; }
-  const lv0 = levelOf(profile).lv;
+  const lv0 = levelOf(profile).lv, xp0 = xpOf(profile);
   profile.coins += n; profile.matches++; profile.kills += kills; if (won) profile.wins++;
   dailyCount({ m: 1, w: won ? 1 : 0, k: kills, top3: place < 3 ? 1 : 0 });
-  const lv1 = levelOf(profile).lv; if (lv1 > lv0) { const bonus = 50 * lv1; profile.coins += bonus; { let u = 0; for (let l = lv0 + 1; l <= lv1; l++) u += unlocksAt(l); const box = Object.entries(BOX_LV).filter(([, l]) => l > lv0 && l <= lv1).map(([k]) => BOXES[k].name); if (u) setTimeout(() => notify(`🔓 Otključano na nivou ${lv1}: <b>${u}</b> ${u === 1 ? 'nova stvar' : u < 5 ? 'nove stvari' : 'novih stvari'} u trgovini${box.length ? ' (i ' + box.join(', ') + ')' : ''}.`, { ms: 9000, actions: '<button class="pingbtn" type="button" onclick="this.closest(\'.note-card\').remove()">OK</button>' }), 1200); } notify(`⬆️ Nivo <b>${lv1}</b>! Nagrada +${bonus} zlatnika`, { ms: 6000 }); }
+  { // XP: a bigger match pays more XP too (the same multiplier as the coins); a double-XP potion doubles all of it
+    const base = xpOf(profile) - xp0; let add = Math.round(base * (mult - 1)); const pot = (Number(profile.xpx) || 0) > 0;
+    if (pot) { add += base + add; profile.xpx = Number(profile.xpx) - 1; }
+    if (add > 0) profile.xpb = (Number(profile.xpb) || 0) + add;
+    if (G) { G.xpN = base + add; G.xpMult = mult; G.xpPot = pot; }
+  }
+  levelUpFrom(lv0);
   saveProfile(); checkAchievements(); return n;
+}
+// a new level: 50 x level in coins and a note about what it unlocked
+function levelUpFrom(lv0) {
+  const lv1 = levelOf(profile).lv; if (lv1 > lv0) { const bonus = 50 * lv1; profile.coins += bonus; { let u = 0; for (let l = lv0 + 1; l <= lv1; l++) u += unlocksAt(l); const box = Object.entries(BOX_LV).filter(([, l]) => l > lv0 && l <= lv1).map(([k]) => BOXES[k].name); if (u) setTimeout(() => notify(`🔓 Otključano na nivou ${lv1}: <b>${u}</b> ${u === 1 ? 'nova stvar' : u < 5 ? 'nove stvari' : 'novih stvari'} u trgovini${box.length ? ' (i ' + box.join(', ') + ')' : ''}.`, { ms: 9000, actions: '<button class="pingbtn" type="button" onclick="this.closest(\'.note-card\').remove()">OK</button>' }), 1200); } notify(`⬆️ Nivo <b>${lv1}</b>! Nagrada +${bonus} zlatnika`, { ms: 6000 }); }
 }
 function skinPreview(cv, skinId, color) {
   const c = cv.getContext('2d'); const w = cv.width = 200, h = cv.height = 44;
@@ -1711,7 +1730,7 @@ function wearBadge(id) {
 }
 const unwearBadge = (id) => setBadges(badgeIds(profile.eq, profile.owned).filter(x => x !== id));
 const liveB = (b) => !!(b && (b.crypto || b.wx || b.live));
-function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); if (b.wx && !text) return b.svg.replace('<span class="cp">', `<span class="cp" title="${esc(wxTitle(b.wx))}">`).replace('…', weatherText(b.wx)); if (b.live && !text) return b.svg.replace('class="cbd lbd"', 'class="cbd lbd' + liveCls(b.live) + '"').replace('…', esc(liveText(b.live))); return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
+function badgeGlyph(id, text) { const b = BADGES[id]; if (!b) return ''; if (b.crypto && !text) return b.svg.replace('…', cryptoText(b.crypto)); if (b.wx && !text) return b.svg.replace('<span class="cp">', `<span class="cp" title="${esc(wxTitle(b.wx))}">`).replace('…', weatherText(b.wx)); if (b.live && !text) { const lt = esc(liveText(b.live)); return b.svg.replace('class="cbd lbd"', 'class="cbd lbd' + liveCls(b.live) + '" title="' + esc(liveTextFull(b.live)) + '"').replace('…', lt); } return b.svg && !text ? b.svg : b.g; } // a redrawn list shows the price at once, not "…" until the next tick
 // diagonal black/orange stripes (Šibenski Funcuti); one pattern per canvas context
 const scarfPats = new WeakMap();
 function scarfPattern(c) {
@@ -1769,6 +1788,51 @@ const BOXES = {
   mega:    { e: '👑', name: 'Mega kutija',        price: 12000, pRare: 0.35, pItem: 0.40, pCoins: 0.30, coins: [5000, 11000], picks: 6, trolls: 12, nolimit: true },
 };
 const BOX_PRICE = BOXES.basic.price;
+// XP kutije: experience straight away (levels unlock things in the shop). Expensive on purpose; no daily limit
+const XP_BOXES = {
+  xp500:  { e: '⭐', name: 'XP kutija 500',  xp: 500,  price: 3000 },
+  xp1000: { e: '🌟', name: 'XP kutija 1000', xp: 1000, price: 5500 },
+};
+// napitci: Kameleon is drunk in an online match (the inventory keeps it till then); the XP potion is drunk when bought
+const POTIONS = {
+  cham:    { e: '🧪', name: 'Kameleon napitak', price: 300, s: 15, inv: true, d: 'U online meču ga popiješ (gumb 😈 → 🧪 Napitak) i 15 sekundi izgledaš kao protivnik kojeg odabereš: ista boja, isti trag. Zbuni ga!' },
+  xpboost: { e: '⚗️', name: 'Napitak dvostrukog XP-a', price: 1500, n: 5, d: 'Popiješ ga odmah pri kupnji: sljedećih 5 mečeva dobivaš dvostruki XP (zbraja se ako popiješ više).' },
+};
+function openXpBox(k) {
+  const B = XP_BOXES[k]; if (!B || !profile) return;
+  if (profile.coins < B.price) { toast('Nemaš dovoljno zlatnika.'); return; }
+  const lv0 = levelOf(profile).lv;
+  profile.coins -= B.price; profile.spent = (profile.spent || 0) + B.price; profile.purchases = (profile.purchases || 0) + 1;
+  profile.xpb = (Number(profile.xpb) || 0) + B.xp; sfx.pick();
+  const lv1 = levelOf(profile).lv; levelUpFrom(lv0); saveProfile(); renderShop();
+  const L = levelOf(profile), m = $('#regModal'); m.hidden = false;
+  m.innerHTML = `<form class="profile" novalidate onsubmit="return false" style="text-align:center"><div style="font-size:64px" class="boxpop">${B.e}</div><h3>${esc(B.name)}: +${fmtN(B.xp)} XP</h3><p style="font-size:20px;margin:0">${lv1 > lv0 ? `⬆️ Nivo ${lv0} → <b>${lv1}</b>!` : `Nivo <b>${lv1}</b>`}</p><div class="lvprog" style="margin:4px auto;max-width:320px"><span>⭐ Nivo <b>${L.lv}</b></span><i><b style="width:${L.pct}%"></b></i><span>još ${fmtN(L.next)} XP</span></div><div class="go" style="justify-content:center"><button class="btn" type="button" id="boxOk">Super!</button></div></form>`;
+  $('#boxOk').onclick = () => { m.hidden = true; };
+}
+function buyPotion(k) {
+  const P0 = POTIONS[k]; if (!P0 || !profile) return;
+  if (profile.coins < P0.price) { toast('Nemaš dovoljno zlatnika.'); return; }
+  profile.coins -= P0.price; profile.spent = (profile.spent || 0) + P0.price; profile.purchases = (profile.purchases || 0) + 1; sfx.pick();
+  if (P0.inv) { profile.inv[k] = (profile.inv[k] || 0) + 1; toast(`${P0.e} ${P0.name}: imaš ${profile.inv[k]}`); }
+  else { profile.xpx = (Number(profile.xpx) || 0) + P0.n; toast(`${P0.e} Glup glup… dvostruki XP još ${profile.xpx} mečeva!`); }
+  saveProfile(); renderShop();
+}
+function renderXpShop() {
+  const xb = $('#shopXp');
+  if (xb) xb.innerHTML = Object.entries(XP_BOXES).map(([k, B]) => `<div class="boxcard b-xp"><div class="be">${B.e}</div><b>${B.name}</b><small class="hint">+${fmtN(B.xp)} XP odmah: brže do novog nivoa i stvari koje se otključavaju</small><button class="btn sm" type="button" data-xpbox="${k}" ${!profile || profile.coins < B.price ? 'disabled' : ''}>Kupi · ● ${fmtN(B.price)}</button></div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (() => { const L = levelOf(profile); return `Ti si na nivou <b>${L.lv}</b> (${fmtN(L.xp)} XP), do sljedećeg još ${fmtN(L.next)} XP.`; })() : 'Prijavi se da kupuješ XP.'} XP se inače skuplja igranjem: što više igrača u meču, to više XP-a.</p>`;
+  if (xb) xb.querySelectorAll('[data-xpbox]').forEach(b => b.onclick = () => openXpBox(b.dataset.xpbox));
+  const pb = $('#shopPotions'); if (!pb) return; pb.innerHTML = '';
+  Object.entries(POTIONS).forEach(([k, P0]) => {
+    const have = profile ? (P0.inv ? (profile.inv[k] || 0) : (Number(profile.xpx) || 0)) : 0;
+    const d = document.createElement('div'); d.className = 'item' + (have ? ' eq' : ''); d.dataset.id = k;
+    d.innerHTML = `<div class="prev"><span class="ic" style="font-size:30px">${P0.e}</span></div><div><b>${esc(P0.name)}</b><small>${esc(P0.d)}${have ? ` · <b style="color:var(--amber)">${P0.inv ? 'imaš ' + have : 'još ' + have + ' ' + (have === 1 ? 'meč' : 'mečeva') + ' dvostrukog XP-a'}</b>` : ''}</small></div>`;
+    const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${fmtN(P0.price)}`;
+    const b = document.createElement('button'); b.type = 'button';
+    if (!profile) { b.textContent = 'Prijavi se'; b.onclick = () => showLogin(); }
+    else { b.textContent = P0.inv ? (have ? 'Kupi još' : 'Kupi') : 'Kupi i popij'; b.className = 'buy'; b.disabled = profile.coins < P0.price; b.onclick = () => buyPotion(k); }
+    act.append(pr, b); d.appendChild(act); pb.appendChild(d);
+  });
+}
 const BOX_PER_DAY = 5;
 const pct = (v) => (v * 100 < 1 ? (v * 100).toFixed(1).replace('.', ',') : String(Math.round(v * 100))) + ' %';
 function boxLeftToday() { const day = zDay(Date.now()); return profile ? BOX_PER_DAY - (profile.box && profile.box.d === day ? profile.box.n : 0) : 0; }
@@ -1835,7 +1899,7 @@ function showCoinInfo() {
       <div><span>🆕</span><p><b>Početak:</b> svaki novi igrač dobije <b>500</b> zlatnika.</p></div>
       <div><span>🏁</span><p><b>Svaki meč:</b> 1. mjesto <b>${PLACE_COINS[0]}</b>, 2. <b>${PLACE_COINS[1]}</b>, 3. <b>${PLACE_COINS[2]}</b>, ostali <b>${PLACE_COINS[3]}</b>.</p></div>
       <div><span>💥</span><p><b>Rušenje:</b> +${KILL_COINS} za svakog protivnika koji se zabije u tebe.</p></div>
-      <div><span>👥</span><p><b>Više igrača, veća nagrada:</b> svaki dodatni čovjek u meču +30 %, svaki bot +10 %.</p></div>
+      <div><span>👥</span><p><b>Više igrača, veća nagrada:</b> svaki dodatni čovjek u meču +30 %, svaki bot +10 %, i za zlatnike i za XP (meč do 8 zmija).</p></div>
       <div><span>⚽</span><p><b>Navijači:</b> dan nakon pobjede tvog kluba nagrada za plasman je dupla.</p></div>
       <div><span>📅</span><p><b>Dnevna prijava:</b> ${STREAK_COINS.slice(0, 6).join(', ')}, a 7. dan zaredom <b>${STREAK_COINS[6]}</b>.</p></div>
       <div><span>⭐</span><p><b>Novi nivo:</b> 50 × nivo (npr. nivo 4 = 200).</p></div>
@@ -1854,6 +1918,7 @@ function renderBoxes() {
   const left = boxLeftToday();
   box.innerHTML = Object.entries(BOXES).map(([k, B]) => `<div class="boxcard b-${k}"><div class="be">${B.e}</div><b>${B.name}</b>${(() => { const o = boxOdds(B); return `<ul class="bodds"><li><span>🎨 Predmet${B.picks > 1 ? ` <small>(najbolji od ${B.picks})</small>` : ''}</span><b>${pct(o.item)}</b></li><li><span>💰 ${B.coins[0]}–${B.coins[1]} zlatnika</span><b>${pct(o.coins)}</b></li><li><span>😈 ${plTroll(B.trolls)}</span><b>${pct(o.trolls)}</b></li><li class="rare"><span>🌟 Rijetka ikona</span><b>${pct(o.rare)}</b></li></ul>`; })()}<button type="button" class="infob" data-info="box:${k}" aria-label="Što je u kutiji: ${B.name}">ℹ️ Što je unutra?</button>${profile && myLevel() < (BOX_LV[k] || 1) ? `<button class="btn sm lockbtn" type="button" disabled>🔒 Nivo ${BOX_LV[k]}</button><span class="lvlock">${lockNote(BOX_LV[k])}</span>` : `<button class="btn sm" type="button" data-box="${k}" ${!profile || profile.coins < B.price || (left <= 0 && !B.nolimit) ? 'disabled' : ''}>Otvori · ● ${fmtN(B.price)}</button>`}</div>`).join('') + `<p class="hint" style="grid-column:1/-1;margin:0">${profile ? (left > 0 ? `Danas još možeš otvoriti ${left} ${left === 1 ? 'kutiju' : left < 5 ? 'kutije' : 'kutija'}.` : 'Danas si otvorio sve kutije – sutra opet.') : 'Prijavi se da otvaraš kutije.'} Skuplja kutija = više zlatnika, bolji predmeti i veća šansa za rijetku animiranu ikonu (${animIcons()}).</p>`;
   box.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
+  renderXpShop();
 }
 function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
 // the shop opened on one thing: every category shown (no search, no "Imam/Nemam" filter), the card scrolled to and lit up
@@ -2541,7 +2606,7 @@ function pvInit() {
   const w = pv.clientWidth, h = pv.clientHeight, dpr = devicePixelRatio || 1;
   pv.width = w * dpr; pv.height = h * dpr; pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   pctx.fillStyle = '#101b27'; pctx.fillRect(0, 0, w, h);
-  pvSnakes = COLORS.map((c, i) => ({ c, x: (i + .5) * w / 6, y: h / 2 + (i % 2 ? 20 : -20), a: Math.random() * 6.28, t: Math.random() * 10, gap: 0 }));
+  pvSnakes = COLORS.map((c, i) => ({ c, x: (i + .5) * w / COLORS.length, y: h / 2 + (i % 2 ? 20 : -20), a: Math.random() * 6.28, t: Math.random() * 10, gap: 0 }));
 }
 let pvLast = 0, pvNap = 0;
 function pvTick(ts) {
@@ -2883,7 +2948,7 @@ function newRound() {
   G.players.forEach(p => {
     let x, y, tries = 0;
     do { x = rand(W * .14, W * .86); y = rand(H * .14, H * .86); tries++; }
-    while (tries < 200 && (placed.some(q => Math.hypot(q.x - x, q.y - y) < Math.min(W, H) * .22) || inArenaWall(x, y, 45) || (G.arena && G.arena.portals.some(pt => Math.hypot(pt.x - x, pt.y - y) < 50))));
+    while (tries < 200 && (placed.some(q => Math.hypot(q.x - x, q.y - y) < Math.min(W, H) * (G.players.length > 6 ? .19 : .22)) || inArenaWall(x, y, 45) || (G.arena && G.arena.portals.some(pt => Math.hypot(pt.x - x, pt.y - y) < 50))));
     placed.push({ x, y });
     const toC = Math.atan2(H / 2 - y, W / 2 - x);
     p.roundStart = p.score || 0;
@@ -3007,14 +3072,14 @@ function blockedBy(x, y, p, grace) {
 function mixHex(a, b, t) { const A = /^#([0-9a-f]{6})$/i.exec(String(a || '')), B = /^#([0-9a-f]{6})$/i.exec(String(b || '')); if (!A || !B) return a; const x = parseInt(A[1], 16), y = parseInt(B[1], 16); const ch = (sh) => Math.round(((x >> sh) & 255) * (1 - t) + ((y >> sh) & 255) * t); return '#' + ((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1); }
 // lamps along some trails (Pali-gasi, Božićni): placed while the trail is drawn, lit in the arena frame by frame, so they
 // really switch on and off. They go with the trail layer: cleared whenever it is cleared.
-const trailLights = [], LIGHTS_MAX = 6000, XMAS_C = ['#ff3b3b', '#ffd23f', '#4cc9f0', '#ffffff', '#ff7de9', '#3ddc97'];
+const trailLights = [], LIGHTS_MAX = 800, XMAS_C = ['#ff3b3b', '#ffd23f', '#4cc9f0', '#ffffff', '#ff7de9', '#3ddc97'];
 function clearLights() { trailLights.length = 0; }
 function lampLit(L, t) { return L.k === 'blink' ? Math.sin(t * 6.3) > -0.15 : Math.sin(t * 3.1 + L.i * 1.9) > -0.25; }
 function drawLamp(c, x, y, r, col, k) {
   c.save(); c.shadowBlur = 0; c.fillStyle = col; c.globalAlpha = 0.22; c.beginPath(); c.arc(x, y, r * (k === 'blink' ? 2.1 : 2.4), 0, 6.283); c.fill();
   c.globalAlpha = 1; c.beginPath(); c.arc(x, y, r * (k === 'blink' ? 1.05 : 0.95), 0, 6.283); c.fill(); c.restore();
 }
-function placeLamp(c, p, x, y, k, col, r) { if (p.preview) { drawLamp(c, x, y, r, col, k); return; } if (trailLights.length >= LIGHTS_MAX) trailLights.splice(0, 1000); trailLights.push({ x, y, k, c: col, r, i: trailLights.length }); }
+function placeLamp(c, p, x, y, k, col, r) { if (p.preview) { drawLamp(c, x, y, r, col, k); return; } if (trailLights.length >= LIGHTS_MAX) trailLights.splice(0, 100); trailLights.push({ x, y, k, c: col, r, i: trailLights.length }); }
 function drawLights(c) {
   if (!trailLights.length) return; const t = performance.now() / 1000, groups = new Map();
   for (const L of trailLights) if (lampLit(L, t)) { const key = L.c + '|' + L.k; let g = groups.get(key); if (!g) groups.set(key, g = []); g.push(L); }
@@ -3146,7 +3211,10 @@ function clubText(k) {
 }
 function issKm() { const s = liveNow.iss; if (!s || s.lat == null) return Infinity; const R = Math.PI / 180, a = Math.sin((s.lat - 43.735) * R / 2) ** 2 + Math.cos(43.735 * R) * Math.cos(s.lat * R) * Math.sin((s.lon - 15.895) * R / 2) ** 2; return 12742 * Math.asin(Math.min(1, Math.sqrt(a))); }
 function buraTop() { const w = liveNow.wind || {}; let best = null; for (const [p, n] of [['senj', 'Senj'], ['st', 'Split'], ['sib', 'Šibenik']]) if (w[p] && w[p].g != null && (!best || w[p].g > best.g)) best = { g: w[p].g, n }; return best; }
-function liveText(k) {
+// what a live icon shows: never longer than ~26 characters (a holiday name can be 80), so it fits a chip, the ticker and
+// the label over the snake; the whole text is the chip's title
+function liveText(k) { const t = liveTextFull(k); return t.length > 27 ? t.slice(0, 25).trimEnd() + '…' : t; }
+function liveTextFull(k) {
   const L = liveNow || {}, i = k.indexOf(':'), t = i < 0 ? k : k.slice(0, i), a = i < 0 ? '' : k.slice(i + 1);
   if (t === 'sea') { const v = L.sea && L.sea[a]; return v ? `${nf(v.t, 1)}°${v.wave != null ? ' · val ' + nf(v.wave, 1) + ' m' : ''}` : '…'; }
   if (t === 'bura') { const b = buraTop(); return b ? `${b.n} ${Math.round(b.g)} km/h` : '…'; }
@@ -3161,7 +3229,7 @@ function liveText(k) {
   if (t === 'moon') { const m = moonNow(); return `${m.e} ${m.name}${m.full ? '' : ' · pun ' + (m.toFull < 1.5 ? 'sutra' : 'za ' + Math.round(m.toFull) + ' d')}`; }
   if (t === 'power') { const p = powerNow(); return p.cheap ? `jeftina još ${untilText(p.ms).slice(3)}` : `jeftina ${untilText(p.ms)}`; }
   if (t === 'hot') { const h = hottest(); return h ? `${h.n} ${Math.round(h.t)}°` : '…'; }
-  if (t === 'holiday') { const d = L.day || {}; if (d.holiday && d.date === zDay(Date.now())) return '🎉 ' + d.holiday; const n = d.next; if (!n || !n.date) return '…'; const days = Math.round((Date.parse(n.date + 'T00:00:00Z') - Date.parse(zDay(Date.now()) + 'T00:00:00Z')) / 864e5); return `${n.name} · ${days <= 1 ? 'sutra' : 'za ' + days + ' d'}`; }
+  if (t === 'holiday') { const d = L.day || {}; const cut = (x) => (x = String(x || ''), x.length > 17 ? x.slice(0, 16).trimEnd() + '…' : x); if (d.holiday && d.date === zDay(Date.now())) return '🎉 ' + cut(d.holiday); const n = d.next; if (!n || !n.date) return '…'; const days = Math.round((Date.parse(n.date + 'T00:00:00Z') - Date.parse(zDay(Date.now()) + 'T00:00:00Z')) / 864e5); return `${cut(n.name)} · ${days <= 1 ? 'sutra' : 'za ' + days + ' d'}`; }
   return '…';
 }
 // sunrise and sunset in Šibenik (from /api/live), in local time
@@ -3240,7 +3308,7 @@ function drawLiveSky(c) {
 // a quiet line with Bitcoin, Ethereum and the weather: on the front page, and in a corner of the arena while playing
 function tickerHtml(ids) {
   const it = (cls, g, v, title) => `<span class="tk ${cls}"${title ? ` title="${esc(title)}"` : ''}><b>${g}</b> ${v}</span>`;
-  return ids.map(id => { const b = BADGES[id]; return b.crypto ? it('c', b.g, cryptoText(b.crypto)) : b.live ? it('l' + liveCls(b.live), b.g, esc(liveText(b.live))) : it('w', b.g, weatherText(b.wx), wxTitle(b.wx)); }).join('');
+  return ids.map(id => { const b = BADGES[id]; return b.crypto ? it('c', b.g, cryptoText(b.crypto)) : b.live ? it('l' + liveCls(b.live), b.g, esc(liveText(b.live)), liveTextFull(b.live)) : it('w', b.g, weatherText(b.wx), wxTitle(b.wx)); }).join('');
 }
 function renderTickers() {
   const home = $('#ticker'); if (home && !$('#menu').hidden) { const h = tickerHtml(['bd_c_btc', 'bd_c_eth', 'bd_w_sib', 'bd_sea_sib', 'bd_w_zg']); if (home.dataset.h !== h) { home.dataset.h = h; home.innerHTML = '<span class="tl">Uživo</span>' + h; } }
@@ -3676,6 +3744,7 @@ function substep(lap) {
   if (dead.length) { if (lap) dead.forEach(d => lapDeath(d[0])); else killMany(dead); }
 }
 function update(dt) {
+  undisguise();
   if (G.phase === 'run' && G.players.length && !G.players.some(p => p.alive)) { endRound(null); return; } // safety: a round with nobody alive can never hang
   if (G.phase === 'count') {
     if (G.intro && G.introT < G.introLen) { G.introT += dt; runIntro(); return; } // a luxury entrance: everybody waits (a guest's clock is set again by every snapshot)
@@ -3781,10 +3850,18 @@ function render() {
       // a snake that touches the grave (or drives over it) wakes the inscription for a moment
       for (const q of G.players) if (q.alive && Math.hypot(q.x - t.x, q.y - t.y) < big * 0.6) { if (!t.rip || now - t.rip > 2600) { t.rip = now; if (q.mine || (net && q.id === net.myId)) beep(196, .35, 'sine', .04, -40); } else t.rip = Math.max(t.rip, now - 1200); }
       ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 8;
-      ctx.font = big + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.fillText('🪦', t.x, t.y);
-      ctx.shadowBlur = 0; ctx.font = `700 ${lab}px "Barlow Semi Condensed", sans-serif`; ctx.lineWidth = Math.max(3, lab / 4); ctx.strokeStyle = 'rgba(11,18,27,.85)'; ctx.fillStyle = '#e9eff6';
-      ctx.strokeText('R.I.P. ' + t.name, t.x, t.y + big * 0.62 + lab / 2); ctx.fillText('R.I.P. ' + t.name, t.x, t.y + big * 0.62 + lab / 2);
+      { const k = Math.min(2.5, Math.max(1, cv.width / W)), key = big + ':' + lab + ':' + k;
+        if (!t.spr || t.spr.key !== key) { // drawn once (per size): the emoji with its shadow and the R.I.P. line
+          const g0 = document.createElement('canvas').getContext('2d'); g0.font = `700 ${lab}px "Barlow Semi Condensed", sans-serif`;
+          const wA = Math.max(big * 1.4, g0.measureText('R.I.P. ' + t.name).width + lab), hA = big * 1.3 + lab * 1.6, c2 = document.createElement('canvas');
+          c2.width = Math.ceil(wA * k); c2.height = Math.ceil(hA * k); const g = c2.getContext('2d'); g.scale(k, k); g.textAlign = 'center'; g.textBaseline = 'middle';
+          const cx = wA / 2, cy = big * 0.62; g.shadowColor = 'rgba(0,0,0,.65)'; g.shadowBlur = 8 * k;
+          g.font = big + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.fillText('🪦', cx, cy);
+          g.shadowBlur = 0; g.font = `700 ${lab}px "Barlow Semi Condensed", sans-serif`; g.lineWidth = Math.max(3, lab / 4); g.strokeStyle = 'rgba(11,18,27,.85)'; g.fillStyle = '#e9eff6';
+          g.strokeText('R.I.P. ' + t.name, cx, cy + big * 0.62 + lab / 2); g.fillText('R.I.P. ' + t.name, cx, cy + big * 0.62 + lab / 2);
+          t.spr = { c: c2, key, w: wA, h: hA, cx, cy };
+        }
+        ctx.drawImage(t.spr.c, t.x - t.spr.cx, t.y - t.spr.cy, t.spr.w, t.spr.h); }
       const age = t.rip ? now - t.rip : 1e9;
       if (age < 2600) {
         const a = age < 150 ? age / 150 : age > 2000 ? (2600 - age) / 600 : 1, txt = '✝ Počivaj u miru, ' + t.name, y = t.y - big * 0.75 - rf / 2 - Math.min(rf * .6, age / 120);
@@ -3818,7 +3895,7 @@ function render() {
       const bob = 3 * Math.sin(G.phaseT * 5), cy = p.y - hr - 15 + bob;
       ctx.save(); ctx.font = '20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👑', p.x, cy); ctx.restore();
       const wids = pBadges(p); if (wids.length) { const k = Math.min(1, G.phaseT / 0.35), pop = k < 1 ? 0.4 + 0.6 * k + 0.25 * Math.sin(k * Math.PI) : 1, sz = Math.round(30 * pop * Math.max(1, Math.min(1.6, 0.85 / Math.max(0.05, (cv.clientWidth || W) / W)))), big = wids.some(id => BADGES[id].big || BADGES[id].anim);
-        ctx.save(); ctx.shadowColor = 'rgba(255,214,90,.75)'; ctx.shadowBlur = 16; drawBadgeRow(ctx, wids, p.x, cy - sz * (big ? 1.25 : 0.95), sz, '#ffb547'); ctx.restore(); }
+        ctx.save(); { const gy = cy - sz * (big ? 1.25 : 0.95), gr = sz * (0.75 + 0.45 * Math.min(3, wids.length)), gg = ctx.createRadialGradient(p.x, gy, 0, p.x, gy, gr); gg.addColorStop(0, 'rgba(255,214,90,.45)'); gg.addColorStop(1, 'rgba(255,214,90,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(p.x, gy, gr, 0, 6.283); ctx.fill(); drawBadgeRow(ctx, wids, p.x, gy, sz, '#ffb547'); } ctx.restore(); }
     }
     ctx.globalAlpha = 1;
     if (has(p, 'square')) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x - hr - 3, p.y - hr - 3, (hr + 3) * 2, (hr + 3) * 2); }
@@ -3862,6 +3939,7 @@ function render() {
   for (const q of G.parts) { ctx.globalAlpha = Math.max(0, q.life); ctx.fillStyle = q.c; ctx.fillRect(q.x - 1.6, q.y - 1.6, 3.2, 3.2); }
   ctx.globalAlpha = 1;
   if (trollFx.length || fxShakeUntil > performance.now() || ($('#cv').style.transform)) drawTrolls(ctx);
+  if (G.players.some(p => p.disg)) drawDisguise(ctx);
   drawVictoryFx(ctx);
   ctx.globalAlpha = 1;
   if (G.toast && G.gt - G.toast.t < 1.2 && G.gt >= G.toast.t) {
@@ -3893,9 +3971,11 @@ let hudDirty = true;
 function drawBoard(c) {
   const rows = ranking(); if (!rows.length) return;
   const s = cv.width / W; c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
-  const fs = Math.max(11, Math.min(14, Math.round(cv.width / 32))), lh = fs + 6, pad = 7;
+  const many = rows.length > 6 && cv.width < 900; // 7-8 snakes on a phone: a tighter list that covers less of the arena
+  const fs = many ? Math.max(10, Math.min(12, Math.round(cv.width / 36))) : Math.max(11, Math.min(14, Math.round(cv.width / 32))), lh = fs + (many ? 3 : 6), pad = many ? 5 : 7;
   c.font = `600 ${fs}px "Barlow Semi Condensed", sans-serif`; c.textBaseline = 'middle';
-  let wmax = 0; for (const p of rows) wmax = Math.max(wmax, c.measureText(p.name).width);
+  const nm = (p) => many && p.name.length > 11 ? p.name.slice(0, 10) + '…' : p.name;
+  let wmax = 0; for (const p of rows) wmax = Math.max(wmax, c.measureText(nm(p)).width);
   const w = Math.round(pad + 12 + 6 + wmax + 10 + c.measureText('999').width + pad), h = rows.length * lh + pad;
   const x0 = 8, y0 = 8;
   c.globalAlpha = 0.55; c.fillStyle = '#0b121b'; c.beginPath(); c.roundRect ? c.roundRect(x0, y0, w, h, 8) : c.rect(x0, y0, w, h); c.fill();
@@ -3903,9 +3983,9 @@ function drawBoard(c) {
   rows.forEach((p, i) => {
     const y = y0 + pad / 2 + lh * i + lh / 2, dead = !p.alive && G.phase !== 'count';
     c.globalAlpha = dead ? 0.45 : 0.92;
-    c.fillStyle = dispColor(p); c.beginPath(); c.arc(x0 + pad + 5, y, 5, 0, 6.283); c.fill();
-    c.fillStyle = '#e9eff6'; c.textAlign = 'left'; c.fillText(p.name, x0 + pad + 16, y);
-    if (dead) { c.strokeStyle = 'rgba(233,239,246,.7)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0 + pad + 16, y); c.lineTo(x0 + pad + 16 + c.measureText(p.name).width, y); c.stroke(); }
+    c.fillStyle = dispColor(p); c.beginPath(); c.arc(x0 + pad + 5, y, many ? 4 : 5, 0, 6.283); c.fill();
+    c.fillStyle = '#e9eff6'; c.textAlign = 'left'; c.fillText(nm(p), x0 + pad + 16, y);
+    if (dead) { c.strokeStyle = 'rgba(233,239,246,.7)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0 + pad + 16, y); c.lineTo(x0 + pad + 16 + c.measureText(nm(p)).width, y); c.stroke(); }
     c.textAlign = 'right'; c.fillStyle = '#ffb547'; c.fillText(String(p.score), x0 + w - pad, y);
     const rr = reactionOf(peerOfPlayer(p)); if (rr) { c.textAlign = 'left'; c.fillText(rr.e, x0 + w + 4, y); }
   });
@@ -3979,7 +4059,7 @@ function myLevel() { return profile ? levelOf(profile).lv : 1; }
 function lockedFor(id) { const need = lvReq(id); return profile && !profile.owned.includes(id) && myLevel() < need ? need : 0; }
 function lockNote(need) { const L = profile ? levelOf(profile) : null; const xp = L ? 40 * (need - 1) ** 2 - L.xp : 0; return `🔒 Otključava se na nivou ${need}` + (xp > 0 ? ` (još ${xp} XP: igraj mečeve, pobjeđuj, ruši)` : ''); }
 function unlocksAt(lv) { const n = [...Object.keys(SKINS), ...Object.keys(BADGES), ...Object.keys(PREMIUM)].filter(id => lvReq(id) === lv).length + Object.values(BOX_LV).filter(x => x === lv).length; return n; }
-function xpOf(P) { return Math.round((P.matches || 0) * 10 + (P.wins || 0) * 25 + (P.kills || 0) * 3 + (P.playMs || 0) / 60000 * 2 + (P.trollsSent || 0) * 2); }
+function xpOf(P) { return Math.round((P.matches || 0) * 10 + (P.wins || 0) * 25 + (P.kills || 0) * 3 + (P.playMs || 0) / 60000 * 2 + (P.trollsSent || 0) * 2 + (Number(P.xpb) || 0)); } // xpb: XP bought (XP kutije) and the bonus XP of bigger matches and the double-XP potion
 function levelOf(P) { const xp = xpOf(P), lv = Math.floor(Math.sqrt(xp / 40)) + 1, a = 40 * (lv - 1) ** 2, b = 40 * lv ** 2; return { lv, xp, pct: Math.max(0, Math.min(100, Math.round(100 * (xp - a) / (b - a)))), next: b - xp }; }
 // achievements: id (kept forever: the device remembers which ones it has announced), emoji, name, how to get it,
 // and the number that counts towards it
@@ -4033,6 +4113,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'osam', d: '2026-11-11', e: '🧪', t: '8 igrača, XP kutije i napitci', x: 'U meču sad može biti do 8 zmija (nove boje: ružičasta i limeta). Što je više igrača, to su veći i zlatnici i XP. U trgovini (Kutije) su XP kutije: +500 i +1000 XP odmah. Novi napitci: 🧪 Kameleon (u online meču 15 s izgledaš kao protivnik po izboru, gumb 😈 → 🧪 Napitak) i ⚗️ dvostruki XP za sljedećih 5 mečeva.', go: 'shop:potions', b: 'Pogledaj napitke', items: ['cham', 'xpboost'] },
   { id: 'dalmacija', d: '2026-11-11', e: '🍲', t: 'Dalmatinski natpisi', x: 'Uz Ajme i Fjaku stižu nove dalmatinske uzrečice uz ime: Ae!, Ostav me se, Ća je?, Ća ćeš, Ne moren, Lipo!, Gušt, Bokun, Ne beri brigu i Fala. I dalmatinska kuhinja: Pašticada, Brudet, Crni rižot, Ispod peke, Pršut, Fritule, Soparnik i Marenda.', go: 'shop:badges', b: 'Pogledaj natpise', items: ['bd_t_ae', 'bd_t_ostav', 'bd_t_ca', 'bd_t_caces', 'bd_t_nemoren', 'bd_t_lipo', 'bd_t_gust', 'bd_t_bokun', 'bd_t_neberi', 'bd_t_fala', 'bd_t_pasticada', 'bd_t_brudet', 'bd_t_crnirizot', 'bd_t_peka', 'bd_t_prsut', 'bd_t_fritule', 'bd_t_soparnik', 'bd_t_marenda'] },
   { id: 'live-pack2', d: '2026-11-10', e: '🌅', t: 'Nove ikone iz stvarnog svijeta', x: 'Zalazak sunca u Šibeniku, mijena Mjeseca i koliko do uštapa, kad počinje jeftina noćna struja (vrijeme za perilicu), najtopliji grad u Hrvatskoj uživo i koliko još dana do sljedećeg praznika.', go: 'shop:live', b: 'Pogledaj ikone', items: ['bd_sunset', 'bd_moon', 'bd_power', 'bd_hot', 'bd_holiday'] },
   { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju. Rezultat meča ili osvojeni turnir podijeliš na WhatsApp jednim dodirom.', go: '', b: '' },
@@ -4453,6 +4534,7 @@ function matchAwards(rows) {
   return list.length ? `<p class="awards">${list.join('')}</p>` : '';
 }
 function showResults() {
+  hideDeathCard();
   if (TMODE && net && !net.spectate) { const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking(); const mine = rows.find(p => p.mine || p.id === net.myId); reportTour(rows); if (mine && profile && !G.awarded) { G.awarded = true; awardCoins(rows.indexOf(mine), mine.kills, rows.indexOf(mine) === 0); }
     showOverlay(`<div class="banner"><span class="label">🏆 Turnir · ${TMODE.k ? 'kolo ' + TMODE.k + ', stol ' + TMODE.s : 'finale'}</span><h3>Poredak stola</h3><p>${rows.map((p, i) => `${i + 1}. ${esc(p.name)}`).join(' · ')}</p><p class="hint">Bodovi: 10 / 6 / 3 / 1 / 0. Sljedeće kolo kreće kad svi stolovi završe.</p><div class="row"><a class="btn" href="${GAME_URL}?tab=turnir">Natrag na turnir</a></div></div>`); return; }
   if (net && net.spectate) {
@@ -4467,7 +4549,7 @@ function showResults() {
   const mine = net ? (net.role === 'client' ? rows.find(p => p.id === net.myId) : rows.find(p => p.mine)) : rows.find(p => p.mine);
   const pmid = net && net.mid ? String(net.mid) : null, paidMids = profile ? (Array.isArray(profile.paidMids) ? profile.paidMids : (profile.paidMids = [])) : [];
   if (mine && profile && !G.awarded && pmid && paidMids.includes(pmid)) G.awarded = true; // this match was paid already (results reopened)
-  if (mine && profile && !G.awarded) { G.awarded = true; if (pmid) { paidMids.push(pmid); paidMids.splice(0, Math.max(0, paidMids.length - 20)); } const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnN = n; G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika (ukupno ${profile.coins})</p>`; }
+  if (mine && profile && !G.awarded) { G.awarded = true; if (pmid) { paidMids.push(pmid); paidMids.splice(0, Math.max(0, paidMids.length - 20)); } const place = rows.indexOf(mine); const n = awardCoins(place, mine.kills, place === 0); G.earnN = n; G.earnText = `<p class="earn">${place + 1}. mjesto · +${n} zlatnika · +${G.xpN || 0} XP (ukupno ${profile.coins})</p>` + ((G.xpMult || 1) > 1.001 || G.xpPot ? `<p class="hint xpwhy" style="margin:0">${(G.xpMult || 1) > 1.001 ? `👥 ${G.players.length} zmija u meču: zlatnici i XP ×${String(Math.round(G.xpMult * 10) / 10).replace('.', ',')}` : ''}${(G.xpMult || 1) > 1.001 && G.xpPot ? ' · ' : ''}${G.xpPot ? `⚗️ dvostruki XP (još ${Number(profile.xpx) || 0} ${(Number(profile.xpx) || 0) === 1 ? 'meč' : 'mečeva'})` : ''}</p>` : ''); }
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   if (profile && mine) { const L = levelOf(profile); earn += `<div class="lvprog"><span>⭐ Nivo <b>${L.lv}</b></span><i><b style="width:${L.pct}%"></b></i><span>još ${fmtN(L.next)} XP</span></div>`; }
   earn += matchAwards(rows); $('#game').classList.add('over');
@@ -5080,6 +5162,41 @@ function drawBounties(c) {
     c.save(); c.font = '700 14px "Barlow Semi Condensed", sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ff5d73'; c.fillText(`🎯 ${b.amount}`, p.x, p.y - 22); c.restore(); }
 }
 function mirrorOn() { return performance.now() < mirrorUntil; }
+// Kameleon napitak: for POTIONS.cham.s seconds the snake looks like another one (colour, trail skin); the look it had
+// is kept in p.disg (sent in full snapshots, so a host who takes the match over can undo it)
+function drinkCham(p, tid) {
+  const t = G && G.players.find(q => q.id === tid);
+  if (!p || !t || t === p || !p.alive || G.phase !== 'run') return false;
+  if (!p.disg) p.disg = { color: p.color, skin: p.skin, nc: p.nc ? 1 : 0 };
+  const look = t.disg || { color: t.color, skin: t.skin, nc: t.nc ? 1 : 0 };
+  p.disg.until = G.gt + POTIONS.cham.s; p.color = look.color; p.skin = look.skin; p.nc = look.nc;
+  G.plDirty = true; hudDirty = true; return true;
+}
+function undisguise() {
+  if (!G) return;
+  for (const p of G.players) if (p.disg && (G.phase !== 'run' || !p.alive || G.gt >= p.disg.until)) { p.color = p.disg.color; p.skin = p.disg.skin; p.nc = p.disg.nc; p.disg = null; G.plDirty = true; hudDirty = true; }
+}
+function myMatchPlayer() { return !G ? null : net && net.role === 'client' ? (net.myId == null ? null : G.players.find(p => p.id === net.myId)) : G.players.find(p => p.mine) || null; }
+function useCham(tid) {
+  if (!profile || !G || G.over) return;
+  const me = myMatchPlayer(), t = G.players.find(q => q.id === tid);
+  if (!me || !me.alive || G.phase !== 'run') { toast('Napitak se pije dok runda traje i dok si u igri.'); return; }
+  if ((profile.inv.cham || 0) < 1) { toast('Nemaš Kameleon napitak. Kupi ga u trgovini (🧪 Napitci).'); return; }
+  if (me.disg) { toast('Već izgledaš kao netko drugi.'); return; }
+  if (!t || t === me) return;
+  profile.inv.cham--; saveProfile();
+  if (net && net.role === 'client') netPresence({ po: [Date.now(), tid] }); // the host changes the look and everybody sees it
+  else drinkCham(me, tid);
+  sfx.pick(); showIgMsg(`🧪 Glup glup… ${POTIONS.cham.s} s izgledaš kao <b style="color:${dispColor(t)}">${esc(t.name)}</b>`);
+  const pop = $('#trollPop'); if (pop) pop.hidden = true;
+}
+// only I see which snake is me while I look like someone else
+function drawDisguise(c) {
+  const me = myMatchPlayer(); if (!me || !me.disg || !me.alive) return;
+  const x = me.x + (me.ex || 0), y = me.y + (me.ey || 0);
+  c.save(); c.globalAlpha = 0.85; c.strokeStyle = '#fff'; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.arc(x, y, 14, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+  c.font = `15px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🧪', x, y - 24); c.restore();
+}
 function sendTroll(peer, id) {
   const t = TROLLS[id]; if (!t || !peer || !profile || !roomNs) return;
   if (G && !G.over && (G.phase === 'count' || (G.phase === 'run' && G.gt < 2))) { toast('Pričekaj da runda krene (prve 2 s bez zezanja).'); return; }
@@ -5682,11 +5799,11 @@ function renderBoardNow() {
 }
 
 // host
-const MAX_PLAYERS = 6;
+const MAX_PLAYERS = 8;
 const countLen = () => (net && G && (G.round === 1 || G.joinRound === G.round) ? 5 : 2.4); // online: 5 s before the match starts
 function netPlayerFrom(pr, c) {
   const me = pr.isMe && pr.sameTab;
-  return { id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0,
+  return { id: c, name: String(pr.presence.nm || 'Igrač').slice(0, 14), color: COLORS[c], human: true, remote: me ? null : pr.peer, remoteIn: 0, lastJ: Number(pr.presence.j) || 0, lastPo: Array.isArray(pr.presence.po) ? Number(pr.presence.po[0]) || 0 : 0,
       skin: SKINS[pr.presence.sk] ? pr.presence.sk : 'sk_none', badge: BADGES[pr.presence.bd] ? pr.presence.bd : 'bd_none', badges: me ? badgeIds(profile.eq, profile.owned) : presBadges(pr.presence), starter: STARTER_PU.includes(pr.presence.pu) && !TMODE ? pr.presence.pu : '', ...(() => { const eq = me ? profile.eq : ((accounts.list.find(a => a.slug === pr.presence.sl) || {}).eq || {}); return { te: EFFECTS[eq.te] ? eq.te : '', ds: EFFECTS[eq.ds] ? eq.ds : '', vs: EFFECTS[eq.vs] ? eq.vs : '', pm: pmList(x => ownsSlug(pr.presence.sl, x), luxChoiceOf(pr.presence.sl)) }; })(), mine: me, slug: /^[a-z0-9-]{1,40}$/.test(String(pr.presence.sl || '')) ? pr.presence.sl : null };
 }
 // a real player who is waiting (accepted an invite, sat down in the lobby) takes a bot's seat at the start of the next round
@@ -5710,7 +5827,7 @@ function seatQueuedHumans() {
   const bots = G.players.filter(p => !p.human);
   const q = queueList().filter(pr => !(pr.isMe && pr.sameTab) && pr.presence.nm);
   for (const pr of q) {
-    const want = Number(pr.presence.cl) || 0;
+    const want = Math.min(COLORS.length - 1, Math.max(0, Number(pr.presence.cl) | 0));
     if (bots.length) { // take a bot's seat (preferably the bot wearing my colour)
       let bi = bots.findIndex(x => x.slug && x.slug === pr.presence.sl); const own = bi >= 0 ? bots[bi] : null; // my own snake played on as a bot while I was away
       if (bi < 0) bi = bots.findIndex(x => x.id === want); const bot = bots.splice(bi >= 0 ? bi : 0, 1)[0];
@@ -5752,7 +5869,7 @@ function hostStart(rematch) {
   if (!peers.length) return;
   const used = new Set(); const players = [], cOf = [];
   peers.map((pr, i) => ({ i, rk: rankOfSlug(pr.presence.sl, pr.isMe && pr.sameTab) })).sort((a, b) => rankCmp(a.rk, b.rk) || a.i - b.i).forEach(({ i }) => {
-    let c = Number(peers[i].presence.cl) || 0; if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c); cOf[i] = c;
+    let c = Math.min(COLORS.length - 1, Math.max(0, Number(peers[i].presence.cl) | 0)); if (used.has(c)) c = COLORS.findIndex((_, j) => !used.has(j)); used.add(c); cOf[i] = c;
   });
   peers.forEach((pr, i) => players.push(netPlayerFrom(pr, cOf[i])));
   fixColorClashes(players);
@@ -5795,7 +5912,7 @@ function hostReadInputs() {
       const strict = !!pr && !p.away;
       const taken = new Set(G.players.map(q => q.remote).filter(Boolean));
       const back = roomState.peers.find(q => q.peer !== p.remote && !taken.has(q.peer) && !(q.isMe && q.sameTab) && q.presence && q.presence.sl === p.slug && q.presence.pg !== 'stats' && !q.presence.obs && q.presence.vis !== 0 && (q.presence.fol === roomState.me || (!strict && !q.presence.hs)));
-      if (back) { p.remote = back.peer; p.peerId = back.peer; p.lastJ = Number(back.presence.j) || 0; p.lastIs = 0; p.inAt = 0; p.awayAt = 0; p.goneAt = 0; p.leftAt = 0; p.left = false; pr = back; hudDirty = true; G.plDirty = true; }
+      if (back) { p.remote = back.peer; p.peerId = back.peer; p.lastJ = Number(back.presence.j) || 0; p.lastPo = Array.isArray(back.presence.po) ? Number(back.presence.po[0]) || 0 : 0; p.lastIs = 0; p.inAt = 0; p.awayAt = 0; p.goneAt = 0; p.leftAt = 0; p.left = false; pr = back; hudDirty = true; G.plDirty = true; }
     }
     if (pr && pr.presence) {
       const is = Number(pr.presence.is) || 0, now = performance.now();
@@ -5803,6 +5920,7 @@ function hostReadInputs() {
         if (is !== (p.lastIs || 0) || !p.inAt) { p.lastIs = is; p.inAt = now; }
         p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0));
         const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); }
+        const po = pr.presence.po; if (Array.isArray(po) && Number(po[0]) > (p.lastPo || 0)) { p.lastPo = Number(po[0]); drinkCham(p, Number(po[1])); }
       }
       if (is && now - p.inAt > 1200) p.remoteIn = 0; // no word from the player for a while: stop turning
       p.away = pr.presence.vis === 0;
@@ -5837,7 +5955,9 @@ function sendTrailHistory() {
   for (const f of fans) {
     if (TH.thSent[f.peer]) continue; TH.thSent[f.peer] = 1;
     const pl = G.players.filter(p => p.tvH && p.tvH.length).map(p => [p.id, p.tvH0 || 1].concat(p.tvH));
-    if (pl.length) roomNs.to(f.peer, { th: { r: G.round, e: TH.tvE || 0, c: G.clr, id: G.round + ':' + Math.round(now), pl } });
+    if (!pl.length) continue; const msg = { th: { r: G.round, e: TH.tvE || 0, c: G.clr, id: G.round + ':' + Math.round(now), pl } };
+    if (pl.reduce((a, x) => a + x.length, 0) > 60000 && JSON.stringify(msg).length > 640000) continue; // an extremely long round of 8 snakes: too big for the relay's frame limit (the newcomer sees the trails from the next round)
+    roomNs.to(f.peer, msg);
   }
 }
 function snapTrail(p, from) {
@@ -5850,7 +5970,7 @@ function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
   return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '' } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined } : {}, { i: p.id, tv: p._tv, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2)]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -5929,6 +6049,7 @@ function applyState(st, first) {
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
     { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
+    if (q.n !== undefined) { p.disg = Array.isArray(q.dg) && /^#[0-9a-f]{6}$/i.test(String(q.dg[0])) ? { color: q.dg[0], skin: SKINS[q.dg[1]] ? q.dg[1] : 'sk_none', nc: q.dg[2] ? 1 : 0, until: Number(q.dg[3]) || 0 } : null; if (p.disg && q.rm === mePeer) net.colorTold = true; }
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     if (q.sl) p.slug = q.sl;
@@ -6368,7 +6489,14 @@ function renderTrollPop() {
   const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
   const inv = profile ? profile.inv : {}, cool = performance.now() - lastTrollSent < 5000;
   const owned = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0);
-  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpt ${trollTab === 'r' ? 'on' : ''}" data-t="r">😀 Emotikoni</button><button type="button" class="tpt ${trollTab === 'q' ? 'on' : ''}" data-t="q">⚡ Brze</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpt ${trollTab === 'r' ? 'on' : ''}" data-t="r">😀 Emotikoni</button><button type="button" class="tpt ${trollTab === 'q' ? 'on' : ''}" data-t="q">⚡ Brze</button><button type="button" class="tpt ${trollTab === 'n' ? 'on' : ''}" data-t="n">🧪 Napitak</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  if (trollTab === 'n') {
+    const me = myMatchPlayer(), have = profile ? (profile.inv.cham || 0) : 0, others = G ? G.players.filter(p => p !== me && p.alive) : [], can = !!(me && me.alive && G.phase === 'run' && !me.disg && have);
+    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg" data-pid="${t.id}" ${can ? '' : 'disabled'}><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
+    pop.querySelectorAll('[data-pid]').forEach(b => b.onclick = (e) => { e.stopPropagation(); useCham(Number(b.dataset.pid)); });
+    pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
+    return;
+  }
   if (trollTab === 'q') {
     pop.innerHTML = tabs + `<div class="qchips">${QUICK_MSG.map(t => `<button type="button" class="qchip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}</div><p class="hint" style="margin:0">Jedan dodir i poruka ode svima u meču.</p>`;
     pop.querySelectorAll('[data-q]').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendChat(b.dataset.q); pop.hidden = true; });
@@ -6421,6 +6549,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
+window.__vijuga = { goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf };
 })();
 </script>
