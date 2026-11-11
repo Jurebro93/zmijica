@@ -365,6 +365,7 @@ button.pu:hover { border-color: var(--line); }
 .ticker { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px; font-size: 12.5px; color: var(--muted); padding: 2px 4px; font-variant-numeric: tabular-nums; }
 .ticker .tl { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--good); }
 .ticker .tk, .gticker .tk { white-space: nowrap; } .ticker .tk b { color: #f7931a; } .ticker .tk.w b { color: #7fd4ff; }
+.gticker { display: none !important; } /* the arena stays clean: no live ticker over the match */
 .gticker { position: absolute; top: 6px; right: 8px; display: flex; gap: 8px; font-size: 11px; color: rgba(233,239,246,.62); pointer-events: none; z-index: 2; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .gticker .tk b { color: rgba(247,147,26,.8); } .gticker .tk.w b { color: rgba(127,212,255,.8); }
 @media (max-width: 520px) { .gticker .tk:nth-child(n+3) { display: none; } }
@@ -593,6 +594,8 @@ button.arm { background: var(--good) !important; color: #062014 !important; }
 .rmini li .n { color: var(--muted); } .rmini li .dot { width: 12px; height: 12px; border-radius: 50%; } .rmini li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; } .rmini li em { font-style: normal; font-weight: 800; }
 .rmini li:first-child em { color: var(--amber); } .rmini li.mine { outline: 1px solid var(--amber); }
 .banner.fin .earn { font-size: 16px; margin: 0; } .banner.fin .readybox .rchip { font-size: 12.5px; padding: 2px 8px; gap: 5px; } .banner.fin .readybox .rchip .dot { width: 8px; height: 8px; }
+@media (max-height: 700px) { .banner.fin { gap: 7px; } .banner.fin .rmini li { padding: 3px 10px; font-size: 15px; } .banner.fin h3 { font-size: 26px; } }
+@media (max-height: 560px) { .banner.fin .rmini { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 520px); } .banner.fin .rmini li { font-size: 15px; padding: 3px 10px; } .banner.fin .rmore { order: 4; } } /* a phone on its side: the buttons first, the points in two columns under them */
 .rmore { width: min(100%, 520px); } .rmore summary { cursor: pointer; color: var(--muted); font-size: 14px; list-style: none; text-align: center; padding: 4px; } .rmore summary::-webkit-details-marker { display: none; } .rmore summary::after { content: ' ▾'; } .rmore[open] summary::after { content: ' ▴'; } .rmore[open] { display: grid; gap: 10px; justify-items: center; }
 #game.hasov .gticker { display: none; }
 .rchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; font-size: 14px; }
@@ -723,6 +726,23 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
   .tabs .cunread { margin-left: 2px; }
 }
 @media (max-width: 380px) { .tabs button, .tabs a.tablink { font-size: 11px; padding: 9px 0; } }
+
+/* ---- the pad bar (v2): two big arrow keys, the middle only for Zezalice and the voice message */
+@media (orientation: portrait), (min-height: 561px) {
+  .pads.v2 { grid-template-columns: minmax(0, 1fr) minmax(86px, 0.6fr) minmax(0, 1fr) !important; align-items: stretch; gap: 10px; padding-block: 10px max(10px, env(safe-area-inset-bottom, 0px)); }
+  .pads.v2 .pad.big { width: auto !important; height: auto !important; min-height: clamp(116px, 16vh, 150px); border-radius: 26px !important; justify-self: stretch !important; align-self: stretch; display: grid; place-items: center; gap: 0; padding: 0; transition: transform .06s, filter .06s;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--pc, #57b7ff) 38%, #0e1825), color-mix(in srgb, var(--pc, #57b7ff) 14%, #0b121b)) !important; border: 3px solid var(--pc, var(--line)) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 18px rgba(0,0,0,.45) !important; }
+  .pads.v2 .pad.big.on { transform: scale(.97); filter: brightness(1.35); box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), 0 0 22px color-mix(in srgb, var(--pc, #57b7ff) 60%, transparent) !important; }
+  .pads.v2 .pad.big .cap { display: none; }
+  .pads.v2 .pico .arrowsvg, .pads.v2 .pad svg { width: 64px; height: 64px; opacity: .95; }
+  .pads.v2 .padmid { height: auto !important; min-height: clamp(116px, 16vh, 150px); grid-template-rows: minmax(0, 1fr) !important; }
+  .pads.v2 .padtools { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr) !important; gap: 8px; }
+  .pads.v2 .ptool { border-radius: 18px !important; gap: 4px !important; }
+  .pads.v2 .ptool .tl { display: block !important; font: 800 12px/1 "Barlow Semi Condensed", sans-serif; letter-spacing: .08em; color: #fff; max-width: 100%; }
+  .pads.v2 .ptool .tg { font-size: 26px; }
+  .pads.v2 .ptool.mic { background: linear-gradient(180deg, #1d2d42, #142131) !important; border: 2px solid #3b5675 !important; box-shadow: none !important; }
+  .pads.v2 .padhint { border: 0; background: none; gap: 2px; } .pads.v2 .padhint b { font-size: 16px; color: var(--muted); } .pads.v2 .padhint span { font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+}
 </style>
 
 <div id="app">
@@ -2771,7 +2791,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '50cc55ab8771';
+const BUILD = 'f3f8f0c12a25';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3771,6 +3791,7 @@ function perfWatch(dt) {
 }
 
 // ---------- weapons ----------
+function wpTipOnce() { const n = Number(lsGet('vijuga-wptip') || 0); if (n >= 2) return false; lsSet('vijuga-wptip', String(n + 1)); return true; } // how to fire: told twice, then never
 function weaponHint(k) { const w = WEAPONS[k]; return `${w.e} Imaš: <b>${w.name}</b>! ${IS_TOUCH ? 'LIJEVO + DESNO odjednom' : 'Tipka za skok (↑)'} = ${w.verb}.`; }
 function spawnWeapon() {
   const bd = bounds(), m = 40; if (bd.r - bd.l < 3 * m || bd.b - bd.t < 3 * m) return;
@@ -3791,7 +3812,7 @@ function weaponsTick() {
 function pickWeapon(p) {
   p.wp = G.wpick.k; p.wpT = G.gt; G.wpick = null; sfx.pick(); hudDirty = true;
   G.toast = { text: `${WEAPONS[p.wp].e} ${p.name}`, color: dispColor(p), x: p.x, y: p.y - 24, t: G.gt };
-  if (isMine(p)) showIgMsg(weaponHint(p.wp));
+  if (isMine(p)) showIgMsg(weaponHint(p.wp), false, wpTipOnce());
 }
 function useWeapon(p) {
   const k = p.wp, r = radiusOf(p); p.wp = null; hudDirty = true;
@@ -4773,22 +4794,20 @@ function buildPads() {
     };
     // the middle fills the room the old tool row + SKOK button took: pranks, chat, voice, emoji (+ extras by design).
     // There is no jump button any more: pressing LIJEVO and DESNO at the same moment jumps.
-    box.classList.remove('ps-a', 'ps-b', 'ps-c'); box.classList.add('ps-' + PAD_STYLE);
+    box.classList.remove('ps-a', 'ps-b', 'ps-c'); box.classList.add('v2');
     const mid = document.createElement('div'); mid.className = 'padmid'; if (box.id === 'padsBottom') $('#game').classList.remove('padtools-on');
     if (net && !watchingNow()) {
       const tools = document.createElement('div'); tools.className = 'padtools';
       const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
-      const zb = mkTool('prank', '😈', 'Zezalice', 'Zezalice'); zb.onclick = openTab('z');
+      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); zb.onclick = openTab('z');
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
-      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'Glas'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const id = e.pointerId; try { mb.setPointerCapture(id); } catch (er) {} clearTimeout(mb._hold); voiceHint('wait'); mb._hold = setTimeout(() => { mb._hold = 0; startVoice(mb, id); }, 250); });
+      const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'GLAS'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const id = e.pointerId; try { mb.setPointerCapture(id); } catch (er) {} clearTimeout(mb._hold); voiceHint('wait'); mb._hold = setTimeout(() => { mb._hold = 0; startVoice(mb, id); }, 250); });
       const mbUp = (e) => { if (mb._hold) { clearTimeout(mb._hold); mb._hold = 0; voiceHint('short'); return; } voiceUp(e); }; mb.addEventListener('pointerup', mbUp); mb.addEventListener('pointercancel', mbUp);
-      const rb = mkTool('react', '😀', 'Emotikoni', 'Emotikoni'); rb.onclick = openTab('r');
-      tools.append(zb, cb, mb, rb); $('#game').classList.add('padtools-on');
-      if (PAD_STYLE === 'b') { const qb = mkTool('quick', '⚡', 'Brze poruke: gg, bravo, revanš…', 'Brze'); qb.onclick = openTab('q'); const sb = mkTool('shot', '📸', 'Slikaj arenu i podijeli', 'Slikaj'); sb.onclick = (e) => { e.stopPropagation(); shareShot(); }; tools.append(qb, sb); }
+      void cb; // the middle holds only the pranks and the voice message (chat and emoji live in the menu)
+      tools.append(zb, mb); $('#game').classList.add('padtools-on');
       mid.append(tools);
-      if (PAD_STYLE === 'c') { const q = document.createElement('div'); q.className = 'qreact'; q.innerHTML = QUICK_REACT.map(e => `<button type="button" data-e="${e}" aria-label="Pošalji ${e}">${e}</button>`).join(''); q.querySelectorAll('button').forEach(b => b.onclick = (e) => { e.stopPropagation(); sendReaction(b.dataset.e); }); mid.append(q); }
-    } else if (setup.jump) { const h = document.createElement('div'); h.className = 'padhint'; h.innerHTML = '<b>◀ + ▶ = SKOK</b><span>za skok pritisni LIJEVO i DESNO odjednom</span>'; mid.append(h); }
+    } else if (setup.jump) { const h = document.createElement('div'); h.className = 'padhint'; h.innerHTML = '<b>◀ + ▶</b><span>skok</span>'; mid.append(h); }
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
     // the whole bar is one touch surface: the left half turns left, the right half turns right; both pressed at once jump.
     // Each finger is tracked by its pointer id and may slide between sides; nothing is released until the finger lifts.
@@ -4799,15 +4818,17 @@ function buildPads() {
     const chord = () => { if (!setup.jump && !((G && G.players.find(x => x.id === pid)) || {}).wp) return; let l = -1, r = -1; for (const [id, z] of ptr) { const t = downAt.get(id) || 0; if (z === 'L') l = Math.max(l, t); else if (z === 'R') r = Math.max(r, t); }
       if (l < 0 || r < 0 || Math.abs(l - r) > CHORD_MS || Math.max(l, r) <= box._chordAt) return; box._chordAt = Math.max(l, r);
       localJump(G.players.find(x => x.id === pid) || p); chordLearned(); buzz(15); box.querySelectorAll('.pad.big').forEach(b => { b.classList.remove('jumpgo'); void b.offsetWidth; b.classList.add('jumpgo'); }); };
-    const padAt = (x, y) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) - r.width / 2; if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
-    const sideOf = (x) => { const r = box.getBoundingClientRect(); if (r.width < 10) return x < innerWidth / 2 ? 'L' : 'R'; let f = (x - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.5 ? 'L' : 'R'; };
+    const padAt = (x, y) => { let best = null, bd = Infinity; box.querySelectorAll('.pad').forEach(btn => { if (btn.style.visibility === 'hidden') return; const r = btn.getBoundingClientRect(); const d = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom)); if (d < bd) { bd = d; best = btn; } }); return bd <= MARGIN ? best.dataset.k : null; };
+    const padRect = (k) => { const b = box.querySelector(`.pad[data-k=${k}]`); return b ? b.getBoundingClientRect() : null; };
+    const sideOf = (x, cur) => { const rl = padRect('L'), rr = padRect('R'); if (!rl || !rr || rl.width < 2 || rr.width < 2) { const r = box.getBoundingClientRect(); if (r.width < 10) return x < innerWidth / 2 ? 'L' : 'R'; let f = (x - r.left) / Math.max(1, r.width); if (flip) f = 1 - f; return f < 0.5 ? 'L' : 'R'; }
+      const inL = x >= rl.left && x <= rl.right, inR = x >= rr.left && x <= rr.right; if (inL) return 'L'; if (inR) return 'R'; return cur || (Math.abs(x - (rl.left + rl.right) / 2) < Math.abs(x - (rr.left + rr.right) / 2) ? 'L' : 'R'); }; // between the arrows a finger keeps its side
     const sync = () => { const h = (touchHeld[pid] = { L: 0, R: 0 }); for (const z of ptr.values()) h[z]++;
       box.querySelectorAll('.pad').forEach(btn => btn.classList.toggle('on', h[btn.dataset.k] > 0)); clientInput(); };
     box._sync = sync;
     const onTouch = (e) => {
       if (e.target && e.target.closest && e.target.closest('.padtools, .qreact')) return; // the tool buttons in the middle are ordinary buttons
       if (e.type === 'touchstart') { for (const t of e.changedTouches) { const z = padAt(t.clientX, t.clientY); if (z) { ptr.set(t.identifier, z); downAt.set(t.identifier, performance.now()); } } chord(); }
-      else if (e.type === 'touchmove') { for (const t of e.changedTouches) { const z = ptr.get(t.identifier); if (z) { const sd = sideOf(t.clientX); if (sd !== z) ptr.set(t.identifier, sd); } } }
+      else if (e.type === 'touchmove') { for (const t of e.changedTouches) { const z = ptr.get(t.identifier); if (z) { const sd = sideOf(t.clientX, z); if (sd !== z) ptr.set(t.identifier, sd); } } }
       else { for (const t of e.changedTouches) { ptr.delete(t.identifier); downAt.delete(t.identifier); } }
       const live = new Set(); for (const t of e.touches) live.add(t.identifier); for (const id of [...ptr.keys()]) if (!live.has(id) && typeof id === 'number') ptr.delete(id);
       if (e.cancelable && (ptr.size || e.type !== 'touchstart')) e.preventDefault();
@@ -4819,7 +4840,7 @@ function buildPads() {
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) box.addEventListener(ev, onTouch, { passive: false });
     // mouse / pen (desktop): one button at a time
     box.onpointerdown = (e) => { if (e.pointerType === 'touch' || (e.target.closest && e.target.closest('.padtools, .qreact'))) return; e.preventDefault(); const z = padAt(e.clientX, e.clientY); if (!z) return; try { box.setPointerCapture(e.pointerId); } catch (er) {} ptr.set('m' + e.pointerId, z); downAt.set('m' + e.pointerId, performance.now()); chord(); sync(); };
-    box.onpointermove = (e) => { if (e.pointerType === 'touch') return; const k = 'm' + e.pointerId; const z = ptr.get(k); if (z) { const sd = sideOf(e.clientX); if (sd !== z) { ptr.set(k, sd); sync(); } } };
+    box.onpointermove = (e) => { if (e.pointerType === 'touch') return; const k = 'm' + e.pointerId; const z = ptr.get(k); if (z) { const sd = sideOf(e.clientX, z); if (sd !== z) { ptr.set(k, sd); sync(); } } };
     const upM = (e) => { if (e.pointerType === 'touch') return; downAt.delete('m' + e.pointerId); if (ptr.delete('m' + e.pointerId)) sync(); };
     box.onpointerup = upM; box.onpointercancel = upM; box.onlostpointercapture = upM;
     box.oncontextmenu = (e) => e.preventDefault();
@@ -4842,7 +4863,7 @@ const QUICK_REACT = ['😂', '🔥', '👏', '🥳']; // must be in REACTIONS, t
 const QUICK_MSG = ['gg 👏', '🔊 Pojačajte zvuk! 🎤', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
 // players used to the old SKOK button: a notice over the pads for their first matches, until they have jumped the new way
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
-function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); toast('👍 Tako je! LIJEVO + DESNO odjednom = skok.'); } }
+function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); } }
 let jumpTipAt = 0;
 function showJumpTip() {
   if (!IS_TOUCH || !setup.jump || lsGet('vijuga-chordok')) return;
@@ -4859,7 +4880,7 @@ function showJumpTip() {
   const end = () => { if (!document.body.contains(d)) return; if (!G || G.phase !== 'count') { d.remove(); return; } setTimeout(end, 250); };
   setTimeout(end, 400); setTimeout(() => d.remove(), 8000);
 }
-function jumpReminder() { if (IS_TOUCH && setup.jump && G && G.phase === 'run' && !lsGet('vijuga-chordok')) toast('💡 Skok je sada: LIJEVO i DESNO odjednom.'); }
+function jumpReminder() {}
 async function shareShot() {
   const cv = $('#cv'); if (!cv) return;
   try { const blob = await new Promise(r => cv.toBlob(r, 'image/png')); if (!blob) throw 0; const file = new File([blob], 'vijuga.png', { type: 'image/png' });
@@ -4908,6 +4929,7 @@ function startGame() {
   newMatch(); buildPads(); enterGame();
 }
 function toMenu() {
+  setTimeout(flushNotes, 600);
   document.querySelectorAll('.jumptip').forEach(x => x.remove()); lockZoom(false);
   cancelAnimationFrame(raf); paused = false; G = null;
   if (net && net.savedSetup) { Object.assign(setup, net.savedSetup); net.savedSetup = null; } // my own settings come back after a match run on the host's rules (also after I took the match over)
@@ -5059,9 +5081,11 @@ function notify(html, opts = {}) {
   for (const old of box.querySelectorAll('.note-card')) if (old.querySelector('.txt') && old.querySelector('.txt').innerHTML === html) old.remove();
   const n = document.createElement('div'); n.className = 'note-card' + (opts.warn ? ' warn' : ''); n.innerHTML = `<div class="txt">${html}</div>` + (opts.actions || '') + '<button class="x" type="button" aria-label="Zatvori">×</button>';
   n.querySelector('.x').onclick = () => n.remove(); box.appendChild(n); while (box.children.length > (innerWidth < 700 ? 2 : 3)) box.firstChild.remove();
+  if (inMatch() && !opts.warn) { n.hidden = true; n._ms = opts.ms; return n; } // a notice in the middle of a match waits until the player is back in the menu
   if (opts.ms !== 0) setTimeout(() => n.remove(), opts.ms || 9000);
   return n;
 }
+function flushNotes() { document.querySelectorAll('#notes .note-card[hidden]').forEach(n => { n.hidden = false; if (n._ms !== 0) setTimeout(() => n.remove(), n._ms || 9000); }); }
 function fmtAgo(t) { const m = Math.round((Date.now() - t) / 60000); if (m < 1) return 'upravo'; if (m < 60) return `prije ${m} min`; const h = Math.round(m / 60); if (h < 24) return `prije ${h} h`; const d = Math.round(h / 24); return `prije ${d} ${d === 1 ? 'dan' : 'dana'}`; }
 // ---------- WhatsApp: a result shared with one tap (WhatsApp opens with the text ready; the player picks the chat or group)
 function waLink(text) { return 'https://wa.me/?text=' + encodeURIComponent(text); }
@@ -5610,7 +5634,8 @@ let myRevenge = 0, myLastKiller = null;
 const isMine = (p) => !!(p && (p.mine || (net && net.role === 'client' && p.id === net.myId)));
 function hideDeathCard() { const d = $('#deathCard'); if (d) d.remove(); }
 function showDeathCard(p, killer) {
-  hideDeathCard(); const st = $('#game .stage'); if (!st || (G && G.over)) return;
+  hideDeathCard(); return; // no card any more: the crash, the shake and the buzz say enough (the player watches the round)
+  const st = $('#game .stage'); if (!st || (G && G.over)) return;
   const own = killer && killer.id === p.id, who = killer && !own ? killer : null;
   const d = document.createElement('div'); d.id = 'deathCard'; d.setAttribute('role', 'status');
   const canPrank = net && who && who.human && peerOfPlayer(who);
@@ -5714,7 +5739,11 @@ function receiveTroll(id, fromName, fromPeer) {
   try { navigator.vibrate && navigator.vibrate(id === 'shake' ? [80, 40, 80, 40, 120] : 60); } catch (e) {}
   showIgMsg(`${t.e} ${esc(fromName)} ti šalje: ${t.name}`, true);
 }
-function showIgMsg(html, warn) {
+const inMatch = () => !!(G && !G.over && $('#game') && !$('#game').hidden);
+// During a match the arena stays clean: only what the player must know (a prank on me, I was dropped or kicked) is
+// written; everything else (chat lines, kills, joins, potions, goals…) is left out. `force` lets a one-time tip through.
+function showIgMsg(html, warn, force) {
+  if (inMatch() && !warn && !force) return;
   const box = $('#igMsgs'); if (!box) { notify(html, { ms: 5000 }); return; }
   const el = document.createElement('div'); el.className = 'igmsg' + (warn ? ' warn' : ''); el.innerHTML = html; box.appendChild(el);
   while (box.children.length > 3) box.firstChild.remove();
@@ -6608,7 +6637,7 @@ function applyState(st, first) {
     if (q.n !== undefined) { p.disg = Array.isArray(q.dg) && /^#[0-9a-f]{6}$/i.test(String(q.dg[0])) ? { color: q.dg[0], skin: SKINS[q.dg[1]] ? q.dg[1] : 'sk_none', nc: q.dg[2] ? 1 : 0, until: Number(q.dg[3]) || 0 } : null; if (p.disg && q.rm === mePeer) net.colorTold = true; p.clashWith = q.cw ? String(q.cw).slice(0, 14) : ''; }
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
-    { const w = q.wp === 1 ? 'gun' : q.wp === 2 ? 'smoke' : null; if (w && !p.wp && q.rm === mePeer) showIgMsg(weaponHint(w)); p.wp = w; }
+    { const w = q.wp === 1 ? 'gun' : q.wp === 2 ? 'smoke' : null; if (w && !p.wp && q.rm === mePeer) showIgMsg(weaponHint(w), false, wpTipOnce()); p.wp = w; }
     if (q.sl) p.slug = q.sl;
     if (q.rm === mePeer || (net.myId == null && !net.spectate && profile && q.h && q.sl && q.sl === profile.slug)) { const wasOut = net.myId == null; net.myId = p.id; p.mine = true; if (profile && !net.colorTold && q.co != null && (q.nc || q.cx)) { net.colorTold = true; setTimeout(() => showIgMsg(colorNote(p)), 300); } else if (profile && !net.colorTold && q.co != null && q.co !== profile.color) { net.colorTold = true; setTimeout(() => showIgMsg(`🎨 Tvoja boja (${DEFAULT_NAMES[profile.color] || ''}) je zauzeta, u ovom meču si <b style="color:${COLORS[q.co]}">${(DEFAULT_NAMES[q.co] || '').toLowerCase()}</b>`), 300); } if (wasOut) { netPresence({ ok: null, ig: 1, watch: null }); setTimeout(() => { buildPads(); renderSpecBar(); if (net && G && net.myId != null && (G.round > 1 || G.phase !== 'count')) { const meP = G.players.find(x => x.id === net.myId); showIgMsg(meP && meP.alive && G.phase === 'run' ? '🎮 Ti si u meču! Upravljaš svojom zmijom.' : G.phase === 'count' ? '🎮 Ti si u meču! Runda kreće za koji trenutak.' : '🎮 U meču si – svojom zmijom upravljaš <b>od sljedeće runde</b>.'); } }, 0); } }
     if (p._lgt != null && st.gt > p._lgt && q.al) { const v = Math.hypot(q.x - p._lx, q.y - p._ly) / (st.gt - p._lgt); if (v < 600) p.v = p.v ? p.v * 0.6 + v * 0.4 : v; }
@@ -7049,7 +7078,8 @@ function renderTrollPop() {
   const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
   const inv = profile ? profile.inv : {}, cool = performance.now() - lastTrollSent < 5000;
   const owned = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0);
-  const tabs = `<div class="tptabs"><button type="button" class="tpt ${trollTab === 'z' ? 'on' : ''}" data-t="z">😈 Zezalice</button><button type="button" class="tpt ${trollTab === 'c' ? 'on' : ''}" data-t="c">💬 Chat</button><button type="button" class="tpt ${trollTab === 'r' ? 'on' : ''}" data-t="r">😀 Emotikoni</button><button type="button" class="tpt ${trollTab === 'q' ? 'on' : ''}" data-t="q">⚡ Brze</button><button type="button" class="tpt ${trollTab === 'n' ? 'on' : ''}" data-t="n">🧪 Napitci</button><button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
+  const TT = { z: '😈 Zezalice', n: '🧪 Napitci', c: '💬 Chat', r: '😀 Emotikoni', q: '⚡ Brze' }, show = ['z', 'n'].concat(['z', 'n'].includes(trollTab) ? [] : [trollTab]); // in a match: the pranks and the potions (chat and emoji only when opened from their own button)
+  const tabs = `<div class="tptabs">${show.map(t => `<button type="button" class="tpt ${trollTab === t ? 'on' : ''}" data-t="${t}">${TT[t]}</button>`).join('')}<button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
   if (trollTab === 'n') {
     const me = myMatchPlayer(), have = profile ? (profile.inv.cham || 0) : 0, others = G ? G.players.filter(p => p !== me && p.alive) : [], can = !!(me && me.alive && G.phase === 'run' && !me.disg && have);
     pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg" data-pid="${t.id}" ${can ? '' : 'disabled'}><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak na tvom mjestu: tko uđe, ${POTIONS.perfume.s} s vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg" id="tpPerf" ${canP ? '' : 'disabled'}>🌸 Poprskaj</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
