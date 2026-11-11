@@ -6,6 +6,11 @@
 //                                               GET /api/push/has answers 401: it no longer tells strangers)
 // POST /api/push/broadcast {slug, auth, id, title, body} -> the master tells every subscribed phone about something new
 //                                               (once per news id, at most once an hour)
+// POST /api/push/callall {from, auth, claim, skip, waiting} -> "X te zove na Vijugu": every player with notifications,
+//                                               except the caller and the players already in the lobby (skip). One call a
+//                                               player per 20 minutes (6 a day); a phone gets at most 3 of these an hour;
+//                                               a muted player cannot call. Answers {ok, players, sent, limited}.
+// GET  /api/push/count                       -> how many players have notifications on (a number, no names)
 // Invites: one per sender and receiver a minute, and per sender 10 in 10 minutes and 40 a day (429 {error, wait}).
 // Every PIN check goes through the shared failure limiter; each phone gets 4 s to answer.
 import type { Config, Context } from "@netlify/functions";
@@ -13,6 +18,8 @@ import { getStore } from "@netlify/blobs";
 import webpush from "web-push";
 import { MASTER } from "./roles.mts";
 import { account, hit, pinGate } from "./guard.mts";
+import { loadRoles } from "./roles.mts";
+import { owns } from "./wallet.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -28,6 +35,7 @@ export async function vapid() {
 }
 
 const SEND_MS = 4000;
+const CALL_GAP = 20 * 60000, RCV_HOUR = 3; // call-all: per caller, per receiving player
 // one phone that does not answer must not hold the function past its time limit
 function sendOne(sub: webpush.PushSubscription, payload: string) {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -50,6 +58,11 @@ export default async (req: Request, context: Context) => {
   const { store, keys } = await vapid();
   if (req.method === "GET" && action === "key") return json({ key: keys.publicKey });
   if (req.method === "GET" && action === "has") return json({ error: "auth" }, 401); // who can be notified is not for strangers
+  if (req.method === "GET" && action === "count") { // how many, never who
+    const { blobs } = await store.list({ prefix: "subs/" });
+    const lists = await Promise.all(blobs.map((x) => store.get(x.key, { type: "json" }) as Promise<unknown[] | null>));
+    return Response.json({ n: lists.filter((v) => Array.isArray(v) && v.length).length }, { headers: { ...cors, "cache-control": "public, max-age=0, s-maxage=120", "netlify-cdn-cache-control": "public, s-maxage=120" } });
+  }
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!b) return json({ error: "body missing" }, 400);
@@ -85,6 +98,31 @@ export default async (req: Request, context: Context) => {
       ? { title: `👉 ${who} te bocnuo!`, body: "Vrati se u igru, čekamo te za meč 🐍 Dodirni da uđeš.", url: GAME, tag: "poke-" + from }
       : { title: `🐍 ${who} te zove na Vijugu!`, body: "Dođi, čekamo te za meč. Dodirni da uđeš.", url: GAME, tag: "invite-" + from });
     return sent ? json({ ok: true, sent }) : json({ error: "no devices" }, 404);
+  }
+  if (action === "callall") {
+    const from = String(b.from ?? ""); if (!SLUG.test(from)) return json({ error: "bad request" }, 400);
+    const acc = await account(from); if (!acc) return json({ error: "unknown player" }, 404);
+    const g = await pinGate(req, context, from, acc.pinHash, b.auth); if (!g.ok) return refused(g, "wrong pin");
+    if (!acc.pinHash && acc.claimHash && !(await owns(acc, b.claim))) return json({ error: "auth" }, 403); // a PIN-less profile: only its own device
+    const { mutes } = await loadRoles(); if ((Number(mutes[from]) || 0) > Date.now()) return json({ error: "muted", until: mutes[from] }, 403);
+    const h = await hit("callall/" + from, [[1, CALL_GAP], [6, 24 * 3600000]]);
+    if (!h.ok) return json({ error: "too soon", wait: h.wait }, 429);
+    const skip = new Set((Array.isArray(b.skip) ? b.skip : []).map(String).filter((s) => SLUG.test(s)).slice(0, 80)); skip.add(from);
+    const waiting = Math.max(0, Math.min(99, Math.floor(Number(b.waiting) || 0)));
+    const { blobs } = await store.list({ prefix: "subs/" });
+    const now = Date.now(), seen = ((await store.get("callall/rcv", { type: "json" })) as Record<string, number[]> | null) || {};
+    const recent: Record<string, number[]> = {}; for (const [k, v] of Object.entries(seen)) { const t = (Array.isArray(v) ? v : []).filter((x) => x > now - 3600000); if (t.length) recent[k] = t; }
+    const all = blobs.map((x) => x.key.slice(5)).filter((s) => SLUG.test(s) && !skip.has(s));
+    const to = all.filter((s) => (recent[s] || []).length < RCV_HOUR), limited = all.length - to.length;
+    const who = String(acc.name ?? from).slice(0, 14);
+    const payload = { title: `📣 ${who} te zove na Vijugu!`, body: waiting > 1 ? `${waiting} igrača čeka u predvorju. Dodirni da uđeš u igru 🐍` : "Kreće meč, dođi u predvorje. Dodirni da uđeš u igru 🐍", url: GAME + "?tab=online", tag: "callall" };
+    let sent = 0, players = 0, i = 0; const t0 = Date.now();
+    for (; i < to.length && Date.now() - t0 < 4000; i += 25) { // 25 players at a time, each phone with its own time limit
+      const batch = to.slice(i, i + 25), ns = await Promise.all(batch.map((s) => sendTo(s, payload).catch(() => 0)));
+      ns.forEach((n, j) => { sent += n; if (n) { players++; (recent[batch[j]] = recent[batch[j]] || []).push(now); } });
+    }
+    await store.setJSON("callall/rcv", recent);
+    return json({ ok: true, players, sent, limited, ...(i < to.length ? { partial: true } : {}) });
   }
   if (action === "broadcast") {
     const slug = String(b.slug ?? ""); const acc = slug === MASTER ? await account(slug) : null;

@@ -273,6 +273,8 @@ body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !import
 .pritem em { font-style: normal; font-size: 24px; } .pritem b { display: block; font-size: 14px; } .pritem small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.3; } .pritem i { font-style: normal; color: var(--good); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .pushnag { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); background: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--panel)); border-radius: 12px; padding: 9px 12px; font-size: 14px; }
 .pushnag span { flex: 1 1 200px; } .pushnag .x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 2px 6px; }
+.pushcard p { margin: 0; } .pushcard .row { gap: 8px; flex-wrap: wrap; } .pushsteps { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+.callall { margin: 0 0 10px; display: grid; gap: 4px; } .callall:empty { display: none; } .callrow { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; } .callrow .hint { flex: 1 1 160px; }
 .wchip em { font-style: normal; font-size: 18px; } .wchip i { font-style: normal; }
 .wchip { max-width: 100%; min-width: 0; text-align: left; } .wchip > span { min-width: 0; overflow-wrap: anywhere; } .wchip em { flex: none; min-width: 0; max-width: 62%; overflow: hidden; } .wchip .cbd .cp { max-width: 6em; } /* a live icon's long text never widens the wardrobe */
 .wchip canvas.wprev { width: 56px; height: 16px; border-radius: 4px; }
@@ -740,6 +742,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
       </div>
 
       <div class="tab" id="tab-online">
+        <div class="callall" id="callAll"></div>
         <div class="net" id="net"></div>
       </div>
 
@@ -1366,6 +1369,97 @@ async function enablePush() {
     renderOnbar(); renderPushNag(); return true;
   } catch (e) { toast('Obavijesti nisu uspjele: ' + (e && e.message || e)); return false; }
 }
+// ---- "turn on notifications": a pop-up for a logged-in player in the menu (never in a match), at most once a day, until
+// this device has them on, so friends can call them to play without the WhatsApp group. A refused permission, an iPhone
+// outside the home screen and a browser without push each get their own explanation, shown less often (they need the
+// player to change something first)
+const IS_STANDALONE = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } })();
+function pushState() {
+  if (pushOn()) return 'on';
+  if (!pushSupported()) return IS_IOS ? (IS_STANDALONE ? 'ios-old' : 'ios-home') : 'unsupported';
+  let perm = 'default'; try { perm = Notification.permission; } catch (e) {}
+  return perm === 'denied' ? 'denied' : 'ask'; // granted, but not for this player on this device: asks too (no browser prompt then)
+}
+const PUSHPOP_DAYS = { ask: 1, denied: 3, 'ios-home': 3, 'ios-old': 60, unsupported: 60 };
+function pushPopDue(st) {
+  let o = null; try { o = JSON.parse(localStorage.getItem('vijuga-pushpop') || 'null'); } catch (e) {}
+  if (!o || o.slug !== profile.slug) return true;
+  return o.d !== zDay(Date.now()) && Date.now() - (Number(o.at) || 0) > PUSHPOP_DAYS[st] * 864e5 - 4 * 3600e3;
+}
+function pushPopBusy() {
+  const m = $('#menu'), g = $('#game'), rm = $('#regModal'), im = $('#inviteModal');
+  return !m || m.hidden || (g && !g.hidden) || (rm && !rm.hidden) || (im && !im.hidden) || !!document.querySelector('.achov, .updov') || document.visibilityState !== 'visible';
+}
+let pushPopAt = -1e9, pushPopSince = 0;
+function maybePushPop() {
+  if (navigator.webdriver && !window.__pushPopTest) return; // automated browsers (the test suites) are never asked
+  if (!profile || !$('#menu') || pushState() === 'on') { pushPopSince = 0; return; }
+  if (pushPopBusy()) { pushPopSince = 0; return; }
+  if (!pushPopSince) { pushPopSince = performance.now(); return; } // the menu has to be quiet for a moment first
+  if (performance.now() - pushPopSince < 6000 || performance.now() - pushPopAt < 60000) return;
+  const st = pushState(); if (pushPopDue(st)) showPushPop(st);
+}
+function showPushPop(st) {
+  pushPopAt = performance.now();
+  try { localStorage.setItem('vijuga-pushpop', JSON.stringify({ slug: profile.slug, d: zDay(Date.now()), at: Date.now(), st })); } catch (e) {}
+  const bonus = !profile.owned.includes('x_pushbonus'), andro = /Android/i.test(navigator.userAgent);
+  const body = {
+    ask: `<p>Kad netko želi igrati, dobiješ <b>obavijest na mobitel</b> – bez slanja poruka u WhatsApp grupu. Jedan dodir i već si u predvorju.</p><p class="hint">Obavijest stiže samo kad te netko zove na igru, bocne 👉 ili kad je u igri nešto novo. Možeš ih isključiti kad god želiš.${bonus ? ` Za uključivanje dobivaš <b>${PUSH_BONUS} zlatnika</b>.` : ''}</p>`,
+    denied: `<p>Obavijesti su <b>blokirane</b> u pregledniku, pa te prijatelji ne mogu pozvati na igru.</p><p><b>Kako ih uključiti:</b> ${IS_IOS ? 'Postavke iPhonea → Obavijesti → Vijuga → Dopusti obavijesti, pa se vrati ovdje.' : andro ? 'dodirni ikonu 🔒 (ili ⓘ) lijevo od adrese → Dozvole (Postavke web-mjesta) → Obavijesti → Dopusti, pa se vrati ovdje i stisni „Pokušaj ponovno”.' : 'klikni ikonu 🔒 lijevo od adrese → Obavijesti → Dopusti, pa stisni „Pokušaj ponovno”.'}</p>`,
+    'ios-home': `<p>Na iPhoneu obavijesti rade samo kad je Vijuga <b>na početnom zaslonu</b>:</p><ol class="pushsteps"><li>U Safariju dodirni <b>Podijeli</b> (kvadrat sa strelicom ⬆️).</li><li>Odaberi <b>Dodaj na početni zaslon</b>.</li><li>Otvori Vijugu s početnog zaslona i stisni <b>Uključi obavijesti</b>.</li></ol><p class="hint">Tada ti prijatelji mogu poslati poziv na igru ravno na mobitel, bez WhatsApp grupe.</p>`,
+    'ios-old': `<p>Ovaj iPhone ima stariji iOS koji web-aplikacijama ne dopušta obavijesti (treba iOS 16.4 ili noviji). Kad ga ažuriraš, ovdje ih možeš uključiti.</p>`,
+    unsupported: `<p>Ovaj preglednik ne podržava obavijesti. Otvori Vijugu u <b>Chromeu</b> (Android) ili u <b>Safariju s početnog zaslona</b> (iPhone) i uključi ih tamo.</p>`,
+  }[st];
+  const can = st === 'ask' || st === 'denied';
+  document.querySelectorAll('.pushov').forEach(x => x.remove());
+  const ov = document.createElement('div'); ov.className = 'achov pushov'; ov.dataset.st = st;
+  ov.innerHTML = `<div class="achcard infocard pushcard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>🔔 ${st === 'denied' ? 'Obavijesti su blokirane' : st === 'ask' ? 'Uključi obavijesti' : 'Obavijesti na mobitelu'}</h3>${body}<div class="row" style="justify-content:center">${can ? `<button type="button" class="btn" data-pp="on">${st === 'denied' ? '🔁 Pokušaj ponovno' : '🔔 Uključi obavijesti'}</button>` : ''}<button type="button" class="btn ghost" data-pp="later">${can ? 'Kasnije' : 'U redu'}</button></div></div>`;
+  ov.onclick = async (e) => {
+    const b = e.target.closest && e.target.closest('[data-pp], .mclose');
+    if (e.target === ov || (b && (b.classList.contains('mclose') || b.dataset.pp === 'later'))) { ov.remove(); return; }
+    if (!b || b.dataset.pp !== 'on') return;
+    b.disabled = true; const ok = await enablePush();
+    if (ok) { ov.remove(); renderCallAll(); return; }
+    b.disabled = false; if (st !== 'denied' && pushState() === 'denied') { ov.remove(); showPushPop('denied'); }
+  };
+  document.body.appendChild(ov);
+}
+setInterval(maybePushPop, 2000);
+
+// ---- "Pozovi sve na igru" (online lobby): one push to every player with notifications, except those already here.
+// The server limits it (a caller every 20 min, a phone 3 an hour) and says how many got it; the lobby shows how many
+// players have notifications on (a number, never who)
+let pushCount = null, pushCountAt = -1e9, callAllBusy = false;
+async function loadPushCount() {
+  if (performance.now() - pushCountAt < 120000) return; pushCountAt = performance.now();
+  try { const r = await fetch(PUSH_API + '/count'), j = await r.json(); if (r.ok && Number.isFinite(j.n)) { pushCount = j.n; renderCallAll(); } } catch (e) {}
+}
+const lobbySlugs = () => [...new Set(roomState.peers.filter(p => p.presence && /^[a-z0-9-]{1,40}$/.test(String(p.presence.sl || ''))).map(p => p.presence.sl))];
+function callAllWait() { let t = 0; try { t = Number(localStorage.getItem('vijuga-callall')) || 0; } catch (e) {} return Math.max(0, t + 20 * 60000 - Date.now()); }
+function renderCallAll() {
+  const box = $('#callAll'); if (!box) return;
+  const wait = callAllWait();
+  const info = [pushCount != null ? `🔔 ${plural(pushCount, 'igrač ima', 'igrača imaju', 'igrača ima')} uključene obavijesti` : '', wait ? `ponovno za ${Math.ceil(wait / 60000)} min` : ''].filter(Boolean).join(' · ');
+  const h = `<div class="callrow"><button type="button" class="btn sm" id="callAllBtn" ${!profile || wait || callAllBusy ? 'disabled' : ''}>${callAllBusy ? '📣 Šaljem…' : '📣 Pozovi sve na igru'}</button><span class="hint">${info || 'Svi s uključenim obavijestima dobiju poziv na mobitel.'}</span></div>${profile && !pushOn() ? `<p class="hint" style="margin:0">Uključi i ti obavijesti da te drugi mogu pozvati: <button type="button" class="linkbtn" id="callAllMe">🔔 Uključi</button></p>` : ''}`;
+  if (box.dataset.h === h) return; box.dataset.h = h; box.innerHTML = h;
+  const b = $('#callAllBtn'); if (b) b.onclick = () => callAll();
+  const me = $('#callAllMe'); if (me) me.onclick = () => { const st = pushState(); if (st === 'ask') enablePush().then(() => renderCallAll()); else showPushPop(st); };
+}
+async function callAll() {
+  if (!profile) { showLogin(); return; } if (callAllBusy || callAllWait()) return;
+  const here = lobbySlugs(); callAllBusy = true; renderCallAll();
+  try {
+    const r = await fetch(PUSH_API + '/callall', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, auth: profile.pinHash || '', claim: claimOf(profile.slug), skip: here, waiting: Math.max(1, here.length) }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { try { localStorage.setItem('vijuga-callall', String(Date.now())); } catch (e) {} toast(j.players ? `📣 Pozvano ${plural(j.players, 'igrač', 'igrača', 'igrača')}: poziv im je stigao na mobitel.` : '📣 Trenutno nitko drugi nema uključene obavijesti (ili su poziv već dobili u zadnjih sat vremena).'); }
+    else if (r.status === 429) { const w = Number(j.wait) || 0; if (j.error === 'too soon' && w) { try { localStorage.setItem('vijuga-callall', String(Date.now() - 20 * 60000 + w * 1000)); } catch (e) {} } toast(`Sve možeš pozvati jednom u 20 minuta${w ? ` (još ${Math.ceil(w / 60)} min)` : ''}.`); }
+    else if (r.status === 403 && j.error === 'muted') toast('🔇 Utišan si, pa ne možeš zvati sve na igru.');
+    else toast('Poziv nije poslan (' + (j.error || r.status) + ').');
+  } catch (e) { toast('Nema veze s poslužiteljem.'); }
+  callAllBusy = false; renderCallAll();
+}
+setInterval(() => { if (curTab === 'online' && $('#menu') && !$('#menu').hidden) { renderCallAll(); loadPushCount(); } }, 3000);
+
 // premium and luxury things work by themselves (no choosing): a profile lists them with what they do, so everything is visible
 function premiumListHtml(P) {
   const own = Object.keys(PREMIUM).filter(k => !PREMIUM[k].bg && P.owned.includes(k));
@@ -6766,6 +6860,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
