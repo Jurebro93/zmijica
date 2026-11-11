@@ -593,9 +593,10 @@ button.arm { background: var(--good) !important; color: #062014 !important; }
 .rmini li { display: grid; grid-template-columns: 1.6em 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 5px 12px; border-radius: 10px; background: color-mix(in srgb, var(--panel) 85%, transparent); font-size: 17px; }
 .rmini li .n { color: var(--muted); } .rmini li .dot { width: 12px; height: 12px; border-radius: 50%; } .rmini li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; } .rmini li em { font-style: normal; font-weight: 800; }
 .rmini li:first-child em { color: var(--amber); } .rmini li.mine { outline: 1px solid var(--amber); }
+.rres.rfin { width: min(100%, 340px); } .rres.rfin .rrow { font-size: 18px; } .rres.rfin .rrow.mine .nm span { color: var(--amber); } .rres.rfin .rrow:first-child .sc { color: var(--amber); }
 .banner.fin .earn { font-size: 16px; margin: 0; } .banner.fin .readybox .rchip { font-size: 12.5px; padding: 2px 8px; gap: 5px; } .banner.fin .readybox .rchip .dot { width: 8px; height: 8px; }
-@media (max-height: 700px) { .banner.fin { gap: 7px; } .banner.fin .rmini li { padding: 3px 10px; font-size: 15px; } .banner.fin h3 { font-size: 26px; } }
-@media (max-height: 560px) { .banner.fin .rmini { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 520px); } .banner.fin .rmini li { font-size: 15px; padding: 3px 10px; } .banner.fin .rmore { order: 4; } } /* a phone on its side: the buttons first, the points in two columns under them */
+@media (max-height: 700px) { .banner.fin .rres.rfin { gap: 4px; } .banner.fin .rres.rfin .rrow { font-size: 15px; } .banner.fin { gap: 7px; } .banner.fin .rmini li { padding: 3px 10px; font-size: 15px; } .banner.fin h3 { font-size: 26px; } }
+@media (max-height: 560px) { .banner.fin .rres.rfin { order: 3; width: min(100%, 520px); grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; } .banner.fin .rres.rfin .rrow { font-size: 15px; } .banner.fin .rmini { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 520px); } .banner.fin .rmini li { font-size: 15px; padding: 3px 10px; } .banner.fin .rmore { order: 4; } } /* a phone on its side: the buttons first, the points in two columns under them */
 .rmore { width: min(100%, 520px); } .rmore summary { cursor: pointer; color: var(--muted); font-size: 14px; list-style: none; text-align: center; padding: 4px; } .rmore summary::-webkit-details-marker { display: none; } .rmore summary::after { content: ' ▾'; } .rmore[open] summary::after { content: ' ▴'; } .rmore[open] { display: grid; gap: 10px; justify-items: center; }
 #game.hasov .gticker { display: none; }
 .rchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; font-size: 14px; }
@@ -743,6 +744,28 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
   .pads.v2 .ptool.mic { background: linear-gradient(180deg, #1d2d42, #142131) !important; border: 2px solid #3b5675 !important; box-shadow: none !important; }
   .pads.v2 .padhint { border: 0; background: none; gap: 2px; } .pads.v2 .padhint b { font-size: 16px; color: var(--muted); } .pads.v2 .padhint span { font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
 }
+
+/* ---- the simple mode (body.lite): only what is needed */
+#liteTop, #liteNav, #liteMore { display: none; }
+body.lite.lhome #liteMore { display: block; width: 100%; margin-top: 12px; background: none; border: 1px dashed var(--line); border-radius: 14px; padding: 12px; color: var(--muted); font: 600 15px var(--body); }
+body.lite #liteTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0 4px; }
+body.lite #liteTop .ll { background: none; border: 0; padding: 0; font: 400 24px var(--display); letter-spacing: .02em; color: var(--good); }
+body.lite #liteTop .lcoins { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 5px; color: var(--fg); font: inherit; }
+body.lite #liteTop .lcoins .av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #111; } body.lite #liteTop .lcoins b { color: var(--amber); font-weight: 800; }
+body.lite #liteNav { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--ink); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); }
+body.lite #liteNav button { background: none; border: 0; color: var(--muted); display: grid; justify-items: center; gap: 2px; font: 700 12px var(--body); padding: 4px 0; position: relative; } body.lite #liteNav button span { font-size: 22px; line-height: 1.1; } body.lite #liteNav button.on { color: var(--amber); }
+body.lite #liteNav .cunread { position: absolute; top: 2px; right: calc(50% - 18px); width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
+body.lite #menu { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+body.lite #bnav, body.lite #fabPlay, body.lite #menu .brand, body.lite #ticker, body.lite #todayLine, body.lite #pushNag, body.lite #chatTeaser, body.lite #preview, body.lite #tabs { display: none !important; }
+body.lite.lhome #menu .tab { display: none !important; }
+body.lite:not(.lhome) #onbar { display: none !important; }
+body.lite #onbar .newsbar, body.lite #onbar .weekbar, body.lite #onbar .recent { display: none !important; }
+body.lite #onbar .btn { min-height: 56px; font-size: 20px; }
+body.lite #tab-online .chat, body.lite #callAll .callrow .hint, body.lite #tab-online > .net .hint { display: none !important; }
+body.lite .sfilt, body.lite .scatbox > .label, body.lite .coinnote, body.lite #shopDaily, body.lite #tab-shop .item small, body.lite #tab-shop h2 small { display: none !important; }
+body.lite .refbox > span, body.lite .refbox .reflist, body.lite .pmore { display: none !important; }
+.garder > summary { list-style: none; cursor: pointer; } .garder > summary::-webkit-details-marker { display: none; } .garder > summary h4 { display: inline; }
+body.lite .garder:not([open]) > summary { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; } body.lite .garder:not([open]) > summary small { display: none; } body.lite .garder:not([open]) > summary::after { content: ' ›'; float: right; color: var(--muted); }
 </style>
 
 <div id="app">
@@ -751,13 +774,16 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
     <div id="coinFloat" hidden></div>
     <nav id="bnav" aria-label="Brzi izbornik"><button type="button" data-go="me"><span>👤</span>Profil</button><button type="button" data-go="chat"><span>💬</span>Chat<i class="cunread" hidden></i></button><button type="button" data-go="play" class="bplay"><span>▶</span>IGRAJ</button><button type="button" data-go="shop"><span>🛒</span>Trgovina</button><button type="button" data-go="all"><span>☰</span>Sve</button></nav>
     <button type="button" id="fabPlay" hidden>▶ Igraj</button>
+    <nav id="liteNav" aria-label="Izbornik"><button type="button" data-ln="home"><span>🏠</span>Igraj</button><button type="button" data-ln="shop"><span>🛒</span>Trgovina</button><button type="button" data-ln="chat"><span>💬</span>Chat<i class="cunread" hidden></i></button><button type="button" data-ln="me"><span>👤</span>Profil</button></nav>
     <div class="wrap">
+      <div id="liteTop"></div>
       <header class="brand">
         <h1 aria-label="Vijuga"><span>V</span><span>I</span><span>J</span><span>U</span><span>G</span><span>A</span></h1>
         <p>Do osam zmija na jednoj ploči. Skreći, preskači tragove i ostani zadnji živ.</p>
         <div class="me" id="me"></div>
       </header>
       <div class="onhero" id="onbar" aria-live="polite"></div>
+      <button type="button" id="liteMore">☰ Sve ostalo: turnir, ljestvica, aukcija, pravila</button>
       <div class="ticker" id="ticker" aria-label="Kripto i vrijeme uživo"></div>
       <div class="todayline" id="todayLine" hidden></div>
       <div class="pushnag" id="pushNag" hidden></div>
@@ -1363,8 +1389,24 @@ function dailyGreeting() {
 setInterval(dailyGreeting, 15 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(dailyGreeting, 1500); });
 function logout() { if (profile && !confirm('Odjaviti se s ovog uređaja?')) return; profile = null; rememberLogin(null); renderMe(); renderShop(); renderBoard(); renderPlayers(); if (roomNs) { roomState.ready = false; netPresence(Object.assign(myLobbyPres(), { rd: 0 })); } renderNet(); showLogin(); }
+// ---- the simple mode (Pojednostavljeni izgled): a small top bar, the home shows only the play buttons, a bottom bar
+// with Igraj / Trgovina / Chat / Profil; a tab opens over the home. Everything else stays reachable (Sve, profile).
+let liteView = 'home', liteReady = false;
+function setLiteView(v) {
+  liteView = v; document.body.classList.toggle('lhome', v === 'home');
+  document.querySelectorAll('#liteNav [data-ln]').forEach(b => b.classList.toggle('on', v === 'home' ? b.dataset.ln === 'home' : b.dataset.ln === curTab));
+  if (LITE) { const m = $('#menu'); if (m) m.scrollTop = 0; }
+}
+function renderLiteTop() {
+  const t = $('#liteTop'); if (!t) return;
+  const c = profile ? (Number(profile.coins) || 0).toLocaleString('hr-HR') : '';
+  t.innerHTML = `<button type="button" class="ll" id="liteHome">VIJUGA</button>${profile ? `<button type="button" class="lcoins" id="liteMe"><span class="av" style="background:${COLORS[profile.color] || COLORS[0]}">${esc(profile.name.slice(0, 1).toUpperCase())}</span><b>● ${c}</b></button>` : '<button type="button" class="lcoins" id="liteMe"><b>Prijava</b></button>'}`;
+  $('#liteMe').onclick = () => profile ? showProfile() : showLogin(); $('#liteHome').onclick = () => setLiteView('home');
+}
+setTimeout(() => { liteReady = true; { const lm = $('#liteMore'); if (lm) lm.onclick = () => openAll(); } document.querySelectorAll('#liteNav [data-ln]').forEach(b => b.onclick = () => { const g = b.dataset.ln; if (g === 'home') setLiteView('home'); else if (g === 'shop') showTab('shop'); else if (g === 'chat') openChat(); else if (g === 'me') showProfile(); }); setLiteView('home'); renderLiteTop(); }, 1200);
 function renderMe() {
   setTimeout(() => { try { renderOnbar(); } catch (e) {} }, 0);
+  try { renderLiteTop(); } catch (e) {}
   const box = $('#me');
   if (!profile) { box.innerHTML = `<button type="button" id="regBtn" class="btn sm" style="text-decoration:none;color:#1a1205">Prijava</button>`; $('#regBtn').onclick = () => showLogin(); return; }
   const c = COLORS[profile.color] || COLORS[0];
@@ -1762,8 +1804,8 @@ function showProfile() {
     <div class="refbox"><b>📲 Pozovi igrača i zaradi ${REF_COINS} zlatnika</b><span>Pošalji svoj link: za svakog tko preko njega stvarno igra dobivaš <b>${REF_COINS}</b> zlatnika. Dosad pozvano: <b>${refInvited().length}</b> · isplaćeno: <b>${Math.max(refPaid(), refPaidSet().size)}</b>.</span>${refListHtml()}<div class="row"><button class="btn sm" type="button" id="profInvite">📲 Podijeli svoj link</button><button class="btn sm ghost" type="button" id="profCopy">Kopiraj link</button></div></div>
     ${levelHtml(P)}
     ${achBtnHtml(P)}
-    <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Za starije mobitele: samo crte i arena, bez ikona i efekata (samo na ovom uređaju).</small></div>
-    <h4>Garderoba <small>dodirni da promijeniš</small></h4>
+    <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Jednostavan izbornik (samo najvažnije) i lakša grafika u meču, za starije mobitele. Samo na ovom uređaju.</small></div>
+    <details class="garder" ${LITE ? '' : 'open'}><summary><h4>${LITE ? '👕 ' : ''}Garderoba <small>dodirni da promijeniš</small></h4></summary>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikone uz ime <small>do ${BX_MAX} odjednom, poredane u red (broj = redoslijed). Dodirni da dodaš ili skineš</small></span><div class="wrow">${worn.length ? '<button type="button" class="wchip" data-kind="badgeclear" data-id="">✕<span>Skini sve</span></button>' : ''}${ownedBadges.filter(k => k !== 'bd_none').map(k => `<button type="button" class="wchip ${worn.includes(k) ? 'on' : ''}" data-kind="badge" data-id="${k}"><em>${badgeGlyph(k) || '—'}</em><span>${esc(BADGES[k].name)}</span>${worn.includes(k) ? '<i>' + (worn.indexOf(k) + 1) + '</i>' : ''}</button>`).join('') || '<span class="hint">nemaš ikona: kupi u Trgovini (Ikone, Vrijeme, Kripto…)</span>'}</div>
     ${['te', 'ds', 'vs', 'cc'].map(kind => { const own = Object.keys(EFFECTS).filter(k => EFFECTS[k].kind === kind && P.owned.includes(k)); return own.length ? `<span class="label">${{ te: 'Efekt traga', ds: 'Kad ispadneš', vs: 'Zvuk pobjede', cc: 'Boja slova u chatu' }[kind]}</span><div class="wrow">${chip(kind, '', 'Bez', '<em>—</em>')}${own.map(k => chip(kind, k, EFFECTS[k].name, `<em>${EFFECTS[k].e}</em>`)).join('')}</div>` : ''; }).join('')}
@@ -1771,7 +1813,7 @@ function showProfile() {
     <span class="label">Premium i luksuz <small>rade sami, uvijek uključeno</small></span>${premiumListHtml(P)}
     <span class="label">Početni power-up</span><div class="wrow">${chip('pu', '', 'Bez', '<em>—</em>')}${ownedPu.map(k => chip('pu', k, POWERUPS[k].name, `<em>${POWERUPS[k].g}</em>`)).join('')}</div>
     <span class="label">Zezalice u džepu</span><div class="wrow">${Object.entries(P.inv || {}).filter(([k, v]) => v > 0 && (TROLLS[k] || k === 'shield')).map(([k, v]) => `<span style="padding:4px 9px;border:1px solid var(--line);border-radius:9px;font-size:13px">${(TROLLS[k] || { e: '🛡️' }).e} ${(TROLLS[k] || { name: 'Štit' }).name} ×${v}</span>`).join('') || '<span class="hint">ništa – kupi u Trgovini → Zezalice ili otvori kutiju</span>'}</div>
-    <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p>
+    <p class="hint" style="margin:0">Više skinova i ikona ima u kartici Trgovina.</p></details>
     ${pushOn() ? '<p style="margin:0">🔔 Obavijesti su uključene na ovom uređaju: prijatelji te mogu bocnuti 👉 kad krene meč.</p>' : `<div class="refbox pushbox"><b>🔔 Uključi obavijesti${P.owned.includes('x_pushbonus') ? '' : ` i dobij ${PUSH_BONUS} zlatnika`}</b><span>Kad te netko <b>bocne 👉</b> ili pozove na meč, dobiješ poruku na mobitel, čak i kad Vijuga nije otvorena. Bez reklama: samo pozivi, bocanja i kad izađe nešto novo.</span><div class="row"><button class="btn sm" type="button" id="profPush">🔔 Uključi obavijesti</button></div></div>`}
     ${myRole() === 'master' ? '<div class="rolepick"><b>Master</b><button type="button" id="profGrantAll">💰 Pokloni zlatnike svim igračima</button></div>' : ''}
     ${myRole() === 'master' || myRole() === 'admin' ? '<div class="rolepick"><b>Admin</b><button type="button" id="profEcon">📊 Ekonomija</button><button type="button" id="profWa">📲 Tekst za WhatsApp</button><button type="button" id="profDigest">📣 Objava za grupu</button></div>' : ''}
@@ -2792,7 +2834,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'd50f03c6e648';
+const BUILD = 'c308b5a422da';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -2835,7 +2877,7 @@ async function reloadToNew(quiet) {
 setTimeout(checkVersion, 30000); setInterval(() => { if (!document.hidden) checkVersion(); }, 2 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(checkVersion, 1500); });
 function showTab(t) {
-  curTab = t;
+  curTab = t; if (liteReady) setLiteView('tab');
   document.querySelectorAll('#tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   document.querySelectorAll('#bnav [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === t));
   ['local', 'online', 'shop', 'tour', 'auct', 'board', 'help'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
@@ -3778,7 +3820,12 @@ function setLite(v) {
   document.body.classList.toggle('lite', LITE); hudDirty = true;
   if (G && !$('#game').hidden) { lastFit = ''; fitCanvas(); }
   if (!LITE && !pvRAF) { try { pvRAF = requestAnimationFrame(pvTick); } catch (e) {} }
-  toast(LITE ? '🐢 Pojednostavljeni izgled je uključen (samo na ovom uređaju).' : 'Pojednostavljeni izgled je isključen.');
+  // the change shows at once: an open profile is drawn again (its trail previews turn into plain lines, the icons by the
+  // name go), and so is the shop; before, nothing on the screen moved and the switch looked broken
+  setLiteView('home'); renderLiteTop();
+  { const pm = $('#regModal'); if (pm && !pm.hidden && pm.querySelector('#liteChk')) { const sc = pm.querySelector('.profile'), y = sc ? sc.scrollTop : 0; showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; } }
+  try { renderShop(); renderMe(); } catch (e) {}
+  toast(LITE ? '🐢 Pojednostavljeni izgled: samo najvažnije u izborniku, lakša grafika u meču.' : 'Pojednostavljeni izgled je isključen: sve je opet kao prije.');
 }
 // a phone that cannot keep up during a match is offered the simple look once
 let perfN = 0, perfT = 0, perfAsked = (() => { try { return localStorage.getItem('vijuga-lite-asked') === '1'; } catch (e) { return false; } })();
@@ -4957,12 +5004,6 @@ function togglePause(force) {
   } else { showOverlay(null); lastTs = performance.now(); if (G.phase === 'end') showRoundBanner(); }
 }
 const fmtN = (n) => Math.round(Number(n) || 0).toLocaleString('hr-HR');
-// a few funny titles for the match, only for a clear leader
-function matchAwards(rows) {
-  const pick = (key, e, t) => { const best = [...rows].sort((a, b) => (b[key] || 0) - (a[key] || 0)); const a = best[0]; if (!a || !(a[key] > 0) || (best[1] && best[1][key] === a[key])) return ''; return `<span>${e} ${t}: <b style="color:${dispColor(a)}">${esc(a.name)}</b> (${a[key]})</span>`; };
-  const list = [pick('kills', '💥', 'Najviše rušenja'), pick('jumps', '🦘', 'Najviše skokova'), pick('picks', '⚡', 'Najviše pojačanja')].filter(Boolean);
-  return list.length ? `<p class="awards">${list.join('')}</p>` : '';
-}
 function showResults() {
   hideDeathCard();
   if (TMODE && net && !net.spectate) { const rows = G.rank ? G.rank.map(id => G.players.find(p => p.id === id)).filter(Boolean) : ranking(); const mine = rows.find(p => p.mine || p.id === net.myId); reportTour(rows); if (mine && profile && !G.awarded) { G.awarded = true; awardCoins(rows.indexOf(mine), mine.kills, rows.indexOf(mine) === 0); }
@@ -4984,11 +5025,9 @@ function showResults() {
   earn = G.earnText || (!profile ? `<p class="hint">Prijavi se da skupljaš zlatnike za trgovinu.</p>` : '');
   let more = (G.earnWhy || '') + (profile ? `<p class="hint" style="margin:0">Ukupno ${fmtN(profile.coins)} zlatnika.</p>` : '');
   if (profile && mine) { const L = levelOf(profile); more += `<div class="lvprog"><span>⭐ Nivo <b>${L.lv}</b></span><i><b style="width:${L.pct}%"></b></i><span>još ${fmtN(L.next)} XP</span></div>`; }
-  more += matchAwards(rows); $('#game').classList.add('over');
-  const mini = `<ol class="rmini">${rows.map((p, i) => `<li class="${p === mine ? 'mine' : ''}"><span class="n">${i + 1}.</span><span class="dot" style="background:${dispColor(p)}"></span><b>${esc(p.name)}</b><em>${p.score}</em></li>`).join('')}</ol>`;
-  const table = `<div class="tablewrap"><table class="podium"><thead><tr><th>#</th><th>Igrač</th><th>Bodovi</th><th>Runde</th><th>Rušenja</th><th>Zlatnici</th></tr></thead><tbody>
-    ${rows.map((p, i) => `<tr class="${i === 0 ? 'win' : ''}"><td>${i + 1}.</td><td><span style="color:${dispColor(p)}">●</span> ${esc(p.name)}</td><td>${p.score}</td><td>${p.wins}</td><td>${p.kills}</td><td>${p.human && (net || p === rows.find(q => q.human)) ? '+' + (p === mine && G.earnN != null ? G.earnN : Math.round(((PLACE_COINS[i] || 12) * coinMult() + p.kills * KILL_COINS) * Math.min(1, (Number(G.target) || 5) / 5))) : '–'}</td></tr>`).join('')}
-    </tbody></table></div>`;
+  $('#game').classList.add('over');
+  const topSc = Math.max(1, ...rows.map(p => p.score || 0));
+  const mini = `<div class="rres rfin">${rows.map((p, i) => `<div class="rrow ${p === mine ? 'mine' : ''}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${dispColor(p)}"></span><span class="nm"><span>${i + 1}. ${esc(p.name)}</span></span><span class="sc">${p.score}</span><span class="bar"><i style="width:${Math.min(100, Math.round(100 * (p.score || 0) / topSc))}%;background:${dispColor(p)}"></i></span></div>`).join('')}</div>`; // the same see-through scoreboard as between the rounds
   let actions, extra = '';
   if (net) {
     actions = `<div class="row"><button class="btn go-online" id="readyBtn">▶ Igraj opet</button>${net.role === 'host' ? '<button class="btn ghost" id="goAgainBtn" hidden title="Nova igra kreće odmah s onima koji su spremni">▶ Kreni odmah</button>' : ''}<button class="btn ghost" id="leaveBtn">Izađi</button></div><div class="readybox" id="readyBox"></div><p class="hint" id="readyHint"></p><p class="hint" id="unreadyRow" hidden><button type="button" class="linkbtn" id="unreadyBtn">odustani od nove igre</button></p>`;
@@ -4998,7 +5037,7 @@ function showResults() {
   }
   if (profile && mine) extra += `<div class="row"><button class="btn ghost wa sm" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   extra += `<p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Statistika svih igrača</a></p>`;
-  showOverlay(`<div class="banner fin"><span class="label">Kraj meča</span><h3 style="color:${w.color}">🏆 ${esc(w.name)}</h3>${mini}${earn}${actions}<details class="rmore"><summary>Više</summary>${more}${table}${extra}</details></div>`);
+  showOverlay(`<div class="banner fin lap"><span class="label">Kraj meča</span><h3 style="color:${w.color}">🏆 ${esc(w.name)}</h3>${mini}${earn}${actions}<details class="rmore"><summary>Više</summary>${more}${extra}</details></div>`);
   if ($('#waShare')) $('#waShare').onclick = () => waOpen(matchShareText(rows, mine));
   if (newBuild) offerUpdate(); else checkVersion();
   if (net) {
