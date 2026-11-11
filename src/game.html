@@ -3755,7 +3755,11 @@ function setLite(v) {
   document.body.classList.toggle('lite', LITE); hudDirty = true;
   if (G && !$('#game').hidden) { lastFit = ''; fitCanvas(); }
   if (!LITE && !pvRAF) { try { pvRAF = requestAnimationFrame(pvTick); } catch (e) {} }
-  toast(LITE ? '🐢 Pojednostavljeni izgled je uključen (samo na ovom uređaju).' : 'Pojednostavljeni izgled je isključen.');
+  // the change shows at once: an open profile is drawn again (its trail previews turn into plain lines, the icons by the
+  // name go), and so is the shop; before, nothing on the screen moved and the switch looked broken
+  { const pm = $('#regModal'); if (pm && !pm.hidden && pm.querySelector('#liteChk')) { const sc = pm.querySelector('.profile'), y = sc ? sc.scrollTop : 0; showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; } }
+  try { renderShop(); renderMe(); } catch (e) {}
+  toast(LITE ? '🐢 Uključeno: bez ikona uz imena, sjaja i animacija; u meču su zmije obične crte. Glatkije na starijem mobitelu.' : 'Pojednostavljeni izgled je isključen: sve je opet kao prije.');
 }
 // a phone that cannot keep up during a match is offered the simple look once
 let perfN = 0, perfT = 0, perfAsked = (() => { try { return localStorage.getItem('vijuga-lite-asked') === '1'; } catch (e) { return false; } })();
