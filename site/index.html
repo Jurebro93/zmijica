@@ -212,6 +212,7 @@ button:disabled { cursor: default; opacity: .5; }
 .achs { display: flex; flex-wrap: wrap; gap: 6px; }
 .ach { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); opacity: .35; font-size: 16px; }
 .ach small { font-size: 12px; } .ach.on { opacity: 1; border-color: var(--amber); background: rgba(255,181,71,.1); }
+.reflist summary { cursor: pointer; font-weight: 700; font-size: 14px; } .reflist ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; } .reflist li { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; padding: 5px 8px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 55%, transparent); } .reflist li b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .reflist li em { font-style: normal; color: var(--muted, #9aa); text-align: right; } .reflist li em.ok { color: var(--good); }
 .refbox { display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid var(--good); background: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); } .refbox b:first-child { font-size: 17px; } .refbox span { font-size: 14px; } .refbox .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .streak { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .streak .sd { border: 1px solid var(--line); border-radius: 9px; padding: 6px 2px; display: grid; gap: 2px; background: var(--ink); font-size: 13px; } .streak .sd small { color: var(--muted); font-size: 11px; }
@@ -1269,19 +1270,37 @@ function loginAs(doc) {
 // ---- daily login streak and the welcome box. Both are remembered as markers in the profile's `owned` list (the
 // server keeps that list as it is): 'x_s:<date>:<day>' = the last day a streak reward was taken and which day it was,
 // 'x_fbox' = the free welcome box has been opened.
-// An invitation pays off when the invited player has registered through my link and finished a first match (so that a
-// handful of empty names cannot be turned into coins). How many were already paid is the marker 'x_ref:<n>' in `owned`.
-const REF_COINS = 3000, REF_MATCHES = 10, REF_MONTH = 5;
+// An invitation pays off when the player invited through my link really plays: 10 matches, 20 minutes of play and an
+// account at least 2 days old (so that a handful of empty names cannot be turned into coins), at most 5 a month.
+// Each paid invitation is the marker 'x_rp:<slug>' in `owned`; 'x_ref:<n>' keeps the count (achievements). An old
+// count without the markers (the first rule paid after one match) stands for the first n invited who had played.
+const REF_COINS = 3000, REF_MATCHES = 10, REF_MIN = 20, REF_DAYS = 2, REF_MONTH = 5;
 function refInvited() { return profile ? accounts.list.filter(a => a.invitedBy === profile.slug && a.slug !== profile.slug) : []; }
 function refPaid() { const e = ((profile && profile.owned) || []).find(x => x.startsWith('x_ref:')); return e ? Math.max(0, Number(e.slice(6)) || 0) : 0; }
+function refPaidSet() { return new Set(((profile && profile.owned) || []).filter(x => x.startsWith('x_rp:')).map(x => x.slice(5))); }
+const refReady = a => (a.matches || 0) >= REF_MATCHES && (a.playMs || 0) >= REF_MIN * 60000 && (!a.created || Date.now() - a.created > REF_DAYS * 86400e3);
+function refMonthLeft() { const month = zDay(Date.now()).slice(0, 7), m = (((profile && profile.owned) || []).find(x => x.startsWith('x_refm:')) || '').split(':'); return { month, used: m[1] === month ? Number(m[2]) || 0 : 0 }; }
+function refMigrate() { // once: the old count becomes markers for the first invited players who had played a match
+  const n = refPaid(); if (!n || refPaidSet().size) return false;
+  const first = refInvited().filter(a => (a.matches || 0) >= 1).sort((a, b) => (a.created || 0) - (b.created || 0)).slice(0, n); if (!first.length) return false;
+  first.forEach(a => profile.owned.push('x_rp:' + a.slug)); return true;
+}
 function checkReferrals() {
   if (!profile || !accounts.ready || !$('#game').hidden) return;
-  const played = refInvited().filter(a => (a.matches || 0) >= REF_MATCHES && (a.playMs || 0) >= 20 * 60000 && (!a.created || Date.now() - a.created > 2 * 86400e3)).length, paid = refPaid(); if (played <= paid) return;
-  const month = zDay(Date.now()).slice(0, 7), mrec = (profile.owned.find(x => x.startsWith('x_refm:')) || '').split(':'), usedM = mrec[1] === month ? Number(mrec[2]) || 0 : 0;
-  const n = Math.min(played - paid, Math.max(0, REF_MONTH - usedM)); if (n <= 0) return;
-  profile.owned = profile.owned.filter(x => !x.startsWith('x_refm:')); profile.owned.push(`x_refm:${month}:${usedM + n}`); profile.owned = profile.owned.filter(x => !x.startsWith('x_ref:')); profile.owned.push('x_ref:' + (paid + n));
+  const moved = refMigrate(), paid = refPaidSet(), due = refInvited().filter(a => !paid.has(a.slug) && refReady(a)).sort((a, b) => (a.created || 0) - (b.created || 0));
+  const { month, used } = refMonthLeft(), pay = due.slice(0, Math.max(0, REF_MONTH - used));
+  if (!pay.length) { if (moved) saveProfile(); return; }
+  const n = pay.length, total = Math.max(refPaid(), paid.size) + n;
+  profile.owned = profile.owned.filter(x => !x.startsWith('x_refm:') && !x.startsWith('x_ref:')); profile.owned.push(`x_refm:${month}:${used + n}`, 'x_ref:' + total); pay.forEach(a => profile.owned.push('x_rp:' + a.slug));
   profile.coins += n * REF_COINS; saveProfile();
-  notify(`🎉 ${n === 1 ? 'Igrač kojeg si pozvao stvarno igra (10 mečeva)' : n + ' igrača koje si pozvao stvarno igra (10 mečeva)'}: <b>+${n * REF_COINS}</b> zlatnika!`, { ms: 14000 });
+  notify(`🎉 ${n === 1 ? `${esc(pay[0].name)}, kojeg si pozvao, stvarno igra` : `${n} igrača koje si pozvao stvarno igra (${pay.map(a => esc(a.name)).join(', ')})`}: <b>+${n * REF_COINS}</b> zlatnika!`, { ms: 14000 });
+}
+function refListHtml() { // everyone who came through my link and how far they are
+  const paid = refPaidSet(), { used } = refMonthLeft(), L = refInvited().sort((a, b) => (b.created || 0) - (a.created || 0)); if (!L.length) return '';
+  const row = a => { const m = a.matches || 0, min = Math.floor((a.playMs || 0) / 60000), h = a.created ? Math.ceil((a.created + REF_DAYS * 86400e3 - Date.now()) / 3600e3) : 0;
+    const st = paid.has(a.slug) ? '<em class="ok">✅ isplaćeno</em>' : refReady(a) ? `<em class="ok">💰 ${used >= REF_MONTH ? 'sljedeći mjesec (najviše ' + REF_MONTH + ' mjesečno)' : 'stiže'}</em>` : `<em>⏳ ${[m < REF_MATCHES ? `${m}/${REF_MATCHES} mečeva` : '', min < REF_MIN ? `${min}/${REF_MIN} min igre` : '', h > 0 ? `još ${h} h` : ''].filter(Boolean).join(' · ')}</em>`;
+    return `<li><b>${esc(a.name)}</b>${st}</li>`; };
+  return `<details class="reflist"><summary>Tvoji pozvani (${L.length}): tko je dokle stigao</summary><ul>${L.map(row).join('')}</ul></details>`;
 }
 const STREAK_COINS = [100, 200, 300, 500, 800, 1200, 3000];
 function streakState() { const e = ((profile && profile.owned) || []).find(x => x.startsWith('x_s:')); const m = e ? e.split(':') : []; return { date: m[1] || '', day: Math.max(0, Math.min(7, Number(m[2]) || 0)) }; }
@@ -1710,7 +1729,7 @@ function showProfile() {
   m.innerHTML = `<form class="profile" novalidate onsubmit="return false">
     <div class="phead"><span class="av big" style="background:${COLORS[P.color] || COLORS[0]}">${esc(P.name.slice(0, 1).toUpperCase())}</span><div><h3>${esc(P.name)} ${badgeOf(P)}</h3><span class="hint">igra od ${new Date(P.created || Date.now()).toLocaleDateString('hr-HR')}</span></div></div>
     <div class="pstats">${stat('zlatnika', P.coins)}${stat('mečeva', P.matches)}${stat('pobjeda', P.wins + (P.matches ? ' · ' + wr + ' %' : ''))}${stat('rušenja', P.kills)}${stat('u igri', fmtDur(P.playMs))}${stat('na stranici', fmtDur(P.siteMs))}${stat('potrošeno', P.spent || 0)}${stat('kupljeno stvari', P.purchases || 0)}${stat('zezancije poslane', P.trollsSent || 0)}${stat('zezancije primljene', P.trollsGot || 0)}</div>
-    <div class="refbox"><b>📲 Pozovi igrača i zaradi ${REF_COINS} zlatnika</b><span>Pošalji svoj link. Za <b>svakog</b> tko se preko njega registrira i odigra 10 mečeva dobivaš <b>${REF_COINS}</b> zlatnika (najviše ${REF_MONTH} mjesečno). Dosad pozvano: <b>${refInvited().length}</b> · isplaćeno: <b>${refPaid()}</b>.</span><div class="row"><button class="btn sm" type="button" id="profInvite">📲 Podijeli svoj link</button><button class="btn sm ghost" type="button" id="profCopy">Kopiraj link</button></div></div>
+    <div class="refbox"><b>📲 Pozovi igrača i zaradi ${REF_COINS} zlatnika</b><span>Pošalji svoj link. Za <b>svakog</b> tko se preko njega registrira i stvarno igra (${REF_MATCHES} mečeva, barem ${REF_MIN} min igre, račun star ${REF_DAYS} dana) dobivaš <b>${REF_COINS}</b> zlatnika (najviše ${REF_MONTH} mjesečno). Kad netko dođe preko linka, stiže ti obavijest. Dosad pozvano: <b>${refInvited().length}</b> · isplaćeno: <b>${Math.max(refPaid(), refPaidSet().size)}</b>.</span>${refListHtml()}<div class="row"><button class="btn sm" type="button" id="profInvite">📲 Podijeli svoj link</button><button class="btn sm ghost" type="button" id="profCopy">Kopiraj link</button></div></div>
     ${levelHtml(P)}
     ${achBtnHtml(P)}
     <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Za starije mobitele: bez ikona, skinova, animacija i efekata. Samo crte u bojama, popis igrača i arena. Vrijedi samo na ovom uređaju, ostali igrači i dalje vide sve.</small></div>
@@ -1818,7 +1837,7 @@ function showRegister() {
     const clash = accounts.list.find(a => a.slug !== (editing ? profile.slug : '') && String(a.name).toLowerCase() === name.toLowerCase());
     if (clash) { $('#regErr').textContent = 'Netko već ima to ime. Uzmi drugo (npr. dodaj prezime ili grad).'; return; }
     if (!editing) { const taken = await accountGet(slug); if (taken) { $('#regErr').textContent = 'To ime već postoji. Odaberi ga na popisu ili uzmi drugo.'; return; } }
-    if (!editing) { profile = blankProfile(name, color); if (INVITE && INVITE !== 'svi' && INVITE !== slug) profile.invitedBy = INVITE; newsMarkSeen(); try { localStorage.setItem('vijuga-ann-unique', '1'); } catch (e) {} } else { profile.name = name; profile.color = color; }
+    if (!editing) { profile = blankProfile(name, color); if (INVITED_BY && INVITED_BY !== slug) profile.invitedBy = INVITED_BY; newsMarkSeen(); try { localStorage.setItem('vijuga-ann-unique', '1'); } catch (e) {} } else { profile.name = name; profile.color = color; }
     if (pin) profile.pinHash = await pinHash(pin, slug);
     rememberLogin(slug);
     setup.players[0].name = name; saveSetup();
@@ -1828,6 +1847,7 @@ function showRegister() {
 }
 const GAME_URL = 'https://zmijica.onrender.com/';
 const INVITE = (() => { try { const v = new URLSearchParams(location.search).get('pozivnica'); return v && /^[a-z0-9-]{1,40}$/.test(v) ? v : (v === '' ? 'svi' : null); } catch (e) { return null; } })();
+const INVITED_BY = (() => { try { if (INVITE && INVITE !== 'svi') { localStorage.setItem('vijuga-invite', JSON.stringify({ s: INVITE, t: Date.now() })); return INVITE; } const o = JSON.parse(localStorage.getItem('vijuga-invite') || 'null'); return o && /^[a-z0-9-]{1,40}$/.test(o.s) && Date.now() - o.t < 30 * 86400e3 ? o.s : null; } catch (e) { return INVITE && INVITE !== 'svi' ? INVITE : null; } })(); // the link is remembered for 30 days: registering later still counts
 function inviteLink() { return GAME_URL + '?pozivnica=' + (profile ? profile.slug : ''); }
 async function shareInvite() {
   const url = inviteLink(), text = 'Igraj Vijugu sa mnom: zmije, skokovi i power-upovi, u pregledniku i na mobitelu.';
@@ -2742,7 +2762,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '471911452cbc';
+const BUILD = '3b38b2f76074';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}

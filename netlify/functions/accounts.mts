@@ -11,6 +11,7 @@ import { getStore } from "@netlify/blobs";
 import { roleOf } from "./roles.mts";
 import { accountsIndex, cas, hit, ipKey, later, pinGate, publicView, sha256, type Gate } from "./guard.mts";
 import { guardSave, noteCut, ownersFor } from "./wallet.mts";
+import { sendTo } from "./push.mts";
 
 const STORE = "vijuga-accounts";
 // SHA-256 of the maintenance key (same key as for matches); the key itself is not in the repository.
@@ -74,6 +75,18 @@ function clean(input: unknown, slug: string): Doc | string {
   };
   if (typeof d.pinHash === "string" && /^[0-9a-f]{64}$/.test(d.pinHash)) doc.pinHash = d.pinHash;
   return doc;
+}
+
+// the player who invited this one hears about it: when the new account is made through their link, and when it has
+// played the 10 matches that pay the invitation (the game pays it, on the inviter's phone, with the other conditions)
+const GAME_URL = "https://zmijica.onrender.com/", REF_MATCHES = 10;
+export async function tellInviter(slug: string, existing: Doc | null, next: Doc) {
+  const inv = typeof next.invitedBy === "string" ? next.invitedBy : "";
+  if (!inv || inv === slug) return 0;
+  const name = String(next.name || slug).slice(0, 24), was = Number(existing?.matches) || 0, now = Number(next.matches) || 0;
+  if (!existing) return sendTo(inv, { title: "🎉 Novi igrač preko tvog linka", body: `${name} je sad u Vijugi, preko tvog linka. Nakon ${REF_MATCHES} mečeva dobivaš 3000 zlatnika.`, url: GAME_URL, tag: "ref-" + slug });
+  if (was < REF_MATCHES && now >= REF_MATCHES) return sendTo(inv, { title: `💰 ${name}: odigrano ${REF_MATCHES} mečeva`, body: "Tvoj pozvani igrač stvarno igra. Otvori Vijugu: 3000 zlatnika stiže čim mu račun bude star 2 dana i ima 20 min igre.", url: GAME_URL, tag: "ref-" + slug });
+  return 0;
 }
 
 export default async (req: Request, context: Context) => {
@@ -162,7 +175,7 @@ export default async (req: Request, context: Context) => {
       const cut = guardSave(existing, next, await ownersFor(existing, next));
       // two saves at the same moment: the second one sees the first (and its PIN) instead of silently replacing it
       const w = await store.setJSON(slug, next, cur ? { onlyIfMatch: cur.etag } : { onlyIfNew: true });
-      if (w.modified) { await later(context, accountsIndex.put(slug, publicView(next))); if (cut.length) await later(context, noteCut(slug, cut)); return json({ account: ownerView(next), ...(cut.length ? { cut } : {}), ...(claim ? { claim } : {}) }); }
+      if (w.modified) { await later(context, accountsIndex.put(slug, publicView(next))); await later(context, tellInviter(slug, existing, next)); if (cut.length) await later(context, noteCut(slug, cut)); return json({ account: ownerView(next), ...(cut.length ? { cut } : {}), ...(claim ? { claim } : {}) }); }
     }
     return json({ error: "busy" }, 503);
   }
