@@ -772,7 +772,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
         <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Od svakog grada samo 3 komada; rasprodano možeš zatražiti na Aukciji 🔨</small></h2><div class="shop" id="shopWeather"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
         <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
-        <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div><h2 style="margin-top:16px">😜 Šaljive ikone <small>za smijeh u predvorju i u meču</small></h2><div class="shop" id="shopFun"></div></div>
+        <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div><h2 style="margin-top:16px">😜 Šaljive ikone <small>za smijeh u predvorju i u meču</small></h2><div class="shop" id="shopFun"></div><h2 style="margin-top:16px">🌊 Dalmatinski natpisi <small>uzrečice i dalmatinska kuhinja: natpis uz ime i iznad zmije</small></h2><div class="shop" id="shopDalm"></div></div>
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
         <div data-cat="chatc"><h2>🎨 Boje slova u chatu <small>kričavo roza, neon, duga, disko: tvoje poruke svi vide u toj boji</small></h2><div class="shop" id="shopChat"></div></div>
@@ -1046,6 +1046,24 @@ const BADGES = {
   bd_t_fjaka: { g: 'Fjaka', fun: true, tag: '#5b8def', svg: TAGB('Fjaka', '#5b8def'), name: 'Natpis: Fjaka', d: 'ŠALJIVO: natpis FJAKA uz ime i iznad zmije: igra se, ali bez žurbe', price: 500 },
   bd_t_pomalo: { g: 'Pomalo', fun: true, tag: '#3a9d6b', svg: TAGB('Pomalo', '#3a9d6b'), name: 'Natpis: Pomalo', d: 'ŠALJIVO: natpis POMALO uz ime i iznad zmije: sve će doć na svoje', price: 500 },
   bd_t_ajme: { g: 'Ajme', fun: true, tag: '#d0453b', svg: TAGB('Ajme', '#d0453b'), name: 'Natpis: Ajme', d: 'ŠALJIVO: natpis AJME uz ime i iznad zmije: za one koji se puno zabijaju', price: 500 },
+  bd_t_ae: { g: 'Ae!', fun: true, dalm: true, tag: '#2f8fbf', svg: TAGB('Ae!', '#2f8fbf'), name: 'Natpis: Ae!', d: 'DALMATINSKI: natpis AE! uz ime i iznad zmije: dalmatinski DA: može, ajde, slažem se', price: 500 },
+  bd_t_ostav: { g: 'Ostav me se', fun: true, dalm: true, tag: '#8a5cc7', svg: TAGB('Ostav me se', '#8a5cc7'), name: 'Natpis: Ostav me se', d: 'DALMATINSKI: natpis OSTAV ME SE uz ime i iznad zmije: pusti me na miru: kad te svi love po areni', price: 500 },
+  bd_t_ca: { g: 'Ća je?', fun: true, dalm: true, tag: '#c7522a', svg: TAGB('Ća je?', '#c7522a'), name: 'Natpis: Ća je?', d: 'DALMATINSKI: natpis ĆA JE? uz ime i iznad zmije: šta je? kad te netko zeza preko chata', price: 500 },
+  bd_t_caces: { g: 'Ća ćeš', fun: true, dalm: true, tag: '#5f7d8c', svg: TAGB('Ća ćeš', '#5f7d8c'), name: 'Natpis: Ća ćeš', d: 'DALMATINSKI: natpis ĆA ĆEŠ uz ime i iznad zmije: što se može: kad te sruše, slegni ramenima', price: 500 },
+  bd_t_nemoren: { g: 'Ne moren', fun: true, dalm: true, tag: '#b8433a', svg: TAGB('Ne moren', '#b8433a'), name: 'Natpis: Ne moren', d: 'DALMATINSKI: natpis NE MOREN uz ime i iznad zmije: ne mogu više: nakon desetog pada zaredom', price: 500 },
+  bd_t_lipo: { g: 'Lipo!', fun: true, dalm: true, tag: '#2e9e6a', svg: TAGB('Lipo!', '#2e9e6a'), name: 'Natpis: Lipo!', d: 'DALMATINSKI: natpis LIPO! uz ime i iznad zmije: lijepo! kad skok prođe baš kako treba', price: 500 },
+  bd_t_gust: { g: 'Gušt', fun: true, dalm: true, tag: '#d4881f', svg: TAGB('Gušt', '#d4881f'), name: 'Natpis: Gušt', d: 'DALMATINSKI: natpis GUŠT uz ime i iznad zmije: uživanje: ova igra je čisti gušt', price: 500 },
+  bd_t_bokun: { g: 'Bokun', fun: true, dalm: true, tag: '#7a8f3a', svg: TAGB('Bokun', '#7a8f3a'), name: 'Natpis: Bokun', d: 'DALMATINSKI: natpis BOKUN uz ime i iznad zmije: komadić, malo: „još bokun pa idem spat”', price: 500 },
+  bd_t_neberi: { g: 'Ne beri brigu', fun: true, dalm: true, tag: '#3a7fd0', svg: TAGB('Ne beri brigu', '#3a7fd0'), name: 'Natpis: Ne beri brigu', d: 'DALMATINSKI: natpis NE BERI BRIGU uz ime i iznad zmije: ne brini: sve će doć na svoje', price: 500 },
+  bd_t_fala: { g: 'Fala', fun: true, dalm: true, tag: '#c25a8a', svg: TAGB('Fala', '#c25a8a'), name: 'Natpis: Fala', d: 'DALMATINSKI: natpis FALA uz ime i iznad zmije: hvala: za one koji igraju fer', price: 500 },
+  bd_t_pasticada: { g: 'Pašticada 🍲', fun: true, dalm: true, tag: '#7a3b2a', svg: TAGB('Pašticada 🍲', '#7a3b2a'), name: 'Natpis: Pašticada 🍲', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: dalmatinska pašticada s njokima: nedjeljni ručak', price: 500 },
+  bd_t_brudet: { g: 'Brudet 🐟', fun: true, dalm: true, tag: '#b5522e', svg: TAGB('Brudet 🐟', '#b5522e'), name: 'Natpis: Brudet 🐟', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: riblji brudet s palentom', price: 500 },
+  bd_t_crnirizot: { g: 'Crni rižot 🦑', fun: true, dalm: true, tag: '#2b2b33', svg: TAGB('Crni rižot 🦑', '#2b2b33'), name: 'Natpis: Crni rižot 🦑', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: crni rižot od sipe: zubi crni, igra jaka', price: 500 },
+  bd_t_peka: { g: 'Ispod peke 🔥', fun: true, dalm: true, tag: '#8c5a2b', svg: TAGB('Ispod peke 🔥', '#8c5a2b'), name: 'Natpis: Ispod peke 🔥', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: janjetina ili hobotnica ispod peke', price: 500 },
+  bd_t_makaruli: { g: 'Šporki makaruli 🍝', fun: true, dalm: true, tag: '#a8402f', svg: TAGB('Šporki makaruli 🍝', '#a8402f'), name: 'Natpis: Šporki makaruli 🍝', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: šibenski specijalitet: „prljavi” makaruli s mesom', price: 500 },
+  bd_t_fritule: { g: 'Fritule 🍩', fun: true, dalm: true, tag: '#c9902c', svg: TAGB('Fritule 🍩', '#c9902c'), name: 'Natpis: Fritule 🍩', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: fritule za Božić i blagdane', price: 500 },
+  bd_t_soparnik: { g: 'Soparnik 🥬', fun: true, dalm: true, tag: '#4f8a3a', svg: TAGB('Soparnik 🥬', '#4f8a3a'), name: 'Natpis: Soparnik 🥬', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: poljički soparnik s blitvom', price: 500 },
+  bd_t_marenda: { g: 'Marenda 🥪', fun: true, dalm: true, tag: '#3c7f8f', svg: TAGB('Marenda 🥪', '#3c7f8f'), name: 'Natpis: Marenda 🥪', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: marenda: dalmatinski gablec oko 10', price: 500 },
   bd_t_madaj: { g: 'Ma daj!', fun: true, tag: '#c77d1a', svg: TAGB('Ma daj!', '#c77d1a'), name: 'Natpis: Ma daj!', d: 'ŠALJIVO: natpis MA DAJ! uz ime i iznad zmije: kad te sruše u zadnjoj sekundi', price: 500 },
 };
 const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
@@ -1460,7 +1478,7 @@ function openAll() {
   m.querySelector('.allgrid').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) navGo(b.dataset.go); };
 }
 // the chat, reachable from anywhere in the menu: text, quick lines and voice messages
-const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
+const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂', 'Ae! 👍', 'Ostav me se! 🙄', 'Napravi mi pašticadu! 🍲', 'Ajmo na marendu! 🥪', 'Fjaka je… 😴'];
 function openChat() {
   if (!profile) { showLogin(); return; }
   const m = $('#regModal'); m.hidden = false;
@@ -1861,12 +1879,27 @@ function renderBoxes() {
   box.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
 }
 function itemName(k) { return (PREMIUM[k] && PREMIUM[k].e + ' ' + PREMIUM[k].name) || (EFFECTS[k] && EFFECTS[k].e + ' ' + EFFECTS[k].name) || (SKINS[k] && SKINS[k].name) || (BADGES[k] && BADGES[k].name) || (POWERUPS[k] && 'Start: ' + POWERUPS[k].name) || (TROLLS[k] && TROLLS[k].name) || k; }
+// the shop opened on one thing: every category shown (no search, no "Imam/Nemam" filter), the card scrolled to and lit up
+function goShopItem(id) {
+  if (curTab !== 'shop') showTab('shop');
+  const q = $('#shopQ'), all = document.querySelector('#shopCats [data-c="all"]');
+  if (shopCat !== 'all' || shopFilter !== 'all' || (q && q.value)) { if (q) q.value = ''; if (all) all.click(); }
+  if (shopDirty) renderShopNow();
+  let tries = 0; const find = () => {
+    const el = document.querySelector(`#tab-shop .item[data-id="${CSS.escape(id)}"]`);
+    if (el && el.offsetParent !== null) { const d = el.closest('details'); if (d) d.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2400);
+      // the shop may still move under it (the other categories coming back): once it has settled, make sure the card is on screen
+      setTimeout(() => { const r = el.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) el.scrollIntoView({ block: 'center' }); }, 750); return; }
+    if (++tries < 10) setTimeout(find, 80); else toast(itemName(id) + ': nije pronađeno u trgovini.');
+  };
+  setTimeout(find, 60);
+}
 function renderDailyShop() {
   const box = $('#shopDaily'); if (!box) return;
   const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
   box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana <button type="button" class="infob mini" data-info="offer" aria-label="Što je ponuda dana">ℹ️</button></span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>`;
   renderBoxes();
-  $('#goOffer').onclick = () => { const el = [...document.querySelectorAll('#shopSkins .item, #shopBadges .item')].find(x => x.textContent.includes(it.name)); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1500); } };
+  $('#goOffer').onclick = () => goShopItem(id);
 }
 function seasonNow() { const m = new Date().getMonth(); return m >= 9 ? (m === 11 ? 1 : 0) : m === 0 ? 1 : m <= 2 ? 2 : 3; } // 0 bundeva (lis–stu), 1 snijeg (pro–sij), 2 ljubav (velj–ožu), 3 ljeto (tra–ruj)
 function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
@@ -1913,7 +1946,7 @@ function renderShopNow() {
     box.innerHTML = '';
     items.forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), eq = profile && (kind === 'badge' ? badgeIds(profile.eq, profile.owned).includes(id) : profile.eq[kind] === id);
-      const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
+      const d = document.createElement('div'); d.className = 'item' + (eq ? ' eq' : ''); d.dataset.id = id; d.dataset.owned = owned ? '1' : '0'; if (it.premium) d.dataset.premium = '1';
       const prev = document.createElement('div'); prev.className = 'prev';
       if (kind === 'skin') { const c = document.createElement('canvas'); prev.appendChild(c); skinPreview(c, id, COLORS[profile ? profile.color : 0]); }
       else if (kind === 'badge' && it.live) { prev.innerHTML = `<div class="wxcard livecard" data-l="${it.live}">${liveCardInner(it.live)}</div>`; d.classList.add('pic'); }
@@ -1941,7 +1974,8 @@ function renderShopNow() {
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
   make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun), 'badge');
-  make($('#shopFun'), Object.entries(BADGES).filter(([, it]) => it.fun), 'badge');
+  make($('#shopFun'), Object.entries(BADGES).filter(([, it]) => it.fun && !it.dalm), 'badge');
+  make($('#shopDalm'), Object.entries(BADGES).filter(([, it]) => it.dalm), 'badge');
   make($('#shopWeather'), Object.entries(BADGES).filter(([, it]) => it.wx), 'badge');
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
@@ -1954,7 +1988,7 @@ function renderShopNow() {
     prb.innerHTML = ''; if (bgb) bgb.innerHTML = ''; if ($('#shopLux')) $('#shopLux').innerHTML = '';
     Object.entries(PREMIUM).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = it.bg && profile && profile.eq.bg === id, cost = vipCost(it.price);
-      const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0'; d.dataset.premium = '1';
+      const d = document.createElement('div'); d.className = 'item' + (owned ? ' eq' : ''); d.dataset.id = id; d.dataset.owned = owned ? '1' : '0'; d.dataset.premium = '1';
       d.innerHTML = `<div class="prev">${it.bg ? `<canvas class="bgprev" data-bg="${id}" width="300" height="88"></canvas>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}${newTag(id)}</b><small>${esc(it.d)}</small></div>`;
       if (it.bg) d.classList.add('pic');
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = owned ? 'imaš' : `● ${fmtN(cost)}`;
@@ -1981,7 +2015,7 @@ function renderShopNow() {
     fxb.innerHTML = ''; if ($('#shopChat')) $('#shopChat').innerHTML = '';
     Object.entries(EFFECTS).forEach(([id, it]) => {
       const owned = profile && profile.owned.includes(id), on = profile && profile.eq[it.kind] === id;
-      const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : ''); d.dataset.owned = owned ? '1' : '0';
+      const d = document.createElement('div'); d.className = 'item' + (on ? ' eq' : ''); d.dataset.id = id; d.dataset.owned = owned ? '1' : '0';
       d.innerHTML = `<div class="prev">${it.kind === 'cc' ? `<span class="ccs"><span${ccAttr(id)}>Bok ekipa! 👋</span></span>` : `<span class="ic" style="font-size:30px">${it.e}</span>`}</div><div><b>${esc(it.name)}${newTag(id)}</b><small>${esc(it.d)}</small></div>`;
       const act = document.createElement('div'); act.className = 'act'; const pr = document.createElement('span'); pr.className = 'price'; pr.textContent = `● ${it.price}`;
       const b = document.createElement('button'); b.type = 'button';
@@ -2448,7 +2482,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '5f2ab94e51e6';
+const BUILD = '021114d050bc';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -4002,6 +4036,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'dalmacija', d: '2026-11-11', e: '🍲', t: 'Dalmatinski natpisi i poruke', x: 'Uz Ajme i Fjaku stižu nove dalmatinske uzrečice uz ime: Ae!, Ostav me se, Ća je?, Ća ćeš, Ne moren, Lipo!, Gušt, Bokun, Ne beri brigu i Fala. I dalmatinska kuhinja: Pašticada, Brudet, Crni rižot, Ispod peke, Šporki makaruli, Fritule, Soparnik i Marenda. U meču i u chatu nove brze poruke: „Napravi mi pašticadu!”, „Ajmo na marendu!”, „Ostav me se!”…', go: 'shop:badges', b: 'Pogledaj natpise', items: ['bd_t_ae', 'bd_t_ostav', 'bd_t_ca', 'bd_t_caces', 'bd_t_nemoren', 'bd_t_lipo', 'bd_t_gust', 'bd_t_bokun', 'bd_t_neberi', 'bd_t_fala', 'bd_t_pasticada', 'bd_t_brudet', 'bd_t_crnirizot', 'bd_t_peka', 'bd_t_makaruli', 'bd_t_fritule', 'bd_t_soparnik', 'bd_t_marenda'] },
   { id: 'live-pack2', d: '2026-11-10', e: '🌅', t: 'Nove ikone iz stvarnog svijeta', x: 'Zalazak sunca u Šibeniku, mijena Mjeseca i koliko do uštapa, kad počinje jeftina noćna struja (vrijeme za perilicu), najtopliji grad u Hrvatskoj uživo i koliko još dana do sljedećeg praznika.', go: 'shop:live', b: 'Pogledaj ikone', items: ['bd_sunset', 'bd_moon', 'bd_power', 'bd_hot', 'bd_holiday'] },
   { id: 'audit-pack', d: '2026-11-10', e: '✨', t: 'Brža igra, Mega kutija, „Igraj opet” i osveta', x: 'Igra je brža i štedi bateriju na mobitelu. Nakon meča jedan veliki gumb ▶ Igraj opet, traka do sljedećeg nivoa i nagrade meča. Kad te netko ubije, gumb 😈 Zezni ga, a ako mu vratiš: +10 zlatnika. Nova 👑 Mega kutija bez dnevnog ograničenja. Pozivnica donosi 3000 zlatnika kad pozvani odigra 10 mečeva. U pauzi biraš izgled tipki i vibraciju. Zlatnici i stvari sad se čuvaju i provjeravaju na poslužitelju. Rezultat meča ili osvojeni turnir podijeliš na WhatsApp jednim dodirom.', go: '', b: '' },
   { id: 'jump-chord', d: '2026-11-10', e: '🦘', t: 'Mobitel: skok je sada LIJEVO + DESNO odjednom', x: 'Gumb SKOK u sredini je maknut. Za skok pritisni LIJEVO i DESNO u isto vrijeme, s oba palca. Strelice su ostale gdje su bile, a u sredini su sad velike tipke za zezalice, chat, glasovnu poruku i emotikone.', go: '', b: '' },
@@ -4320,7 +4355,7 @@ function padsReady() {
     const dead = !!(p && !p.alive && G.phase === 'run'); if (box._dead !== dead) { box._dead = dead; box.classList.toggle('dead', dead); } }
 }
 const QUICK_REACT = ['😂', '🔥', '👏', '🥳']; // must be in REACTIONS, the others drop anything else
-const QUICK_MSG = ['gg 👏', '🔊 Pojačajte zvuk! 🎤', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈'];
+const QUICK_MSG = ['gg 👏', '🔊 Pojačajte zvuk! 🎤', 'Bravo! 👍', 'Ajme 😅', 'Hahaha 😂', 'Revanš! 🔥', 'Čekaj me! ⏳', 'Sretno! 🍀', 'Oprosti 🙈', 'Ae! 👍', 'Ostav me se! 🙄', 'Ća je? 🤨', 'Lipo! 👌', 'Napravi mi pašticadu! 🍲', 'Ajmo na marendu! 🥪', 'Fjaka je… 😴', 'Bura puše! 💨'];
 // players used to the old SKOK button: a notice over the pads for their first matches, until they have jumped the new way
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 function chordLearned() { if (!lsGet('vijuga-chordok')) { lsSet('vijuga-chordok', '1'); document.querySelectorAll('.jumptip').forEach(x => x.remove()); toast('👍 Tako je! LIJEVO + DESNO odjednom = skok.'); } }
@@ -6389,7 +6424,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
+window.__vijuga = { goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE };
 })();
 </script>
 
