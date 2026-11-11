@@ -936,18 +936,18 @@ const POWERUPS = {
   fastS:  { t: 's', g: '»', name: 'Brzina', d: 'Ti ubrzavaš', dur: 5 },
   slowS:  { t: 's', g: '«', name: 'Usporenje', d: 'Ti usporavaš, lakše skrećeš', dur: 6 },
   thinS:  { t: 's', g: '—', name: 'Tanki trag', d: 'Tvoj trag je upola tanji', dur: 7 },
-  ghostS: { t: 's', g: '○', name: 'Duh', d: 'Prolaziš kroz tragove', dur: 3.5 },
-  wrapS:  { t: 's', g: '□', name: 'Bez zidova', d: 'Izlaziš na suprotnoj strani', dur: 7 },
+  ghostS: { t: 's', g: '○', name: 'Duh', d: 'Prolaziš kroz tragove', dur: 3.5, off: true }, // off: no longer falls (kept for old states)
+  wrapS:  { t: 's', g: '□', name: 'Bez zidova', d: 'Izlaziš na suprotnoj strani', dur: 7, off: true },
   jumpS:  { t: 's', g: '↑', name: 'Puni skok', d: 'Skok je odmah spreman', dur: 0 },
   fastO:  { t: 'o', g: '»', name: 'Ubrzaj druge', d: 'Svi ostali ubrzavaju', dur: 5 },
   slowO:  { t: 'o', g: '«', name: 'Uspori druge', d: 'Svi ostali usporavaju', dur: 5 },
   thickO: { t: 'o', g: '●', name: 'Debeli trag', d: 'Ostali ostavljaju dvostruki trag', dur: 6 },
-  revO:   { t: 'o', g: '⇄', name: 'Obrnuto', d: 'Ostalima su lijevo i desno zamijenjeni', dur: 5 },
+  revO:   { t: 'o', g: '⇄', name: 'Obrnuto', d: 'Ostalima su lijevo i desno zamijenjeni', dur: 3 },
   sqO:    { t: 'o', g: '┐', name: 'Kutovi', d: 'Ostali skreću samo pod 90°', dur: 5 },
   sharpS: { t: 's', g: '↺', name: 'Oštro skretanje', d: 'Skrećeš puno oštrije (uski krugovi)', dur: 6 },
   wideO:  { t: 'o', g: '◡', name: 'Tromo skretanje', d: 'Ostali skreću jako široko, teško naprave krug', dur: 6 },
-  clearA: { t: 'a', g: '×', name: 'Brisanje', d: 'Svi tragovi nestaju', dur: 0 },
-  wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7 },
+  clearA: { t: 's', g: '×', name: 'Brisanje traga', d: 'Tvoj trag nestaje (tragovi ostalih ostaju)', dur: 0 },
+  wrapA:  { t: 'a', g: '□', name: 'Otvorena arena', d: 'Nitko nema zidove', dur: 7, off: true },
   shieldS: { t: 's', g: '🛡️', name: 'Štit', d: 'Preživiš jedan sudar (8 s)', dur: 8 },
   freezeO: { t: 'o', g: '❄️', name: 'Zamrzni', d: 'Ostali skoro stanu na 1,5 s', dur: 1.5 },
   teleS:  { t: 's', g: '🌀', name: 'Teleport', d: 'Odmah si na slobodnom mjestu arene', dur: 0 },
@@ -957,7 +957,7 @@ const POWERUPS = {
   pp_dia:   { t: 'p', prem: true, g: '💠', name: 'Dijamantni štit', d: '15 s: preživiš dva sudara (i metak)', dur: 15, price: 7000 },
   pp_ice:   { t: 'p', prem: true, g: '🧊', name: 'Ledeno doba', d: 'Svi ostali 2,5 s skoro stoje', dur: 2.5, price: 8000 },
 };
-const PU_KEYS = Object.keys(POWERUPS).filter(k => !POWERUPS[k].prem); // what can fall for everybody (and be switched off in the rules)
+const PU_KEYS = Object.keys(POWERUPS).filter(k => !POWERUPS[k].prem && !POWERUPS[k].off); // what can fall for everybody (and be switched off in the rules)
 const PREM_PU = Object.keys(POWERUPS).filter(k => POWERUPS[k].prem);
 const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff', p: '#c08cff' };
 const PU_R = 17; // pickup radius in arena units (was 13)
@@ -1161,7 +1161,7 @@ const BADGES = {
   bd_br_rolex: { g: 'Rolex', brand: 1, tag: '#00603a', svg: TAGB('Rolex ⌚', '#00603a'), name: 'Natpis: Rolex ⌚', d: 'LUKSUZNI BREND: natpis uz ime (samo ime, nije službeni logo)', price: 6000 },
   bd_t_madaj: { g: 'Ma daj!', fun: true, tag: '#c77d1a', svg: TAGB('Ma daj!', '#c77d1a'), name: 'Natpis: Ma daj!', d: 'ŠALJIVO: natpis MA DAJ! uz ime i iznad zmije: kad te sruše u zadnjoj sekundi', price: 500 },
 };
-const STARTER_PU = ['thinS', 'ghostS', 'wrapS', 'jumpS', 'thickO', 'sqO'];
+const STARTER_PU = ['thinS', 'jumpS', 'thickO', 'sqO']; // (Duh and Bez zidova were taken out: their owners got the price back)
 const STARTER_PRICE = { s: 110, o: 170 };
 
 const PU_RATE = { rijetko: { min: 9, max: 14, cap: 2 }, normalno: { min: 5, max: 9, cap: 3 }, 'često': { min: 2.5, max: 5, cap: 5 }, ludnica: { min: 1, max: 2.5, cap: 7 } }, PU_GRACE = 10; // seconds: nothing falls at the very start of a round
@@ -1200,7 +1200,7 @@ const START_COINS = 500;
 const accounts = { list: [], ready: false }; // all known accounts (for login + leaderboard)
 function blankProfile(name, color) { return { slug: slugOf(name || ''), name: name || 'Igrač', color: color || 0, coins: START_COINS, bonus500: true, owned: ['sk_none', 'bd_none'], eq: { skin: 'sk_none', badge: 'bd_none', pu: '' }, matches: 0, wins: 0, kills: 0, spent: 0, purchases: 0, playMs: 0, siteMs: 0, trollsSent: 0, trollsGot: 0, inv: {}, pinHash: '', created: Date.now() }; }
 function itemPrice(id) { return (PREMIUM[id] && PREMIUM[id].price) || (EFFECTS[id] && EFFECTS[id].price) || (SKINS[id] && SKINS[id].price) || (BADGES[id] && BADGES[id].price) || (POWERUPS[id] && STARTER_PU.includes(id) ? STARTER_PRICE[POWERUPS[id].t] : 0) || 0; }
-const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, bg_kat: 2500,
+const RETIRED_PU = { fastS: 110, slowS: 110, slowO: 170, revO: 170, ghostS: 110, wrapS: 110, bg_kat: 2500,
   // adult items, removed for a wider audience
   sk_dildo: 150, sk_vag: 160, sk_boobs: 160, sk_condom: 160, sk_hairy: 170, bd_ucross: 200, bd_vag: 120, bd_boobs: 120, bd_hairy: 130, bd_condom: 120 };
 function refundRetired(P) {
@@ -3330,6 +3330,11 @@ function fixColorClashes(players, keep) {
 const colorNote = (p) => `🎨 ${p.clashWith ? '<b>' + esc(p.clashWith) + '</b> (viši nivo ili više mečeva)' : 'Netko s višim nivoom (ili više mečeva)'} ima sličnu boju, pa si u ovom meču <b style="color:${p.color}">● ovakve boje</b>`;
 const SKIN_W = { sk_neon: 0.7 };
 const skinW = (p) => SKIN_W[p.skin] || 1;
+// one snake's trail goes (the power-up "Brisanje traga"): its cells and the pixels under them; the others stay
+function clearTrailOf(pid) {
+  const id = pid + 1; if (!owner) return;
+  for (let i = 0; i < owner.length; i++) if (owner[i] === id) { owner[i] = 0; const gx = i % GW, gy = (i / GW) | 0; tctx.clearRect(gx * CELL - 1, gy * CELL - 1, CELL + 2, CELL + 2); }
+}
 function stamp(p, r, grace) {
   const rc = r / CELL, cx = p.x / CELL, cy = p.y / CELL, n = Math.ceil(rc);
   const gx0 = cx | 0, gy0 = cy | 0, id = p.id + 1;
@@ -3975,9 +3980,9 @@ function applyPu(p, k, silent) {
     case 'sqO': others.forEach(q => add(q, 'square', P.dur)); break;
     case 'sharpS': add(p, 'sharp', P.dur); break;
     case 'wideO': others.forEach(q => add(q, 'wide', P.dur)); break;
-    case 'clearA':
-      G.players.forEach(q => { flushTrail(q, false); q.tvDown = false; q.tvQ = []; q.tvH = []; });
-      owner.fill(0); tctx.clearRect(0, 0, W, H); clearLights(); G.clr++; stampArena(); break;
+    case 'clearA': // only the trail of the one who took it
+      flushTrail(p, false); p.tvDown = false; p.tvQ = []; p.tvH = [];
+      clearTrailOf(p.id); G.clrS = [((G.clrS && G.clrS[0]) || 0) + 1, p.id]; break;
     case 'wrapA': G.wrapAllUntil = G.gt + P.dur; break;
     case 'shieldS': add(p, 'shield', P.dur); break;
     case 'freezeO': others.forEach(q => add(q, 'freeze', P.dur)); break;
@@ -4766,6 +4771,7 @@ function showReplay() {
   };
 }
 function addReplayButton() {
+  return; // no replay button any more (not needed)
   const b = $('#overlay .banner'); if (!b || !lastReplay || b.querySelector('.rpbtn')) return;
   b.insertAdjacentHTML('beforeend', '<p style="margin:6px 0 0"><button class="btn sm ghost rpbtn" type="button">🎬 Snimka runde</button></p>');
   b.querySelector('.rpbtn').onclick = () => showReplay();
@@ -6574,7 +6580,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -6635,6 +6641,7 @@ function applyState(st, first) {
   if (st.te !== undefined && st.te !== net.tvE) { net.tvE = st.te; net.tv = {}; } // another host (or a match taken over): its trail numbering starts afresh
   if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
   if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); clearLights(); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
+  if (st.cs && st.cs[0] !== net.clrS) { const was = net.clrS; net.clrS = st.cs[0]; if (was != null || !first) { clearTrailOf(st.cs[1]); if (net.prev) delete net.prev[st.cs[1]]; } } // one snake's trail was wiped on the host
   if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
