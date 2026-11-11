@@ -81,6 +81,7 @@ button:disabled { cursor: default; opacity: .5; }
 .onhero .dotlive { width: 14px; height: 14px; border-radius: 50%; background: var(--good); animation: livePulse 1.8s infinite; flex: none; }
 .onhero.empty .dotlive { background: var(--muted); animation: none; }
 .onhero .people { display: flex; gap: 6px; flex-wrap: wrap; }
+.onhero { grid-template-columns: minmax(0, 1fr); } .onhero > * { min-width: 0; max-width: 100%; } .onp { max-width: 100%; min-width: 0; flex-wrap: wrap; row-gap: 2px; } .onp > * { min-width: 0; } .onp .lbd, .onp .badges { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .weekbar, .meetbar { max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; } /* long names and icons wrap inside the card */
 .btn.go-online { font-size: 22px; padding: 14px 26px; background: var(--good); color: #062014; }
 .btn.go-online.join { background: var(--amber); color: #1a1205; }
 .botnote { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--good); background: color-mix(in srgb, var(--good) 9%, var(--panel)); border: 1px solid var(--good); border: 1px solid color-mix(in srgb, var(--good) 40%, var(--line)); border-radius: 12px; padding: 10px 12px; }
@@ -281,6 +282,8 @@ body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !import
 .pushnag { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--line)); background: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--panel)); border-radius: 12px; padding: 9px 12px; font-size: 14px; }
 .pushnag span { flex: 1 1 200px; } .pushnag .x { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 2px 6px; }
 .pushcard p { margin: 0; } .pushcard .row { gap: 8px; flex-wrap: wrap; } .pushsteps { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+.roompick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 12px; } .roompick .seg { display: flex; gap: 6px; } .roompick .seg button { border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 999px; padding: 8px 14px; font: 700 15px var(--body); } .roompick .seg button.on { border-color: var(--good); color: var(--good); } .roompick .hint { flex-basis: 100%; margin: 0; }
+body.lite .roompick .hint { display: none; }
 .callall { margin: 0 0 10px; display: grid; gap: 4px; } .callall:empty { display: none; } .callrow { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; } .callrow .hint { flex: 1 1 160px; }
 .wchip em { font-style: normal; font-size: 18px; } .wchip i { font-style: normal; }
 .wchip { max-width: 100%; min-width: 0; text-align: left; } .wchip > span { min-width: 0; overflow-wrap: anywhere; } .wchip em { flex: none; min-width: 0; max-width: 62%; overflow: hidden; } .wchip .cbd .cp { max-width: 6em; } /* a live icon's long text never widens the wardrobe */
@@ -809,6 +812,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
       </div>
 
       <div class="tab" id="tab-online">
+        <div class="roompick" id="roomPick"></div>
         <div class="callall" id="callAll"></div>
         <div class="net" id="net"></div>
       </div>
@@ -961,7 +965,8 @@ const POWERUPS = {
 const PU_KEYS = Object.keys(POWERUPS).filter(k => !POWERUPS[k].prem && !POWERUPS[k].off); // what can fall for everybody (and be switched off in the rules)
 const PREM_PU = Object.keys(POWERUPS).filter(k => POWERUPS[k].prem);
 const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff', p: '#c08cff' };
-const PU_R = 17; // pickup radius in arena units (was 13)
+const PU_R = 17; // base size of a power-up in arena units
+const PU_DRAW = 1.6; // drawn (and taken) at this scale on every screen: what you see is what you touch
 // once a round a pistol or a smoke bomb lands somewhere; whoever picks it up uses it with the jump (LIJEVO + DESNO / ↑)
 const WEAPONS = { gun: { e: '🔫', name: 'Pištolj', verb: 'pucaj' }, smoke: { e: '💣', name: 'Dimna bomba', verb: 'baci dimnu bombu' } };
 const SHOT_V = 560, SHOT_HEAD = 0.15;
@@ -1755,6 +1760,16 @@ setTimeout(() => {
   document.querySelectorAll('#shopCats button').forEach(b => b.onclick = () => { setShopCat(b.dataset.c); setShopFilter('all'); const q = $('#shopQ'); if (q) q.value = ''; applyShopFilter(); const f = document.querySelector('#tab-shop .shopfind'); if (f && shopCat !== 'all') f.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 }, 500);
 // deep links: ?tab=trgovina or #trgovina (also aukcija, turnir, ljestvica, pomoc, online, botovi)
+// two rooms: Soba 1 (the usual lobby) and Soba 2 (?soba=2): their own lobby, matches, rules and chat
+const CUR_SOBA = (() => { try { return (new URLSearchParams(location.search).get('soba') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); } catch (e) { return ''; } })();
+function renderRoomPick() {
+  const b = $('#roomPick'); if (!b) return;
+  const rooms = [['', 'Soba 1'], ['2', 'Soba 2']]; if (CUR_SOBA && CUR_SOBA !== '2') rooms.push([CUR_SOBA, 'Soba ' + CUR_SOBA]);
+  b.innerHTML = `<div class="seg">${rooms.map(([k, n]) => `<button type="button" data-soba="${k}" class="${k === CUR_SOBA ? 'on' : ''}">🚪 ${esc(n)}</button>`).join('')}</div><button type="button" class="btn sm ghost" id="roomSet">⚙️ Postavke igre</button><small class="hint">Svaka soba ima svoje mečeve i chat. Pravila meča bira onaj tko pokrene meč.</small>`;
+  b.querySelectorAll('[data-soba]').forEach(x => x.onclick = () => { const k = x.dataset.soba; if (k === CUR_SOBA) return; if (net && G && !G.over && !confirm('Napustiti ovaj meč i prijeći u drugu sobu?')) return; const u = new URL(location.href); if (k) u.searchParams.set('soba', k); else u.searchParams.delete('soba'); u.hash = 'online'; location.href = u.toString(); }); // only the room changes in the address
+  $('#roomSet').onclick = () => showTab('local');
+}
+setTimeout(renderRoomPick, 0);
 const TAB_LINKS = { trgovina: 'shop', shop: 'shop', aukcija: 'auct', turnir: 'tour', ljestvica: 'board', pomoc: 'help', online: 'online', botovi: 'local' };
 function openLinkedTab() { try { const k = (new URLSearchParams(location.search).get('tab') || location.hash.slice(1) || '').toLowerCase(); const t = TAB_LINKS[k]; if (!t) return; showTab(t); setTimeout(() => { const el = $('#tabs'); if (el) el.scrollIntoView({ block: 'start' }); }, 50); } catch (e) {} }
 addEventListener('hashchange', openLinkedTab);
@@ -4190,9 +4205,9 @@ function substep(lap) {
     } else { if (p.pts.length) flushTrail(p, false); trailVert(p, false); }
     if (!lap) for (let i = G.pus.length - 1; i >= 0; i--) {
       const u = G.pus[i]; if (u.own != null && u.own !== p.id) continue; // somebody's premium power-up: only they can take it
-      if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R + p._r) { G.pus.splice(i, 1); applyPu(p, u.k); }
+      if (Math.hypot(u.x - p.x, u.y - p.y) < PU_R * PU_DRAW + p._r) { G.pus.splice(i, 1); applyPu(p, u.k); } // the head touches the circle anywhere: taken
     }
-    if (!lap && G.wpick && !p.wp && Math.hypot(G.wpick.x - p.x, G.wpick.y - p.y) < PU_R + p._r + 2) pickWeapon(p);
+    if (!lap && G.wpick && !p.wp && Math.hypot(G.wpick.x - p.x, G.wpick.y - p.y) < PU_R + 5 + p._r) pickWeapon(p); // the drawn weapon circle (PU_R + 3, pulsing ±2)
   }
   // 4) everybody who crashed in this substep dies together
   if (dead.length) { if (lap) dead.forEach(d => lapDeath(d[0])); else killMany(dead); }
@@ -4258,7 +4273,7 @@ function render() {
   ctx.strokeRect(bd.l + 1.2, bd.t + 1.2, bd.r - bd.l - 2.4, bd.b - bd.t - 2.4);
   ctx.setLineDash([]);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const puScale = Math.min(1.9, Math.max(1, 0.7 / Math.max(0.05, (cv.clientWidth || W) / W)));
+  const puScale = PU_DRAW; // the same size on every screen (the pickup uses it too)
   const myPid = (myMatchPlayer() || {}).id;
   for (const u of G.pus) {
     if (u.own != null && u.own !== myPid) continue; // a premium power-up only its owner sees
@@ -6763,12 +6778,12 @@ function clientTick() {
   if (st && st.mid && net.mid && st.mid !== net.mid) { const h = host, k = net.key, sp = net.spectate, tg = net.target, saved = net.savedSetup; cancelAnimationFrame(raf); net = null; G = null; clientBegin(h, k, sp); if (net) { net.target = tg || net.target; if (saved) net.savedSetup = saved; } return 'restarted'; } // a rematch keeps my own settings for when I leave
   if (net.myId != null && G && (G.phase === 'run' || lapOn()) && performance.now() - (net.inSentAt || 0) > 250) clientInput(true);
   if (roomNs && roomNs.probe && performance.now() - net.lastSeen > 2000 && performance.now() - (net.probeAt || 0) > 1200) { net.probeAt = performance.now(); roomNs.probe(); } // is it the host, or my own connection?
-  if (roomNs && roomNs.rejoin && performance.now() - net.lastSeen > 3500 && performance.now() - (net.rejoinAt || 0) > 5000) { net.rejoinAt = performance.now(); roomNs.rejoin(); }
+  if (roomNs && roomNs.rejoin && performance.now() - net.lastSeen > 3000 && performance.now() - (net.rejoinAt || 0) > 3000) { net.rejoinAt = performance.now(); roomNs.rejoin(); }
   if (st && st.W && st.H && (st.W !== W || st.H !== H) && G) { net.W = st.W; net.H = st.H; setArenaSize(st.W, st.H); }
   if (st && st.sm && G) G.speedMul = st.sm;
   if (st) { net.lostAt = 0; if (st !== net.lastSt) { net.lastSt = st; net.lastSeen = net.lastSnapAt = performance.now(); const back = net.staleShown; if (back) { net.staleShown = false; showOverlay(null); } applyState(st); if (back && G.phase === 'end' && !G.over) showRoundBanner(); }
     else if (performance.now() - net.lastSeen > 6500 && !net.spectate && !G.over && net.myId != null && hostCandidates().length) { migrateHost(); return; }
-    else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); showOverlay(`<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
+    else if (performance.now() - net.lastSeen > 6000 && !net.staleShown && !G.over) { net.staleShown = true; const nm = esc(String(host.presence.nm || 'Igrač')); const mine = roomNs && roomNs.pongAge && roomNs.pongAge() > 3000; showOverlay(mine ? `<div class="banner"><h3>📶 Tvoja veza zapinje</h3><p>Spajam se ponovno… Meč se nastavlja čim veza proradi.</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>` : `<div class="banner"><h3>${host.presence.vis === 0 ? '⏸ ' + nm + ' je izašao iz igre' : nm + ' je zastao'}</h3><p>${host.presence.vis === 0 ? 'Igra se vrti na njegovom mobitelu pa stoji dok se ne vrati. Ako ga nema dulje od 10 s, ispada iz runde.' : 'Njegova igra se ne osvježava već nekoliko sekundi (vjerojatno je zaključao mobitel ili prešao u drugu aplikaciju). Nastavlja se čim se vrati.'}</p><div class="row"><button class="btn ghost" id="staleExit">Izađi</button></div></div>`); $('#staleExit').onclick = () => { toMenu(); showTab('online'); }; } net.connected = performance.now() - net.lastSeen < 3000 && roomState.connected; if (G.over && (frameN++ % 15 === 0)) renderReady(); }
   else if (host && net.switchedAt && performance.now() - net.switchedAt < 8000) { /* the new host's first snapshot is on its way */ }
   else { net.connected = false;
     if (net.myId == null && net.mid) { const nh = roomState.peers.find(p => p.peer !== net.hostPeer && p.presence && p.presence.hm && p.presence.hs && p.presence.pmid === net.mid); if (nh) { net.hostPeer = nh.peer; net.switchedAt = performance.now(); net.lostAt = 0; net.lostShown = false; followHost(nh.peer); showOverlay(null); return; } } // a watcher or a player waiting for a seat follows whoever took this match over
@@ -6966,7 +6981,7 @@ async function initWsRoom() {
     sock.onerror = () => { try { sock.close(); } catch (e) {} };
   };
   connect();
-  clearInterval(pingT); pingT = setInterval(() => { if (ws && ws.readyState === 1) { sendRaw({ t: 'ping', n: performance.now() }); if (lastPong && performance.now() - lastPong > 30000) { try { ws.close(); } catch (e) {} } } }, 5000);
+  clearInterval(pingT); pingT = setInterval(() => { if (ws && ws.readyState === 1) { sendRaw({ t: 'ping', n: performance.now() }); if (lastPong && performance.now() - lastPong > (document.hidden ? 30000 : 9000)) { try { ws.close(); } catch (e) {} } } }, 3000); // a phone whose connection went silent reconnects within ~9 s (it used to wait 30 s)
   document.addEventListener('visibilitychange', () => { if (document.hidden) return; lastPong = performance.now(); /* timers were throttled while hidden: a late pong is not a dead socket */ if (!replaced && (!ws || ws.readyState > 1)) { backoff = 500; connect(); } });
   peersMap[myPeer] = mkPeer(myPeer, {});
   roomNs = {
@@ -6986,7 +7001,7 @@ async function initWsRoom() {
     peers: toPeers,
     to(peer, patch) { sendRaw({ t: 'to', peer, patch }); },
     follow(peer) { if (following === peer) return; following = peer; sendRaw({ t: 'follow', peer: peer && peer !== myPeer ? peer : null }); },
-    rejoin() { if (ws && ws.readyState === 1) { if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); return; } /* a healthy socket stays; only a dead one is reopened */ if (!ws || ws.readyState > 1) { backoff = 300; connect(); } },
+    rejoin() { if (ws && ws.readyState === 1 && lastPong && performance.now() - lastPong > 4500) { try { ws.close(); } catch (e) {} return; } /* open but silent: a dead mobile socket, reconnect now */ if (ws && ws.readyState === 1) { if (following && following !== myPeer) sendRaw({ t: 'follow', peer: following }); return; } /* a healthy socket stays; only a dead one is reopened */ if (!ws || ws.readyState > 1) { backoff = 300; connect(); } },
     busy() { return !ws || ws.readyState !== 1 || ws.bufferedAmount > 6000; },
     pongAge() { return lastPong ? performance.now() - lastPong : 0; }, // how long the server has been silent
     probe() { if (ws && ws.readyState === 1) sendRaw({ t: 'ping', n: performance.now() }); },
