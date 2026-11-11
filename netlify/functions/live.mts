@@ -51,7 +51,7 @@ const SOURCES: Record<string, { ttl: number; load: () => Promise<unknown> }> = {
     const h = list.find((x: any) => x.date === today) || null, nx = list.find((x: any) => String(x.date) > today) || null;
     return { date: today, names: names === "n/a" ? "" : names.slice(0, 120), holiday: h ? String(h.localName || h.name).slice(0, 80) : "", next: nx ? { date: String(nx.date).slice(0, 10), name: String(nx.localName || nx.name).slice(0, 60) } : null };
   } },
-  fuel: { ttl: 6 * HOUR, load: async () => parseFuel(await get("https://www.hak.hr/info/cijene-goriva/", "text", 9000)) },
+  fuel: { ttl: 6 * HOUR, load: async () => parseFuel(await get("https://www.hak.hr/info/cijene-goriva/", "text")) },
   hnl: { ttl: 30 * MIN, load: async () => {
     const [home, fx] = await Promise.all([get("https://hnl.hr/", "text"), get("https://hnl.hr/supersport-hnl/raspored-i-rezultati/", "text")]);
     return { table: parseTable(home), matches: parseFixtures(fx) };
