@@ -224,6 +224,7 @@ body.lite *, body.lite *::before, body.lite *::after { animation: none !importan
 body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !important; } body.lite .btn, body.lite .card, body.lite .banner { box-shadow: none !important; }
 .watchpop { position: fixed; z-index: 60; top: 64px; right: 12px; max-width: min(320px, calc(100vw - 24px)); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.5); } .watchpop .wrow1 { display: flex; align-items: center; gap: 8px; } .watchpop .wrow1 small { margin-left: auto; color: var(--muted); } .watchpop .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; } button.chip.watchers { cursor: pointer; font: inherit; color: inherit; }
 .srvupd { position: fixed; left: 50%; top: max(10px, env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 90; max-width: calc(100vw - 24px); background: #ffb547; color: #1b1206; font-weight: 700; border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.5); text-align: center; }
+.daily.tap { cursor: pointer; }
 .litebox { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--ink); } .litebox label { display: flex; gap: 8px; align-items: center; font-size: 15px; } .litebox input { width: 20px; height: 20px; } .boxcard.b-xp { border-color: #ffd23f66; background: linear-gradient(180deg, rgba(255,210,63,.08), transparent 60%), var(--panel); } .boxcard.b-xp small { font-size: 13px; }
 .bodds { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 3px; font-size: 14px; } .bodds li { display: flex; justify-content: space-between; gap: 8px; text-align: left; color: var(--muted); } .bodds li b { color: var(--fg); } .bodds li small { font-size: 11px; } .bodds li.rare, .bodds li.rare b { color: var(--amber); }
 .infob { border: 1px solid var(--line); background: var(--ink); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; } .infob:hover { border-color: var(--amber); } .infob.mini { padding: 0 6px; font-size: 12px; margin-left: 4px; vertical-align: 1px; }
@@ -534,10 +535,11 @@ html, body { touch-action: manipulation; }
 @media (max-width: 340px) { .pads { --ptl: 40px; } }
 .padtools { display: grid; gap: 6px; min-height: 0; height: 100%; }
 .padmid .ptool { width: auto !important; height: auto !important; min-width: 0; min-height: 0; border-radius: 14px; display: grid; place-items: center; align-content: center; gap: 3px; padding: 2px; font-size: 22px; }
+.ptool.prank { background: linear-gradient(160deg, #ff5d73, #9b4dff) !important; border: 2px solid #ffd23f !important; box-shadow: 0 0 0 2px rgba(255,210,63,.35), 0 4px 14px rgba(255,93,115,.45) !important; } .ptool.prank .tl { color: #fff !important; } .pads.ps-c .ptool.prank .tl { display: block !important; font-size: 10px; } .pads.ps-c .ptool.prank .tg { font-size: 30px; }
 .ptool .tg { font-size: 23px; line-height: 1; } .ptool .tl { font: 700 11px/1 "Barlow Semi Condensed", sans-serif; letter-spacing: .03em; color: #e6dcff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .pads.ps-a .padtools { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .pads.ps-b .padtools { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); } .pads.ps-b .ptool .tg { font-size: 20px; } .pads.ps-b .ptool .tl { font-size: 10px; }
-.pads.ps-c .padmid { grid-template-rows: minmax(0, 1fr) minmax(0, 0.75fr); } .pads.ps-c .padtools { grid-template-columns: repeat(4, minmax(0, 1fr)); } .pads.ps-c .ptool .tl { display: none; } .pads.ps-c .ptool .tg { font-size: 26px; }
+.pads.ps-c .padmid { grid-template-rows: minmax(0, 1fr) minmax(0, 0.75fr); } .pads.ps-c .padtools { grid-template-columns: minmax(0, 1.55fr) repeat(3, minmax(0, 1fr)); } .pads.ps-c .ptool .tl { display: none; } .pads.ps-c .ptool .tg { font-size: 26px; }
 .padmid .ptool, .qreact button { touch-action: none; }
 .qreact { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-height: 0; }
 .qreact button { min-width: 0; min-height: 0; border-radius: 999px; border: 2px solid var(--pc, var(--line)); border: 2px solid color-mix(in srgb, var(--pc, var(--line)) 55%, var(--line)); background: var(--panel); font-size: 21px; line-height: 1; padding: 0; touch-action: manipulation; }
@@ -922,7 +924,8 @@ const PU_COLOR = { s: '#3ddc97', o: '#ff5d73', a: '#57b7ff', p: '#c08cff' };
 const PU_R = 17; // pickup radius in arena units (was 13)
 // once a round a pistol or a smoke bomb lands somewhere; whoever picks it up uses it with the jump (LIJEVO + DESNO / ↑)
 const WEAPONS = { gun: { e: '🔫', name: 'Pištolj', verb: 'pucaj' }, smoke: { e: '💣', name: 'Dimna bomba', verb: 'baci dimnu bombu' } };
-const SHOT_V = 560, SHOT_HEAD = 0.15; // a bullet's speed; it fells a snake hit at the head or in the first 15 % of its length behind it
+const SHOT_V = 560, SHOT_HEAD = 0.15;
+const SMOKE_V = 380, SMOKE_R = 125, SMOKE_S = 13; // the bomb's throw speed; the smoke's full radius (~7.5 % of the arena) and how long it lasts // a bullet's speed; it fells a snake hit at the head or in the first 15 % of its length behind it
 // Bold vector symbol for each power-up, filling most of the circle of radius R.
 function drawPuIcon(c, k, x, y, R) {
   const s = R * 0.5, lw = Math.max(1.8, R * 0.19);
@@ -2140,7 +2143,8 @@ function renderDailyShop() {
   const id = dailyOffer(), it = SKINS[id] || BADGES[id], own = profile && profile.owned.includes(id);
   box.innerHTML = `<div class="daily"><span class="tag">🔥 Ponuda dana <button type="button" class="infob mini" data-info="offer" aria-label="Što je ponuda dana">ℹ️</button></span><b>${esc(it.name)}</b><span class="hint">−30 %: <s>● ${it.price}</s> <b style="color:var(--amber)">● ${Math.round(it.price * 0.7)}</b>${own ? ' · već imaš' : ''}</span><button class="btn sm" type="button" id="goOffer">Pogledaj</button></div>`;
   renderBoxes();
-  $('#goOffer').onclick = () => goShopItem(id);
+  $('#goOffer').onclick = (e) => { e.stopPropagation(); goShopItem(id); };
+  { const d = box.querySelector('.daily'); if (d) { d.classList.add('tap'); d.onclick = (e) => { if (e.target.closest('[data-info]')) return; goShopItem(id); }; } } // the whole card, not only the button
 }
 function seasonNow() { const m = new Date().getMonth(); return m >= 9 ? (m === 11 ? 1 : 0) : m === 0 ? 1 : m <= 2 ? 2 : 3; } // 0 bundeva (lis–stu), 1 snijeg (pro–sij), 2 ljubav (velj–ožu), 3 ljeto (tra–ruj)
 function ownersOf(id) { return accounts.list.filter(a => Array.isArray(a.owned) && a.owned.includes(id)).length; }
@@ -2350,7 +2354,7 @@ function renderSettings() {
   add('Power-upovi', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.powerups, upd('powerups')), 'Bonusi koji se pojavljuju na ploči. Koje smiješ pokupiti biraš dolje.');
   add('Učestalost power-upova', seg([['rijetko', 'Rijetko'], ['normalno', 'Normalno'], ['često', 'Često'], ['ludnica', 'Ludnica']], setup.puRate, upd('puRate')), 'Koliko često padaju: rijetko ~ svakih 8 s (najviše 3 na ploči), normalno ~4 s (4), često ~2 s (6), ludnica ~1 s (8).');
   add('Skok', seg([[true, 'Uključen'], [false, 'Isključen']], setup.jump, upd('jump')), 'Tipka ↑, a na mobitelu LIJEVO i DESNO odjednom: preletiš preko traga. Ponovno spreman za 5 s; krug oko glave pokazuje punjenje.');
-  add('Pištolj i dimna bomba', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.weapons !== false, upd('weapons')), 'Jednom po rundi negdje na ploči padne 🔫 pištolj ili 💣 dimna bomba. Tko ga pokupi, koristi ga kao skok: LIJEVO i DESNO odjednom (ili ↑). Metak sruši zmiju koju pogodi u glavu ili blizu nje; dimna bomba sakrije dio arene na 6 s.');
+  add('Pištolj i dimna bomba', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.weapons !== false, upd('weapons')), 'Jednom po rundi negdje na ploči padne 🔫 pištolj ili 💣 dimna bomba. Tko ga pokupi, koristi ga kao skok: LIJEVO i DESNO odjednom (ili ↑). Metak sruši zmiju koju pogodi u glavu ili blizu nje; dimna bomba odskakuje, stane i pušta dim koji 13 s sakrije dio arene.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
   add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima točno toliko rundi. Na kraju pobjeđuje tko ima najviše bodova (kod istog broja odlučuju rušenja), svi dobiju zlatnike po plasmanu i biraju novu igru.');
 }
@@ -2730,7 +2734,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '35cfd0a59a68';
+const BUILD = '6e65ae17fa95';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3132,7 +3136,7 @@ function newRound() {
   if (net && net.role === 'host' && G.round >= 1) { const r = matchRatio(); if (r && Math.abs(r / (netRatio || r) - 1) > 0.08) { netRatio = r; sizeArena(); } }
   G.round++; G.phase = 'count'; G.phaseT = 0; G.gt = 0; G.pus = []; { const R = PU_RATE[setup.puRate] || PU_RATE.normalno; G.nextPu = rand(R.min, R.max); }
   G.wrapAllUntil = 0; G.inset = 0; G.parts = []; G.ff = false; G.lastCount = 4;
-  G.wpick = null; G.wpAt = setup.weapons === false ? null : rand(3, 9); G.shots = []; G.clouds = []; G.ppAt = setup.powerups ? rand(4, 10) : null;
+  G.wpick = null; G.wpAt = setup.weapons === false ? null : rand(3, 9); G.shots = []; G.clouds = []; G.bombs = []; G.ppAt = setup.powerups ? rand(4, 10) : null;
   owner.fill(0); stampT.fill(0); T = 0; G.tombs = []; G.arena = null; stampArena(); { const nb = profile && profile.owned.includes(profile.eq.bg) ? profile.eq.bg : ''; if (nb !== (G.bg || '')) { G.bg = nb; drawBg(); } } assignTeams(); G.winTeam = null;
   tctx.clearRect(0, 0, W, H); clearLights();
   const placed = [];
@@ -3755,7 +3759,7 @@ function pickWeapon(p) {
 function useWeapon(p) {
   const k = p.wp, r = radiusOf(p); p.wp = null; hudDirty = true;
   if (k === 'gun') { G.shots.push({ x: p.x + Math.cos(p.a) * (r + 8), y: p.y + Math.sin(p.a) * (r + 8), a: p.a, from: p.id, d: 0 }); beep(190, 0.12, 'square', 0.09, -120); }
-  else if (k === 'smoke') { const bd = bounds(), d = 130; const x = Math.max(bd.l + 20, Math.min(bd.r - 20, p.x + Math.cos(p.a) * d)), y = Math.max(bd.t + 20, Math.min(bd.b - 20, p.y + Math.sin(p.a) * d)); G.clouds.push({ k: 'smoke', x, y, r: 105, until: G.gt + 6, from: p.id, t0: G.gt }); beep(90, 0.35, 'sawtooth', 0.06, -40); }
+  else if (k === 'smoke') { G.bombs.push({ x: p.x + Math.cos(p.a) * (r + 8), y: p.y + Math.sin(p.a) * (r + 8), vx: Math.cos(p.a) * SMOKE_V, vy: Math.sin(p.a) * SMOKE_V, t0: G.gt, from: p.id }); beep(300, 0.08, 'triangle', 0.06); }
 }
 // Parfem: a cloud where the snake is; whoever else drives into it is half as fast for as long as they are inside
 function sprayPerfume(p) { if (!p || !p.alive || !G || G.phase !== 'run') return false; G.clouds.push({ k: 'perfume', x: p.x, y: p.y, r: 85, until: G.gt + POTIONS.perfume.s, from: p.id, t0: G.gt }); return true; }
@@ -3784,9 +3788,10 @@ function drawCombat(c, over) {
     return;
   }
   for (const sh of G.shots || []) { c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(255,246,176,.85)'; c.lineWidth = 3; c.beginPath(); c.moveTo(sh.x - Math.cos(sh.a) * 18, sh.y - Math.sin(sh.a) * 18); c.lineTo(sh.x, sh.y); c.stroke(); c.fillStyle = '#ffd23f'; c.beginPath(); c.arc(sh.x, sh.y, 3.2, 0, 6.283); c.fill(); c.restore(); }
+  for (const b of G.bombs || []) { const age = now - b.t0, hop = Math.abs(Math.sin(age * Math.PI * 2.4)) * 12 * Math.max(0, 1 - age / 1.8); c.save(); c.globalAlpha = 0.35; c.fillStyle = '#000'; c.beginPath(); c.ellipse(b.x, b.y + 6, 7, 3, 0, 0, 6.283); c.fill(); c.globalAlpha = 1; c.font = `18px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💣', b.x, b.y - hop); c.restore(); }
   for (const cl of G.clouds || []) { if (cl.k !== 'smoke') continue; const left = cl.until - now; if (left <= 0) continue;
-    const a = Math.min(1, left / 1.5) * Math.min(1, (now - (cl.t0 || 0)) / 0.3 + 0.15), seed = (cl.x * 7 + cl.y * 13) % 360;
-    for (let i = 0; i < 7; i++) { const an = seed + i * 0.9, d = i ? cl.r * 0.42 : 0, x = cl.x + Math.cos(an) * d, y = cl.y + Math.sin(an) * d, rr = cl.r * (i ? 0.62 : 0.8);
+    const grow = Math.min(1, 0.2 + (now - (cl.t0 || 0)) / 2.5), R0 = cl.r * grow, a = Math.min(1, left / 1.5) * Math.min(1, (now - (cl.t0 || 0)) / 0.3 + 0.15), seed = (cl.x * 7 + cl.y * 13) % 360;
+    for (let i = 0; i < 7; i++) { const an = seed + i * 0.9 + now * 0.05, d = i ? R0 * 0.42 : 0, x = cl.x + Math.cos(an) * d, y = cl.y + Math.sin(an) * d, rr = R0 * (i ? 0.62 : 0.8);
       const g = c.createRadialGradient(x, y, rr * 0.2, x, y, rr); g.addColorStop(0, `rgba(190,196,204,${0.95 * a})`); g.addColorStop(0.75, `rgba(150,158,168,${0.85 * a})`); g.addColorStop(1, 'rgba(140,148,160,0)');
       c.fillStyle = g; c.beginPath(); c.arc(x, y, rr, 0, 6.283); c.fill(); } }
   for (const p of G.players) if (p.wp && p.alive && WEAPONS[p.wp]) { c.save(); c.font = `13px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(WEAPONS[p.wp].e, p.x + 13, p.y + 11); c.restore(); } // who holds what (small, next to the head)
@@ -4072,6 +4077,13 @@ function substep(lap) {
     }
     if (hitP && has(hitP, 'shield')) { G.shots.splice(i, 1); useShield(hitP); continue; }
     if (hitP) { G.shots.splice(i, 1); const by = G.players.find(q => q.id === sh.from) || null; dead.push([hitP, by]); G.toast = { text: '🎯 Pogodak!', color: by ? dispColor(by) : '#ffd23f', x: hitP.x, y: hitP.y - 22, t: G.gt }; }
+  }
+  // 2c) a thrown smoke bomb skids and bounces (off the walls too), stops, and starts to smoke
+  if (!lap && G.bombs && G.bombs.length) for (let i = G.bombs.length - 1; i >= 0; i--) {
+    const b = G.bombs[i], f = Math.exp(-2 * SUB); b.vx *= f; b.vy *= f; b.x += b.vx * SUB; b.y += b.vy * SUB;
+    if (b.x < bd.l + 8) { b.x = bd.l + 8; b.vx = Math.abs(b.vx) * 0.6; } else if (b.x > bd.r - 8) { b.x = bd.r - 8; b.vx = -Math.abs(b.vx) * 0.6; }
+    if (b.y < bd.t + 8) { b.y = bd.t + 8; b.vy = Math.abs(b.vy) * 0.6; } else if (b.y > bd.b - 8) { b.y = bd.b - 8; b.vy = -Math.abs(b.vy) * 0.6; }
+    if (Math.hypot(b.vx, b.vy) < 28 || G.gt - b.t0 > 1.8) { G.bombs.splice(i, 1); G.clouds.push({ k: 'smoke', x: b.x, y: b.y, r: SMOKE_R, until: G.gt + SMOKE_S, from: b.from, t0: G.gt }); beep(90, 0.4, 'sawtooth', 0.06, -40); }
   }
   // 3) the survivors leave their trail and collect power-ups
   for (const p of moved) {
@@ -4468,6 +4480,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'gorivo', d: '2026-11-11', e: '⛽', t: 'Gorivo, novi power-upovi i preglednija trgovina', x: 'Nova ikona ⛽ Cijena goriva (Eurosuper 95 i Eurodizel, HAK). Novi power-upovi: 🛡️ Štit, ❄️ Zamrzni, 🌀 Teleport i 🧲 Magnet, a u trgovini 💎 premium power-upovi (Nitro, Dijamantni štit, Ledeno doba) koji padnu samo tebi i samo ih ti vidiš. Dimna bomba sad odskakuje, stane i 13 s pušta dim. Trgovina je složena u 7 grupa s podkategorijama. Zezalica se bira jednim dodirom i prozor se sam zatvori.', go: 'shop:pu', b: 'Pogledaj power-upove', items: ['bd_fuel', 'pp_nitro', 'pp_dia', 'pp_ice'] },
   { id: 'oruzje', d: '2026-11-11', e: '🔫', t: 'Pištolj, dimna bomba, parfem i brendovi', x: 'Jednom po rundi na ploči padne 🔫 pištolj ili 💣 dimna bomba: tko ga pokupi, koristi ga kao skok (LIJEVO + DESNO odjednom ili ↑). Metak sruši zmiju koju pogodi u glavu ili tik iza nje, dimna bomba sakrije dio arene. Novi napitak 🌸 Parfem: tko uđe u oblak, vozi upola sporije. U trgovini su i 🛍️ Brendovi (Nike, Adidas, Louis Vuitton, Gucci…). Dok zmije voze, iznad njih nema ikona: arena je čista. Za starije mobitele: 🐢 pojednostavljeni izgled u profilu.', go: 'shop:brands', b: 'Pogledaj brendove', items: ['perfume', 'bd_br_nike', 'bd_br_adidas', 'bd_br_lv', 'bd_br_gucci'] },
   { id: 'osam', d: '2026-11-11', e: '🧪', t: '8 igrača, XP kutije i napitci', x: 'U meču sad može biti do 8 zmija (nove boje: ružičasta i limeta). Što je više igrača, to su veći i zlatnici i XP. U trgovini (Kutije) su XP kutije: +500 i +1000 XP odmah. Novi napitci: 🧪 Kameleon (u online meču 15 s izgledaš kao protivnik po izboru, gumb 😈 → 🧪 Napitak) i ⚗️ dvostruki XP za sljedećih 5 mečeva.', go: 'shop:potions', b: 'Pogledaj napitke', items: ['cham', 'xpboost'] },
   { id: 'dalmacija', d: '2026-11-11', e: '🍲', t: 'Dalmatinski natpisi', x: 'Uz Ajme i Fjaku stižu nove dalmatinske uzrečice uz ime: Ae!, Ostav me se, Ća je?, Ća ćeš, Ne moren, Lipo!, Gušt, Bokun, Ne beri brigu i Fala. I dalmatinska kuhinja: Pašticada, Brudet, Crni rižot, Ispod peke, Pršut, Fritule, Soparnik i Marenda.', go: 'shop:badges', b: 'Pogledaj natpise', items: ['bd_t_ae', 'bd_t_ostav', 'bd_t_ca', 'bd_t_caces', 'bd_t_nemoren', 'bd_t_lipo', 'bd_t_gust', 'bd_t_bokun', 'bd_t_neberi', 'bd_t_fala', 'bd_t_pasticada', 'bd_t_brudet', 'bd_t_crnirizot', 'bd_t_peka', 'bd_t_prsut', 'bd_t_fritule', 'bd_t_soparnik', 'bd_t_marenda'] },
@@ -6404,7 +6417,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -6473,7 +6486,7 @@ function applyState(st, first) {
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3], own: u[4] != null && u[4] >= 0 ? u[4] : null })).filter(u => POWERUPS[u.k]);
   G.wpick = Array.isArray(st.wk) && WEAPONS[st.wk[0]] ? { k: st.wk[0], x: Number(st.wk[1]) || 0, y: Number(st.wk[2]) || 0 } : null;
   { const ns = Array.isArray(st.sh) ? st.sh.map(x => ({ x: Number(x[0]) || 0, y: Number(x[1]) || 0, a: Number(x[2]) || 0 })) : []; if (ns.length > (G.shots || []).length) beep(190, 0.12, 'square', 0.09, -120); G.shots = ns; }
-  G.clouds = Array.isArray(st.cl) ? st.cl.map(c => ({ k: c[0] === 1 ? 'smoke' : 'perfume', x: Number(c[1]) || 0, y: Number(c[2]) || 0, r: Math.min(200, Number(c[3]) || 0), until: Number(c[4]) || 0, from: c[5], t0: Number(c[6]) || 0 })) : [];
+  { const cl = Array.isArray(st.cl) ? st.cl : []; G.clouds = cl.filter(c => c[0] !== 3).map(c => ({ k: c[0] === 1 ? 'smoke' : 'perfume', x: Number(c[1]) || 0, y: Number(c[2]) || 0, r: Math.min(200, Number(c[3]) || 0), until: Number(c[4]) || 0, from: c[5], t0: Number(c[6]) || 0 })); G.bombs = cl.filter(c => c[0] === 3).map(c => ({ x: Number(c[1]) || 0, y: Number(c[2]) || 0, t0: Number(c[6]) || 0, from: c[5] })); }
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
   { // the host paused (Esc / pause button): tell the guests why nothing moves
     const hp = !!st.pa && (G.phase === 'run' || G.phase === 'count');
@@ -6966,7 +6979,7 @@ function renderTrollPop() {
     ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
-  pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); });
+  pop.querySelectorAll('.troll').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); pop.hidden = true; });
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
