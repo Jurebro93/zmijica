@@ -979,6 +979,7 @@ if (document.body) document.body.classList.toggle('lite', LITE);
 
 const BASE_SPEED = 82, TURN = 3.1, BASE_R = 3.2, CELL = 2, SUB = 1 / 240;
 const JUMP_TIME = 0.4, JUMP_CD = 5;
+const TURN_EASE = 0.07; // s: how fast the steering reaches full turn (the guest's own predicted head eases the same way)
 const PLACE_COINS = [100, 60, 40, 25, 20, 15, 12, 10], KILL_COINS = 3;
 const PLACE_XP = [60, 40, 25, 15, 10, 8, 6, 5]; // XP by place, on top of the XP every match, win and crash gives
 
@@ -2931,7 +2932,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'ed561da0aacd';
+const BUILD = 'adc967ee21c3';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -4250,7 +4251,7 @@ function substep(lap) {
     if (rev && (p.human || p.diff === 'lako')) inp = -inp;
     if (has(p, 'square')) {
       if (inp !== 0 && p.lastIn === 0 && T >= p.sqCool) { p.a += inp * Math.PI / 2; p.sqCool = T + 20; flushTrail(p, true); }
-    } else { p.tv = (p.tv || 0) + (inp - (p.tv || 0)) * Math.min(1, SUB / 0.04); if (Math.abs(p.tv) < 0.01) p.tv = 0; p.a += p.tv * TURN * SUB * (speedOf(p) / BASE_SPEED) * turnMul(p); } // steering eases in over ~40 ms: round, smooth curves
+    } else { p.tv = (p.tv || 0) + (inp - (p.tv || 0)) * Math.min(1, SUB / TURN_EASE); if (Math.abs(p.tv) < 0.01) p.tv = 0; p.a += p.tv * TURN * SUB * (speedOf(p) / BASE_SPEED) * turnMul(p); } // steering eases in over ~70 ms: round, smooth curves
     p.lastIn = inp;
     const v = speedOf(p), r = radiusOf(p), step = v * SUB;
     p.x += Math.cos(p.a) * step; p.y += Math.sin(p.a) * step;
@@ -4414,6 +4415,11 @@ function render() {
   // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
   // snake never seems to float ahead of its own trail
   if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
+    if (p.alive && p.live && p.hq) { // a played-back snake: the trail points it passed since the last baked one
+      const rr = radiusOf(p); let on = false; const custom = applySkin(ctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) ctx.lineWidth = rr * 2; ctx.lineCap = 'round'; ctx.beginPath();
+      for (let i = 1; i < p.live.length; i++) { const a = p.live[i - 1], b = p.live[i]; if (!b[2]) { on = false; continue; } if (!on) ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); on = true; }
+      ctx.stroke(); ctx.shadowBlur = 0; ctx.setLineDash([]); ctx.globalAlpha = 1; continue;
+    }
     if (!p.alive || !p.drawing || p.sx == null || (p.jumpUntil && p.jumpUntil > G.gt)) continue;
     const d = Math.hypot(p.x - p.sx, p.y - p.sy); if (d < 0.3 || d > 40) continue;
     const rr = radiusOf(p); const custom = applySkin(ctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) ctx.lineWidth = rr * 2;
@@ -6651,12 +6657,13 @@ function hostStart(rematch) {
   G = { players: players.filter(p => p.mine) }; buildPads();
   newMatch(players); buildPads(); enterGame(); hostSend(true);
 }
+const SNAP_MS = 50; // a snapshot every 50 ms while the snakes move (20 a second)
 function hostSend(force) {
   const now = performance.now();
   // lobby heartbeat: a host whose game loop froze, or whose tab went to sleep, stops beating and no longer blocks the room
   if (now - (net.hbAt || 0) > 2500) { net.hbAt = now; if (G.over && !net.overAt) net.overAt = now; if (!G.over) net.overAt = 0; netPresence(G.over ? { hb: Date.now(), ho: 1 + Math.floor((now - net.overAt) / 1000) } : myPres.ho ? { hb: Date.now(), ho: null } : { hb: Date.now() }); }
   if (net.beatAt && now - net.beatAt > HOST_STALE_MS) net.wasStale = now; net.beatAt = now; // my game stood still (hidden tab): others may have moved on
-  const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count' || lapOn()) ? 66 : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return;
+  const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count' || lapOn()) ? SNAP_MS : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return;
   if (!force && roomNs && roomNs.busy && roomNs.busy()) { net.skipped = (net.skipped || 0) + 1; if (net.skipped < 8) return; } // the connection is backed up: hold this frame (but never for long)
   net.skipped = 0; net.lastSend = now; net.sendN = (net.sendN || 0) + 1;
   netPresence({ st: buildSnap(force || net.sendN % 8 === 1 || !!G.plDirty) }); G.plDirty = false;
@@ -6735,7 +6742,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, tw: Math.round(performance.now()), te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -6791,13 +6798,33 @@ function drawTrailHistory(th) {
     if (ts.first == null && have) { ts.n = Math.max(ts.n, n - 1); ts.x = px; ts.y = py; ts.has = true; ts.first = n - 1; } // nothing was live yet: carry on from the end of the history
   }
 }
+// ---- smooth playback of the other snakes on a guest. Each snapshot carries the host's clock (tw). The guest keeps the
+// fastest-arriving offset to that clock and draws every other snake at "host now - a short delay", between the two
+// snapshots around that moment, along the trail's real points; the trail itself is baked when the drawn head gets
+// there, so head and trail stay together. My own snake is not delayed (it is predicted at once, as before). With an
+// older host (no tw) or when snapshots run out, the head is extrapolated as before.
+const clk = { off: null, win: [], jit: 0.02, gap: SNAP_MS / 1000, last: 0, host: null };
+function clockSample(tw) {
+  const loc = performance.now() / 1000, smp = tw / 1000 - loc;
+  if (clk.host !== net.hostPeer || (clk.off != null && Math.abs(smp - clk.off) > 2)) { clk.host = net.hostPeer; clk.win = []; clk.off = null; clk.last = 0; } // a new host: a new clock
+  clk.win.push([loc, smp]); while (clk.win.length && loc - clk.win[0][0] > 3) clk.win.shift();
+  const best = Math.max(...clk.win.map(w => w[1])); clk.off = best;
+  clk.jit = clk.jit * 0.9 + Math.min(0.3, best - smp) * 0.1; // how late snapshots come, on average, compared with the fastest
+  { const d = tw / 1000 - clk.last; if (clk.last && d > 0 && d < 0.2) clk.gap = clk.gap * 0.9 + d * 0.1; } clk.last = tw / 1000; // the usual gap while the snakes move (slow lobby snapshots are left out)
+}
+const playDelay = () => Math.min(0.25, clk.gap + Math.max(0.02, clk.jit * 1.5));
+const playTime = () => performance.now() / 1000 + (clk.off || 0) - playDelay();
+function bakeEntry(p, e) { for (const g of e.segs) guestLine(p, g[0], g[1], g[2], g[3], g[4], g[5]); e.segs = []; }
+function flushPlay(p, discard) { if (!p.hq) return; if (!discard) for (const e of p.hq) bakeEntry(p, e); p.hq = null; p.live = null; }
+function flushAllPlay(discard) { if (G) for (const p of G.players) flushPlay(p, discard); }
 function applyState(st, first) {
   const mePeer = roomState.me;
+  if (typeof st.tw === 'number') clockSample(st.tw);
   if (st.te !== undefined && st.te !== net.tvE) { net.tvE = st.te; net.tv = {}; } // another host (or a match taken over): its trail numbering starts afresh
   if (st.s && st.s.arena && st.s.arena !== setup.arena) { setup.arena = st.s.arena; G.arena = null; }
-  if (st.r !== net.round || first) { net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); clearLights(); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
-  if (st.cs && st.cs[0] !== net.clrS) { const was = net.clrS; net.clrS = st.cs[0]; if (was != null || !first) { clearTrailOf(st.cs[1]); if (net.prev) delete net.prev[st.cs[1]]; } } // one snake's trail was wiped on the host
-  if (st.clr !== net.clr) { net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
+  if (st.r !== net.round || first) { flushAllPlay(true); net.round = st.r; G.arena = null; G.tombs = []; net.prev = {}; net.tv = {}; tctx.clearRect(0, 0, W, H); clearLights(); G.parts = []; showOverlay(null); G.awarded = false; G.players.forEach(p => { p.ballsDrawn = false; p.dashLen = 0; p.roundStart = p.score || 0; }); }
+  if (st.cs && st.cs[0] !== net.clrS) { const was = net.clrS; net.clrS = st.cs[0]; if (was != null || !first) { clearTrailOf(st.cs[1]); if (net.prev) delete net.prev[st.cs[1]]; { const w = G.players.find(x => x.id === st.cs[1]); if (w) flushPlay(w, true); } } } // one snake's trail was wiped on the host
+  if (st.clr !== net.clr) { flushAllPlay(true); net.clr = st.clr; tctx.clearRect(0, 0, W, H); clearLights(); net.prev = {}; for (const k in (net.tv || {})) net.tv[k].has = false; if (!first && owner) { owner.fill(0); try { stampArena(); } catch (e) {} } } // "clear" wiped every trail on the host: the guest's own map of them goes too (it becomes the truth if this guest takes the match over)
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
   if (st.ix && st.ph === 'count') { const key = JSON.stringify(st.ix); if (G.introKey !== key) { G.introKey = key; G.intro = st.ix; G.introDone = {}; G.introLen = st.ix.reduce((a, e) => Math.max(a, e.s + e.d + ENTER_BANNER), 0); } G.introT = st.it || 0; runIntro(); } else if (st.ph !== 'count') { G.intro = null; G.introKey = ''; }
@@ -6829,6 +6856,10 @@ function applyState(st, first) {
     if (wasAlive && q.al && p._lgt != null && G.phase === 'run' && typeof p._vx === 'number') { const ex = p._vx - q.x, ey = p._vy - q.y; let ea = p._va - q.a; ea = Math.atan2(Math.sin(ea), Math.cos(ea)); if (Math.hypot(ex, ey) < 40 && Math.abs(ea) < 1) { p.ex = ex; p.ey = ey; p.ea = ea; } else { p.ex = p.ey = p.ea = 0; } } else { p.ex = p.ey = p.ea = 0; }
     if (p._lgt != null && st.gt > p._lgt && q.al) { let da = q.a - p._la; da = Math.atan2(Math.sin(da), Math.cos(da)); const wa = da / (st.gt - p._lgt); p._wa = Math.abs(wa) < 12 ? (p._wa == null ? wa : p._wa * 0.5 + wa * 0.5) : 0; }
     p._la = q.a; p._lx = q.x; p._ly = q.y; p._lgt = st.gt; p.sx = q.x; p.sy = q.y; p.sa = q.a;
+    const play = typeof st.tw === 'number' && p.id !== net.myId && q.al && (st.ph === 'run' || lapOn()) && st.te !== undefined;
+    let pe = null; // this snapshot's piece of the playback (its trail points wait in it until the drawn head gets there)
+    if (play) { if (!p.hq) p.hq = []; pe = { t: st.tw / 1000, x: q.x, y: q.y, a: q.a, path: [], segs: [] }; p.hq.push(pe); if (p.hq.length > 12) { p.hq.shift(); bakeEntry(p, p.hq[0]); } p.ex = p.ey = p.ea = 0; }
+    else flushPlay(p);
     if (wasAlive === true && !p.alive) { deathFx(p); sfx.die(); if (prevPhase !== 'end') onDeath(p, q.kb); } // a crash during the victory lap counts for nothing
     if (p.score !== (p._sc ?? p.score)) hudDirty = true; p._sc = p.score;
     // trail segment
@@ -6839,7 +6870,9 @@ function applyState(st, first) {
         for (let k = 1; k + 2 < q.tv.length; k += 3, n++) {
           if (n <= ts.n) continue;
           const x = q.tv[k], y = q.tv[k + 1], f = q.tv[k + 2];
-          if (f && ts.has && (n === ts.n + 1 || Math.hypot(x - ts.x, y - ts.y) < 60)) guestLine(p, ts.x, ts.y, x, y, r, q.a);
+          const drawn = !!(f && ts.has && (n === ts.n + 1 || Math.hypot(x - ts.x, y - ts.y) < 60));
+          if (pe && p.hq.length > 1) { pe.path.push([x, y, drawn]); if (drawn) pe.segs.push([ts.x, ts.y, x, y, r, q.a]); }
+          else if (drawn) guestLine(p, ts.x, ts.y, x, y, r, q.a);
           if (f === 2) r = q.rr;
           if (ts.first == null) ts.first = n;
           ts.x = x; ts.y = y; ts.has = true; ts.n = n;
@@ -6878,6 +6911,7 @@ function hostCandidates() {
 }
 function migrateHost() {
   if (!net || net.role !== 'client' || !G || G.over || net.spectate || net.myId == null || !roomState.connected) return;
+  flushAllPlay();
   if (roomNs && roomNs.pongAge && roomNs.pongAge() > 3500) return; // the server is silent too: my own connection is down, not the host
   net.deadHosts = net.deadHosts || new Set(); net.deadHosts.add(net.hostPeer); // never go back to a host that stopped answering
   // did somebody already take this match over? then follow them
@@ -6933,16 +6967,35 @@ function clientTick() {
   predictHeads();
 }
 // draw heads slightly ahead of the last snapshot (and turn my own head at once) so 10 snapshots/s look smooth
+function playHead(p, T) {
+  while (p.hq.length >= 2 && p.hq[1].t <= T) { bakeEntry(p, p.hq[1]); p.hq.shift(); }
+  const e0 = p.hq[0]; p.sx = e0.x; p.sy = e0.y; p.sa = e0.a;
+  if (p.hq.length < 2) { // no newer snapshot yet: a little further on the same course, never far
+    const dt = Math.max(0, Math.min(0.1, T - e0.t)); p.x = e0.x + Math.cos(e0.a) * (p.v || 0) * dt; p.y = e0.y + Math.sin(e0.a) * (p.v || 0) * dt; p.a = e0.a + (has(p, 'square') ? 0 : (p._wa || 0) * dt); p.live = null; return;
+  }
+  const e1 = p.hq[1], f = Math.max(0, Math.min(1, (T - e0.t) / Math.max(0.001, e1.t - e0.t)));
+  const pts = [[e0.x, e0.y, false], ...e1.path]; { const l = pts[pts.length - 1]; if (Math.hypot(l[0] - e1.x, l[1] - e1.y) > 0.5) pts.push([e1.x, e1.y, false]); }
+  const lens = pts.map((q, i) => { if (!i) return 0; const d = Math.hypot(q[0] - pts[i - 1][0], q[1] - pts[i - 1][1]); return d > 40 ? 0 : d; }); // a wrap or a teleport takes no time
+  const L = lens.reduce((a, b) => a + b, 0); let left = f * L, hx = e1.x, hy = e1.y; const live = [[e0.x, e0.y, false]];
+  if (L > 0) { for (let i = 1; i < pts.length; i++) { const d = lens[i]; if (d === 0) { live.push(pts[i]); continue; } if (left <= d) { const k = left / d; hx = pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k; hy = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k; live.push([hx, hy, pts[i][2]]); break; } left -= d; live.push(pts[i]); } }
+  else { hx = f < 0.5 ? e0.x : e1.x; hy = f < 0.5 ? e0.y : e1.y; }
+  let da = e1.a - e0.a; da = Math.atan2(Math.sin(da), Math.cos(da));
+  p.x = hx; p.y = hy; p.a = e0.a + da * f; p.live = live;
+}
 function predictHeads() {
-  if (!net || net.role !== 'client' || !G || !(G.phase === 'run' || lapOn())) return;
+  if (!net || net.role !== 'client' || !G) return;
+  if (!(G.phase === 'run' || lapOn())) { flushAllPlay(); return; }
   const nowP = performance.now(), dt = Math.min(0.3, (nowP - net.lastSeen) / 1000);
   const fdt = Math.min(0.1, (nowP - (net._pf || nowP)) / 1000); net._pf = nowP; const decay = Math.exp(-fdt / 0.14);
+  const T = clk.off != null ? playTime() : null;
   for (const p of G.players) {
+    if (p.hq && p.hq.length && p.alive && T != null && p.id !== net.myId) { playHead(p, T); continue; }
     if (!p.alive || p.sx == null || !p.v) continue;
     let a = p.sa;
     if (p.id !== net.myId && p._wa && !has(p, 'square')) { a = p.sa + p._wa * dt * 0.5; p.a = p.sa + p._wa * dt; }
     if (p.id === net.myId && !has(p, 'square')) {
       const k = KEYS[0]; let v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
+      p.tvC = (p.tvC || 0) + (v - (p.tvC || 0)) * Math.min(1, fdt / TURN_EASE); v = p.tvC; // eased like the host's steering
       const tr = TURN * (p.v / BASE_SPEED) * turnMul(p); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
     let nx = p.sx + Math.cos(a) * p.v * dt, ny = p.sy + Math.sin(a) * p.v * dt;
