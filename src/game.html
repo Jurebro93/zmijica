@@ -128,7 +128,7 @@ button:disabled { cursor: default; opacity: .5; }
 #voiceHint .ve { font-size: 26px; line-height: 1; } #voiceHint.v-rec .ve { animation: recp .8s infinite; } #voiceHint b { display: block; font-size: 16px; } #voiceHint small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
 #voiceHint .vbar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: #ff5d73; animation: vbar linear forwards; } @keyframes vbar { to { width: 100%; } }
 #voicePill { position: fixed; left: 50%; top: max(64px, 14%); z-index: 81; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; max-width: min(92vw, 420px); border: 2px solid var(--amber); background: #1b2633; color: var(--fg); border-radius: 999px; padding: 9px 16px; font: 700 15px/1.25 "Barlow Semi Condensed", sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,.5); animation: vpill 1s ease-in-out infinite alternate; }
-#voicePill[hidden] { display: none; } #voicePill.ingame { top: calc(env(safe-area-inset-top, 0px) + 44px); padding: 6px 13px; font-size: 14px; } #voicePill span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } @keyframes vpill { to { box-shadow: 0 0 0 4px rgba(255,181,71,.35), 0 8px 24px rgba(0,0,0,.5); } }
+#voicePill[hidden] { display: none; } #voicePill.ingame { top: calc(env(safe-area-inset-top, 0px) + 4px); left: max(8px, env(safe-area-inset-left, 0px)); transform: none; max-width: calc(100vw - 112px); padding: 6px 13px; font-size: 14px; } #voicePill span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } @keyframes vpill { to { box-shadow: 0 0 0 4px rgba(255,181,71,.35), 0 8px 24px rgba(0,0,0,.5); } }
 .vplay { border: 1px solid var(--amber); background: rgba(255,181,71,.12); color: var(--fg); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
 #replayBox { position: fixed; inset: 0; z-index: 60; background: rgba(5,9,14,.9); display: grid; place-items: center; padding: 12px; }
 #replayBox[hidden] { display: none; }
@@ -258,8 +258,19 @@ body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !import
 .troll:disabled { opacity: .4; }
 .troll:not(:disabled):active { transform: scale(.93); }
 .chip.watchers { background: var(--amber); background: color-mix(in srgb, var(--amber) 20%, var(--panel)); color: var(--amber); }
-#igMsgs { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: min(92%, 420px); display: grid; gap: 6px; pointer-events: none; z-index: 3; }
-.igmsg { background: var(--ink); background: color-mix(in srgb, var(--ink) 88%, transparent); border: 1px solid var(--line); border-left: 4px solid var(--all); border-radius: 10px; padding: 7px 10px; font-size: 15px; animation: noteIn .2s ease-out; }
+/* in a match nothing is written over the arena: a message covers the top bar (left of its buttons) for a few seconds */
+#igMsgs { position: absolute; z-index: 4; top: 3px; bottom: 3px; left: max(6px, env(safe-area-inset-left, 0px)); right: var(--msgR, 96px); display: flex; align-items: center; pointer-events: none; }
+#igMsgs:empty { display: none; }
+.hudfx { display: flex; gap: 4px; flex: 0 1 auto; min-width: 0; overflow: hidden; }
+.hud > .hudfx { margin-right: auto; } /* the buttons stay at the right edge: chips coming and going never move the ✕ */
+.hudfx .fxc { flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; background: rgba(61,220,151,.14); border: 1px solid rgba(61,220,151,.55); font-size: 12px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hudfx .fxc.bad { background: rgba(255,93,115,.14); border-color: rgba(255,93,115,.6); }
+.hudfx .fxc.big { background: #ff5d73; border-color: #ff5d73; color: #fff; animation: fxpulse .55s ease-in-out infinite alternate; }
+.hudfx .fxc.info { background: rgba(255,181,71,.14); border-color: rgba(255,181,71,.6); }
+@keyframes fxpulse { to { opacity: .72; } }
+.hotbox .wrow { margin-top: 4px; }
+.hotbar .ms b { color: var(--amber); }
+.igmsg { flex: 1; min-width: 0; max-height: 100%; box-sizing: border-box; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; background: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--all); border-radius: 9px; padding: 3px 9px; font-size: 13px; line-height: 1.25; animation: noteIn .2s ease-out; }
 .igmsg.warn { border-left-color: var(--amber); }
 .profile { width: min(100%, 520px) !important; max-height: calc(100dvh - 40px); overflow-y: auto; }
 .phead { display: flex; align-items: center; gap: 12px; min-width: 0; } .phead > div { min-width: 0; flex: 1 1 auto; } .phead .av { flex: none; } .phead h3 { overflow-wrap: anywhere; } .phead h3 .badges { display: flex; flex-wrap: wrap; margin: 4px 0 0; }
@@ -380,6 +391,13 @@ button.pu:hover { border-color: var(--line); }
 .cbd { display: inline-flex; align-items: center; gap: .25em; padding: 0 .5em; border-radius: 999px; border: 1px solid var(--cc); color: var(--cc); background: rgba(11,18,27,.6); font: 700 .74em/1.5 "Barlow Semi Condensed", sans-serif; vertical-align: .08em; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .cbd { max-width: 100%; min-width: 0; overflow: hidden; } .cbd .cg { flex: none; } .cbd .cp { min-width: 0; max-width: min(13em, calc(100vw - 150px)); overflow: hidden; text-overflow: ellipsis; } /* a fixed cap (screen-relative): a % cannot limit how wide the text asks to be */
 .badges, .badge { max-width: 100%; min-width: 0; }
+/* the master's present: a gold tag that glows, a light sweeps across it and a star twinkles */
+.tagbd.shine { position: relative; color: #3a2500; background: linear-gradient(110deg, #a87408 0%, #ffd23f 38%, #fff7cf 50%, #ffd23f 62%, #a87408 100%); background-size: 260% 100%; animation: tagsweep 2.2s linear infinite, tagglow 1.4s ease-in-out infinite alternate; }
+.tagbd.shine::after { content: '✦'; position: absolute; right: .25em; top: -.05em; font-size: .75em; color: #fff; text-shadow: 0 0 4px #fff; animation: tagstar 1.3s ease-in-out infinite; pointer-events: none; }
+@keyframes tagsweep { from { background-position: 120% 0; } to { background-position: -140% 0; } }
+@keyframes tagglow { from { box-shadow: 0 0 2px 0 rgba(255,210,63,.45); } to { box-shadow: 0 0 9px 2px rgba(255,214,90,.95); } }
+@keyframes tagstar { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(45deg); } }
+body.lite .tagbd.shine, body.lite .tagbd.shine::after { animation: none; }
 .tagbd { max-width: min(15em, calc(100vw - 120px)); overflow: hidden; text-overflow: ellipsis; display: inline-block; padding: 0 .55em; border-radius: 999px; color: #fff; font: 700 .7em/1.55 "Barlow Semi Condensed", sans-serif; letter-spacing: .04em; text-transform: uppercase; vertical-align: .1em; white-space: nowrap; }
 canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .item b { font-size: 17px; } .item small { color: var(--muted); display: block; }
@@ -481,7 +499,7 @@ html, body { touch-action: manipulation; }
 #game input { -webkit-user-select: text; user-select: text; }
 .pads { touch-action: none; }
 .pad, .pad * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-.hud { display: flex; align-items: center; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 6px; border-bottom: 1px solid var(--line); background: var(--ink); }
+.hud { position: relative; display: flex; align-items: center; gap: 8px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 6px; border-bottom: 1px solid var(--line); background: var(--ink); }
 #scores { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .chip { display: flex; align-items: center; gap: 6px; padding: 3px 9px 3px 6px; border-radius: 999px; background: var(--panel); white-space: nowrap; font-weight: 600; font-size: 15px; transition: opacity .2s; }
 .chip.dead { opacity: .85; } .chip.dead > span:not(.dot) { opacity: .4; text-decoration: line-through; } .chip.dead .dot { box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
@@ -727,6 +745,9 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
   .pads.v2 .padhint { border: 0; background: none; gap: 2px; } .pads.v2 .padhint b { font-size: 16px; color: var(--muted); } .pads.v2 .padhint span { font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
 }
 
+.troll, .stg, .ptool.prank { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; } .troll.dis, .stg.dis { opacity: .55; }
+.holding { position: relative; overflow: hidden; } .holding::before { content: ''; position: absolute; inset: 0; background: rgba(255,210,63,.45); transform-origin: left; animation: holdfill var(--hold, 2s) linear forwards; pointer-events: none; } @keyframes holdfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ptool.prank .hk { position: absolute; top: 4px; right: 6px; font-size: 16px; filter: drop-shadow(0 0 2px #000); } .ptool.prank { position: relative; }
 .troll.hot { border-color: #ffd23f !important; box-shadow: 0 0 0 2px rgba(255,210,63,.35); }
 /* ---- the simple mode (body.lite): only what is needed */
 #liteTop, #liteNav, #liteMore, #liteSet { display: none; }
@@ -889,19 +910,20 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
     <div class="hud">
       <div id="scores"></div>
       <span class="target" id="target"></span>
+      <span class="hudfx" id="hudFx" aria-hidden="true"></span>
       <button type="button" class="chip watchers" id="watchers" hidden aria-label="Tko gleda"></button>
       <button class="iconbtn netonly" id="trollBtn" aria-label="Zezalice" hidden>😈</button>
       <button class="iconbtn netonly" id="reactBtn" aria-label="Brze reakcije" hidden>😀</button>
       <button class="iconbtn netonly" id="chatBtn" aria-label="Chat" hidden>💬<span class="unread" id="unread" hidden></span></button>
       <button class="iconbtn" id="soundBtn" aria-label="Zvuk">♪</button>
       <button class="iconbtn exitbtn" id="pauseBtn" aria-label="Izađi iz igre" title="Izađi iz igre">✕</button>
+      <div id="igMsgs" aria-live="polite"></div>
     </div>
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
       <div class="overlay" id="overlay"></div>
       <div id="reactPop" hidden role="dialog" aria-label="Brze reakcije"></div>
       <div id="trollPop" hidden role="dialog" aria-label="Zezalice"></div>
-      <div id="igMsgs" aria-live="polite"></div>
       <div class="gticker" id="gTicker" aria-hidden="true"></div>
       <div id="gchat" hidden><div class="gchead"><b>Chat</b><button type="button" id="gchatBig" aria-label="Cijela povijest">⤢</button><button type="button" id="gchatX" aria-label="Zatvori chat">×</button></div><div class="chatlog" id="gchatLog"></div><div class="chatrow"><input type="text" id="gchatIn" maxlength="80" placeholder="Poruka… (Enter)" aria-label="Poruka"><button type="button" id="gchatSend">Pošalji</button></div></div>
     </div>
@@ -1141,6 +1163,7 @@ const BADGES = {
   bd_t_gust: { g: 'Gušt', fun: true, dalm: true, tag: '#d4881f', svg: TAGB('Gušt', '#d4881f'), name: 'Natpis: Gušt', d: 'DALMATINSKI: natpis GUŠT uz ime i iznad zmije: uživanje: ova igra je čisti gušt', price: 500 },
   bd_t_bokun: { g: 'Bokun', fun: true, dalm: true, tag: '#7a8f3a', svg: TAGB('Bokun', '#7a8f3a'), name: 'Natpis: Bokun', d: 'DALMATINSKI: natpis BOKUN uz ime i iznad zmije: komadić, malo: „još bokun pa idem spat”', price: 500 },
   bd_t_neberi: { g: 'Ne beri brigu', fun: true, dalm: true, tag: '#3a7fd0', svg: TAGB('Ne beri brigu', '#3a7fd0'), name: 'Natpis: Ne beri brigu', d: 'DALMATINSKI: natpis NE BERI BRIGU uz ime i iznad zmije: ne brini: sve će doć na svoje', price: 500 },
+  bd_t_gazda: { g: 'Dobar sam sa gazdom', fun: true, tag: '#b8860b', shine: true, svg: '<span class="tagbd shine">Dobar sam sa gazdom</span>', name: 'Natpis: Dobar sam sa gazdom', d: 'POKLON SVIMA: zlatni natpis DOBAR SAM SA GAZDOM koji svijetli i blješti, uz ime i iznad zmije. Gazda ga je poklonio svim igračima.', price: 0, gift: true },
   bd_t_fala: { g: 'Fala', fun: true, dalm: true, tag: '#c25a8a', svg: TAGB('Fala', '#c25a8a'), name: 'Natpis: Fala', d: 'DALMATINSKI: natpis FALA uz ime i iznad zmije: hvala: za one koji igraju fer', price: 500 },
   bd_t_pasticada: { g: 'Pašticada 🍲', fun: true, dalm: true, tag: '#7a3b2a', svg: TAGB('Pašticada 🍲', '#7a3b2a'), name: 'Natpis: Pašticada 🍲', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: dalmatinska pašticada s njokima: nedjeljni ručak', price: 500 },
   bd_t_brudet: { g: 'Brudet 🐟', fun: true, dalm: true, tag: '#b5522e', svg: TAGB('Brudet 🐟', '#b5522e'), name: 'Natpis: Brudet 🐟', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: riblji brudet s palentom', price: 500 },
@@ -1366,12 +1389,35 @@ function showStreak(st, then) {
 }
 function welcomeBox() { if (!profile || profile.owned.includes('x_fbox') || !$('#game').hidden) return; profile.owned.push('x_fbox'); openBox('basic', true); }
 // after a login (and when a new day begins while the game is open): the streak reward first, then, once, the welcome box
+// presents from the master to every player: a free thing (price 0, so the server's wallet lets the save through), added
+// once (the x_g_ mark) for everybody, new players too; the ones who already play get one line about it
+const GIFT_ALL = [{ id: 'bd_t_gazda', mark: 'x_g_gazda' }];
+function giftAll() {
+  if (!profile) return [];
+  const got = GIFT_ALL.filter(g => !profile.owned.includes(g.mark)).map(g => ({ ...g }));
+  for (const g of got) {
+    profile.owned.push(g.mark); if (!profile.owned.includes(g.id)) profile.owned.push(g.id);
+    const worn = badgeIds(profile.eq, profile.owned); // nobody wearing a tag yet: this one goes next to the name at once
+    if (!worn.some(id => BADGES[id] && BADGES[id].tag) && worn.length < BX_MAX) { wearBadge(g.id); g.worn = true; }
+  }
+  if (got.length) { saveProfile(); renderPlayers(); renderMe(); renderShop(); }
+  return got;
+}
+function giftNote(got) {
+  for (const g of got) {
+    const b = BADGES[g.id]; if (!b || !profile) continue;
+    const n = notify(`🎁 <b>Poklon svim igračima:</b> natpis ${b.svg}${g.worn ? ' Već je uz tvoje ime.' : ''}`, { ms: 15000, actions: g.worn ? '' : `<button type="button" class="btn sm" data-wear="${g.id}">Stavi ga uz ime</button>` });
+    const w = n && n.querySelector('[data-wear]'); if (w) w.onclick = () => { if (!badgeIds(profile.eq, profile.owned).includes(g.id)) wearBadge(g.id); saveProfile(); renderPlayers(); renderMe(); n.remove(); toast('Natpis je uz tvoje ime.'); };
+  }
+}
 function dailyGreeting() {
   if (!profile || !$('#game').hidden || document.hidden) return;
+  const gifts = giftAll();
   if (!(profile.matches > 0)) return; // a new player plays first; the streak and the welcome box come after the first match
-  const m = $('#regModal'); if (m && !m.hidden) { clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
+  const m = $('#regModal'); if (m && !m.hidden) { if (gifts.length) setTimeout(() => giftNote(gifts), 5000); clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
   const st = claimStreak();
   if (st) showStreak(st, welcomeBox); else welcomeBox();
+  if (gifts.length) setTimeout(() => giftNote(gifts), st ? 7600 : 400); // after the streak line (one notice at a time)
 }
 setInterval(dailyGreeting, 15 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(dailyGreeting, 1500); });
@@ -1804,6 +1850,7 @@ function showProfile() {
     ${levelHtml(P)}
     ${achBtnHtml(P)}
     <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Jednostavan izbornik (samo najvažnije) i lakša grafika u meču, za starije mobitele. Samo na ovom uređaju.</small></div>
+    <div class="litebox hotbox" id="hotBox"><b>⭐ Prečac zezalice</b><small class="hint">Odaberi ga ovdje, prije meča. U meču samo drži <b>ZEZALICE 2 s</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti.</small>${hotChipsHtml()}</div>
     <details class="garder" ${LITE ? '' : 'open'}><summary><h4>${LITE ? '👕 ' : ''}Garderoba <small>dodirni da promijeniš</small></h4></summary>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikone uz ime <small>do ${BX_MAX} odjednom, poredane u red (broj = redoslijed). Dodirni da dodaš ili skineš</small></span><div class="wrow">${worn.length ? '<button type="button" class="wchip" data-kind="badgeclear" data-id="">✕<span>Skini sve</span></button>' : ''}${ownedBadges.filter(k => k !== 'bd_none').map(k => `<button type="button" class="wchip ${worn.includes(k) ? 'on' : ''}" data-kind="badge" data-id="${k}"><em>${badgeGlyph(k) || '—'}</em><span>${esc(BADGES[k].name)}</span>${worn.includes(k) ? '<i>' + (worn.indexOf(k) + 1) + '</i>' : ''}</button>`).join('') || '<span class="hint">nemaš ikona: kupi u Trgovini (Ikone, Vrijeme, Kripto…)</span>'}</div>
@@ -1823,6 +1870,7 @@ function showProfile() {
   m.querySelectorAll('.wchip').forEach(b => b.onclick = () => { if (!b.dataset.kind) return; const sc = m.querySelector('.profile'), y = sc ? sc.scrollTop : 0;
     if (b.dataset.kind === 'badgeclear') setBadges([]); else if (b.dataset.kind === 'badge') { if (badgeIds(profile.eq, profile.owned).includes(b.dataset.id)) unwearBadge(b.dataset.id); else wearBadge(b.dataset.id); } else profile.eq[b.dataset.kind] = b.dataset.id; saveProfile(); renderPlayers(); showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; }); // stay where you were, only the choice changes
   $('#profClose').onclick = () => { m.hidden = true; };
+  { const hb = m.querySelector('#hotBox'); if (hb) wireHotChips(hb, () => { const sc = m.querySelector('.profile'), y = sc ? sc.scrollTop : 0; showProfile(); const sc2 = $('#regModal .profile'); if (sc2) sc2.scrollTop = y; }); }
   if ($('#profGrantAll')) $('#profGrantAll').onclick = () => grantAll();
   if ($('#profEcon')) $('#profEcon').onclick = () => showEconomy();
   if ($('#profWa')) $('#profWa').onclick = () => showWaDigest();
@@ -1925,7 +1973,7 @@ async function shareInvite() {
   try { if (navigator.share) { await navigator.share({ title: 'Vijuga', text, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
   try { await navigator.clipboard.writeText(url); toast('Pozivni link je kopiran: ' + url); } catch (e) { toast('Pozivni link: ' + url); }
 }
-function toast(msg) { let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); } t.textContent = msg; t.className = 'show'; clearTimeout(t._h); t._h = setTimeout(() => { t.className = ''; }, 3500); }
+function toast(msg) { let inM = false; try { inM = !!(G && !G.over && !$('#game').hidden); } catch (e) {} if (inM) { showIgMsg(esc(msg), false, true); return; } let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); } t.textContent = msg; t.className = 'show'; clearTimeout(t._h); t._h = setTimeout(() => { t.className = ''; }, 3500); }
 async function bootAccounts() {
   // import an old single profile from v1
   try { const old = JSON.parse(localStorage.getItem('vijuga-profile') || 'null'); if (old && old.name) { const d = normalize(old); d.slug = slugOf(d.name); const o = localAccounts(); if (!o[d.slug]) localSave(d); localStorage.removeItem('vijuga-profile'); rememberLogin(d.slug); } } catch (e) {}
@@ -3758,12 +3806,29 @@ function drawBadgeRow(c, ids, x, y, size, color) {
   if (tot + 12 < W) x = Math.max(tot / 2 + 6, Math.min(W - tot / 2 - 6, x)); y = Math.max(size, y); // never cut off at the edge of the arena
   let cx = x - tot / 2; ids.forEach((id, i) => { drawBadge(c, id, cx + ws[i] / 2, y, size, color); cx += ws[i] + gap; });
 }
+// the gold tag over the snake: it glows (pulsing), a light sweeps across it and little stars twinkle around it
+function drawShineTag(c, b, x, y, size) {
+  const now = performance.now() / 1000, t = b.g.toUpperCase(), fs = Math.max(7, Math.round(size * 0.74));
+  c.save(); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`;
+  const w = c.measureText(t).width + fs * 0.95, h = fs * 1.5, x0 = x - w / 2, y0 = y - h / 2;
+  const pill = () => { c.beginPath(); if (c.roundRect) c.roundRect(x0, y0, w, h, h / 2); else c.rect(x0, y0, w, h); };
+  const g = c.createLinearGradient(x0, y0, x0 + w, y0 + h); g.addColorStop(0, '#a87408'); g.addColorStop(0.5, '#ffd23f'); g.addColorStop(1, '#a87408');
+  c.shadowColor = 'rgba(255,214,90,.95)'; c.shadowBlur = fs * (0.6 + 0.9 * (0.5 + 0.5 * Math.sin(now * 4.5))); c.fillStyle = g; pill(); c.fill(); c.shadowBlur = 0;
+  c.save(); pill(); c.clip(); const k = (now % 2.2) / 2.2, bx = x0 - w * 0.3 + k * w * 1.6, sg = c.createLinearGradient(bx - fs, 0, bx + fs, 0);
+  sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(0.5, 'rgba(255,255,255,.8)'); sg.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = sg; c.fillRect(bx - fs, y0, fs * 2, h); c.restore();
+  c.fillStyle = '#3a2500'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06);
+  for (let i = 0; i < 3; i++) { const cyc = now * 1.1 + i / 3, ph = cyc % 1, a = Math.sin(ph * Math.PI); if (a < 0.05) continue;
+    const sx = x0 + w * ((i * 0.37 + 0.1 + Math.floor(cyc) * 0.29) % 1), sy = i === 1 ? y0 + h + fs * 0.05 : y0 - fs * 0.05, r = fs * 0.42 * a;
+    c.globalAlpha = a; c.fillStyle = '#fff'; c.beginPath(); c.moveTo(sx, sy - r); c.lineTo(sx + r * 0.22, sy - r * 0.22); c.lineTo(sx + r, sy); c.lineTo(sx + r * 0.22, sy + r * 0.22); c.lineTo(sx, sy + r); c.lineTo(sx - r * 0.22, sy + r * 0.22); c.lineTo(sx - r, sy); c.lineTo(sx - r * 0.22, sy - r * 0.22); c.closePath(); c.fill(); }
+  c.restore();
+}
 function drawBadge(c, id, x, y, size, color) {
   const b = BADGES[id]; if (!b || !b.g) return;
   if (b.anim) { drawAnim(c, b.anim, x, y, size * 1.7, performance.now() / 1000); return; }
   if (liveB(b)) { c.save(); const t = liveLabel(b), fs = Math.max(7, Math.round(size * 0.8)), lc = b.live ? liveCls(b.live) : '', now = performance.now() / 1000;
     if (lc === ' alarm' && b.live === 'bura') x += Math.sin(now * 40) * 1.5; c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.9, h = fs * 1.5; c.fillStyle = 'rgba(11,18,27,.82)'; c.strokeStyle = b.col; c.lineWidth = 1; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); if (lc) { c.strokeStyle = lc === ' live' ? '#3ddc97' : '#ff5d73'; c.lineWidth = 1.5; } c.stroke(); c.fillStyle = b.wx ? '#e6f6ff' : lc === ' live' ? '#bff5dc' : b.col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06);
     if (lc === ' live') { const a = 0.55 + 0.45 * Math.sin(now * 6); c.globalAlpha *= a; c.fillStyle = '#3ddc97'; c.beginPath(); c.arc(x - w / 2 - fs * 0.55, y, fs * 0.38, 0, 6.283); c.fill(); } c.restore(); return; }
+  if (b.tag && b.shine) { drawShineTag(c, b, x, y, size); return; }
   if (b.tag) { c.save(); const t = b.g.toUpperCase(), fs = Math.max(7, Math.round(size * 0.74)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.95, h = fs * 1.5; c.fillStyle = b.tag; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
   const img = badgeImage(id, color);
   if (img && b.big) { const s2 = size * 1.5; if (img.complete && img.naturalWidth) c.drawImage(img, x - s2 / 2, y - s2 / 2, s2, s2); return; }
@@ -4300,21 +4365,7 @@ function render() {
   }
   if (G.phase === 'run' || tparts.length) { const nowT = performance.now(); if (G.phase === 'run') for (const p of G.players) trailFx(p, nowT); drawTparts(ctx); }
   drawBounties(ctx);
-  { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
-    if (me && me.alive && G.phase === 'run') { const rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt); const mir = mirrorOn(); const fl = trollFx.find(f => f.id === 'flip' && f.until > performance.now());
-      if (rv || mir || fl) { const left = rv ? Math.ceil(rv.until - G.gt) : mir ? Math.ceil((mirrorUntil - performance.now()) / 1000) : Math.ceil((fl.until - performance.now()) / 1000); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `400 ${Math.round(Math.min(W, H) * 0.055)}px Bungee, Impact, sans-serif`; ctx.fillStyle = 'rgba(11,18,27,.7)'; const tw = Math.min(W, H) * 0.62; ctx.fillRect(W / 2 - tw / 2, H * 0.06, tw, Math.min(W, H) * 0.09); ctx.fillStyle = '#ff5d73'; ctx.fillText(`${fl && !rv && !mir ? '🙃 NAGLAVAČKE' : '⇄ OBRNUTE KONTROLE'} · ${Math.max(1, left)} s`, W / 2, H * 0.06 + Math.min(W, H) * 0.045); ctx.restore(); } } }
   if (G.rings && G.rings.length) { const now = performance.now(); G.rings = G.rings.filter(r => now - r.t0 < 450); for (const r of G.rings) { const k = (now - r.t0) / 450; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, 6 + 34 * k, 0, 6.283); ctx.stroke(); ctx.restore(); } }
-  { const me = G.players.find(q => q.mine || (net && net.role === 'client' && q.id === net.myId)) || (!net ? G.players.find(q => q.human) : null);
-    if (me && me.alive && G.phase === 'run') {
-      const PUN = { shield: ['🛡️', 'Štit'], freeze: ['❄️', 'Zamrznut'], magnet: ['🧲', 'Magnet'], fast: ['»', 'Brzina'], slow: ['«', 'Usporenje'], thin: ['—', 'Tanki trag'], ghost: ['○', 'Duh'], wrap: ['□', 'Bez zidova'], thick: ['●', 'Debeli trag'], reverse: ['⇄', 'Obrnuto'], square: ['┐', 'Kutovi'], sharp: ['↺', 'Oštro'], wide: ['◡', 'Tromo'] };
-      const list = me.fx.filter(f => f.until > G.gt && PUN[f.k]).map(f => ({ k: f.k, left: f.until - G.gt, total: (POWERUPS[f.k + 'S'] || POWERUPS[f.k + 'O'] || { dur: 6 }).dur || 6 }));
-      if (mirrorOn()) list.push({ k: 'mirror', left: (mirrorUntil - performance.now()) / 1000, total: (TROLLS.mirror || { ms: 8000 }).ms / 1000 });
-      for (const f of trollFx) if (f.until > performance.now() && TROLLS[f.id] && f.id !== 'mirror') list.push({ k: 'troll:' + f.id, left: (f.until - performance.now()) / 1000, total: TROLLS[f.id].ms / 1000 });
-      if (list.length) { const bw = Math.min(W * 0.42, 220), bh = 9, x0 = W - bw - 10; let y = 10; ctx.save(); ctx.font = `600 ${Math.max(10, Math.round(Math.min(W, H) * 0.028))}px "Barlow Semi Condensed", sans-serif`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-        for (const e of list) { const lbl = e.k === 'mirror' ? ['🪞', 'Zrcalo'] : e.k.startsWith('troll:') ? [TROLLS[e.k.slice(6)].e, TROLLS[e.k.slice(6)].name] : PUN[e.k]; const bad = ['reverse', 'square', 'wide', 'thick', 'slow', 'mirror'].includes(e.k) || e.k.startsWith('troll:'); const frac = Math.max(0, Math.min(1, e.left / e.total));
-          ctx.globalAlpha = 0.85; ctx.fillStyle = 'rgba(11,18,27,.75)'; ctx.fillRect(x0 - 4, y - 2, bw + 8, bh + 18); ctx.fillStyle = '#e9eff6'; ctx.fillText(`${lbl[0]} ${lbl[1]} · ${Math.ceil(e.left)} s`, x0, y + 6);
-          ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(x0, y + 13, bw, bh); ctx.fillStyle = bad ? '#ff5d73' : '#3ddc97'; ctx.fillRect(x0, y + 13, bw * frac, bh); y += bh + 20; }
-        ctx.restore(); } } }
   if (luxFx.length && !LITE) drawLux(ctx);
   // online: the baked trail ends at the last confirmed point; draw the piece up to the predicted head so the
   // snake never seems to float ahead of its own trail
@@ -4343,7 +4394,7 @@ function render() {
         }
         ctx.drawImage(t.spr.c, t.x - t.spr.cx, t.y - t.spr.cy, t.spr.w, t.spr.h); }
       const age = t.rip ? now - t.rip : 1e9;
-      if (age < 2600) {
+      if (age < 2600 && G.phase !== 'run') {
         const a = age < 150 ? age / 150 : age > 2000 ? (2600 - age) / 600 : 1, txt = '✝ Počivaj u miru, ' + t.name, y = t.y - big * 0.75 - rf / 2 - Math.min(rf * .6, age / 120);
         ctx.globalAlpha = Math.max(0, a); ctx.font = `700 ${rf}px "Barlow Semi Condensed", sans-serif`;
         const w = ctx.measureText(txt).width + rf, hh = rf * 1.6; ctx.fillStyle = 'rgba(11,18,27,.85)'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(t.x - w / 2, y - hh / 2, w, hh, hh / 2); else ctx.rect(t.x - w / 2, y - hh / 2, w, hh); ctx.fill();
@@ -4425,11 +4476,6 @@ function render() {
   if (G.players.some(p => p.disg)) drawDisguise(ctx);
   drawVictoryFx(ctx);
   ctx.globalAlpha = 1;
-  if (G.toast && G.gt - G.toast.t < 1.2 && G.gt >= G.toast.t) {
-    const k = (G.gt - G.toast.t) / 1.2;
-    ctx.globalAlpha = 1 - k; ctx.fillStyle = G.toast.color; ctx.font = '600 18px "Barlow Semi Condensed", sans-serif';
-    ctx.fillText(G.toast.text, G.toast.x, G.toast.y - 24 - k * 24); ctx.globalAlpha = 1;
-  }
   drawIntroBanner(ctx);
   if (G.phase === 'count' && !(G.intro && G.introT < G.introLen)) {
     const n = Math.ceil(countLen() - G.phaseT);
@@ -4438,15 +4484,9 @@ function render() {
     ctx.font = '600 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#8396ab';
     ctx.fillText(G.round === G.target ? `Zadnja runda (${G.round}/${G.target})` : `Runda ${G.round} od ${G.target}`, W / 2, H / 2 + Math.min(W, H) * 0.12);
   }
-  if (G.ff && G.phase === 'run') { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.textAlign = 'right'; ctx.fillText('ubrzano ▶▶', W - 14, 18); ctx.textAlign = 'center'; }
-  if (setup.shrink && G.phase === 'run' && G.gt > 16 && G.gt < 20) { ctx.font = '700 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ffb547'; ctx.fillText(`Arena se steže za ${Math.ceil(20 - G.gt)}`, W / 2, 22); }
   if (G.pz && G.phase === 'run') {
-    ctx.save(); ctx.fillStyle = 'rgba(8,13,20,0.55)'; ctx.fillRect(0, 0, W, H); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = '400 30px Bungee, Impact, sans-serif'; ctx.fillStyle = '#ffb547'; ctx.fillText('⏸ ' + G.pz[1], W / 2, H / 2 - 22);
-    ctx.font = '700 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#e9eff6'; ctx.fillText(`${G.pz[0]} je izašao iz igre. Čekamo ga još ${G.pz[1]} s, zatim ispada iz runde.`, W / 2, H / 2 + 14);
-    ctx.restore();
+    ctx.save(); ctx.fillStyle = 'rgba(8,13,20,0.55)'; ctx.fillRect(0, 0, W, H); ctx.restore(); // why it stands: in the top bar
   }
-  if (net && net.role === 'client' && !net.connected) { ctx.font = '700 16px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#ff5d73'; ctx.fillText('Veza s domaćinom prekinuta…', W / 2, H - 20); }
 }
 
 // ---------- HUD ----------
@@ -4473,6 +4513,36 @@ function drawBoard(c) {
     const rr = reactionOf(peerOfPlayer(p)), pmk = net && p.alive ? prankMarkOf(p) : null, tag = (rr ? rr.e : '') + (pmk ? pmk.e : ''); if (tag) { c.textAlign = 'left'; c.fillText(tag, x0 + w + 4, y); }
   });
   c.restore();
+}
+// what used to be written over the arena, now as chips in the top bar: why the match stands, the connection, my
+// effects with their seconds (reversed controls in red)
+const FX_NAMES = { shield: ['🛡️', 'Štit'], freeze: ['❄️', 'Zamrznut'], magnet: ['🧲', 'Magnet'], fast: ['»', 'Brzina'], slow: ['«', 'Sporo'], thin: ['—', 'Tanko'], ghost: ['○', 'Duh'], wrap: ['□', 'Bez zidova'], thick: ['●', 'Debelo'], square: ['┐', 'Kutovi'], sharp: ['↺', 'Oštro'], wide: ['◡', 'Tromo'] };
+const FX_BAD = ['square', 'wide', 'thick', 'slow', 'freeze'];
+function hudFxHtml() {
+  if (!G) return '';
+  const out = [], chip = (t, c) => out.push(`<span class="fxc ${c || ''}">${t}</span>`);
+  if (net && net.role === 'client' && !net.connected && !G.over) chip('📶 Veza prekinuta…', 'big');
+  if (G.pz && G.phase === 'run') chip(`⏸ ${esc(String(G.pz[0]).slice(0, 12))} · čekamo ${G.pz[1]} s`, 'info');
+  if (G.ff && G.phase === 'run') chip('▶▶ ubrzano', 'info');
+  if (setup.shrink && G.phase === 'run' && G.gt > 16 && G.gt < 20) chip(`⚠️ Arena se steže ${Math.ceil(20 - G.gt)}`, 'info');
+  const me = myMatchPlayer() || (!net ? G.players.find(q => q.human) : null);
+  if (me && me.alive && G.phase === 'run') {
+    const now = performance.now(), rv = me.fx.find(f => f.k === 'reverse' && f.until > G.gt), mir = mirrorOn(), fl = trollFx.find(f => f.id === 'flip' && f.until > now);
+    if (rv || mir || fl) { const left = rv ? Math.ceil(rv.until - G.gt) : mir ? Math.ceil((mirrorUntil - now) / 1000) : Math.ceil((fl.until - now) / 1000); chip(`${fl && !rv && !mir ? '🙃 NAGLAVAČKE' : '⇄ OBRNUTO'} ${Math.max(1, left)}`, 'big'); }
+    const list = me.fx.filter(f => f.until > G.gt && FX_NAMES[f.k]).map(f => [FX_NAMES[f.k], Math.ceil(f.until - G.gt), FX_BAD.includes(f.k)]);
+    for (const f of trollFx) if (f.until > now && TROLLS[f.id] && f.id !== 'mirror' && f.id !== 'flip') list.push([[TROLLS[f.id].e, TROLLS[f.id].name], Math.ceil((f.until - now) / 1000), true]);
+    const short = list.length > 2 || out.length > 1;
+    for (const [l, sec, bad] of list) chip(`${l[0]}${short ? '' : ' ' + l[1]} ${Math.max(1, sec)}`, bad ? 'bad' : '');
+  }
+  return out.join('');
+}
+let hudFxAt = 0, hudFxLast = '';
+function renderHudFx() {
+  const now = performance.now(); if (now - hudFxAt < 150) return; hudFxAt = now;
+  const box = $('#hudFx'); if (!box) return;
+  const h = G && !$('#game').hidden ? hudFxHtml() : '';
+  if (h !== hudFxLast) { hudFxLast = h; box.innerHTML = h; }
+  hotTipMaybe();
 }
 function renderHud() {
   if (!hudDirty) return; hudDirty = false;
@@ -4596,6 +4666,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'precac', d: '2026-11-12', e: '⭐', t: 'Prečac zezalice i čista arena', x: 'Preko arene se više ništa ne ispisuje: poruke (npr. kad pokupiš pištolj), efekti i njihove sekunde su u traci iznad arene. Novo: ⭐ prečac zezalice. Odaberi ga prije meča (Moj profil → ⭐ Prečac zezalice, ili „Postavi” u predvorju), a u meču samo drži ZEZALICE 2 s: zezalica ode igraču koji vodi, a napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.', go: 'me', b: 'Postavi prečac' },
   { id: 'gorivo', d: '2026-11-11', e: '⛽', t: 'Gorivo, novi power-upovi i preglednija trgovina', x: 'Nova ikona ⛽ Cijena goriva (Eurosuper 95 i Eurodizel, HAK). Novi power-upovi: 🛡️ Štit, ❄️ Zamrzni, 🌀 Teleport i 🧲 Magnet, a u trgovini 💎 premium power-upovi (Nitro, Dijamantni štit, Ledeno doba) koji padnu samo tebi i samo ih ti vidiš. Dimna bomba sad odskakuje, stane i 13 s pušta dim. Trgovina ima samo 6 velikih gumba (Kutije, Zmija, Ikone, Zabava, Premium) s podkategorijama. Veće nagrade: 1. mjesto 100 zlatnika i 60 XP, 2. mjesto 60 i 40, 3. mjesto 40 i 25, a što je više igrača u meču, to više (8 igrača ×3). Zezalica se bira jednim dodirom i prozor se sam zatvori.', go: 'shop:pu', b: 'Pogledaj power-upove', items: ['bd_fuel', 'pp_nitro', 'pp_dia', 'pp_ice'] },
   { id: 'oruzje', d: '2026-11-11', e: '🔫', t: 'Pištolj, dimna bomba, parfem i brendovi', x: 'Jednom po rundi na ploči padne 🔫 pištolj ili 💣 dimna bomba: tko ga pokupi, koristi ga kao skok (LIJEVO + DESNO odjednom ili ↑). Metak sruši zmiju koju pogodi u glavu ili tik iza nje, dimna bomba sakrije dio arene. Novi napitak 🌸 Parfem: tko uđe u oblak, vozi upola sporije. U trgovini su i 🛍️ Brendovi (Nike, Adidas, Louis Vuitton, Gucci…). Dok zmije voze, iznad njih nema ikona: arena je čista. Za starije mobitele: 🐢 pojednostavljeni izgled u profilu.', go: 'shop:brands', b: 'Pogledaj brendove', items: ['perfume', 'bd_br_nike', 'bd_br_adidas', 'bd_br_lv', 'bd_br_gucci'] },
   { id: 'osam', d: '2026-11-11', e: '🧪', t: '8 igrača, XP kutije i napitci', x: 'U meču sad može biti do 8 zmija (nove boje: ružičasta i limeta). Što je više igrača, to su veći i zlatnici i XP. U trgovini (Kutije) su XP kutije: +500 i +1000 XP odmah. Novi napitci: 🧪 Kameleon (u online meču 15 s izgledaš kao protivnik po izboru, gumb 😈 → 🧪 Napitak) i ⚗️ dvostruki XP za sljedećih 5 mečeva.', go: 'shop:potions', b: 'Pogledaj napitke', items: ['cham', 'xpboost'] },
@@ -4814,7 +4885,7 @@ function frameStep(ts) {
   if (net && net.role === 'client') { if (clientTick() === 'restarted') return false; }
   else { if (net && net.role === 'host') hostReadInputs(); const away = net && net.role === 'host' && hostAwayPause(); if (!paused && !away) update(dt); if (net && net.role === 'host') { hostSend(); sendTrailHistory(); if (G.over && (frameN++ % 15 === 0)) renderReady(); } else if (!net && roomNs && watcherCount() && ts - (G.spSent || 0) > (G.phase === 'run' ? 140 : 500)) { G.spSent = ts; netPresence({ sp: buildSnap() }); sendTrailHistory(); } }
   if (G && ts - (G.fitChk || 0) > 500 && !$('#game').hidden) { G.fitChk = ts; const r = $('#stage').getBoundingClientRect(); if (Math.round(r.width) + 'x' + Math.round(r.height) !== lastFit) fitCanvas(); }
-  recordFrame(ts); render(); renderHud(); padsReady(); tickCountdown(); chatAutoHide(); if (DEBUG) drawDebug(ts);
+  recordFrame(ts); render(); renderHud(); renderHudFx(); padsReady(); tickCountdown(); chatAutoHide(); if (DEBUG) drawDebug(ts);
   if (G && G.phase === 'end' && lastReplay && (uiFrame++ & 15) === 0) addReplayButton();
   return true;
 }
@@ -4859,12 +4930,12 @@ function buildPads() {
       const tools = document.createElement('div'); tools.className = 'padtools';
       const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
-      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); zb.onclick = (e) => { const t = performance.now(); if (t - (zb._tap || 0) < 380) { zb._tap = 0; e.stopPropagation(); $('#trollPop').hidden = true; fireHotPrank(); return; } zb._tap = t; open(e); }; } // two quick taps: the hotkey prank
+      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); holdButton(zb, HOLD_FIRE, () => { $('#trollPop').hidden = true; buzz(25); fireHotKey(); }, (e) => open(e)); } // a tap: the panel; held 2 s: the hotkey
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
       const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'GLAS'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const id = e.pointerId; try { mb.setPointerCapture(id); } catch (er) {} clearTimeout(mb._hold); voiceHint('wait'); mb._hold = setTimeout(() => { mb._hold = 0; startVoice(mb, id); }, 250); });
       const mbUp = (e) => { if (mb._hold) { clearTimeout(mb._hold); mb._hold = 0; voiceHint('short'); return; } voiceUp(e); }; mb.addEventListener('pointerup', mbUp); mb.addEventListener('pointercancel', mbUp);
       void cb; // the middle holds only the pranks and the voice message (chat and emoji live in the menu)
-      tools.append(zb, mb); $('#game').classList.add('padtools-on');
+      tools.append(zb, mb); $('#game').classList.add('padtools-on'); setTimeout(renderHotBadge, 0);
       mid.append(tools);
     } else if (setup.jump) { const h = document.createElement('div'); h.className = 'padhint'; h.innerHTML = '<b>◀ + ▶</b><span>skok</span>'; mid.append(h); }
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
@@ -4988,7 +5059,7 @@ function startGame() {
   newMatch(); buildPads(); enterGame();
 }
 function toMenu() {
-  setTimeout(flushNotes, 600);
+  setTimeout(flushNotes, 600); igClear(); trollChosen = null;
   document.querySelectorAll('.jumptip').forEach(x => x.remove()); lockZoom(false);
   cancelAnimationFrame(raf); paused = false; G = null;
   if (net && net.savedSetup) { Object.assign(setup, net.savedSetup); net.savedSetup = null; } // my own settings come back after a match run on the host's rules (also after I took the match over)
@@ -5277,8 +5348,9 @@ function renderOnbarNow() {
   const weekHtml = weekly && weekly.name ? `<div class="weekbar" data-player="${esc(weekly.slug || '')}">🏆 <b>Igrač tjedna:</b> ${esc(weekly.name)} <span class="ms">${weekly.firsts} pobjeda · ${weekly.matches} mečeva u 7 dana</span></div>` : '';
   const nw = NEWS[0], unseen = newsUnseen().length;
   const newsHtml = nw ? `<div class="meetbar newsbar"><span class="mt">🆕 <b>Što je novo</b> <span class="ms">${esc(nw.t)}${NEWS.length > 1 ? ' i još ' + (NEWS.length - 1) : ''}</span></span><button type="button" class="btn sm" id="newsBtn">Pogledaj${unseen ? ` <i class="nbadge">${unseen}</i>` : ''}</button></div>` : '';
-  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${tourHtml}${weekHtml}${newsHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
+  bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><b>${n}</b><span>${label}<small>${sub}</small></span></div>${mainBtn}${second}</div>${roomState.ready ? hotBarHtml() : ''}${tourHtml}${weekHtml}${newsHtml}${n ? `<div class="people">${people}</div>` : ''}${recentHtml}`;
   if ($('#newsBtn')) $('#newsBtn').onclick = () => showNews();
+  bar.querySelectorAll('[data-hotpick]').forEach(b => b.onclick = () => showHotPicker());
   bar.querySelectorAll('.pingbtn[data-peer]').forEach(b => b.onclick = () => sendPing(b.dataset.peer));
   bar.querySelectorAll('[data-watch]').forEach(b => b.onclick = () => startSpectate(b.dataset.watch));
   if ($('#startNowBtn')) $('#startNowBtn').onclick = () => { if (net) return; toggleReady(); };
@@ -5795,13 +5867,24 @@ function receiveTroll(id, fromName, fromPeer) {
 const inMatch = () => !!(G && !G.over && $('#game') && !$('#game').hidden);
 // During a match the arena stays clean: only what the player must know (a prank on me, I was dropped or kicked) is
 // written; everything else (chat lines, kills, joins, potions, goals…) is left out. `force` lets a one-time tip through.
+// One line at a time, in the top bar above the arena (never over it); a warning pushes a plain line aside, the rest wait.
+let igCur = null, igQ = [], igT = 0; const igLog = []; // igLog: the last lines (for the tests)
 function showIgMsg(html, warn, force) {
   if (inMatch() && !warn && !force) return;
+  igLog.push(html); if (igLog.length > 12) igLog.shift();
   const box = $('#igMsgs'); if (!box) { notify(html, { ms: 5000 }); return; }
-  const el = document.createElement('div'); el.className = 'igmsg' + (warn ? ' warn' : ''); el.innerHTML = html; box.appendChild(el);
-  while (box.children.length > 3) box.firstChild.remove();
-  setTimeout(() => el.remove(), 5000);
+  if (igCur && box.contains(igCur)) {
+    if (!(warn && !igCur.classList.contains('warn'))) { if (!igQ.some(q => q[0] === html)) igQ.push([html, warn]); if (igQ.length > 3) igQ.shift(); return; }
+  }
+  igShow(html, warn);
 }
+function igShow(html, warn) {
+  const box = $('#igMsgs'), hud = box && box.parentElement; if (!box) return;
+  if (hud) { const hr = hud.getBoundingClientRect(), ls = [...hud.querySelectorAll('.iconbtn, .watchers')].filter(b => b.offsetParent).map(b => b.getBoundingClientRect()).filter(r => r.width > 0).map(r => r.left); box.style.setProperty('--msgR', Math.max(10, Math.round(hr.right - (ls.length ? Math.min(...ls) : hr.right - 10) + 6)) + 'px'); }
+  const el = document.createElement('div'); el.className = 'igmsg' + (warn ? ' warn' : ''); el.innerHTML = html; box.replaceChildren(el); igCur = el;
+  clearTimeout(igT); igT = setTimeout(() => { el.remove(); igCur = null; const n = igQ.shift(); if (n) igShow(n[0], n[1]); }, 4200);
+}
+function igClear() { igQ = []; igCur = null; clearTimeout(igT); const b = $('#igMsgs'); if (b) b.replaceChildren(); }
 function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; c.style.transition = ''; c.style.filter = ''; } }
 // paints one prank effect over an arena of size w x h (the real match, or the shop's preview); returns what has to
 // happen to the canvas element itself (shake / flip transform, blur, colour shift)
@@ -5824,7 +5907,7 @@ function paintTroll(c, f, now, w, h, me, label) {
   else if (f.id === 'horn') { const sc = 1 + 0.15 * Math.sin(k * 40); c.globalAlpha = k > .8 ? (1 - k) / .2 : 1; c.font = `400 ${Math.round(Math.min(w, h) * 0.12 * sc)}px Bungee, Impact, sans-serif`; c.fillStyle = '#ffb547'; c.fillText('TUUUUT! 📯', w / 2, h / 2); }
   else if (f.id === 'shake') { const a = 14 * (1 - k); tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * 0.15}deg)`; }
   else if (f.id === 'flip') { tf = 'rotate(180deg)'; }
-  else if (f.id === 'mirror') { c.globalAlpha = k > .85 ? (1 - k) / .15 : 0.9; c.font = `400 ${Math.round(Math.max(13, Math.min(26, w / 24)))}px Bungee, Impact, sans-serif`; c.fillStyle = '#7df9ff'; c.fillText('🪞 ZRCALO: ← → zamijenjeni!', w / 2, h - Math.min(40, h * .12)); }
+  else if (f.id === 'mirror') { c.globalAlpha = k > .85 ? (1 - k) / .15 : 0.9; c.font = `400 ${Math.round(Math.max(13, Math.min(26, w / 24)))}px Bungee, Impact, sans-serif`; c.fillStyle = '#7df9ff'; if (label) c.fillText('🪞 ZRCALO: ← → zamijenjeni!', w / 2, h - Math.min(40, h * .12)); } // in a match the top bar says it
   else if (f.id === 'colors') { hue = 90 + 180 * k; }
   else if (f.id === 'fakepu' && me) {
     const d = Math.min(90, w * .2), fx = me.x + Math.cos(me.a) * d, fy = me.y + Math.sin(me.a) * d;
@@ -5854,7 +5937,8 @@ function drawTrolls(c) {
   for (let i = trollFx.length - 1; i >= 0; i--) if (trollFx[i].until < now) trollFx.splice(i, 1);
   let tf = '', blur = 0, hue = 0;
   const me = G.players.find(p => p.mine) || (net && net.myId != null ? G.players.find(p => p.id === net.myId) : null);
-  for (const f of trollFx) { const r = paintTroll(c, f, now, W, H, me, true); if (r.tf) tf = r.tf; blur = Math.max(blur, r.blur); if (r.hue) hue = r.hue; }
+  for (const f of trollFx) { const r = paintTroll(c, f, now, W, H, me, false); // who sent it: in the top bar, not over the arena
+    if (r.tf) tf = r.tf; blur = Math.max(blur, r.blur); if (r.hue) hue = r.hue; }
   if (!tf && fxShakeUntil > now) { const a = 16 * (fxShakeUntil - now) / 550; tf = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px)`; }
   if (LITE) { if (blur > 0.2) { c.save(); c.globalAlpha = Math.min(0.75, blur / 9); c.fillStyle = '#9aa3ad'; c.fillRect(0, 0, W, H); c.restore(); } blur = 0; hue = 0; }
   applyTrollStyle($('#cv'), tf, blur, hue);
@@ -6122,6 +6206,7 @@ function renderNet() {
     html.push(`<div class="notice">${Number(host.presence.ho) > 0 ? 'Meč je upravo završio (igrači dogovaraju novi)' : 'Meč je u tijeku'}, domaćin je <b>${esc(String(host.presence.nm || 'netko'))}</b>.${host.isMe && !host.sameTab ? ' (tvoja druga kartica)' : ''} <button class="btn sm" id="netReadyRun" style="margin-left:8px">✅ Uđi u meč (od sljedeće runde)</button><button class="btn sm ghost" id="netWatch" style="margin-left:8px">👀 Samo gledaj</button></div>`);
   }
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn ${myPres.ok ? 'ghost' : ''}" id="netStart">${myPres.ok ? '⏳ Spreman · odustani' : '✅ Spreman za meč'}</button>` : ''}${roomState.ready && !host && lobbyState().canGo ? `<button class="btn" id="netGo" title="Meč kreće odmah s onima koji su spremni; ostali ulaze od sljedeće runde">▶ Kreni odmah${readyCount() < 2 ? ' s botovima' : ''}</button>` : ''}${roomState.ready && !host && myRole() === 'master' ? `<button class="btn ghost sm" id="netForce" title="Admin: pokreni bez čekanja">▶ Pokreni odmah</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
+  if (roomState.ready) html.push(hotBarHtml()); // waiting for the match: the time to choose the hotkey
   html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgesHtml(presBadges(pr))}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${kickedSlug(pr.sl) ? '🚫 izbačen' : (pr.st || pr.hs) && !hostOver(p) ? 'domaćin' : pr.ig ? 'u meču' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${myRole() === 'master' && pr.sl && !(p.isMe && p.sameTab) && roleOfSlug(pr.sl) !== 'master' ? `<button class="pingbtn kickbtn" type="button" data-kick="${esc(pr.sl)}" data-kn="${esc(String(pr.nm || ''))}" title="${kickedSlug(pr.sl) ? 'Vrati u sobu' : 'Izbaci iz sobe'}" style="margin-left:8px">${kickedSlug(pr.sl) ? '↩️' : '🚫'}</button>` : ''}${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   // the lobby is redrawn on every presence change: keep the message being typed (and the caret) across redraws
@@ -6140,6 +6225,7 @@ function renderNet() {
   box.querySelectorAll('[data-watchh]').forEach(b => b.onclick = () => { const h = roomState.peers.find(p => p.peer === b.dataset.watchh); if (!h || net) return; roomState.watching = true; roomState.onlyWatch = true; if (myPres.ok) netPresence({ ok: null }); joinHost(h); });
   if ($('#netGo')) $('#netGo').onclick = () => startNow();
   wireKick(box);
+  box.querySelectorAll('[data-hotpick]').forEach(b => b.onclick = () => showHotPicker());
   if ($('#netWatch')) $('#netWatch').onclick = () => { roomState.watching = true; roomState.onlyWatch = true; if (myPres.ok) netPresence({ ok: null }); joinHost(host); };
   $('#netBots').onchange = (e) => { setup.netBots = e.target.checked; saveSetup(); };
 }
@@ -7120,16 +7206,73 @@ $('#start').onclick = startGame;
 // a long press on the touch pads must not select text or open the callout menu
 document.addEventListener('selectstart', (e) => { if (!$('#game').hidden && !(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); });
 $('#game').addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
-let trollPick = null;
-const hotPrank = () => lsGet('vijuga-hotprank') || '';
-function setHotPrank(id) { if (!TROLLS[id]) return; lsSet('vijuga-hotprank', id); toast(`⭐ Prečac: ${TROLLS[id].e} ${TROLLS[id].name}. 2× brzo dodirni ZEZALICE i ode.`); }
-function fireHotPrank() { // two quick taps on ZEZALICE: the hotkey prank at the chosen (or the first) player
-  const id = hotPrank(); if (!id || !TROLLS[id]) { toast('⭐ Prečac nije postavljen: otvori ZEZALICE i drži zezalicu 2 s.'); return; }
-  if (!profile || !((profile.inv || {})[id] > 0)) { toast(`Nemaš više: ${TROLLS[id].e} ${TROLLS[id].name}. Kupi u trgovini.`); return; }
-  const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
+let trollPick = null, trollChosen = null; // trollChosen: tapped in the panel in this match (the hotkey goes there)
+// the hotkey: a prank or a potion. Hold one for 3 s in the ZEZALICE panel to choose it; in a match, hold ZEZALICE 2 s.
+const HOLD_SET = 3000, HOLD_FIRE = 2000;
+function hotKey() { const raw = lsGet('vijuga-hotkey'); if (raw) { try { const o = JSON.parse(raw); if (o && (o.k === 'perf' || o.k === 'cham' || (o.k === 'troll' && TROLLS[o.id]))) return o; } catch (e) {} return null; } const old = lsGet('vijuga-hotprank'); return old && TROLLS[old] ? { k: 'troll', id: old } : null; }
+function clearHotKey() { lsSet('vijuga-hotkey', 'null'); toast('⭐ Prečac je maknut.'); renderHotBadge(); }
+const sameHot = (a, b) => !!a && !!b && a.k === b.k && (a.k !== 'troll' || a.id === b.id);
+// what can be the hotkey: the pranks and potions I have (and the current one, even if I ran out of it)
+function hotChoices() {
+  const inv = (profile && profile.inv) || {}, out = Object.entries(TROLLS).filter(([id]) => (inv[id] || 0) > 0).map(([id, t]) => ({ h: { k: 'troll', id }, e: t.e, n: t.name, c: inv[id] }));
+  if ((inv.perfume || 0) > 0) out.push({ h: { k: 'perf' }, e: '🌸', n: 'Parfem', c: inv.perfume });
+  if ((inv.cham || 0) > 0) out.push({ h: { k: 'cham' }, e: '🧪', n: 'Kameleon', c: inv.cham });
+  const cur = hotKey(); if (cur && !out.some(o => sameHot(o.h, cur))) out.unshift({ h: cur, e: hotEmoji(cur), n: hotLabel(cur).replace(/^\S+\s/, ''), c: 0 });
+  return out;
+}
+function hotChipsHtml() {
+  const cur = hotKey(), list = hotChoices();
+  if (!list.length) return '<p class="hint" style="margin:0">Nemaš zezalica ni napitaka. Kupi ih u Trgovini (😈 Zezalice, 🧪 Napitci) pa ovdje odaberi prečac.</p>';
+  return `<div class="wrow">${list.map((o, i) => `<button type="button" class="wchip ${sameHot(o.h, cur) ? 'on' : ''}" data-hk="${i}"><em>${o.e}</em><span>${esc(o.n)} · ${o.c}</span>${sameHot(o.h, cur) ? '<i>⭐</i>' : ''}</button>`).join('')}${cur ? '<button type="button" class="wchip" data-hk="x">✕<span>Bez prečaca</span></button>' : ''}</div>`;
+}
+function wireHotChips(root, after) {
+  const list = hotChoices();
+  root.querySelectorAll('[data-hk]').forEach(b => b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); if (b.dataset.hk === 'x') clearHotKey(); else { const o = list[Number(b.dataset.hk)]; if (o) setHotKey(o.h); } if (after) after(); });
+}
+function showHotPicker() {
+  document.querySelectorAll('.hotov').forEach(x => x.remove());
+  const ov = document.createElement('div'); ov.className = 'achov hotov';
+  const draw = () => { ov.innerHTML = `<div class="achcard infocard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>⭐ Prečac zezalice</h3><p class="hint" style="margin:0">Dodirni zezalicu ili napitak. U meču onda samo <b>drži ZEZALICE 2 s</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.</p>${hotChipsHtml()}<div class="row"><button type="button" class="btn" data-close>Gotovo</button></div></div>`;
+    wireHotChips(ov, () => { draw(); renderOnbar(); if (curTab === 'online') renderNet(); }); ov.querySelector('.mclose').onclick = () => ov.remove(); ov.querySelector('[data-close]').onclick = () => ov.remove(); };
+  ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
+  draw(); document.body.appendChild(ov);
+}
+const hasHotStuff = () => !!profile && hotChoices().length > 0;
+function hotBarHtml() {
+  if (!hasHotStuff()) return ''; const h = hotKey();
+  return `<div class="meetbar hotbar"><span class="mt">⭐ <b>Prečac zezalice</b> <span class="ms">${h ? `<b>${esc(hotLabel(h))}</b> · u meču drži ZEZALICE 2 s` : 'nije postavljen: odaberi ga sad, u meču nema vremena'}</span></span><button type="button" class="btn sm" data-hotpick>${h ? 'Promijeni' : 'Postavi'}</button></div>`;
+}
+// once per match, at the first countdown (above the arena): how to set it up, or what it is
+function hotTipMaybe() {
+  if (!G || G.hkTip || !net || G.phase !== 'count' || G.round > 1 || $('#game').hidden || !hasHotStuff()) return;
+  G.hkTip = 1; const h = hotKey(), key = h ? 'vijuga-hktip2' : 'vijuga-hktip', n = Number(lsGet(key) || 0); if (n >= (h ? 3 : 5)) return; lsSet(key, String(n + 1));
+  showIgMsg(h ? `⭐ Prečac: <b>${esc(hotLabel(h))}</b>. U igri drži ZEZALICE 2 s i ode.` : '⭐ Brže zezanje: prije meča postavi prečac (Moj profil → ⭐ Prečac zezalice), pa u igri samo drži ZEZALICE 2 s.', false, true);
+}
+const hotPrank = () => { const h = hotKey(); return h && h.k === 'troll' ? h.id : ''; };
+const hotLabel = (h) => !h ? '' : h.k === 'perf' ? '🌸 Parfem' : h.k === 'cham' ? '🧪 Kameleon' : `${TROLLS[h.id].e} ${TROLLS[h.id].name}`;
+const hotEmoji = (h) => !h ? '' : h.k === 'perf' ? '🌸' : h.k === 'cham' ? '🧪' : TROLLS[h.id].e;
+function setHotKey(h) { lsSet('vijuga-hotkey', JSON.stringify(h)); toast(`⭐ Prečac: ${hotLabel(h)}. U igri drži ZEZALICE 2 s i ode.`); buzz(30); renderHotBadge(); }
+function renderHotBadge() { const h = hotKey(); document.querySelectorAll('#padsBottom .ptool.prank').forEach(b => { let e = b.querySelector('.hk'); if (!h) { if (e) e.remove(); return; } if (!e) { e = document.createElement('span'); e.className = 'hk'; b.appendChild(e); } e.textContent = hotEmoji(h); }); }
+function fireHotKey() { // ZEZALICE held 2 s in a match
+  const h = hotKey(); if (!h) { toast('⭐ Prečac nije postavljen. Postavi ga prije meča: Moj profil → ⭐ Prečac zezalice.'); return; }
+  if (h.k === 'perf') { usePerfume(); return; }
+  if (h.k === 'cham') { const me = myMatchPlayer(), pick = G && trollChosen && G.players.find(q => peerOfPlayer(q) === trollChosen && q.alive && q !== me), t = pick || (G ? G.players.filter(q => q !== me && q.alive).sort((a, b) => b.score - a.score)[0] : null); if (!t) { toast('Nema koga oponašati.'); return; } useCham(t.id); return; }
+  const id = h.id; if (!profile || !((profile.inv || {})[id] > 0)) { toast(`Nemaš više: ${TROLLS[id].e} ${TROLLS[id].name}. Kupi u trgovini.`); return; }
+  const targets = trollTargets(), plOf = (t) => G.players.find(p => peerOfPlayer(p) === t.peer) || {};
+  const lead = targets.slice().sort((a, b) => (!!plOf(b).alive - !!plOf(a).alive) || ((plOf(b).score || 0) - (plOf(a).score || 0)))[0];
+  trollPick = targets.some(t => t.peer === trollChosen) ? trollChosen : (lead || {}).peer || null;
   if (!trollPick) { toast('U meču nema koga zezati.'); return; }
   if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
   sendTroll(trollPick, id);
+}
+// a press held for ms on a button: the button fills up while held; a short press is an ordinary tap
+function holdButton(b, ms, onHold, onTap) {
+  let t = 0, fired = false, down = false;
+  const start = (e) => { if (down) return; down = true; fired = false; b.classList.remove('holding'); void b.offsetWidth; b.style.setProperty('--hold', ms + 'ms'); b.classList.add('holding'); clearTimeout(t); t = setTimeout(() => { fired = true; b.classList.remove('holding'); onHold(); }, ms); if (e.cancelable && e.type === 'touchstart') e.preventDefault(); e.stopPropagation(); };
+  const end = (e, tap) => { if (!down) return; down = false; clearTimeout(t); b.classList.remove('holding'); if (e && e.cancelable) e.preventDefault(); if (e) e.stopPropagation(); if (!fired && tap && onTap) onTap(e); };
+  b.addEventListener('touchstart', start, { passive: false }); b.addEventListener('touchend', (e) => end(e, true), { passive: false }); b.addEventListener('touchcancel', (e) => end(e, false));
+  b.addEventListener('mousedown', start); b.addEventListener('mouseup', (e) => end(e, true)); b.addEventListener('mouseleave', (e) => end(e, false));
+  b.addEventListener('contextmenu', (e) => e.preventDefault()); b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); };
 }
 function trollTargets() {
   if (!net || !G) return [];
@@ -7146,9 +7289,9 @@ function renderTrollPop() {
   const tabs = `<div class="tptabs">${show.map(t => `<button type="button" class="tpt ${trollTab === t ? 'on' : ''}" data-t="${t}">${TT[t]}</button>`).join('')}<button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
   if (trollTab === 'n') {
     const me = myMatchPlayer(), have = profile ? (profile.inv.cham || 0) : 0, others = G ? G.players.filter(p => p !== me && p.alive) : [], can = !!(me && me.alive && G.phase === 'run' && !me.disg && have);
-    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg" data-pid="${t.id}" ${can ? '' : 'disabled'}><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak na tvom mjestu: tko uđe, ${POTIONS.perfume.s} s vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg" id="tpPerf" ${canP ? '' : 'disabled'}>🌸 Poprskaj</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
-    pop.querySelectorAll('[data-pid]').forEach(b => b.onclick = (e) => { e.stopPropagation(); useCham(Number(b.dataset.pid)); });
-    { const pb = pop.querySelector('#tpPerf'); if (pb) pb.onclick = (e) => { e.stopPropagation(); usePerfume(); }; }
+    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg ${can ? '' : 'dis'} ${hotKey() && hotKey().k === 'cham' ? 'hot' : ''}" data-pid="${t.id}"><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak na tvom mjestu: tko uđe, ${POTIONS.perfume.s} s vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg ${canP ? '' : 'dis'} ${hotKey() && hotKey().k === 'perf' ? 'hot' : ''}" id="tpPerf">🌸 Poprskaj${hotKey() && hotKey().k === 'perf' ? ' ⭐' : ''}</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
+    pop.querySelectorAll('[data-pid]').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'cham' }); renderTrollPop(); }, () => { useCham(Number(b.dataset.pid)); pop.hidden = true; }));
+    { const pb = pop.querySelector('#tpPerf'); if (pb) holdButton(pb, HOLD_SET, () => { setHotKey({ k: 'perf' }); renderTrollPop(); }, () => { usePerfume(); pop.hidden = true; }); }
     pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
     return;
   }
@@ -7173,16 +7316,15 @@ function renderTrollPop() {
   }
   pop.innerHTML = tabs + `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
-    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''}" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''} ${cool || !trollPick ? 'dis' : ''}" data-id="${id}" title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
-    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Drži zezalicu 2 s = prečac. Onda 2× brzo dodirni ZEZALICE i ode${hotPrank() && TROLLS[hotPrank()] ? `: <b>${TROLLS[hotPrank()].e} ${TROLLS[hotPrank()].name}</b>` : '.'}</p>` : ''}`;
+    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Prečac${hotKey() ? `: <b>${hotLabel(hotKey())}</b>` : ''}: drži ZEZALICE 2 s i ode. Biraš ga prije meča (Moj profil → ⭐ Prečac) ili ovdje držanjem zezalice 3 s.</p>` : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
-  pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
-  pop.querySelectorAll('.troll').forEach(b => { // a tap sends it (and the panel closes); holding it 2 s makes it the hotkey (two quick taps on ZEZALICE)
-    b.addEventListener('pointerdown', () => { clearTimeout(b._hold); b._held = false; b._hold = setTimeout(() => { b._held = true; setHotPrank(b.dataset.id); buzz(30); renderTrollPop(); }, 2000); });
-    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, () => clearTimeout(b._hold));
-    b.addEventListener('contextmenu', (e) => e.preventDefault());
-    b.onclick = (e) => { e.stopPropagation(); if (b._held) { b._held = false; return; } if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); pop.hidden = true; }; });
+  pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = trollChosen = b.dataset.peer; renderTrollPop(); });
+  pop.querySelectorAll('.troll').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'troll', id: b.dataset.id }); renderTrollPop(); }, (e) => { // a tap sends it (and the panel closes); held 3 s it becomes the hotkey
+    if (e && e.target && e.target.closest && e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; }
+    if (!trollPick) { toast('Prvo odaberi koga zezaš.'); return; } if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
+    sendTroll(trollPick, b.dataset.id); pop.hidden = true; }));
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
@@ -7213,6 +7355,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { showLeaveAsk, togglePause, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
