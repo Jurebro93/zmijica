@@ -750,6 +750,9 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
   .pads.v2 .padhint { border: 0; background: none; gap: 2px; } .pads.v2 .padhint b { font-size: 16px; color: var(--muted); } .pads.v2 .padhint span { font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
 }
 
+.troll, .stg, .ptool.prank { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; } .troll.dis, .stg.dis { opacity: .55; }
+.holding { position: relative; overflow: hidden; } .holding::before { content: ''; position: absolute; inset: 0; background: rgba(255,210,63,.45); transform-origin: left; animation: holdfill var(--hold, 2s) linear forwards; pointer-events: none; } @keyframes holdfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ptool.prank .hk { position: absolute; top: 4px; right: 6px; font-size: 16px; filter: drop-shadow(0 0 2px #000); } .ptool.prank { position: relative; }
 .troll.hot { border-color: #ffd23f !important; box-shadow: 0 0 0 2px rgba(255,210,63,.35); }
 /* ---- the simple mode (body.lite): only what is needed */
 #liteTop, #liteNav, #liteMore, #liteSet { display: none; }
@@ -2862,7 +2865,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'e08e12e23978';
+const BUILD = 'f411708605d5';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -4882,12 +4885,12 @@ function buildPads() {
       const tools = document.createElement('div'); tools.className = 'padtools';
       const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
-      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); zb.onclick = (e) => { const t = performance.now(); if (t - (zb._tap || 0) < 380) { zb._tap = 0; e.stopPropagation(); $('#trollPop').hidden = true; fireHotPrank(); return; } zb._tap = t; open(e); }; } // two quick taps: the hotkey prank
+      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); holdButton(zb, HOLD_FIRE, () => { $('#trollPop').hidden = true; buzz(25); fireHotKey(); }, (e) => open(e)); } // a tap: the panel; held 2 s: the hotkey
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
       const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'GLAS'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const id = e.pointerId; try { mb.setPointerCapture(id); } catch (er) {} clearTimeout(mb._hold); voiceHint('wait'); mb._hold = setTimeout(() => { mb._hold = 0; startVoice(mb, id); }, 250); });
       const mbUp = (e) => { if (mb._hold) { clearTimeout(mb._hold); mb._hold = 0; voiceHint('short'); return; } voiceUp(e); }; mb.addEventListener('pointerup', mbUp); mb.addEventListener('pointercancel', mbUp);
       void cb; // the middle holds only the pranks and the voice message (chat and emoji live in the menu)
-      tools.append(zb, mb); $('#game').classList.add('padtools-on');
+      tools.append(zb, mb); $('#game').classList.add('padtools-on'); setTimeout(renderHotBadge, 0);
       mid.append(tools);
     } else if (setup.jump) { const h = document.createElement('div'); h.className = 'padhint'; h.innerHTML = '<b>◀ + ▶</b><span>skok</span>'; mid.append(h); }
     box.append(mkBtn('L', padIcon(p, 'L'), 'LIJEVO', 'big'), mid, mkBtn('R', padIcon(p, 'R'), 'DESNO', 'big'));
@@ -7144,15 +7147,32 @@ $('#start').onclick = startGame;
 document.addEventListener('selectstart', (e) => { if (!$('#game').hidden && !(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); });
 $('#game').addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
 let trollPick = null;
-const hotPrank = () => lsGet('vijuga-hotprank') || '';
-function setHotPrank(id) { if (!TROLLS[id]) return; lsSet('vijuga-hotprank', id); toast(`⭐ Prečac: ${TROLLS[id].e} ${TROLLS[id].name}. 2× brzo dodirni ZEZALICE i ode.`); }
-function fireHotPrank() { // two quick taps on ZEZALICE: the hotkey prank at the chosen (or the first) player
-  const id = hotPrank(); if (!id || !TROLLS[id]) { toast('⭐ Prečac nije postavljen: otvori ZEZALICE i drži zezalicu 2 s.'); return; }
-  if (!profile || !((profile.inv || {})[id] > 0)) { toast(`Nemaš više: ${TROLLS[id].e} ${TROLLS[id].name}. Kupi u trgovini.`); return; }
+// the hotkey: a prank or a potion. Hold one for 3 s in the ZEZALICE panel to choose it; in a match, hold ZEZALICE 2 s.
+const HOLD_SET = 3000, HOLD_FIRE = 2000;
+function hotKey() { try { const o = JSON.parse(lsGet('vijuga-hotkey') || 'null'); if (o && (o.k === 'perf' || o.k === 'cham' || (o.k === 'troll' && TROLLS[o.id]))) return o; } catch (e) {} const old = lsGet('vijuga-hotprank'); return old && TROLLS[old] ? { k: 'troll', id: old } : null; }
+const hotPrank = () => { const h = hotKey(); return h && h.k === 'troll' ? h.id : ''; };
+const hotLabel = (h) => !h ? '' : h.k === 'perf' ? '🌸 Parfem' : h.k === 'cham' ? '🧪 Kameleon' : `${TROLLS[h.id].e} ${TROLLS[h.id].name}`;
+const hotEmoji = (h) => !h ? '' : h.k === 'perf' ? '🌸' : h.k === 'cham' ? '🧪' : TROLLS[h.id].e;
+function setHotKey(h) { lsSet('vijuga-hotkey', JSON.stringify(h)); toast(`⭐ Prečac: ${hotLabel(h)}. U igri drži ZEZALICE 2 s i ode.`); buzz(30); renderHotBadge(); }
+function renderHotBadge() { const h = hotKey(); document.querySelectorAll('#padsBottom .ptool.prank').forEach(b => { let e = b.querySelector('.hk'); if (!h) { if (e) e.remove(); return; } if (!e) { e = document.createElement('span'); e.className = 'hk'; b.appendChild(e); } e.textContent = hotEmoji(h); }); }
+function fireHotKey() { // ZEZALICE held 2 s in a match
+  const h = hotKey(); if (!h) { toast('⭐ Prečac nije postavljen: otvori ZEZALICE i drži zezalicu ili napitak 3 s.'); return; }
+  if (h.k === 'perf') { usePerfume(); return; }
+  if (h.k === 'cham') { const me = myMatchPlayer(), pick = G && G.players.find(q => peerOfPlayer(q) === trollPick && q.alive && q !== me), t = pick || (G ? G.players.find(q => q !== me && q.alive) : null); if (!t) { toast('Nema koga oponašati.'); return; } useCham(t.id); return; }
+  const id = h.id; if (!profile || !((profile.inv || {})[id] > 0)) { toast(`Nemaš više: ${TROLLS[id].e} ${TROLLS[id].name}. Kupi u trgovini.`); return; }
   const targets = trollTargets(); if (!targets.some(t => t.peer === trollPick)) trollPick = (targets[0] || {}).peer || null;
   if (!trollPick) { toast('U meču nema koga zezati.'); return; }
   if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
   sendTroll(trollPick, id);
+}
+// a press held for ms on a button: the button fills up while held; a short press is an ordinary tap
+function holdButton(b, ms, onHold, onTap) {
+  let t = 0, fired = false, down = false;
+  const start = (e) => { if (down) return; down = true; fired = false; b.classList.remove('holding'); void b.offsetWidth; b.style.setProperty('--hold', ms + 'ms'); b.classList.add('holding'); clearTimeout(t); t = setTimeout(() => { fired = true; b.classList.remove('holding'); onHold(); }, ms); if (e.cancelable && e.type === 'touchstart') e.preventDefault(); e.stopPropagation(); };
+  const end = (e, tap) => { if (!down) return; down = false; clearTimeout(t); b.classList.remove('holding'); if (e && e.cancelable) e.preventDefault(); if (e) e.stopPropagation(); if (!fired && tap && onTap) onTap(e); };
+  b.addEventListener('touchstart', start, { passive: false }); b.addEventListener('touchend', (e) => end(e, true), { passive: false }); b.addEventListener('touchcancel', (e) => end(e, false));
+  b.addEventListener('mousedown', start); b.addEventListener('mouseup', (e) => end(e, true)); b.addEventListener('mouseleave', (e) => end(e, false));
+  b.addEventListener('contextmenu', (e) => e.preventDefault()); b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); };
 }
 function trollTargets() {
   if (!net || !G) return [];
@@ -7169,9 +7189,9 @@ function renderTrollPop() {
   const tabs = `<div class="tptabs">${show.map(t => `<button type="button" class="tpt ${trollTab === t ? 'on' : ''}" data-t="${t}">${TT[t]}</button>`).join('')}<button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
   if (trollTab === 'n') {
     const me = myMatchPlayer(), have = profile ? (profile.inv.cham || 0) : 0, others = G ? G.players.filter(p => p !== me && p.alive) : [], can = !!(me && me.alive && G.phase === 'run' && !me.disg && have);
-    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg" data-pid="${t.id}" ${can ? '' : 'disabled'}><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak na tvom mjestu: tko uđe, ${POTIONS.perfume.s} s vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg" id="tpPerf" ${canP ? '' : 'disabled'}>🌸 Poprskaj</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
-    pop.querySelectorAll('[data-pid]').forEach(b => b.onclick = (e) => { e.stopPropagation(); useCham(Number(b.dataset.pid)); });
-    { const pb = pop.querySelector('#tpPerf'); if (pb) pb.onclick = (e) => { e.stopPropagation(); usePerfume(); }; }
+    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg ${can ? '' : 'dis'} ${hotKey() && hotKey().k === 'cham' ? 'hot' : ''}" data-pid="${t.id}"><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak na tvom mjestu: tko uđe, ${POTIONS.perfume.s} s vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg ${canP ? '' : 'dis'} ${hotKey() && hotKey().k === 'perf' ? 'hot' : ''}" id="tpPerf">🌸 Poprskaj${hotKey() && hotKey().k === 'perf' ? ' ⭐' : ''}</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
+    pop.querySelectorAll('[data-pid]').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'cham' }); renderTrollPop(); }, () => { useCham(Number(b.dataset.pid)); pop.hidden = true; }));
+    { const pb = pop.querySelector('#tpPerf'); if (pb) holdButton(pb, HOLD_SET, () => { setHotKey({ k: 'perf' }); renderTrollPop(); }, () => { usePerfume(); pop.hidden = true; }); }
     pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
     return;
   }
@@ -7196,16 +7216,15 @@ function renderTrollPop() {
   }
   pop.innerHTML = tabs + `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
-    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''}" data-id="${id}" ${cool || !trollPick ? 'disabled' : ''} title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''} ${cool || !trollPick ? 'dis' : ''}" data-id="${id}" title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
-    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Drži zezalicu 2 s = prečac. Onda 2× brzo dodirni ZEZALICE i ode${hotPrank() && TROLLS[hotPrank()] ? `: <b>${TROLLS[hotPrank()].e} ${TROLLS[hotPrank()].name}</b>` : '.'}</p>` : ''}`;
+    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Drži zezalicu ili napitak 3 s = prečac. U igri drži ZEZALICE 2 s i ode${hotKey() ? `: <b>${hotLabel(hotKey())}</b>` : '.'}</p>` : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = b.dataset.peer; renderTrollPop(); });
-  pop.querySelectorAll('.troll').forEach(b => { // a tap sends it (and the panel closes); holding it 2 s makes it the hotkey (two quick taps on ZEZALICE)
-    b.addEventListener('pointerdown', () => { clearTimeout(b._hold); b._held = false; b._hold = setTimeout(() => { b._held = true; setHotPrank(b.dataset.id); buzz(30); renderTrollPop(); }, 2000); });
-    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, () => clearTimeout(b._hold));
-    b.addEventListener('contextmenu', (e) => e.preventDefault());
-    b.onclick = (e) => { e.stopPropagation(); if (b._held) { b._held = false; return; } if (e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; } sendTroll(trollPick, b.dataset.id); pop.hidden = true; }; });
+  pop.querySelectorAll('.troll').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'troll', id: b.dataset.id }); renderTrollPop(); }, (e) => { // a tap sends it (and the panel closes); held 3 s it becomes the hotkey
+    if (e && e.target && e.target.closest && e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; }
+    if (!trollPick) { toast('Prvo odaberi koga zezaš.'); return; } if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
+    sendTroll(trollPick, b.dataset.id); pop.hidden = true; }));
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
