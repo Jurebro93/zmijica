@@ -858,7 +858,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div><h2 style="margin-top:16px">💎 Premium power-upovi <small>samo tvoji: jednom po rundi jedan od njih padne samo tebi, samo ga ti vidiš i samo ga ti pokupiš</small></h2><div class="shop" id="shopPremPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
         <div data-cat="chatc"><h2>🎨 Boje slova u chatu <small>kričavo roza, neon, duga, disko: tvoje poruke svi vide u toj boji</small></h2><div class="shop" id="shopChat"></div></div>
-        <div data-cat="brands"><h2>🛍️ Brendovi <small>natpis brenda uz tvoje ime: sportski i luksuzni (samo ime, ne službeni logo)</small></h2><div class="shop" id="shopBrands"></div></div>
+        <div data-cat="brands"><h2>🛍️ Brendovi <small>natpis brenda uz tvoje ime: sportski i luksuzni (samo ime, ne službeni logo)</small></h2><div class="shop" id="shopBrands"></div><h2 style="margin-top:16px">🍻 Pića <small>pivo, rakija, šampanjac… kao ikona uz ime, i natpisi poznatih marki (samo ime, ne službeni logo)</small></h2><div class="shop" id="shopDrinks"></div></div>
         <div data-cat="potions"><h2>🧪 Napitci <small>Kameleon: u meču izgledaš kao drugi igrač · Parfem: tko uđe u oblak, uspori · dvostruki XP za sljedećih 5 mečeva</small></h2><div class="shop" id="shopPotions"></div></div>
         <div data-cat="trolls"><h2>Zezalice 😈 <small>kupi unaprijed, pa ih u online meču gumbom 😈 baci na protivnika (ili dok gledaš tuđu igru)</small></h2><p class="hint trollhelp">Zezalica je mala šala koju u online meču pošalješ drugom igraču: njemu se nakratko nešto dogodi na ekranu (trese se, zamrači, okrene, padaju kakice…). Ti i ostali iznad njegove zmije vidite znak zezalice dok traje. Stisni <b>ℹ️ Kako izgleda</b> na svakoj da vidiš što točno dobije. 🛡️ Štit odbija jednu zezanciju.</p><div class="shop" id="shopTrolls"></div></div>
         <div class="notice" id="shopEmpty" hidden>Ovdje nema ničega za odabrani filtar ili pretragu. <button type="button" class="btn sm" id="shopEmptyAll" style="margin-left:8px">Prikaži sve</button></div>
@@ -1173,6 +1173,26 @@ const BADGES = {
   bd_t_fritule: { g: 'Fritule 🍩', fun: true, dalm: true, tag: '#c9902c', svg: TAGB('Fritule 🍩', '#c9902c'), name: 'Natpis: Fritule 🍩', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: fritule za Božić i blagdane', price: 500 },
   bd_t_soparnik: { g: 'Soparnik 🥬', fun: true, dalm: true, tag: '#4f8a3a', svg: TAGB('Soparnik 🥬', '#4f8a3a'), name: 'Natpis: Soparnik 🥬', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: poljički soparnik s blitvom', price: 500 },
   bd_t_marenda: { g: 'Marenda 🥪', fun: true, dalm: true, tag: '#3c7f8f', svg: TAGB('Marenda 🥪', '#3c7f8f'), name: 'Natpis: Marenda 🥪', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: marenda: dalmatinski gablec oko 10', price: 500 },
+  // PIĆA: drink icons, and drink brands as a name tag in the brand's colour (no logos: a fan's label, not the brand's own)
+  bd_dr_beer:     { g: '🍺', drink: 1, name: 'Pivo', d: 'PIĆE: krigla pive uz ime', price: 250 },
+  bd_dr_cheers:   { g: '🍻', drink: 1, name: 'Živjeli', d: 'PIĆE: dvije krigle, nazdravlja se', price: 350 },
+  bd_dr_wine:     { g: '🍷', drink: 1, name: 'Vino', d: 'PIĆE: čaša crnog', price: 300 },
+  bd_dr_rakija:   { g: '🥃', drink: 1, name: 'Rakija', d: 'PIĆE: čašica rakije, za zdravlje', price: 350 },
+  bd_dr_cocktail: { g: '🍸', drink: 1, name: 'Koktel', d: 'PIĆE: koktel s maslinom', price: 400 },
+  bd_dr_bubbly:   { g: '🥂', drink: 1, name: 'Šampanjac', d: 'PIĆE: dvije čaše šampanjca, za slavlje', price: 450 },
+  bd_dr_bottle:   { g: '🍾', drink: 1, name: 'Boca šampanjca', d: 'PIĆE: čep leti, pobjeda se slavi', price: 600 },
+  bd_dr_ozujsko:  { g: 'Ožujsko', drink: 1, tag: '#c8102e', svg: TAGB('Ožujsko 🍺', '#c8102e'), name: 'Natpis: Ožujsko 🍺', d: 'PIVO: natpis uz ime (samo ime, nije službeni logo)', price: 1500 },
+  bd_dr_karlovacko: { g: 'Karlovačko', drink: 1, tag: '#00703c', svg: TAGB('Karlovačko 🍺', '#00703c'), name: 'Natpis: Karlovačko 🍺', d: 'PIVO: natpis uz ime (samo ime, nije službeni logo)', price: 1500 },
+  bd_dr_heineken: { g: 'Heineken', drink: 1, tag: '#0b7a3e', svg: TAGB('Heineken 🍺', '#0b7a3e'), name: 'Natpis: Heineken 🍺', d: 'PIVO: natpis uz ime (samo ime, nije službeni logo)', price: 1500 },
+  bd_dr_guinness: { g: 'Guinness', drink: 1, tag: '#2b2118', svg: TAGB('Guinness 🍺', '#2b2118'), name: 'Natpis: Guinness 🍺', d: 'PIVO: natpis uz ime (samo ime, nije službeni logo)', price: 1800 },
+  bd_dr_corona:   { g: 'Corona', drink: 1, tag: '#1f3f8f', svg: TAGB('Corona 🍋', '#1f3f8f'), name: 'Natpis: Corona 🍋', d: 'PIVO: natpis uz ime (samo ime, nije službeni logo)', price: 1800 },
+  bd_dr_pelinkovac: { g: 'Pelinkovac', drink: 1, tag: '#3d5a1e', svg: TAGB('Pelinkovac 🌿', '#3d5a1e'), name: 'Natpis: Pelinkovac 🌿', d: 'LIKER: natpis uz ime (samo ime, nije službeni logo)', price: 2000 },
+  bd_dr_maraschino: { g: 'Maraschino', drink: 1, tag: '#8b1a1a', svg: TAGB('Maraschino 🍒', '#8b1a1a'), name: 'Natpis: Maraschino 🍒', d: 'LIKER: zadarski, natpis uz ime (samo ime, nije službeni logo)', price: 2000 },
+  bd_dr_aperol:   { g: 'Aperol', drink: 1, tag: '#e8590c', svg: TAGB('Aperol 🍊', '#e8590c'), name: 'Natpis: Aperol 🍊', d: 'APERITIV: natpis uz ime (samo ime, nije službeni logo)', price: 2000 },
+  bd_dr_jager:    { g: 'Jägermeister', drink: 1, tag: '#14532d', svg: TAGB('Jägermeister 🦌', '#14532d'), name: 'Natpis: Jägermeister 🦌', d: 'LIKER: natpis uz ime (samo ime, nije službeni logo)', price: 2500 },
+  bd_dr_jack:     { g: "Jack Daniel's", drink: 1, tag: '#26221f', svg: TAGB("Jack Daniel's 🥃", '#26221f'), name: "Natpis: Jack Daniel's 🥃", d: 'VISKI: natpis uz ime (samo ime, nije službeni logo)', price: 3000 },
+  bd_dr_moet:     { g: 'Moët', drink: 1, tag: '#8a6d1d', svg: TAGB('Moët 🍾', '#8a6d1d'), name: 'Natpis: Moët 🍾', d: 'LUKSUZNI ŠAMPANJAC: natpis uz ime (samo ime, nije službeni logo)', price: 4500 },
+  bd_dr_dom:      { g: 'Dom Pérignon', drink: 1, tag: '#123a63', svg: TAGB('Dom Pérignon 🍾', '#123a63'), name: 'Natpis: Dom Pérignon 🍾', d: 'LUKSUZNI ŠAMPANJAC: natpis uz ime (samo ime, nije službeni logo)', price: 6000 },
   // BRENDOVI: only the name as a tag (no logos); a fan's label, not the brand's own
   bd_br_nike: { g: 'Nike', brand: 1, tag: '#e4572e', svg: TAGB('Nike 👟', '#e4572e'), name: 'Natpis: Nike 👟', d: 'BREND: natpis uz ime (samo ime, nije službeni logo)', price: 1500 },
   bd_br_adidas: { g: 'Adidas', brand: 1, tag: '#1d4fbf', svg: TAGB('Adidas 👟', '#1d4fbf'), name: 'Natpis: Adidas 👟', d: 'BREND: natpis uz ime (samo ime, nije službeni logo)', price: 1500 },
@@ -2369,15 +2389,16 @@ function renderShopNow() {
   make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun && !it.brand), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun && !it.brand && !it.drink), 'badge');
   make($('#shopBrands'), Object.entries(BADGES).filter(([, it]) => it.brand), 'badge');
+  make($('#shopDrinks'), Object.entries(BADGES).filter(([, it]) => it.drink), 'badge');
   make($('#shopFun'), Object.entries(BADGES).filter(([, it]) => it.fun && !it.dalm), 'badge');
   make($('#shopDalm'), Object.entries(BADGES).filter(([, it]) => it.dalm), 'badge');
   make($('#shopWeather'), Object.entries(BADGES).filter(([, it]) => it.wx), 'badge');
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local && !it.tag), 'badge');
-  make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag && !it.fun), 'badge');
+  make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag && !it.fun && !it.drink), 'badge');
   make($('#shopCrypto'), Object.entries(BADGES).filter(([, it]) => it.crypto && !it.gold), 'badge');
   make($('#shopLive'), Object.entries(BADGES).filter(([, it]) => it.live || it.gold), 'badge');
   const prb = $('#shopPremium'), bgb = $('#shopBgs');
@@ -4666,6 +4687,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'pica', d: '2026-11-12', e: '🍻', t: 'Pića uz ime', x: 'U trgovini (Ikone → Brendovi) je nova polica 🍻 Pića: ikone 🍺 pive, 🥃 rakije, 🍷 vina, 🥂 šampanjca i 🍸 koktela uz ime, i natpisi poznatih marki: Ožujsko, Karlovačko, Heineken, Guinness, Corona, Pelinkovac, Maraschino, Aperol, Jägermeister, Jack Daniel\'s, Moët i Dom Pérignon (samo ime u boji marke, ne službeni logo).', go: 'shop:brands', b: 'Pogledaj pića', items: ['bd_dr_beer', 'bd_dr_rakija', 'bd_dr_bottle', 'bd_dr_ozujsko', 'bd_dr_karlovacko', 'bd_dr_moet'] },
   { id: 'precac', d: '2026-11-12', e: '⭐', t: 'Prečac zezalice i čista arena', x: 'Preko arene se više ništa ne ispisuje: poruke (npr. kad pokupiš pištolj), efekti i njihove sekunde su u traci iznad arene. Novo: ⭐ prečac zezalice. Odaberi ga prije meča (Moj profil → ⭐ Prečac zezalice, ili „Postavi” u predvorju), a u meču samo drži ZEZALICE 2 s: zezalica ode igraču koji vodi, a napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.', go: 'me', b: 'Postavi prečac' },
   { id: 'gorivo', d: '2026-11-11', e: '⛽', t: 'Gorivo, novi power-upovi i preglednija trgovina', x: 'Nova ikona ⛽ Cijena goriva (Eurosuper 95 i Eurodizel, HAK). Novi power-upovi: 🛡️ Štit, ❄️ Zamrzni, 🌀 Teleport i 🧲 Magnet, a u trgovini 💎 premium power-upovi (Nitro, Dijamantni štit, Ledeno doba) koji padnu samo tebi i samo ih ti vidiš. Dimna bomba sad odskakuje, stane i 13 s pušta dim. Trgovina ima samo 6 velikih gumba (Kutije, Zmija, Ikone, Zabava, Premium) s podkategorijama. Veće nagrade: 1. mjesto 100 zlatnika i 60 XP, 2. mjesto 60 i 40, 3. mjesto 40 i 25, a što je više igrača u meču, to više (8 igrača ×3). Zezalica se bira jednim dodirom i prozor se sam zatvori.', go: 'shop:pu', b: 'Pogledaj power-upove', items: ['bd_fuel', 'pp_nitro', 'pp_dia', 'pp_ice'] },
   { id: 'oruzje', d: '2026-11-11', e: '🔫', t: 'Pištolj, dimna bomba, parfem i brendovi', x: 'Jednom po rundi na ploči padne 🔫 pištolj ili 💣 dimna bomba: tko ga pokupi, koristi ga kao skok (LIJEVO + DESNO odjednom ili ↑). Metak sruši zmiju koju pogodi u glavu ili tik iza nje, dimna bomba sakrije dio arene. Novi napitak 🌸 Parfem: tko uđe u oblak, vozi upola sporije. U trgovini su i 🛍️ Brendovi (Nike, Adidas, Louis Vuitton, Gucci…). Dok zmije voze, iznad njih nema ikona: arena je čista. Za starije mobitele: 🐢 pojednostavljeni izgled u profilu.', go: 'shop:brands', b: 'Pogledaj brendove', items: ['perfume', 'bd_br_nike', 'bd_br_adidas', 'bd_br_lv', 'bd_br_gucci'] },
