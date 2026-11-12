@@ -414,6 +414,13 @@ button.pu:hover { border-color: var(--line); }
 .cbd { display: inline-flex; align-items: center; gap: .25em; padding: 0 .5em; border-radius: 999px; border: 1px solid var(--cc); color: var(--cc); background: rgba(11,18,27,.6); font: 700 .74em/1.5 "Barlow Semi Condensed", sans-serif; vertical-align: .08em; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .cbd { max-width: 100%; min-width: 0; overflow: hidden; } .cbd .cg { flex: none; } .cbd .cp { min-width: 0; max-width: min(13em, calc(100vw - 150px)); overflow: hidden; text-overflow: ellipsis; } /* a fixed cap (screen-relative): a % cannot limit how wide the text asks to be */
 .badges, .badge { max-width: 100%; min-width: 0; }
+/* the master's present: a gold tag that glows, a light sweeps across it and a star twinkles */
+.tagbd.shine { position: relative; color: #3a2500; background: linear-gradient(110deg, #a87408 0%, #ffd23f 38%, #fff7cf 50%, #ffd23f 62%, #a87408 100%); background-size: 260% 100%; animation: tagsweep 2.2s linear infinite, tagglow 1.4s ease-in-out infinite alternate; }
+.tagbd.shine::after { content: '✦'; position: absolute; right: .25em; top: -.05em; font-size: .75em; color: #fff; text-shadow: 0 0 4px #fff; animation: tagstar 1.3s ease-in-out infinite; pointer-events: none; }
+@keyframes tagsweep { from { background-position: 120% 0; } to { background-position: -140% 0; } }
+@keyframes tagglow { from { box-shadow: 0 0 2px 0 rgba(255,210,63,.45); } to { box-shadow: 0 0 9px 2px rgba(255,214,90,.95); } }
+@keyframes tagstar { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(45deg); } }
+body.lite .tagbd.shine, body.lite .tagbd.shine::after { animation: none; }
 .tagbd { max-width: min(15em, calc(100vw - 120px)); overflow: hidden; text-overflow: ellipsis; display: inline-block; padding: 0 .55em; border-radius: 999px; color: #fff; font: 700 .7em/1.55 "Barlow Semi Condensed", sans-serif; letter-spacing: .04em; text-transform: uppercase; vertical-align: .1em; white-space: nowrap; }
 canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .item b { font-size: 17px; } .item small { color: var(--muted); display: block; }
@@ -1179,6 +1186,7 @@ const BADGES = {
   bd_t_gust: { g: 'Gušt', fun: true, dalm: true, tag: '#d4881f', svg: TAGB('Gušt', '#d4881f'), name: 'Natpis: Gušt', d: 'DALMATINSKI: natpis GUŠT uz ime i iznad zmije: uživanje: ova igra je čisti gušt', price: 500 },
   bd_t_bokun: { g: 'Bokun', fun: true, dalm: true, tag: '#7a8f3a', svg: TAGB('Bokun', '#7a8f3a'), name: 'Natpis: Bokun', d: 'DALMATINSKI: natpis BOKUN uz ime i iznad zmije: komadić, malo: „još bokun pa idem spat”', price: 500 },
   bd_t_neberi: { g: 'Ne beri brigu', fun: true, dalm: true, tag: '#3a7fd0', svg: TAGB('Ne beri brigu', '#3a7fd0'), name: 'Natpis: Ne beri brigu', d: 'DALMATINSKI: natpis NE BERI BRIGU uz ime i iznad zmije: ne brini: sve će doć na svoje', price: 500 },
+  bd_t_gazda: { g: 'Dobar sam sa gazdom', fun: true, tag: '#b8860b', shine: true, svg: '<span class="tagbd shine">Dobar sam sa gazdom</span>', name: 'Natpis: Dobar sam sa gazdom', d: 'POKLON SVIMA: zlatni natpis DOBAR SAM SA GAZDOM koji svijetli i blješti, uz ime i iznad zmije. Gazda ga je poklonio svim igračima.', price: 0, gift: true },
   bd_t_fala: { g: 'Fala', fun: true, dalm: true, tag: '#c25a8a', svg: TAGB('Fala', '#c25a8a'), name: 'Natpis: Fala', d: 'DALMATINSKI: natpis FALA uz ime i iznad zmije: hvala: za one koji igraju fer', price: 500 },
   bd_t_pasticada: { g: 'Pašticada 🍲', fun: true, dalm: true, tag: '#7a3b2a', svg: TAGB('Pašticada 🍲', '#7a3b2a'), name: 'Natpis: Pašticada 🍲', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: dalmatinska pašticada s njokima: nedjeljni ručak', price: 500 },
   bd_t_brudet: { g: 'Brudet 🐟', fun: true, dalm: true, tag: '#b5522e', svg: TAGB('Brudet 🐟', '#b5522e'), name: 'Natpis: Brudet 🐟', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: riblji brudet s palentom', price: 500 },
@@ -1404,12 +1412,35 @@ function showStreak(st, then) {
 }
 function welcomeBox() { if (!profile || profile.owned.includes('x_fbox') || !$('#game').hidden) return; profile.owned.push('x_fbox'); openBox('basic', true); }
 // after a login (and when a new day begins while the game is open): the streak reward first, then, once, the welcome box
+// presents from the master to every player: a free thing (price 0, so the server's wallet lets the save through), added
+// once (the x_g_ mark) for everybody, new players too; the ones who already play get one line about it
+const GIFT_ALL = [{ id: 'bd_t_gazda', mark: 'x_g_gazda' }];
+function giftAll() {
+  if (!profile) return [];
+  const got = GIFT_ALL.filter(g => !profile.owned.includes(g.mark)).map(g => ({ ...g }));
+  for (const g of got) {
+    profile.owned.push(g.mark); if (!profile.owned.includes(g.id)) profile.owned.push(g.id);
+    const worn = badgeIds(profile.eq, profile.owned); // nobody wearing a tag yet: this one goes next to the name at once
+    if (!worn.some(id => BADGES[id] && BADGES[id].tag) && worn.length < BX_MAX) { wearBadge(g.id); g.worn = true; }
+  }
+  if (got.length) { saveProfile(); renderPlayers(); renderMe(); renderShop(); }
+  return got;
+}
+function giftNote(got) {
+  for (const g of got) {
+    const b = BADGES[g.id]; if (!b || !profile) continue;
+    const n = notify(`🎁 <b>Poklon svim igračima:</b> natpis ${b.svg}${g.worn ? ' Već je uz tvoje ime.' : ''}`, { ms: 15000, actions: g.worn ? '' : `<button type="button" class="btn sm" data-wear="${g.id}">Stavi ga uz ime</button>` });
+    const w = n && n.querySelector('[data-wear]'); if (w) w.onclick = () => { if (!badgeIds(profile.eq, profile.owned).includes(g.id)) wearBadge(g.id); saveProfile(); renderPlayers(); renderMe(); n.remove(); toast('Natpis je uz tvoje ime.'); };
+  }
+}
 function dailyGreeting() {
   if (!profile || !$('#game').hidden || document.hidden) return;
+  const gifts = giftAll();
   if (!(profile.matches > 0)) return; // a new player plays first; the streak and the welcome box come after the first match
-  const m = $('#regModal'); if (m && !m.hidden) { clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
+  const m = $('#regModal'); if (m && !m.hidden) { if (gifts.length) setTimeout(() => giftNote(gifts), 5000); clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
   const st = claimStreak();
   if (st) showStreak(st, welcomeBox); else welcomeBox();
+  if (gifts.length) setTimeout(() => giftNote(gifts), st ? 7600 : 400); // after the streak line (one notice at a time)
 }
 setInterval(dailyGreeting, 15 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(dailyGreeting, 1500); });
@@ -2879,7 +2910,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'e2d894b1e24b';
+const BUILD = '578a539016f0';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3798,12 +3829,29 @@ function drawBadgeRow(c, ids, x, y, size, color) {
   if (tot + 12 < W) x = Math.max(tot / 2 + 6, Math.min(W - tot / 2 - 6, x)); y = Math.max(size, y); // never cut off at the edge of the arena
   let cx = x - tot / 2; ids.forEach((id, i) => { drawBadge(c, id, cx + ws[i] / 2, y, size, color); cx += ws[i] + gap; });
 }
+// the gold tag over the snake: it glows (pulsing), a light sweeps across it and little stars twinkle around it
+function drawShineTag(c, b, x, y, size) {
+  const now = performance.now() / 1000, t = b.g.toUpperCase(), fs = Math.max(7, Math.round(size * 0.74));
+  c.save(); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`;
+  const w = c.measureText(t).width + fs * 0.95, h = fs * 1.5, x0 = x - w / 2, y0 = y - h / 2;
+  const pill = () => { c.beginPath(); if (c.roundRect) c.roundRect(x0, y0, w, h, h / 2); else c.rect(x0, y0, w, h); };
+  const g = c.createLinearGradient(x0, y0, x0 + w, y0 + h); g.addColorStop(0, '#a87408'); g.addColorStop(0.5, '#ffd23f'); g.addColorStop(1, '#a87408');
+  c.shadowColor = 'rgba(255,214,90,.95)'; c.shadowBlur = fs * (0.6 + 0.9 * (0.5 + 0.5 * Math.sin(now * 4.5))); c.fillStyle = g; pill(); c.fill(); c.shadowBlur = 0;
+  c.save(); pill(); c.clip(); const k = (now % 2.2) / 2.2, bx = x0 - w * 0.3 + k * w * 1.6, sg = c.createLinearGradient(bx - fs, 0, bx + fs, 0);
+  sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(0.5, 'rgba(255,255,255,.8)'); sg.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = sg; c.fillRect(bx - fs, y0, fs * 2, h); c.restore();
+  c.fillStyle = '#3a2500'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06);
+  for (let i = 0; i < 3; i++) { const cyc = now * 1.1 + i / 3, ph = cyc % 1, a = Math.sin(ph * Math.PI); if (a < 0.05) continue;
+    const sx = x0 + w * ((i * 0.37 + 0.1 + Math.floor(cyc) * 0.29) % 1), sy = i === 1 ? y0 + h + fs * 0.05 : y0 - fs * 0.05, r = fs * 0.42 * a;
+    c.globalAlpha = a; c.fillStyle = '#fff'; c.beginPath(); c.moveTo(sx, sy - r); c.lineTo(sx + r * 0.22, sy - r * 0.22); c.lineTo(sx + r, sy); c.lineTo(sx + r * 0.22, sy + r * 0.22); c.lineTo(sx, sy + r); c.lineTo(sx - r * 0.22, sy + r * 0.22); c.lineTo(sx - r, sy); c.lineTo(sx - r * 0.22, sy - r * 0.22); c.closePath(); c.fill(); }
+  c.restore();
+}
 function drawBadge(c, id, x, y, size, color) {
   const b = BADGES[id]; if (!b || !b.g) return;
   if (b.anim) { drawAnim(c, b.anim, x, y, size * 1.7, performance.now() / 1000); return; }
   if (liveB(b)) { c.save(); const t = liveLabel(b), fs = Math.max(7, Math.round(size * 0.8)), lc = b.live ? liveCls(b.live) : '', now = performance.now() / 1000;
     if (lc === ' alarm' && b.live === 'bura') x += Math.sin(now * 40) * 1.5; c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.9, h = fs * 1.5; c.fillStyle = 'rgba(11,18,27,.82)'; c.strokeStyle = b.col; c.lineWidth = 1; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); if (lc) { c.strokeStyle = lc === ' live' ? '#3ddc97' : '#ff5d73'; c.lineWidth = 1.5; } c.stroke(); c.fillStyle = b.wx ? '#e6f6ff' : lc === ' live' ? '#bff5dc' : b.col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06);
     if (lc === ' live') { const a = 0.55 + 0.45 * Math.sin(now * 6); c.globalAlpha *= a; c.fillStyle = '#3ddc97'; c.beginPath(); c.arc(x - w / 2 - fs * 0.55, y, fs * 0.38, 0, 6.283); c.fill(); } c.restore(); return; }
+  if (b.tag && b.shine) { drawShineTag(c, b, x, y, size); return; }
   if (b.tag) { c.save(); const t = b.g.toUpperCase(), fs = Math.max(7, Math.round(size * 0.74)); c.font = `700 ${fs}px "Barlow Semi Condensed", sans-serif`; const w = c.measureText(t).width + fs * 0.95, h = fs * 1.5; c.fillStyle = b.tag; c.beginPath(); if (c.roundRect) c.roundRect(x - w / 2, y - h / 2, w, h, h / 2); else c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y + fs * 0.06); c.restore(); return; }
   const img = badgeImage(id, color);
   if (img && b.big) { const s2 = size * 1.5; if (img.complete && img.naturalWidth) c.drawImage(img, x - s2 / 2, y - s2 / 2, s2, s2); return; }
@@ -4641,6 +4689,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'precac', d: '2026-11-12', e: '⭐', t: 'Prečac zezalice i čista arena', x: 'Preko arene se više ništa ne ispisuje: poruke (npr. kad pokupiš pištolj), efekti i njihove sekunde su u traci iznad arene. Novo: ⭐ prečac zezalice. Odaberi ga prije meča (Moj profil → ⭐ Prečac zezalice, ili „Postavi” u predvorju), a u meču samo drži ZEZALICE 2 s: zezalica ode igraču koji vodi, a napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.', go: 'me', b: 'Postavi prečac' },
   { id: 'gorivo', d: '2026-11-11', e: '⛽', t: 'Gorivo, novi power-upovi i preglednija trgovina', x: 'Nova ikona ⛽ Cijena goriva (Eurosuper 95 i Eurodizel, HAK). Novi power-upovi: 🛡️ Štit, ❄️ Zamrzni, 🌀 Teleport i 🧲 Magnet, a u trgovini 💎 premium power-upovi (Nitro, Dijamantni štit, Ledeno doba) koji padnu samo tebi i samo ih ti vidiš. Dimna bomba sad odskakuje, stane i 13 s pušta dim. Trgovina ima samo 6 velikih gumba (Kutije, Zmija, Ikone, Zabava, Premium) s podkategorijama. Veće nagrade: 1. mjesto 100 zlatnika i 60 XP, 2. mjesto 60 i 40, 3. mjesto 40 i 25, a što je više igrača u meču, to više (8 igrača ×3). Zezalica se bira jednim dodirom i prozor se sam zatvori.', go: 'shop:pu', b: 'Pogledaj power-upove', items: ['bd_fuel', 'pp_nitro', 'pp_dia', 'pp_ice'] },
   { id: 'oruzje', d: '2026-11-11', e: '🔫', t: 'Pištolj, dimna bomba, parfem i brendovi', x: 'Jednom po rundi na ploči padne 🔫 pištolj ili 💣 dimna bomba: tko ga pokupi, koristi ga kao skok (LIJEVO + DESNO odjednom ili ↑). Metak sruši zmiju koju pogodi u glavu ili tik iza nje, dimna bomba sakrije dio arene. Novi napitak 🌸 Parfem: tko uđe u oblak, vozi upola sporije. U trgovini su i 🛍️ Brendovi (Nike, Adidas, Louis Vuitton, Gucci…). Dok zmije voze, iznad njih nema ikona: arena je čista. Za starije mobitele: 🐢 pojednostavljeni izgled u profilu.', go: 'shop:brands', b: 'Pogledaj brendove', items: ['perfume', 'bd_br_nike', 'bd_br_adidas', 'bd_br_lv', 'bd_br_gucci'] },
   { id: 'osam', d: '2026-11-11', e: '🧪', t: '8 igrača, XP kutije i napitci', x: 'U meču sad može biti do 8 zmija (nove boje: ružičasta i limeta). Što je više igrača, to su veći i zlatnici i XP. U trgovini (Kutije) su XP kutije: +500 i +1000 XP odmah. Novi napitci: 🧪 Kameleon (u online meču 15 s izgledaš kao protivnik po izboru, gumb 😈 → 🧪 Napitak) i ⚗️ dvostruki XP za sljedećih 5 mečeva.', go: 'shop:potions', b: 'Pogledaj napitke', items: ['cham', 'xpboost'] },
@@ -5033,7 +5082,7 @@ function startGame() {
   newMatch(); buildPads(); enterGame();
 }
 function toMenu() {
-  setTimeout(flushNotes, 600); igClear();
+  setTimeout(flushNotes, 600); igClear(); trollChosen = null;
   document.querySelectorAll('.jumptip').forEach(x => x.remove()); lockZoom(false);
   cancelAnimationFrame(raf); paused = false; G = null;
   if (net && net.savedSetup) { Object.assign(setup, net.savedSetup); net.savedSetup = null; } // my own settings come back after a match run on the host's rules (also after I took the match over)
