@@ -1156,6 +1156,7 @@ const BADGES = {
   bd_t_gust: { g: 'Gušt', fun: true, dalm: true, tag: '#d4881f', svg: TAGB('Gušt', '#d4881f'), name: 'Natpis: Gušt', d: 'DALMATINSKI: natpis GUŠT uz ime i iznad zmije: uživanje: ova igra je čisti gušt', price: 500 },
   bd_t_bokun: { g: 'Bokun', fun: true, dalm: true, tag: '#7a8f3a', svg: TAGB('Bokun', '#7a8f3a'), name: 'Natpis: Bokun', d: 'DALMATINSKI: natpis BOKUN uz ime i iznad zmije: komadić, malo: „još bokun pa idem spat”', price: 500 },
   bd_t_neberi: { g: 'Ne beri brigu', fun: true, dalm: true, tag: '#3a7fd0', svg: TAGB('Ne beri brigu', '#3a7fd0'), name: 'Natpis: Ne beri brigu', d: 'DALMATINSKI: natpis NE BERI BRIGU uz ime i iznad zmije: ne brini: sve će doć na svoje', price: 500 },
+  bd_t_gazda: { g: 'Dobar sam sa gazdom', fun: true, tag: '#b8860b', svg: TAGB('Dobar sam sa gazdom', '#b8860b'), name: 'Natpis: Dobar sam sa gazdom', d: 'POKLON SVIMA: natpis DOBAR SAM SA GAZDOM uz ime i iznad zmije. Gazda ga je poklonio svim igračima.', price: 0, gift: true },
   bd_t_fala: { g: 'Fala', fun: true, dalm: true, tag: '#c25a8a', svg: TAGB('Fala', '#c25a8a'), name: 'Natpis: Fala', d: 'DALMATINSKI: natpis FALA uz ime i iznad zmije: hvala: za one koji igraju fer', price: 500 },
   bd_t_pasticada: { g: 'Pašticada 🍲', fun: true, dalm: true, tag: '#7a3b2a', svg: TAGB('Pašticada 🍲', '#7a3b2a'), name: 'Natpis: Pašticada 🍲', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: dalmatinska pašticada s njokima: nedjeljni ručak', price: 500 },
   bd_t_brudet: { g: 'Brudet 🐟', fun: true, dalm: true, tag: '#b5522e', svg: TAGB('Brudet 🐟', '#b5522e'), name: 'Natpis: Brudet 🐟', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: riblji brudet s palentom', price: 500 },
@@ -1381,12 +1382,31 @@ function showStreak(st, then) {
 }
 function welcomeBox() { if (!profile || profile.owned.includes('x_fbox') || !$('#game').hidden) return; profile.owned.push('x_fbox'); openBox('basic', true); }
 // after a login (and when a new day begins while the game is open): the streak reward first, then, once, the welcome box
+// presents from the master to every player: a free thing (price 0, so the server's wallet lets the save through), added
+// once (the x_g_ mark) for everybody, new players too; the ones who already play get one line about it
+const GIFT_ALL = [{ id: 'bd_t_gazda', mark: 'x_g_gazda' }];
+function giftAll() {
+  if (!profile) return [];
+  const got = GIFT_ALL.filter(g => !profile.owned.includes(g.mark));
+  for (const g of got) { profile.owned.push(g.mark); if (!profile.owned.includes(g.id)) profile.owned.push(g.id); }
+  if (got.length) { saveProfile(); renderMe(); renderShop(); }
+  return got;
+}
+function giftNote(got) {
+  for (const g of got) {
+    const b = BADGES[g.id]; if (!b || !profile) continue;
+    const n = notify(`🎁 <b>Poklon svim igračima:</b> natpis ${b.svg}`, { ms: 15000, actions: `<button type="button" class="btn sm" data-wear="${g.id}">Stavi ga uz ime</button>` });
+    const w = n && n.querySelector('[data-wear]'); if (w) w.onclick = () => { if (!badgeIds(profile.eq, profile.owned).includes(g.id)) wearBadge(g.id); saveProfile(); renderPlayers(); renderMe(); n.remove(); toast('Natpis je uz tvoje ime.'); };
+  }
+}
 function dailyGreeting() {
   if (!profile || !$('#game').hidden || document.hidden) return;
+  const gifts = giftAll();
   if (!(profile.matches > 0)) return; // a new player plays first; the streak and the welcome box come after the first match
-  const m = $('#regModal'); if (m && !m.hidden) { clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
+  const m = $('#regModal'); if (m && !m.hidden) { if (gifts.length) setTimeout(() => giftNote(gifts), 5000); clearTimeout(dailyGreeting.t); dailyGreeting.t = setTimeout(dailyGreeting, 5000); return; } // something else is open: a little later
   const st = claimStreak();
   if (st) showStreak(st, welcomeBox); else welcomeBox();
+  if (gifts.length) setTimeout(() => giftNote(gifts), st ? 7600 : 400); // after the streak line (one notice at a time)
 }
 setInterval(dailyGreeting, 15 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(dailyGreeting, 1500); });
