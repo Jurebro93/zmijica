@@ -2932,7 +2932,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = 'adc967ee21c3';
+const BUILD = 'f686e16af798';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -6806,7 +6806,7 @@ function drawTrailHistory(th) {
 const clk = { off: null, win: [], jit: 0.02, gap: SNAP_MS / 1000, last: 0, host: null };
 function clockSample(tw) {
   const loc = performance.now() / 1000, smp = tw / 1000 - loc;
-  if (clk.host !== net.hostPeer || (clk.off != null && Math.abs(smp - clk.off) > 2)) { clk.host = net.hostPeer; clk.win = []; clk.off = null; clk.last = 0; } // a new host: a new clock
+  if (clk.host !== net.hostPeer || (clk.off != null && Math.abs(smp - clk.off) > 2)) { clk.host = net.hostPeer; clk.win = []; clk.off = null; clk.last = 0; flushAllPlay(); } // a new host: a new clock (what waits from the old one is drawn at once)
   clk.win.push([loc, smp]); while (clk.win.length && loc - clk.win[0][0] > 3) clk.win.shift();
   const best = Math.max(...clk.win.map(w => w[1])); clk.off = best;
   clk.jit = clk.jit * 0.9 + Math.min(0.3, best - smp) * 0.1; // how late snapshots come, on average, compared with the fastest
