@@ -2942,7 +2942,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '06f7d1df240b';
+const BUILD = '012d6557be05';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -5230,8 +5230,10 @@ function renderReady() {
   box.innerHTML = list.map(r => `<span class="rchip ${r.ready ? 'ok' : ''} ${r.here ? '' : 'gone'}" title="${r.here ? (r.ready ? 'spreman' : 'čeka') : 'izašao'}"><span class="dot" style="background:${r.color}"></span>${esc(r.name)} ${r.here ? (r.ready ? '✓' : '…') : '✕'}</span>`).join('');
   const b = $('#readyBtn'), meR = myPres.again === net.mid; if (b) { b.classList.toggle('isready', meR); if (!meR) b.textContent = '▶ Igraj opet'; } { const u = $('#unreadyRow'); if (u) u.hidden = !meR; }
   const present = list.filter(r => r.here), readyN = present.filter(r => r.ready).length, all = present.length > 0 && readyN === present.length;
-  if (readyN && !net.firstReadyAt) net.firstReadyAt = performance.now(); if (!readyN) net.firstReadyAt = 0;
-  const waited = readyN ? performance.now() - net.firstReadyAt : 0;
+  const newcomers = net.role === 'host' && G.over ? queueList().length : 0; // somebody came to play ("Priključi se za revanš"): that starts the clock too
+  const trig = readyN || newcomers;
+  if (trig && !net.firstReadyAt) net.firstReadyAt = performance.now(); if (!trig) net.firstReadyAt = 0;
+  const waited = trig ? performance.now() - net.firstReadyAt : 0;
   const hint = $('#readyHint'), goBtn = $('#goAgainBtn');
   if (!G.over) return;
   if (net.role !== 'host') { // guests see the same countdown (their own clock, a second or so off at most)
@@ -5245,7 +5247,7 @@ function renderReady() {
   const enough = seats >= 2 || !!setup.netBots;
   if (goBtn) goBtn.hidden = !enough || all;
   if (hint) hint.textContent = !enough ? 'Za novu igru trebaju barem 2 igrača (ili uključi „dopuni botovima” u predvorju).' : !readyN ? '' : all ? 'Svi su spremni – nova igra kreće!' : `Nova igra kreće za ${Math.max(0, Math.ceil((REMATCH_MS - waited) / 1000))} s (čekamo još: ${present.filter(r => !r.ready).map(r => r.name).join(', ')})`;
-  if (enough && readyN && (all || waited > REMATCH_MS) && !net.rematching) startRematch(800);
+  if (enough && trig && (all || waited > REMATCH_MS) && !net.rematching) startRematch(800);
 }
 function startRematch(delay) {
   if (!net || net.role !== 'host' || !G || !G.over || net.rematching) return;
@@ -5410,12 +5412,12 @@ function renderOnbarNow() {
   const bar = $('#onbar'); if (!bar) return;
   if (!roomNs) { bar.className = 'onhero empty'; bar.innerHTML = `<div class="row1"><div class="count"><span class="dotlive"></span><span>${roomState.resolved ? 'Online soba trenutno nije dostupna.<small>Osvježi stranicu za novi pokušaj. Do tada možeš igrati s botovima.</small>' : 'Spajanje na online sobu…'}</span></div></div>`; renderBotNote(0); return; }
   const others = onlineOthers(), n = others.length;
-  const host = liveHost(), hostOther = host && !(host.isMe && host.sameTab);
+  const host = joinableHost(), hostOther = host && !(host.isMe && host.sameTab), hostDone = !!host && Number(host.presence.ho) > 0;
   const inLobby = lobbyPlayers().filter(p => !(p.isMe && p.sameTab)).length;
   bar.className = 'onhero' + (n ? '' : ' empty');
   const people = others.slice(0, 8).map(p => { const pr = p.presence; const wait = social.pingSent[p.peer] && performance.now() - social.pingSent[p.peer] < 15000; return `<span class="onp" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="width:9px;height:9px;border-radius:50%;background:${COLORS[Number(pr.cl)] || COLORS[0]}"></span>${esc(String(pr.nm).slice(0, 14))}${badgesHtml(presBadges(pr))} <span class="st">${peerStatus(pr)}</span>${canWatch(pr) ? `<button class="pingbtn watchbtn" type="button" data-watch="${esc(p.peer)}">👀 Gledaj</button>` : ''}${pr.rd || pr.st || pr.ig ? '' : `<button class="pingbtn" type="button" data-peer="${esc(p.peer)}" ${wait || !profile ? 'disabled' : ''}>${wait ? 'pozvan' : 'Pozovi'}</button>`}</span>`; }).join('') + (n > 8 ? `<span class="st">+${n - 8}</span>` : '');
   const sub = !n ? 'Nitko drugi trenutno nije ovdje. Pozovi prijatelje, a do tada igraj s botovima.'
-    : hostOther ? `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`
+    : hostOther ? (hostDone ? `${esc(String(host.presence.nm || ''))} je na kraju meča. Priključi se, revanš kreće s tobom!` : `Meč je u tijeku (domaćin ${esc(String(host.presence.nm || ''))}). Priključi se!`)
     : !host && liveHosts().some(h => !hostOver(h)) ? 'Meč koji se igra je pun. Ne moraš čekati: kreni odmah, a ostali ti se pridruže.'
     : inLobby ? `${inLobby} ${inLobby >= 2 && inLobby <= 4 ? 'čekaju' : 'čeka'} u predvorju. Uđi i krenite!`
     : 'Uđi u predvorje i pozovi ih, puno je zabavnije od botova.';
@@ -5423,7 +5425,7 @@ function renderOnbarNow() {
   const mainBtn = !profile ? `<button class="btn go-online" type="button" id="goOnlineBtn">Prijavi se i igraj online</button>`
     : roomState.ready && !hostOther && inLobby ? (() => { const ls = lobbyState(), cd = lobbyLeft(); return `<button class="btn go-online join" type="button" id="startNowBtn">${myPres.ok ? (cd >= 0 ? '⏳ Spreman si · meč kreće za <span class="lobbycd">' + cd + '</span> s' : '⏳ Spreman si · čekamo ostale') : (cd >= 0 ? '✅ Spreman za meč · kreće za <span class="lobbycd">' + cd + '</span> s' : '✅ Spreman za meč')} (${ls.k}/${ls.n})</button>${ls.canGo ? `<button class="btn go-now" type="button" id="goNowBtn" title="Meč kreće odmah s onima koji su spremni; ostali ulaze od sljedeće runde">▶ Kreni odmah${ls.k < 2 ? ' s botovima' : ''}</button>` : ''}`; })()
     : roomState.ready && !hostOther ? `<button class="btn go-online join" type="button" id="goNowBtn">✅ Spreman · ▶ Kreni s botovima</button>`
-    : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? '🌐 Priključi se meču' : '🌐 Igraj online'}</button>`;
+    : `<button class="btn go-online ${hostOther ? 'join' : ''}" type="button" id="goOnlineBtn">${hostOther ? (hostDone ? '🌐 Priključi se za revanš' : '🌐 Priključi se meču') : '🌐 Igraj online'}</button>`;
   const second = `<button class="btn go-bots" type="button" id="heroBots">🤖 S botovima</button>${!n ? '<button class="linkbtn" type="button" id="heroInvite">📲 Pozovi prijatelje</button>' : ''}`;
   const recent = recentPlayers(new Set(others.map(p => p.presence.sl).filter(Boolean)));
   // recently online: a plain list, one tidy row each (dot, name, icons cut to fit, when, Pozovi at the right edge)
@@ -5443,7 +5445,7 @@ function renderOnbarNow() {
   if ($('#goOnlineBtn')) $('#goOnlineBtn').onclick = () => {
     if (!profile) { showLogin(); return; }
     goOnlineLobby();
-    const h = liveHost(); if (h && !(h.isMe && h.sameTab) && !net && !iAmKicked()) { if (!myPres.ok) netPresence({ ok: 1 }); joinHost(h); toast('Ulaziš u meč čim se oslobodi mjesto (umjesto bota ili od sljedeće runde).'); }
+    const h = joinableHost(); if (h && !(h.isMe && h.sameTab) && !net && !iAmKicked()) { if (!myPres.ok) netPresence({ ok: 1 }); joinHost(h); toast(Number(h.presence.ho) > 0 ? 'Ulaziš k njima: igraš od revanša.' : 'Ulaziš u meč čim se oslobodi mjesto (umjesto bota ili od sljedeće runde).'); }
   };
   if ($('#heroInvite')) $('#heroInvite').onclick = () => shareInvite();
   if ($('#heroBots')) $('#heroBots').onclick = () => quickBots();
@@ -6266,6 +6268,10 @@ function hostConflict() {
 }
 // the match I could still join: the one that concerns me, unless it has been sitting on its results for a long time
 function liveHost() { return pickHost(liveHosts().filter(h => !hostOver(h))); }
+// what the home card offers to join: a match being played, or else one whose players are on its results (its rematch),
+// unless they have been sitting there for minutes (then they are probably gone, and a new match is offered instead)
+const RESULTS_JOIN_S = 180;
+function joinableHost() { return liveHost() || pickHost(liveHosts().filter(h => Number(h.presence.ho) < RESULTS_JOIN_S)); }
 function renderNet() {
   const box = $('#net'); if (!box) return;
   if (!roomNs && roomState.resolved) {
