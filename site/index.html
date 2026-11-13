@@ -304,6 +304,7 @@ body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !import
 .hotbar .ms b { color: var(--amber); }
 .igmsg { flex: 1; min-width: 0; max-height: 100%; box-sizing: border-box; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; background: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--all); border-radius: 9px; padding: 3px 9px; font-size: 13px; line-height: 1.25; animation: noteIn .2s ease-out; }
 .igmsg.warn { border-left-color: var(--amber); }
+.banner .tiebrk { color: var(--amber); font-size: 16px; margin: 4px 0; }
 .profile { width: min(100%, 520px) !important; max-height: calc(100dvh - 40px); overflow-y: auto; }
 .phead { display: flex; align-items: center; gap: 12px; min-width: 0; } .phead > div { min-width: 0; flex: 1 1 auto; } .phead .av { flex: none; } .phead h3 { overflow-wrap: anywhere; } .phead h3 .badges { display: flex; flex-wrap: wrap; margin: 4px 0 0; }
 @media (max-width: 520px) { .phead { flex-direction: column; text-align: center; gap: 8px; } .phead > div { width: 100%; } .phead h3 .badges { justify-content: center; } } /* a phone: the letter on top, name and icons centred under it */
@@ -909,7 +910,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
               <li>Iza sebe ostavljaš trag. Udariš li u bilo čiji trag ili u zid, ispadaš.</li>
               <li>U tragu se povremeno otvori rupa kroz koju se može provući.</li>
               <li>Kad netko ispadne, svi koji su još živi dobiju 1 bod.</li>
-              <li>Meč ima točno toliko rundi koliko je odabrano (3, 5, 7 ili 10); pobjeđuje tko na kraju ima najviše bodova, kod izjednačenja odlučuju rušenja.</li>
+              <li>Meč ima toliko rundi koliko je odabrano (3, 5, 7 ili 10); pobjeđuje tko na kraju ima najviše bodova. Ako su prvi izjednačeni, igra se ⚔️ odlučujuća runda (najviše tri zaredom; ako je i dalje isto, odlučuju rušenja).</li>
               <li><b>Skok</b> preleti preko tragova, puni se 5 sekundi. Na mobitelu pritisni <b>LIJEVO i DESNO odjednom</b>.</li>
               <li><b>Sužavanje</b>: nakon 20 s arena se počne stezati.</li>
               <li><b>Zlatnici</b> dobivaš po plasmanu na kraju meča i trošiš ih u trgovini.</li>
@@ -2559,7 +2560,7 @@ function renderSettings() {
   add('Pištolj i dimna bomba', seg([[true, 'Uključeni'], [false, 'Isključeni']], setup.weapons !== false, upd('weapons')), 'Jednom po rundi negdje na ploči padne 🔫 pištolj ili 💣 dimna bomba. Tko ga pokupi, koristi ga kao skok: LIJEVO i DESNO odjednom (ili ↑). Metak sruši zmiju koju pogodi u glavu ili blizu nje; dimna bomba odskakuje, stane i pušta dim koji 13 s sakrije dio arene.');
   add('Brzina', seg([['sporo', 'Sporo'], ['normalno', 'Normalno'], ['brzo', 'Brzo']], setup.speed, upd('speed')), 'Brzina svih zmija. Sporo je najlakše za početnike i za mobitel.');
   { const d = document.createElement('div'); d.className = 'setting'; d.innerHTML = `<button type="button" class="btn" id="rulesSave">💾 Spremi kao pravila za sve igrače</button><span class="hint">${roleState.rules ? 'Svi mečevi sad idu po spremljenim pravilima.' : 'Dok ne spremiš, svatko igra po svojim postavkama.'}</span>`; setTimeout(() => { const b = $('#rulesSave'); if (b) b.onclick = async () => { const rules = {}; for (const k of RULE_KEYS) if (setup[k] !== undefined) rules[k] = k === 'puEnabled' ? Object.assign({}, setup[k]) : setup[k]; if (typeof rules.rounds === 'number') rules.rounds = String(rules.rounds); const j = await roleCall('rules', { rules }); if (j && j.ok) { roleState.rules = j.rules; toast('✅ Pravila spremljena: svi mečevi idu po njima.'); renderSettings(); } }; }, 0); box.appendChild(d); }
-  add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima točno toliko rundi. Na kraju pobjeđuje tko ima najviše bodova (kod istog broja odlučuju rušenja), svi dobiju zlatnike po plasmanu i biraju novu igru.');
+  add('Broj rundi', seg([['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], String(setup.rounds || '5'), upd('rounds')), 'Meč ima toliko rundi. Na kraju pobjeđuje tko ima najviše bodova. Ako su prvi izjednačeni, igra se odlučujuća runda (najviše tri; ako je i dalje isto, odlučuju rušenja). Svi dobiju zlatnike po plasmanu i biraju novu igru.');
 }
 function renderLegend() {
   const box = $('#legend'); box.innerHTML = '';
@@ -2941,7 +2942,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '910bfefac911';
+const BUILD = '9c364f482343';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -4211,6 +4212,9 @@ function endRound(winner) {
   sfx.round(); if (winner && winner.vs) victoryFx(winner);
   const sorted = ranking();
   const top = sorted[0], second = sorted[1];
+  if (G.round >= G.target && !teamsOn() && top && second && top.score === second.score && (G.tb || 0) < TIEBREAK_MAX) { // level at the top: a deciding round
+    G.tb = (G.tb || 0) + 1; G.target = G.round + 1; G.winner = winner ? winner.id : null; hudDirty = true; showRoundBanner(); return;
+  }
   if (G.round >= G.target) { if (TMODE && net && net.role === 'host') reportTour(ranking()); setTimeout(refundBounties, 800); G.over = true; makeDrop(); G.rank = sorted.map(p => p.id); G.winner = winner ? winner.id : null; reportMatch(sorted); const g = G; setTimeout(() => { if (G === g) showResults(); }, 900); return; }
   G.winner = winner ? winner.id : null;
   showRoundBanner();
@@ -4223,14 +4227,16 @@ function reportMatch(sorted) {
   const players = sorted.map((p, i) => ({ name: p.name, slug: p.mine && profile ? profile.slug : (p.slug || null), human: !!p.human, place: i + 1, score: p.score, wins: p.wins, kills: p.kills }));
   fetch(API_BASE + '/matches', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mid, slug: profile ? profile.slug : null, auth: profile ? (profile.pinHash || '') : '', mode: net ? 'online' : 'local', rounds: G.target, players, kx: Object.entries(G.kx || {}).map(([k, n]) => [...k.split('>'), n]) }) }).catch(() => {});
 }
+const TIEBREAK_MAX = 3; // deciding rounds in a row at most; still level after them, the knock-outs decide
+const tieNames = () => { const r = ranking(), s = r[0] ? r[0].score : 0; return r.filter(p => p.score === s).map(p => esc(p.name)); };
 function showRoundBanner() {
   const winner = G.players.find(p => p.id === G.winner) || null;
   const top = ranking()[0];
-  const lead = G.round === G.target - 1 ? '<p>Sljedeća runda je zadnja.</p>' : '';
+  const lead = G.tb && G.round === G.target - 1 ? `<p class="tiebrk">⚔️ <b>Izjednačeno!</b> ${tieNames().join(' i ')} imaju isto bodova: igra se <b>odlučujuća runda</b>.</p>` : G.round === G.target - 1 ? '<p>Sljedeća runda je zadnja.</p>' : '';
   const hostOnly = net && net.role === 'client';
   const rows = ranking().map(p => { const gain = p.score - (p.roundStart || 0); const w = Math.min(100, Math.round(100 * p.score / Math.max(1, top.score))); return `<div class="rrow ${p.alive ? '' : 'dead'}"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${p.color}"></span><span class="nm"><span>${esc(p.name)}</span></span><span class="sc">${p.score}${gain > 0 ? '<span class="gain">+' + gain + '</span>' : ''}</span><span class="bar"><i style="width:${w}%;background:${p.color}"></i></span></div>`; }).join('');
   const teamWin = G.winTeam != null ? `<h3 style="color:${TEAM_C[G.winTeam]}">Tim ${TEAM_N[G.winTeam]} pobjeđuje!</h3><p>${G.players.filter(p => p.team === G.winTeam).map(p => esc(p.name)).join(' & ')}</p>` : '';
-  showOverlay(`<div class="banner lap">${teamWin || `<h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? '👑 ' + esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>`}${lead}<div class="rres">${rows}</div><p>Runda ${G.round} od ${G.target} · sljedeća za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div></div>`);
+  showOverlay(`<div class="banner lap">${teamWin || `<h3 style="color:${winner ? winner.color : 'var(--fg)'}">${winner ? '👑 ' + esc(winner.name) + ' preživljava' : 'Nitko ne preživljava'}</h3>`}${lead}<div class="rres">${rows}</div><p>${G.tb && G.round === G.target - 1 ? 'Odlučujuća runda' : `Runda ${G.round} od ${G.target} · sljedeća`} za <b id="cd">${ROUND_PAUSE}</b> s</p><div class="row">${hostOnly ? '' : '<button class="btn" id="nextBtn">Odmah dalje</button>'}</div></div>`);
   if (!hostOnly) $('#nextBtn').onclick = () => nextRound();
 }
 function tickCountdown() {
@@ -4541,7 +4547,7 @@ function render() {
     ctx.font = `400 ${Math.min(W, H) * 0.16}px Bungee, Impact, sans-serif`;
     ctx.fillStyle = 'rgba(233,239,246,0.9)'; ctx.fillText(n > 0 ? String(n) : '', W / 2, H / 2);
     ctx.font = '600 18px "Barlow Semi Condensed", sans-serif'; ctx.fillStyle = '#8396ab';
-    ctx.fillText(G.round === G.target ? `Zadnja runda (${G.round}/${G.target})` : `Runda ${G.round} od ${G.target}`, W / 2, H / 2 + Math.min(W, H) * 0.12);
+    ctx.fillText(G.tb && G.round === G.target ? '⚔️ Odlučujuća runda: izjednačeno je' : G.round === G.target ? `Zadnja runda (${G.round}/${G.target})` : `Runda ${G.round} od ${G.target}`, W / 2, H / 2 + Math.min(W, H) * 0.12);
   }
   if (G.pz && G.phase === 'run') {
     ctx.save(); ctx.fillStyle = 'rgba(8,13,20,0.55)'; ctx.fillRect(0, 0, W, H); ctx.restore(); // why it stands: in the top bar
@@ -4613,7 +4619,7 @@ function renderHud() {
     c.innerHTML = `<span class="dot" style="background:${dispColor(p)}"></span><span>${esc(p.name)}${badgesHtml(pBadges(p))}</span>${rr ? '<span class="re">' + rr.e + '</span>' : ''}<span class="sc">${p.score}</span>`;
     box.appendChild(c);
   });
-  $('#target').textContent = `runda ${Math.max(1, G.round)}/${G.target}` + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
+  $('#target').textContent = (G.tb && G.round === G.target ? '⚔️ odlučujuća' : `runda ${Math.max(1, G.round)}/${G.target}`) + (net ? (net.role === 'host' ? ' · domaćin' : ' · online') : '');
 }
 
 // ---------- loop ----------
@@ -6762,7 +6768,7 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, tw: Math.round(performance.now()), te: TH.tvE, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+  return { W, H, tw: Math.round(performance.now()), te: TH.tvE, tb: G.tb || undefined, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
     pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
@@ -6848,7 +6854,8 @@ function applyState(st, first) {
   const prevPhase = G.phase;
   G.pz = st.pz || null; if ((st.bg || '') !== (G.bg || '')) { G.bg = st.bg || ''; drawBg(); } G.winTeam = st.wt >= 0 ? st.wt : null;
   if (st.ix && st.ph === 'count') { const key = JSON.stringify(st.ix); if (G.introKey !== key) { G.introKey = key; G.intro = st.ix; G.introDone = {}; G.introLen = st.ix.reduce((a, e) => Math.max(a, e.s + e.d + ENTER_BANNER), 0); } G.introT = st.it || 0; runIntro(); } else if (st.ph !== 'count') { G.intro = null; G.introKey = ''; }
-  Object.assign(G, { round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
+  if ((st.tb || 0) !== (G.tb || 0)) hudDirty = true;
+  Object.assign(G, { tb: st.tb || 0, round: st.r, phase: st.ph, phaseT: st.pt, gt: st.gt, inset: st.in, wrapAllUntil: st.wa, target: st.tg, ff: !!st.ff, over: !!st.ov, winner: st.wn, rank: st.rk });
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3], own: u[4] != null && u[4] >= 0 ? u[4] : null })).filter(u => POWERUPS[u.k]);
   G.wpick = Array.isArray(st.wk) && WEAPONS[st.wk[0]] ? { k: st.wk[0], x: Number(st.wk[1]) || 0, y: Number(st.wk[2]) || 0 } : null;
   { const ns = Array.isArray(st.sh) ? st.sh.map(x => ({ x: Number(x[0]) || 0, y: Number(x[1]) || 0, a: Number(x[2]) || 0 })) : []; if (ns.length > (G.shots || []).length) beep(190, 0.12, 'square', 0.09, -120); G.shots = ns; }
