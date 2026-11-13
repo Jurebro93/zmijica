@@ -5611,7 +5611,7 @@ function factTipMaybe() {
   if (igCur && box && box.contains(igCur)) { if (!igCur.classList.contains('fact')) return; igCur.remove(); igCur = null; clearTimeout(igT); } // last round's fact makes room
   const f = nextFact(G.cdFact); if (!f) return; G.cdFact = f; const got = markFact(f);
   showIgMsg(`💡 <b>Znaš li?</b> ${factHtml(f)}`, false, true, { cls: 'fact', ms: Math.max(5000, countLen() * 1000 + 2200) });
-  if (got) { const T = FACT_TOPICS[got]; showIgMsg(`🎉 Album ${T.e} ${esc(T.n)} je pun: natpis ${BADGES[T.r].svg} je tvoj (Moj profil).`, false, true, { cls: 'fact' }); }
+  if (got) { const T = FACT_TOPICS[got]; showIgMsg(`🎉 Album ${T.e} ${esc(T.n)} je pun: natpis ${BADGES[T.r].svg} je tvoj (Moj profil).`, false, true, { cls: 'fact keep' }); }
 }
 // the results: a fact the countdown did not show
 function factCardInner(f) {
@@ -6228,8 +6228,9 @@ function showIgMsg(html, warn, force, opt) { // opt: {cls, ms}
   if (inMatch() && !warn && !force) return;
   igLog.push(html); if (igLog.length > 12) igLog.shift();
   const box = $('#igMsgs'); if (!box) { notify(html, { ms: 5000 }); return; }
-  if (igCur && box.contains(igCur)) {
-    if (!(warn && !igCur.classList.contains('warn'))) { if (!igQ.some(q => q[0] === html)) igQ.push([html, warn, opt]); if (igQ.length > 3) igQ.shift(); return; }
+  if (igCur && box.contains(igCur)) { // a fact is the least important line: anything that is not a fact pushes it aside at once
+    const factUp = igCur.classList.contains('fact') && !igCur.classList.contains('keep'), isFact = !!(opt && /\bfact\b/.test(opt.cls || ''));
+    if (!(factUp && !isFact) && !(warn && !igCur.classList.contains('warn'))) { if (!igQ.some(q => q[0] === html)) igQ.push([html, warn, opt]); if (igQ.length > 3) igQ.shift(); return; }
   }
   igShow(html, warn, opt);
 }
