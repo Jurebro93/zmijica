@@ -1881,7 +1881,7 @@ function showProfile() {
     ${levelHtml(P)}
     ${achBtnHtml(P)}
     <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Jednostavan izbornik (samo najvažnije) i lakša grafika u meču, za starije mobitele. Samo na ovom uređaju.</small></div>
-    <div class="litebox hotbox" id="hotBox"><b>⭐ Prečac zezalice</b><small class="hint">Odaberi ga ovdje, prije meča. U meču samo drži <b>ZEZALICE 2 s</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti.</small>${hotChipsHtml()}</div>
+    <div class="litebox hotbox" id="hotBox"><b>⭐ Prečac zezalice</b><small class="hint">Odaberi ga ovdje, prije meča. U meču samo <b>dvaput brzo dodirni ZEZALICE</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti.</small>${hotChipsHtml()}</div>
     <details class="garder" ${LITE ? '' : 'open'}><summary><h4>${LITE ? '👕 ' : ''}Garderoba <small>dodirni da promijeniš</small></h4></summary>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikone uz ime <small>do ${BX_MAX} odjednom, poredane u red (broj = redoslijed). Dodirni da dodaš ili skineš</small></span><div class="wrow">${worn.length ? '<button type="button" class="wchip" data-kind="badgeclear" data-id="">✕<span>Skini sve</span></button>' : ''}${ownedBadges.filter(k => k !== 'bd_none').map(k => `<button type="button" class="wchip ${worn.includes(k) ? 'on' : ''}" data-kind="badge" data-id="${k}"><em>${badgeGlyph(k) || '—'}</em><span>${esc(BADGES[k].name)}</span>${worn.includes(k) ? '<i>' + (worn.indexOf(k) + 1) + '</i>' : ''}</button>`).join('') || '<span class="hint">nemaš ikona: kupi u Trgovini (Ikone, Vrijeme, Kripto…)</span>'}</div>
@@ -4708,8 +4708,9 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'dvoklik', d: '2026-11-13', e: '⚡', t: 'Dvoklik za zezalicu, glatkije kretanje i odlučujuća runda', x: 'Prečac zezalice sad ide dvoklikom: u Moj profil → ⭐ Prečac zezalice odaberi zezalicu ili napitak, a u meču samo dvaput brzo dodirni ZEZALICE (zezalica ode igraču koji vodi). Protivnici se kreću glatko i bez trzanja, a zavoji su obliji. Kad je na kraju meča izjednačeno za prvo mjesto, igra se ⚔️ odlučujuća runda.', go: 'me', b: 'Postavi prečac' },
   { id: 'pica', d: '2026-11-12', e: '🍻', t: 'Pića uz ime', x: 'U trgovini (Ikone → Brendovi) je nova polica 🍻 Pića: ikone 🍺 pive, 🥃 rakije, 🍷 vina, 🥂 šampanjca i 🍸 koktela uz ime, i natpisi poznatih marki: Ožujsko, Karlovačko, Heineken, Guinness, Corona, Pelinkovac, Maraschino, Aperol, Jägermeister, Jack Daniel\'s, Moët i Dom Pérignon (samo ime u boji marke, ne službeni logo).', go: 'shop:brands', b: 'Pogledaj pića', items: ['bd_dr_beer', 'bd_dr_rakija', 'bd_dr_bottle', 'bd_dr_ozujsko', 'bd_dr_karlovacko', 'bd_dr_moet'] },
-  { id: 'precac', d: '2026-11-12', e: '⭐', t: 'Prečac zezalice i čista arena', x: 'Preko arene se više ništa ne ispisuje: poruke (npr. kad pokupiš pištolj), efekti i njihove sekunde su u traci iznad arene. Novo: ⭐ prečac zezalice. Odaberi ga prije meča (Moj profil → ⭐ Prečac zezalice, ili „Postavi” u predvorju), a u meču samo drži ZEZALICE 2 s: zezalica ode igraču koji vodi, a napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.', go: 'me', b: 'Postavi prečac' },
+  { id: 'precac', d: '2026-11-12', e: '⭐', t: 'Prečac zezalice i čista arena', x: 'Preko arene se više ništa ne ispisuje: poruke (npr. kad pokupiš pištolj), efekti i njihove sekunde su u traci iznad arene. Novo: ⭐ prečac zezalice. Odaberi ga prije meča (Moj profil → ⭐ Prečac zezalice, ili „Postavi” u predvorju), a u meču samo dvaput brzo dodirni ZEZALICE: zezalica ode igraču koji vodi, a napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.', go: 'me', b: 'Postavi prečac' },
   { id: 'gorivo', d: '2026-11-11', e: '⛽', t: 'Gorivo, novi power-upovi i preglednija trgovina', x: 'Nova ikona ⛽ Cijena goriva (Eurosuper 95 i Eurodizel, HAK). Novi power-upovi: 🛡️ Štit, ❄️ Zamrzni, 🌀 Teleport i 🧲 Magnet, a u trgovini 💎 premium power-upovi (Nitro, Dijamantni štit, Ledeno doba) koji padnu samo tebi i samo ih ti vidiš. Dimna bomba sad odskakuje, stane i 13 s pušta dim. Trgovina ima samo 6 velikih gumba (Kutije, Zmija, Ikone, Zabava, Premium) s podkategorijama. Veće nagrade: 1. mjesto 100 zlatnika i 60 XP, 2. mjesto 60 i 40, 3. mjesto 40 i 25, a što je više igrača u meču, to više (8 igrača ×3). Zezalica se bira jednim dodirom i prozor se sam zatvori.', go: 'shop:pu', b: 'Pogledaj power-upove', items: ['bd_fuel', 'pp_nitro', 'pp_dia', 'pp_ice'] },
   { id: 'oruzje', d: '2026-11-11', e: '🔫', t: 'Pištolj, dimna bomba, parfem i brendovi', x: 'Jednom po rundi na ploči padne 🔫 pištolj ili 💣 dimna bomba: tko ga pokupi, koristi ga kao skok (LIJEVO + DESNO odjednom ili ↑). Metak sruši zmiju koju pogodi u glavu ili tik iza nje, dimna bomba sakrije dio arene. Novi napitak 🌸 Parfem: tko uđe u oblak, vozi upola sporije. U trgovini su i 🛍️ Brendovi (Nike, Adidas, Louis Vuitton, Gucci…). Dok zmije voze, iznad njih nema ikona: arena je čista. Za starije mobitele: 🐢 pojednostavljeni izgled u profilu.', go: 'shop:brands', b: 'Pogledaj brendove', items: ['perfume', 'bd_br_nike', 'bd_br_adidas', 'bd_br_lv', 'bd_br_gucci'] },
   { id: 'osam', d: '2026-11-11', e: '🧪', t: '8 igrača, XP kutije i napitci', x: 'U meču sad može biti do 8 zmija (nove boje: ružičasta i limeta). Što je više igrača, to su veći i zlatnici i XP. U trgovini (Kutije) su XP kutije: +500 i +1000 XP odmah. Novi napitci: 🧪 Kameleon (u online meču 15 s izgledaš kao protivnik po izboru, gumb 😈 → 🧪 Napitak) i ⚗️ dvostruki XP za sljedećih 5 mečeva.', go: 'shop:potions', b: 'Pogledaj napitke', items: ['cham', 'xpboost'] },
@@ -4973,7 +4974,14 @@ function buildPads() {
       const tools = document.createElement('div'); tools.className = 'padtools';
       const mkTool = (cls, glyph, label, short) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ptool ' + cls; b.innerHTML = `<span class="tg">${glyph}</span><span class="tl">${short}</span>`; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('contextmenu', e => e.preventDefault()); return b; };
       const openTab = (t) => (e) => { e.stopPropagation(); jumpReminder(); $('#reactPop').hidden = true; const pop = $('#trollPop'); if (!pop.hidden && trollTab === t) { pop.hidden = true; return; } trollTab = t; pop.hidden = false; renderTrollPop(); };
-      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); holdButton(zb, HOLD_FIRE, () => { $('#trollPop').hidden = true; buzz(25); fireHotKey(); }, (e) => open(e)); } // a tap: the panel; held 2 s: the hotkey
+      const zb = mkTool('prank', '😈', 'Zezalice', 'ZEZALICE'); { const open = openTab('z'); let last = 0, wait = 0; // one tap: the panel; two quick taps: the hotkey (no panel)
+        tapButton(zb, (e) => {
+          const now = performance.now();
+          if (hotKey() && now - last < DOUBLE_MS) { clearTimeout(wait); last = 0; $('#trollPop').hidden = true; buzz(25); fireHotKey(); return; }
+          last = now; clearTimeout(wait);
+          if (!hotKey() || !$('#trollPop').hidden) { open(e); return; } // no hotkey (or the panel is open: the tap closes it) - at once
+          wait = setTimeout(() => open(e), DOUBLE_MS); // a hotkey is set: wait a moment for a second tap before opening the panel
+        }); }
       const cb = mkTool('chat', '💬', 'Chat', 'Chat'); cb.onclick = openTab('c');
       const mb = mkTool('mic', '🎤', 'Glasovna poruka: drži dok govoriš, pusti za slanje', 'GLAS'); mb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const id = e.pointerId; try { mb.setPointerCapture(id); } catch (er) {} clearTimeout(mb._hold); voiceHint('wait'); mb._hold = setTimeout(() => { mb._hold = 0; startVoice(mb, id); }, 250); });
       const mbUp = (e) => { if (mb._hold) { clearTimeout(mb._hold); mb._hold = 0; voiceHint('short'); return; } voiceUp(e); }; mb.addEventListener('pointerup', mbUp); mb.addEventListener('pointercancel', mbUp);
@@ -7309,8 +7317,17 @@ $('#start').onclick = startGame;
 document.addEventListener('selectstart', (e) => { if (!$('#game').hidden && !(e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); });
 $('#game').addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault(); });
 let trollPick = null, trollChosen = null; // trollChosen: tapped in the panel in this match (the hotkey goes there)
-// the hotkey: a prank or a potion. Hold one for 3 s in the ZEZALICE panel to choose it; in a match, hold ZEZALICE 2 s.
-const HOLD_SET = 3000, HOLD_FIRE = 2000;
+// the hotkey: a prank or a potion. Chosen in the profile (or held 3 s in the ZEZALICE panel); in a match, two quick taps on ZEZALICE.
+const HOLD_SET = 3000, DOUBLE_MS = 320;
+// a tap that fires at once on the finger lifting (no click delay, no double-tap zoom, no long-press menu)
+function tapButton(b, onTap) {
+  let down = false;
+  const start = (e) => { down = true; if (e.cancelable && e.type === 'touchstart') e.preventDefault(); e.stopPropagation(); };
+  const end = (e) => { if (!down) return; down = false; if (e.cancelable) e.preventDefault(); e.stopPropagation(); onTap(e); };
+  b.addEventListener('touchstart', start, { passive: false }); b.addEventListener('touchend', end, { passive: false }); b.addEventListener('touchcancel', () => { down = false; });
+  b.addEventListener('mousedown', start); b.addEventListener('mouseup', end); b.addEventListener('mouseleave', () => { down = false; });
+  b.addEventListener('contextmenu', (e) => e.preventDefault()); b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); };
+}
 function hotKey() { const raw = lsGet('vijuga-hotkey'); if (raw) { try { const o = JSON.parse(raw); if (o && (o.k === 'perf' || o.k === 'cham' || (o.k === 'troll' && TROLLS[o.id]))) return o; } catch (e) {} return null; } const old = lsGet('vijuga-hotprank'); return old && TROLLS[old] ? { k: 'troll', id: old } : null; }
 function clearHotKey() { lsSet('vijuga-hotkey', 'null'); toast('⭐ Prečac je maknut.'); renderHotBadge(); }
 const sameHot = (a, b) => !!a && !!b && a.k === b.k && (a.k !== 'troll' || a.id === b.id);
@@ -7334,7 +7351,7 @@ function wireHotChips(root, after) {
 function showHotPicker() {
   document.querySelectorAll('.hotov').forEach(x => x.remove());
   const ov = document.createElement('div'); ov.className = 'achov hotov';
-  const draw = () => { ov.innerHTML = `<div class="achcard infocard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>⭐ Prečac zezalice</h3><p class="hint" style="margin:0">Dodirni zezalicu ili napitak. U meču onda samo <b>drži ZEZALICE 2 s</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.</p>${hotChipsHtml()}<div class="row"><button type="button" class="btn" data-close>Gotovo</button></div></div>`;
+  const draw = () => { ov.innerHTML = `<div class="achcard infocard" role="dialog" aria-modal="true"><button type="button" class="mclose" aria-label="Zatvori">×</button><h3>⭐ Prečac zezalice</h3><p class="hint" style="margin:0">Dodirni zezalicu ili napitak. U meču onda samo <b>dvaput brzo dodirni ZEZALICE</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.</p>${hotChipsHtml()}<div class="row"><button type="button" class="btn" data-close>Gotovo</button></div></div>`;
     wireHotChips(ov, () => { draw(); renderOnbar(); if (curTab === 'online') renderNet(); }); ov.querySelector('.mclose').onclick = () => ov.remove(); ov.querySelector('[data-close]').onclick = () => ov.remove(); };
   ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
   draw(); document.body.appendChild(ov);
@@ -7342,18 +7359,18 @@ function showHotPicker() {
 const hasHotStuff = () => !!profile && hotChoices().length > 0;
 function hotBarHtml() {
   if (!hasHotStuff()) return ''; const h = hotKey();
-  return `<div class="meetbar hotbar"><span class="mt">⭐ <b>Prečac zezalice</b> <span class="ms">${h ? `<b>${esc(hotLabel(h))}</b> · u meču drži ZEZALICE 2 s` : 'nije postavljen: odaberi ga sad, u meču nema vremena'}</span></span><button type="button" class="btn sm" data-hotpick>${h ? 'Promijeni' : 'Postavi'}</button></div>`;
+  return `<div class="meetbar hotbar"><span class="mt">⭐ <b>Prečac zezalice</b> <span class="ms">${h ? `<b>${esc(hotLabel(h))}</b> · u meču 2× brzo dodirni ZEZALICE` : 'nije postavljen: odaberi ga sad, u meču nema vremena'}</span></span><button type="button" class="btn sm" data-hotpick>${h ? 'Promijeni' : 'Postavi'}</button></div>`;
 }
 // once per match, at the first countdown (above the arena): how to set it up, or what it is
 function hotTipMaybe() {
   if (!G || G.hkTip || !net || G.phase !== 'count' || G.round > 1 || $('#game').hidden || !hasHotStuff()) return;
-  G.hkTip = 1; const h = hotKey(), key = h ? 'vijuga-hktip2' : 'vijuga-hktip', n = Number(lsGet(key) || 0); if (n >= (h ? 3 : 5)) return; lsSet(key, String(n + 1));
-  showIgMsg(h ? `⭐ Prečac: <b>${esc(hotLabel(h))}</b>. U igri drži ZEZALICE 2 s i ode.` : '⭐ Brže zezanje: prije meča postavi prečac (Moj profil → ⭐ Prečac zezalice), pa u igri samo drži ZEZALICE 2 s.', false, true);
+  G.hkTip = 1; const h = hotKey(), key = h ? 'vijuga-hktip4' : 'vijuga-hktip3', n = Number(lsGet(key) || 0); if (n >= (h ? 3 : 5)) return; lsSet(key, String(n + 1));
+  showIgMsg(h ? `⭐ Prečac: <b>${esc(hotLabel(h))}</b>. U igri dvaput brzo dodirni ZEZALICE i ode.` : '⭐ Brže zezanje: prije meča postavi prečac (Moj profil → ⭐ Prečac zezalice), pa u igri samo dvaput brzo dodirni ZEZALICE.', false, true);
 }
 const hotPrank = () => { const h = hotKey(); return h && h.k === 'troll' ? h.id : ''; };
 const hotLabel = (h) => !h ? '' : h.k === 'perf' ? '🌸 Parfem' : h.k === 'cham' ? '🧪 Kameleon' : `${TROLLS[h.id].e} ${TROLLS[h.id].name}`;
 const hotEmoji = (h) => !h ? '' : h.k === 'perf' ? '🌸' : h.k === 'cham' ? '🧪' : TROLLS[h.id].e;
-function setHotKey(h) { lsSet('vijuga-hotkey', JSON.stringify(h)); toast(`⭐ Prečac: ${hotLabel(h)}. U igri drži ZEZALICE 2 s i ode.`); buzz(30); renderHotBadge(); }
+function setHotKey(h) { lsSet('vijuga-hotkey', JSON.stringify(h)); toast(`⭐ Prečac: ${hotLabel(h)}. U igri dvaput brzo dodirni ZEZALICE i ode.`); buzz(30); renderHotBadge(); }
 function renderHotBadge() { const h = hotKey(); document.querySelectorAll('#padsBottom .ptool.prank').forEach(b => { let e = b.querySelector('.hk'); if (!h) { if (e) e.remove(); return; } if (!e) { e = document.createElement('span'); e.className = 'hk'; b.appendChild(e); } e.textContent = hotEmoji(h); }); }
 function fireHotKey() { // ZEZALICE held 2 s in a match
   const h = hotKey(); if (!h) { toast('⭐ Prečac nije postavljen. Postavi ga prije meča: Moj profil → ⭐ Prečac zezalice.'); return; }
@@ -7420,7 +7437,7 @@ function renderTrollPop() {
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
     ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''} ${cool || !trollPick ? 'dis' : ''}" data-id="${id}" title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
-    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Prečac${hotKey() ? `: <b>${hotLabel(hotKey())}</b>` : ''}: drži ZEZALICE 2 s i ode. Biraš ga prije meča (Moj profil → ⭐ Prečac) ili ovdje držanjem zezalice 3 s.</p>` : ''}`;
+    ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Prečac${hotKey() ? `: <b>${hotLabel(hotKey())}</b>` : ''}: dvaput brzo dodirni ZEZALICE i ode. Biraš ga u Moj profil → ⭐ Prečac (ili ovdje držanjem zezalice 3 s).</p>` : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = trollChosen = b.dataset.peer; renderTrollPop(); });
   pop.querySelectorAll('.troll').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'troll', id: b.dataset.id }); renderTrollPop(); }, (e) => { // a tap sends it (and the panel closes); held 3 s it becomes the hotkey
