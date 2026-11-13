@@ -1935,6 +1935,7 @@ function showProfile() {
     ${achBtnHtml(P)}
     <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Jednostavan izbornik (samo najvažnije) i lakša grafika u meču, za starije mobitele. Samo na ovom uređaju.</small></div>
     <div class="litebox hotbox" id="hotBox"><b>⭐ Prečac zezalice</b><small class="hint">Odaberi ga ovdje, prije meča. U meču samo <b>dvaput brzo dodirni ZEZALICE</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti.</small>${hotChipsHtml()}</div>
+    <div class="litebox steerbox" id="steerBox">${steerBoxHtml()}</div>
     <div class="litebox factbox" id="factBox">${factBoxHtml()}</div>
     <details class="garder" ${LITE ? '' : 'open'}><summary><h4>${LITE ? '👕 ' : ''}Garderoba <small>dodirni da promijeniš</small></h4></summary>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
@@ -1963,6 +1964,7 @@ function showProfile() {
   if ($('#profInvite')) $('#profInvite').onclick = () => shareInvite();
   if ($('#liteChk')) $('#liteChk').onchange = () => setLite($('#liteChk').checked);
   wireFactBox(m.querySelector('#factBox'));
+  { const sb = m.querySelector('#steerBox'); if (sb) sb.onclick = (e) => { const b = e.target.closest('[data-steer]'); if (!b) return; e.preventDefault(); setSteer(b.dataset.steer === 'screen'); buzz(15); sb.innerHTML = steerBoxHtml(); toast(steerScreen ? '🎮 ◀ ▶ prema ekranu: ◀ ide na lijevu stranu ekrana.' : '🎮 Klasično: ◀ je lijevo gledano iz zmije.'); }; }
   if ($('#profCopy')) $('#profCopy').onclick = async () => { try { await navigator.clipboard.writeText(inviteLink()); toast('Link je kopiran: ' + inviteLink()); } catch (e) { toast('Tvoj link: ' + inviteLink()); } };
   if ($('#profRename')) $('#profRename').onclick = () => showRegister();
   if ($('#profPush')) $('#profPush').onclick = async () => { if (await enablePush()) showProfile(); };
@@ -2974,7 +2976,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '60f4051baf91';
+const BUILD = '3fb059f4f26a';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3387,7 +3389,7 @@ function newRound() {
     placed.push({ x, y });
     const toC = Math.atan2(H / 2 - y, W / 2 - x);
     p.roundStart = p.score || 0;
-    Object.assign(p, { x, y, a: toC + rand(-1.1, 1.1), alive: true, fx: [], gapLeft: 26, nextGap: rand(1.4, 3), jumpUntil: 0,
+    Object.assign(p, { x, y, a: toC + rand(-1.1, 1.1), _st: null, alive: true, fx: [], gapLeft: 26, nextGap: rand(1.4, 3), jumpUntil: 0,
       jumpReady: setup.jump ? 1.5 : Infinity, pts: [], lastIn: 0, tv: 0, botIn: 0, killer: null, sqCool: 0, starterDone: false, ballsDrawn: false, tvDown: false, tvQ: [], tvH: [], portalCool: 0, wp: null, wpT: 0, path: [], plen: 0 });
   });
   hudDirty = true; showOverlay(null);
@@ -3955,10 +3957,22 @@ function flushTrail(p, keepLast) {
 // ---------- input ----------
 const touchHeld = {}; // player id -> { L: pointers, R: pointers }
 const tH = (p, k) => !!(p && touchHeld[p.id] && touchHeld[p.id][k] > 0);
+// ◀ ▶ "prema ekranu" (the default): ◀ turns the snake towards the left of the SCREEN. The snake's own left is the
+// screen's right while it comes down the screen (towards the player), so then the two are swapped. The way to turn is
+// chosen when the press starts and kept while it is held: a held arrow keeps circling the same way (no wobble).
+// "Klasično": ◀ is always the snake's own left, as before (Moj profil → 🎮 Upravljanje; on this device).
+let steerScreen = (() => { try { return localStorage.getItem('vijuga-steer') !== 'classic'; } catch (e) { return true; } })();
+function setSteer(screen) { steerScreen = !!screen; try { localStorage.setItem('vijuga-steer', screen ? 'screen' : 'classic'); } catch (e) {} }
+function steerOf(p, raw) {
+  if (!p) return raw;
+  if (!raw || !steerScreen) { p._st = null; return raw; }
+  const st = p._st; if (st && st.raw === raw) return raw * st.s;
+  const s = Math.sin(p.a || 0) > 0.34 ? -1 : 1; p._st = { raw, s }; return raw * s; // heading down (more than ~20°): swapped
+}
 function humanIn(p) {
   if (p.remote) return p.remoteIn || 0;
   const k = keysOf(p);
-  const v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0);
+  const v = steerOf(p, ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0));
   return mirrorOn() ? -v : v;
 }
 function tryJump(p) {
@@ -4763,6 +4777,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'smjer', d: '2026-11-13', e: '🎮', t: '◀ ▶ sad idu prema ekranu', x: 'Kad zmija ide prema dolje, ◀ je sad vodi na lijevu stranu ekrana, a ▶ na desnu, kako i očekuješ (dosad je bilo lijevo i desno gledano iz zmijine glave, pa se činilo obrnuto). Tko želi staro upravljanje, uključi ga u Moj profil → 🎮 Upravljanje. Ako ti se lijevo i desno ipak zamijene na 3 sekunde, netko ti je poslao 🪞 Zrcalo: piše u traci iznad arene.', go: 'me', b: 'Upravljanje' },
   { id: 'znasli', d: '2026-11-13', e: '💡', t: 'Znaš li? Zanimljivosti uz igru', x: 'Dok se odbrojava, u traci iznad arene iskoči kratka zanimljivost, a na rezultatima kartica „Znaš li?” (👍 ako ti se svidi, „Još jedna” za novu). U predvorju te čeka dalmatinska riječ dana. Teme su Zmije, Hrvatska, Šibenik, Svemir, Sport i Jezik: biraš ih ili sve isključiš u Moj profil → 💡 Zanimljivosti. Skupi cijelu temu u albumu i dobiješ natpis uz ime (Zmijolog, Domoljub, Šibenski znalac…).', go: 'me', b: 'Moj album' },
   { id: 'dvoklik', d: '2026-11-13', e: '⚡', t: 'Dvoklik za zezalicu, glatkije kretanje i odlučujuća runda', x: 'Prečac zezalice sad ide dvoklikom: u Moj profil → ⭐ Prečac zezalice odaberi zezalicu ili napitak, a u meču samo dvaput brzo dodirni ZEZALICE (zezalica ode igraču koji vodi). Protivnici se kreću glatko i bez trzanja, a zavoji su obliji. Kad je na kraju meča izjednačeno za prvo mjesto, igra se ⚔️ odlučujuća runda.', go: 'me', b: 'Postavi prečac' },
   { id: 'pica', d: '2026-11-12', e: '🍻', t: 'Pića uz ime', x: 'U trgovini (Ikone → Brendovi) je nova polica 🍻 Pića: ikone 🍺 pive, 🥃 rakije, 🍷 vina, 🥂 šampanjca i 🍸 koktela uz ime, i natpisi poznatih marki: Ožujsko, Karlovačko, Heineken, Guinness, Corona, Pelinkovac, Maraschino, Aperol, Jägermeister, Jack Daniel\'s, Moët i Dom Pérignon (samo ime u boji marke, ne službeni logo).', go: 'shop:brands', b: 'Pogledaj pića', items: ['bd_dr_beer', 'bd_dr_rakija', 'bd_dr_bottle', 'bd_dr_ozujsko', 'bd_dr_karlovacko', 'bd_dr_moet'] },
@@ -5665,6 +5680,10 @@ function wordCardHtml() {
   return `<div class="wordday"><div class="ph">🗣️ RIJEČ DANA · dalmatinski</div><div class="w">${esc(w[0].toUpperCase())}</div><p>${esc(capFirst(w[1]))}.</p><div class="ex">„${esc(w[2])}”</div></div>`;
 }
 // Moj profil: on/off, the topics, the album
+function steerBoxHtml() {
+  const c = (k, on, t) => `<button type="button" class="wchip ${on ? 'on' : ''}" data-steer="${k}">${t}${on ? '<i>✓</i>' : ''}</button>`;
+  return `<b>🎮 Upravljanje ◀ ▶</b><small class="hint"><b>Prema ekranu:</b> ◀ vodi zmiju na lijevu stranu ekrana, ▶ na desnu, i kad zmija ide prema dolje. <b>Klasično:</b> ◀ je lijevo gledano iz zmijine glave (kad ide prema dolje, to je desno na ekranu). Samo na ovom uređaju.</small><div class="wrow">${c('screen', steerScreen, '📱 Prema ekranu')}${c('classic', !steerScreen, '🐍 Klasično')}</div>`;
+}
 function factBoxHtml() {
   if (profile) factReward();
   const off = factOff();
@@ -7328,7 +7347,7 @@ function predictHeads() {
     let a = p.sa;
     if (p.id !== net.myId && p._wa && !has(p, 'square')) { a = p.sa + p._wa * dt * 0.5; p.a = p.sa + p._wa * dt; }
     if (p.id === net.myId && !has(p, 'square')) {
-      const k = KEYS[0]; let v = ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
+      const k = KEYS[0]; let v = steerOf(p, ((held[k.r] || tH(p, 'R')) ? 1 : 0) - ((held[k.l] || tH(p, 'L')) ? 1 : 0)); if (mirrorOn()) v = -v; if (has(p, 'reverse')) v = -v;
       p.tvC = (p.tvC || 0) + (v - (p.tvC || 0)) * Math.min(1, fdt / TURN_EASE); v = p.tvC; // eased like the host's steering
       const tr = TURN * (p.v / BASE_SPEED) * turnMul(p); a = p.sa + v * tr * dt * 0.5; p.a = p.sa + v * tr * dt;
     }
@@ -7344,7 +7363,7 @@ function clientInput(force) {
   if (!net || net.role !== 'client' || net.myId == null) return;
   const me = G.players.find(p => p.id === net.myId); if (!me) return;
   const k = KEYS[0];
-  let v = ((held[k.r] || tH(me, 'R')) ? 1 : 0) - ((held[k.l] || tH(me, 'L')) ? 1 : 0); if (mirrorOn()) v = -v;
+  let v = steerOf(me, ((held[k.r] || tH(me, 'R')) ? 1 : 0) - ((held[k.l] || tH(me, 'L')) ? 1 : 0)); if (mirrorOn()) v = -v;
   const key = v + ':' + net.jumpN;
   // every change goes out at once; the current state is also repeated every 300 ms, so one lost packet
   // can never leave the snake turning (or not turning) on the host
@@ -7796,7 +7815,7 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { facts: { FACTS, WORDS, FACT_TOPICS, nextFact, markFact, factSeen, factReward, wordOfDay, setOn: setFactsOn }, renderOnbar, showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { setSteer, get steerScreen() { return steerScreen; }, facts: { FACTS, WORDS, FACT_TOPICS, nextFact, markFact, factSeen, factReward, wordOfDay, setOn: setFactsOn }, renderOnbar, showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
 
