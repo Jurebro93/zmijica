@@ -281,6 +281,30 @@ body.lite .badges, body.lite #ticker, body.lite #gTicker { display: none !import
 .hotbar .ms b { color: var(--amber); }
 .igmsg { flex: 1; min-width: 0; max-height: 100%; box-sizing: border-box; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; background: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--all); border-radius: 9px; padding: 3px 9px; font-size: 13px; line-height: 1.25; animation: noteIn .2s ease-out; }
 .igmsg.warn { border-left-color: var(--amber); }
+.igmsg.fact { background: linear-gradient(90deg, rgba(255,210,63,.16), rgba(255,210,63,.05)), var(--ink); border-color: rgba(255,210,63,.45); border-left-color: #ffd23f; font-size: 12.5px; line-height: 1.2; -webkit-line-clamp: 3; line-clamp: 3; padding: 2px 8px; }
+.igmsg.fact b { color: #ffd23f; }
+.factcard { width: min(100%, 520px); box-sizing: border-box; border-radius: 14px; padding: 10px 12px; background: linear-gradient(135deg, #1c2b40, #142130); border: 1px solid #2b4060; text-align: left; }
+.factcard .ft { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: #ffd23f; }
+.factcard .ftag { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: #bcd0e6; background: #22344b; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.factcard p { margin: 5px 0 8px; font-size: 16px; line-height: 1.3; color: var(--fg); }
+.factcard p b { color: #c9a6ff; letter-spacing: .03em; } .factcard p i { color: #cdd8e4; }
+.factcard .facts { display: flex; gap: 8px; flex-wrap: wrap; }
+.factcard .fbtn { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-family: inherit; font-weight: 700; font-size: 14px; line-height: 1.1; background: var(--ink); color: var(--fg); cursor: pointer; }
+.factcard .fbtn.on { border-color: var(--green); color: var(--green); }
+.factcard .fprog, .falb .fal small { color: var(--muted); font-size: 13px; }
+.factcard .fprog { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+.factcard .tr, .falb .tr { flex: 1; height: 6px; border-radius: 4px; background: #1b2a3c; overflow: hidden; display: block; }
+.factcard .tr i { display: block; height: 100%; background: linear-gradient(90deg, #3ddc97, #4cc9f0); }
+.factcard .fdone { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 700; color: #ffd23f; }
+.wordday { margin-top: 10px; border-radius: 14px; padding: 10px 12px; background: radial-gradient(120% 100% at 0% 0%, #2a2140, #142130); border: 1px solid #3b2f5c; }
+.wordday .ph { color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; }
+.wordday .w { font-family: Bungee, sans-serif; font-size: 24px; color: #c9a6ff; line-height: 1.2; margin-top: 2px; }
+.wordday p { margin: 3px 0 0; font-size: 15.5px; } .wordday .ex { margin-top: 5px; font-size: 14px; color: #cdd8e4; font-style: italic; }
+.factbox .wrow { margin-top: 4px; } .factbox .wchip:not(.on) { opacity: .55; } .factbox .falbt { margin-top: 8px; }
+.falb { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.falb .fal { border: 1px solid var(--line); border-radius: 10px; padding: 7px 8px; background: var(--panel); min-width: 0; display: grid; gap: 4px; }
+.falb .fal b { font-size: 14px; } .falb .fal .tr i { display: block; height: 100%; background: var(--c); }
+.falb .fal small { overflow-wrap: anywhere; } .falb .fal.done { border-color: #b8860b; } .falb .fal .tagbd { font-size: 10px; }
 .banner .tiebrk { color: var(--amber); font-size: 16px; margin: 4px 0; }
 .profile { width: min(100%, 520px) !important; max-height: calc(100dvh - 40px); overflow-y: auto; }
 .phead { display: flex; align-items: center; gap: 12px; min-width: 0; } .phead > div { min-width: 0; flex: 1 1 auto; } .phead .av { flex: none; } .phead h3 { overflow-wrap: anywhere; } .phead h3 .badges { display: flex; flex-wrap: wrap; margin: 4px 0 0; }
@@ -1174,6 +1198,12 @@ const BADGES = {
   bd_t_gust: { g: 'Gušt', fun: true, dalm: true, tag: '#d4881f', svg: TAGB('Gušt', '#d4881f'), name: 'Natpis: Gušt', d: 'DALMATINSKI: natpis GUŠT uz ime i iznad zmije: uživanje: ova igra je čisti gušt', price: 500 },
   bd_t_bokun: { g: 'Bokun', fun: true, dalm: true, tag: '#7a8f3a', svg: TAGB('Bokun', '#7a8f3a'), name: 'Natpis: Bokun', d: 'DALMATINSKI: natpis BOKUN uz ime i iznad zmije: komadić, malo: „još bokun pa idem spat”', price: 500 },
   bd_t_neberi: { g: 'Ne beri brigu', fun: true, dalm: true, tag: '#3a7fd0', svg: TAGB('Ne beri brigu', '#3a7fd0'), name: 'Natpis: Ne beri brigu', d: 'DALMATINSKI: natpis NE BERI BRIGU uz ime i iznad zmije: ne brini: sve će doć na svoje', price: 500 },
+  bd_t_zmijolog: { g: 'Zmijolog', tag: '#1f8a52', svg: TAGB('Zmijolog', '#1f8a52'), name: 'Natpis: Zmijolog', d: 'NAGRADA ALBUMA: dobiješ ga kad skupiš sve zanimljivosti o zmijama (💡 Znaš li?). Ne prodaje se.', price: 0, earn: true },
+  bd_t_domoljub: { g: 'Domoljub', tag: '#c8102e', svg: TAGB('Domoljub', '#c8102e'), name: 'Natpis: Domoljub', d: 'NAGRADA ALBUMA: dobiješ ga kad skupiš sve zanimljivosti o Hrvatskoj (💡 Znaš li?). Ne prodaje se.', price: 0, earn: true },
+  bd_t_sibznalac: { g: 'Šibenski znalac', tag: '#1f6fb5', svg: TAGB('Šibenski znalac', '#1f6fb5'), name: 'Natpis: Šibenski znalac', d: 'NAGRADA ALBUMA: dobiješ ga kad skupiš sve zanimljivosti o Šibeniku (💡 Znaš li?). Ne prodaje se.', price: 0, earn: true },
+  bd_t_astronaut: { g: 'Astronaut', tag: '#5b3fb8', svg: TAGB('Astronaut', '#5b3fb8'), name: 'Natpis: Astronaut', d: 'NAGRADA ALBUMA: dobiješ ga kad skupiš sve zanimljivosti o svemiru (💡 Znaš li?). Ne prodaje se.', price: 0, earn: true },
+  bd_t_komentator: { g: 'Komentator', tag: '#c8600a', svg: TAGB('Komentator', '#c8600a'), name: 'Natpis: Komentator', d: 'NAGRADA ALBUMA: dobiješ ga kad skupiš sve sportske zanimljivosti (💡 Znaš li?). Ne prodaje se.', price: 0, earn: true },
+  bd_t_dalmatinac: { g: 'Dalmatinac', tag: '#0e7c86', svg: TAGB('Dalmatinac', '#0e7c86'), name: 'Natpis: Dalmatinac', d: 'NAGRADA ALBUMA: dobiješ ga kad skupiš sve dalmatinske riječi (💡 Znaš li? i riječ dana). Ne prodaje se.', price: 0, earn: true },
   bd_t_gazda: { g: 'Dobar sam sa gazdom', fun: true, tag: '#b8860b', shine: true, svg: '<span class="tagbd shine">Dobar sam sa gazdom</span>', name: 'Natpis: Dobar sam sa gazdom', d: 'POKLON SVIMA: zlatni natpis DOBAR SAM SA GAZDOM koji svijetli i blješti, uz ime i iznad zmije. Gazda ga je poklonio svim igračima.', price: 0, gift: true },
   bd_t_fala: { g: 'Fala', fun: true, dalm: true, tag: '#c25a8a', svg: TAGB('Fala', '#c25a8a'), name: 'Natpis: Fala', d: 'DALMATINSKI: natpis FALA uz ime i iznad zmije: hvala: za one koji igraju fer', price: 500 },
   bd_t_pasticada: { g: 'Pašticada 🍲', fun: true, dalm: true, tag: '#7a3b2a', svg: TAGB('Pašticada 🍲', '#7a3b2a'), name: 'Natpis: Pašticada 🍲', d: 'DALMATINSKA KUHINJA: natpis uz ime i iznad zmije: dalmatinska pašticada s njokima: nedjeljni ručak', price: 500 },
@@ -1882,6 +1912,7 @@ function showProfile() {
     ${achBtnHtml(P)}
     <div class="litebox"><label><input type="checkbox" id="liteChk" ${LITE ? 'checked' : ''}> 🐢 <b>Pojednostavljeni izgled</b></label><small class="hint">Jednostavan izbornik (samo najvažnije) i lakša grafika u meču, za starije mobitele. Samo na ovom uređaju.</small></div>
     <div class="litebox hotbox" id="hotBox"><b>⭐ Prečac zezalice</b><small class="hint">Odaberi ga ovdje, prije meča. U meču samo <b>dvaput brzo dodirni ZEZALICE</b> i ode: zezalica igraču koji vodi, napitak iskoristiš ti.</small>${hotChipsHtml()}</div>
+    <div class="litebox factbox" id="factBox">${factBoxHtml()}</div>
     <details class="garder" ${LITE ? '' : 'open'}><summary><h4>${LITE ? '👕 ' : ''}Garderoba <small>dodirni da promijeniš</small></h4></summary>
     <span class="label">Trag</span><div class="wrow">${ownedSkins.map(k => chip('skin', k, SKINS[k].name, `<canvas class="wprev" data-skin="${k}"></canvas>`)).join('')}</div>
     <span class="label">Ikone uz ime <small>do ${BX_MAX} odjednom, poredane u red (broj = redoslijed). Dodirni da dodaš ili skineš</small></span><div class="wrow">${worn.length ? '<button type="button" class="wchip" data-kind="badgeclear" data-id="">✕<span>Skini sve</span></button>' : ''}${ownedBadges.filter(k => k !== 'bd_none').map(k => `<button type="button" class="wchip ${worn.includes(k) ? 'on' : ''}" data-kind="badge" data-id="${k}"><em>${badgeGlyph(k) || '—'}</em><span>${esc(BADGES[k].name)}</span>${worn.includes(k) ? '<i>' + (worn.indexOf(k) + 1) + '</i>' : ''}</button>`).join('') || '<span class="hint">nemaš ikona: kupi u Trgovini (Ikone, Vrijeme, Kripto…)</span>'}</div>
@@ -1908,6 +1939,7 @@ function showProfile() {
   if ($('#profDigest')) $('#profDigest').onclick = () => showDigestShare();
   if ($('#profInvite')) $('#profInvite').onclick = () => shareInvite();
   if ($('#liteChk')) $('#liteChk').onchange = () => setLite($('#liteChk').checked);
+  wireFactBox(m.querySelector('#factBox'));
   if ($('#profCopy')) $('#profCopy').onclick = async () => { try { await navigator.clipboard.writeText(inviteLink()); toast('Link je kopiran: ' + inviteLink()); } catch (e) { toast('Tvoj link: ' + inviteLink()); } };
   if ($('#profRename')) $('#profRename').onclick = () => showRegister();
   if ($('#profPush')) $('#profPush').onclick = async () => { if (await enablePush()) showProfile(); };
@@ -2400,7 +2432,7 @@ function renderShopNow() {
   make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
   make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
-  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun && !it.brand && !it.drink), 'badge');
+  make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun && !it.brand && !it.drink && !it.earn), 'badge');
   make($('#shopBrands'), Object.entries(BADGES).filter(([, it]) => it.brand), 'badge');
   make($('#shopDrinks'), Object.entries(BADGES).filter(([, it]) => it.drink), 'badge');
   make($('#shopFun'), Object.entries(BADGES).filter(([, it]) => it.fun && !it.dalm), 'badge');
@@ -2409,7 +2441,7 @@ function renderShopNow() {
   make($('#shopPremiumBadges'), Object.entries(BADGES).filter(([, it]) => it.premium), 'badge');
   make($('#shopUnique'), Object.entries(BADGES).filter(([, it]) => it.unique), 'badge');
   make($('#shopLocal'), Object.entries(BADGES).filter(([, it]) => it.local && !it.tag), 'badge');
-  make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag && !it.fun && !it.drink), 'badge');
+  make($('#shopTags'), Object.entries(BADGES).filter(([, it]) => it.tag && !it.fun && !it.drink && !it.earn), 'badge');
   make($('#shopCrypto'), Object.entries(BADGES).filter(([, it]) => it.crypto && !it.gold), 'badge');
   make($('#shopLive'), Object.entries(BADGES).filter(([, it]) => it.live || it.gold), 'badge');
   const prb = $('#shopPremium'), bgb = $('#shopBgs');
@@ -4369,7 +4401,7 @@ function render() {
     ctx.fillRect(0, 0, W, bd.t); ctx.fillRect(0, bd.b, W, H - bd.b); ctx.fillRect(0, bd.t, bd.l, bd.b - bd.t); ctx.fillRect(bd.r, bd.t, W - bd.r, bd.b - bd.t);
   }
   drawArena(ctx);
-  if (G.phase === 'count' && funFacts.length) {
+  if (G.phase === 'count' && funFacts.length && !factsOnV) {
     if (!G.factPick || G.factPick.r !== G.round) { const f = [...funFacts].sort(() => Math.random() - .5); G.factPick = { r: G.round, f: f.slice(0, 2) }; }
     ctx.save(); ctx.textAlign = 'center'; ctx.font = '700 15px "Barlow Semi Condensed", sans-serif';
     G.factPick.f.forEach((t, i) => { const y = H - 46 + i * 20; const w = ctx.measureText('💡 ' + t).width + 20; ctx.fillStyle = 'rgba(11,18,27,.78)'; ctx.fillRect(W / 2 - w / 2, y - 14, w, 19); ctx.fillStyle = '#ffd23f'; ctx.fillText('💡 ' + t, W / 2, y); });
@@ -4584,7 +4616,7 @@ function renderHudFx() {
   const box = $('#hudFx'); if (!box) return;
   const h = G && !$('#game').hidden ? hudFxHtml() : '';
   if (h !== hudFxLast) { hudFxLast = h; box.innerHTML = h; }
-  hotTipMaybe();
+  hotTipMaybe(); factTipMaybe();
 }
 function renderHud() {
   if (!hudDirty) return; hudDirty = false;
@@ -4708,6 +4740,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'znasli', d: '2026-11-13', e: '💡', t: 'Znaš li? Zanimljivosti uz igru', x: 'Dok se odbrojava, u traci iznad arene iskoči kratka zanimljivost, a na rezultatima kartica „Znaš li?” (👍 ako ti se svidi, „Još jedna” za novu). U predvorju te čeka dalmatinska riječ dana. Teme su Zmije, Hrvatska, Šibenik, Svemir, Sport i Jezik: biraš ih ili sve isključiš u Moj profil → 💡 Zanimljivosti. Skupi cijelu temu u albumu i dobiješ natpis uz ime (Zmijolog, Domoljub, Šibenski znalac…).', go: 'me', b: 'Moj album' },
   { id: 'dvoklik', d: '2026-11-13', e: '⚡', t: 'Dvoklik za zezalicu, glatkije kretanje i odlučujuća runda', x: 'Prečac zezalice sad ide dvoklikom: u Moj profil → ⭐ Prečac zezalice odaberi zezalicu ili napitak, a u meču samo dvaput brzo dodirni ZEZALICE (zezalica ode igraču koji vodi). Protivnici se kreću glatko i bez trzanja, a zavoji su obliji. Kad je na kraju meča izjednačeno za prvo mjesto, igra se ⚔️ odlučujuća runda.', go: 'me', b: 'Postavi prečac' },
   { id: 'pica', d: '2026-11-12', e: '🍻', t: 'Pića uz ime', x: 'U trgovini (Ikone → Brendovi) je nova polica 🍻 Pića: ikone 🍺 pive, 🥃 rakije, 🍷 vina, 🥂 šampanjca i 🍸 koktela uz ime, i natpisi poznatih marki: Ožujsko, Karlovačko, Heineken, Guinness, Corona, Pelinkovac, Maraschino, Aperol, Jägermeister, Jack Daniel\'s, Moët i Dom Pérignon (samo ime u boji marke, ne službeni logo).', go: 'shop:brands', b: 'Pogledaj pića', items: ['bd_dr_beer', 'bd_dr_rakija', 'bd_dr_bottle', 'bd_dr_ozujsko', 'bd_dr_karlovacko', 'bd_dr_moet'] },
   { id: 'precac', d: '2026-11-12', e: '⭐', t: 'Prečac zezalice i čista arena', x: 'Preko arene se više ništa ne ispisuje: poruke (npr. kad pokupiš pištolj), efekti i njihove sekunde su u traci iznad arene. Novo: ⭐ prečac zezalice. Odaberi ga prije meča (Moj profil → ⭐ Prečac zezalice, ili „Postavi” u predvorju), a u meču samo dvaput brzo dodirni ZEZALICE: zezalica ode igraču koji vodi, a napitak iskoristiš ti. Ne moraš ništa otvarati dok voziš.', go: 'me', b: 'Postavi prečac' },
@@ -5170,7 +5203,8 @@ function showResults() {
   }
   if (profile && mine) extra += `<div class="row"><button class="btn ghost wa sm" type="button" id="waShare">📲 Podijeli na WhatsApp</button></div>`;
   extra += `<p class="hint"><a href="stats.html" target="_blank" rel="noopener" style="color:var(--amber)">Statistika svih igrača</a></p>`;
-  showOverlay(`<div class="banner fin lap"><span class="label">Kraj meča</span><h3 style="color:${w.color}">🏆 ${esc(w.name)}</h3>${mini}${earn}${actions}<details class="rmore"><summary>Više</summary>${more}${extra}</details></div>`);
+  showOverlay(`<div class="banner fin lap"><span class="label">Kraj meča</span><h3 style="color:${w.color}">🏆 ${esc(w.name)}</h3>${mini}${earn}${actions}${factCardHtml()}<details class="rmore"><summary>Više</summary>${more}${extra}</details></div>`);
+  wireFactCard($('#overlay'));
   if ($('#waShare')) $('#waShare').onclick = () => waOpen(matchShareText(rows, mine));
   if (newBuild) offerUpdate(); else checkVersion();
   if (net) {
@@ -5367,6 +5401,263 @@ function recentPlayers(onlineSlugs) {
   return accounts.list.filter(a => a.slug && a.slug !== me && !onlineSlugs.has(a.slug) && Number(a.updatedAt) > week).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
 }
 // ---------- weekly player and fun facts ----------
+// ---------- 💡 Znaš li? Short, true facts: one in the bar above the arena while a round counts down, a card on the
+// results (👍 / one more), the Dalmatian word of the day in the lobby. Moj profil turns them off or picks the topics;
+// every fact seen goes into the album, and a whole topic seen gives that topic's tag (free, never on a shop shelf).
+const FACT_TOPICS = {
+  zmije: { e: '🐍', n: 'Zmije', c: '#3ddc97', r: 'bd_t_zmijolog' },
+  hrvatska: { e: '🇭🇷', n: 'Hrvatska', c: '#ff5d73', r: 'bd_t_domoljub' },
+  sibenik: { e: '⛪', n: 'Šibenik', c: '#4cc9f0', r: 'bd_t_sibznalac' },
+  svemir: { e: '🚀', n: 'Svemir', c: '#b48cff', r: 'bd_t_astronaut' },
+  sport: { e: '⚽', n: 'Sport', c: '#ffb547', r: 'bd_t_komentator' },
+  jezik: { e: '🗣️', n: 'Jezik', c: '#ffd23f', r: 'bd_t_dalmatinac' },
+};
+// [word, what it means, an example]
+const WORDS = [
+  ['fjaka', 'ugodna lijenost, kad ti se baš ništa ne da', 'Uvatila me fjaka.'],
+  ['pomalo', 'polako, bez žurbe; a služi i kao pozdrav', 'Pomalo, sve se stigne.'],
+  ['ća', 'što (čakavski)', 'Ća je bilo, ća te nema?'],
+  ['ajme', 'uzvik čuđenja, straha ili tuge', 'Ajme, opet sam se zabio u zid!'],
+  ['butiga', 'dućan, trgovina', 'Skoknem do butige po kruh.'],
+  ['balun', 'lopta; a i nogomet', 'Cili dan smo igrali baluna.'],
+  ['škovacera', 'kanta za smeće', 'Baci to u škovaceru.'],
+  ['pjat', 'tanjur', 'Daj mi još jedan pjat.'],
+  ['kušin', 'jastuk', 'Stavi kušin pod glavu.'],
+  ['ponistra', 'prozor', 'Otvori ponistru, vruće je.'],
+  ['škura', 'drveni kapak na prozoru', 'Zatvori škure, sunce udara.'],
+  ['lancun', 'plahta', 'Lancuni se suše na teraci.'],
+  ['bevanda', 'vino razrijeđeno vodom', 'Uz marendu jedna bevanda.'],
+  ['marenda', 'obrok sredinom prijepodneva, gablec', 'Ajmo na marendu, gladan san.'],
+  ['tovar', 'magarac', 'Tvrdoglav ka tovar.'],
+  ['šugaman', 'ručnik', 'Ne zaboravi šugaman za more.'],
+  ['kantun', 'kut, ugao', 'Čekam te na kantunu.'],
+  ['kala', 'uska ulica, uličica', 'Prošetali smo kalama staroga grada.'],
+  ['gušt', 'užitak, zadovoljstvo', 'Ovo je pravi gušt!'],
+  ['spiza', 'namirnice, hrana iz dućana', 'Kupi spizu za cili tjedan.'],
+  ['pitar', 'posuda za cvijeće', 'Zalij pitare na balkonu.'],
+  ['jugo', 'topli, vlažni vjetar s juga', 'Puše jugo, sve me boli glava.'],
+  ['bura', 'hladan, suh i jak vjetar s kopna', 'Bura je očistila nebo.'],
+  ['mulac', 'dječak, klinac', 'Mulci igraju balun na rivi.'],
+  ['cukar', 'šećer', 'Kafa s malo cukra.'],
+  ['armerun', 'ormar', 'Robu stavi u armerun.'],
+  ['šufit', 'tavan', 'Stare stvari su na šufitu.'],
+  ['pirun', 'vilica', 'Fali mi pirun.'],
+  ['teća', 'lonac', 'U teći se kuha brudet.'],
+  ['šporko', 'prljavo', 'Sve je šporko od blata.'],
+  ['tić', 'ptica', 'Tić je sletio na ponistru.'],
+];
+const FACTS = {
+  zmije: [
+    'Zmije nemaju vanjske uši: vibracije tla osjećaju preko donje čeljusti.',
+    'Rascijepljenim jezikom zmija „njuši”: mirise nosi do Jacobsonova organa u nepcu.',
+    'Zmije nemaju kapke: oči im štiti prozirna ljuska, pa spavaju otvorenih očiju.',
+    'Zmija raste cijeli život i svlači kožu, često u jednom komadu.',
+    'Poskok ima mali „rog” na nosu. Unatoč imenu, ne skače na ljude.',
+    'Bjelouška nije otrovna: kad je u opasnosti, zna se praviti mrtva.',
+    'Mrežasti piton najdulja je zmija na svijetu: može narasti preko 6 metara.',
+    'Zelena anakonda najteža je zmija na svijetu i veći dio života provodi u vodi.',
+    'Polovice donje čeljusti spaja rastezljiv ligament, pa zmija proguta plijen veći od svoje glave.',
+    'Na Irskoj i Novom Zelandu ne žive kopnene zmije.',
+    'Pitoni, boe i čegrtuše imaju jamice kojima osjete toplinu plijena, i u potpunom mraku.',
+    'Zmije su hladnokrvne: griju se na suncu, zato ih ujutro nađeš na toplom kamenu.',
+    'Kraljevska kobra jedina je zmija koja za jaja gradi gnijezdo od lišća.',
+    'Poskok i riđovka ne legu jaja: mladi se rađaju živi.',
+    'Zmija može imati i do 400 kralježaka, a čovjek ih ima 33.',
+    'Zmijska koža suha je i glatka, nimalo sluzava.',
+    'Leteće zmije iz jugoistočne Azije skaču s drveta i jedre spljoštivši tijelo.',
+    'Široke trbušne ljuske zapinju o tlo i guraju zmiju naprijed.',
+    'U Hrvatskoj žive tri otrovnice: poskok, riđovka i planinski žutokrug.',
+    'Zvečka čegrtuše dobiva novi prsten svaki put kad zmija svuče kožu.',
+    'Neke kobre pljuju otrov u oči napadača i s dva-tri metra.',
+    'Neke morske zmije dio kisika upijaju kroz kožu.',
+  ],
+  hrvatska: [
+    'Kravata je nastala od marame hrvatskih vojnika u 17. stoljeću: „à la croate”.',
+    'Nikola Tesla rođen je 1856. u Smiljanu kraj Gospića.',
+    'Slavoljub Penkala patentirao je 1906. mehaničku olovku.',
+    'Hrvatska ima više od tisuću otoka, otočića i hridi.',
+    'Plitvička jezera najstariji su hrvatski nacionalni park (1949.), a na UNESCO-ovu su popisu od 1979.',
+    'Plitvice čini 16 jezera povezanih slapovima.',
+    'Dubrovnik je zabranio trgovinu robljem još 1416.',
+    'Dioklecijanova palača u Splitu sagrađena je oko 300. godine, a u njoj se i danas živi.',
+    'Stonske zidine duge su oko 5 km i među najduljima su u Europi.',
+    'Pas dalmatiner nosi ime po Dalmaciji.',
+    'Hrvatski ima tri narječja, nazvana po riječi za „što”: štokavsko, kajkavsko i čakavsko.',
+    'Baščanska ploča s Krka, iz oko 1100. godine, pisana je glagoljicom.',
+    'Najviši vrh Hrvatske je Dinara (Sinjal), 1831 m.',
+    'Kuna je ime dobila po životinji: kunina krzna nekoć su služila kao platežno sredstvo.',
+    'Hum u Istri slovi kao najmanji grad na svijetu.',
+    'Zagrebačka uspinjača duga je samo 66 m, a vozi od 1890.',
+    'Vučedolska golubica, posuda stara oko 5000 godina, nađena je kraj Vukovara.',
+    'Ivan Vučetić s Hvara u Argentini je razvio sustav prepoznavanja otisaka prstiju.',
+    'Prvo torpedo razvijeno je u Rijeci 1860-ih.',
+    'Pulska Arena jedini je rimski amfiteatar kojem su sačuvane sve četiri bočne kule.',
+  ],
+  sibenik: [
+    'Katedrala sv. Jakova građena je od 1431. do 1535. samo od kamena, bez opeke i drva.',
+    'Na apsidi katedrale sv. Jakova je 71 kamena glava, portreti ljudi iz 15. stoljeća.',
+    'Katedrala sv. Jakova na UNESCO-ovu je popisu svjetske baštine od 2000.',
+    'Katedralu je započeo Juraj Dalmatinac, a dovršio Nikola Firentinac.',
+    'Šibenik se prvi put spominje 1066. pa ga zovu Krešimirovim gradom.',
+    'Šibenik je najstariji samorodni hrvatski grad na Jadranu: osnovali su ga Hrvati.',
+    'Šibenik je 1895. među prvima u svijetu dobio rasvjetu izmjeničnom strujom (HE Jaruga).',
+    'Faust Vrančić iz Šibenika opisao je padobran („Homo volans”) u knjizi Machinae novae.',
+    'Tvrđava sv. Nikole na ulazu u kanal na UNESCO-ovu je popisu od 2017.',
+    'Šibenik ima četiri tvrđave: sv. Mihovil, sv. Ivan, Šubićevac (Barone) i sv. Nikola.',
+    'Kip Jurja Dalmatinca ispred katedrale djelo je Ivana Meštrovića.',
+    'Međunarodni dječji festival održava se u Šibeniku od 1958.',
+    'Kanalom sv. Ante brodovi gotovo 3 km plove do šibenske luke.',
+    'Na Zlarinu se stoljećima vadio i obrađivao crveni koralj.',
+    'Krapanj, najniži naseljeni otok na Jadranu, poznat je po spužvarima.',
+    'Crvena šibenska kapa s crnim ukrasom jedan je od simbola grada.',
+    'Dražen Petrović, „Mozart košarke”, rođen je u Šibeniku 1964.',
+    'Krka kod Šibenika utječe u more, a njezini slapovi nacionalni su park od 1985.',
+    'Arsen Dedić i Vice Vukov rođeni su u Šibeniku.',
+  ],
+  svemir: [
+    'Svjetlost Sunca do Zemlje putuje oko 8 minuta i 20 sekundi.',
+    'Na Veneri dan traje dulje od godine: okret oko osi 243 dana, krug oko Sunca 225.',
+    'Velika crvena pjega na Jupiteru oluja je veća od cijele Zemlje.',
+    'Saturn je rjeđi od vode: u dovoljno velikoj kadi plutao bi.',
+    'Mjesec se od Zemlje udaljava oko 3,8 cm godišnje.',
+    'Tragovi astronauta na Mjesecu mogu ostati milijunima godina jer ondje nema vjetra.',
+    'Svemirska postaja ISS obiđe Zemlju za oko 90 minuta: posada vidi 16 izlazaka Sunca na dan.',
+    'Olympus Mons na Marsu visok je oko 22 km, oko 2,5 puta više od Everesta.',
+    'Sunce ima 99,8 % mase cijelog Sunčeva sustava.',
+    'Svjetlosna godina je oko 9460 milijardi kilometara.',
+    'Najbliža zvijezda nakon Sunca, Proksima Kentaura, udaljena je 4,2 svjetlosne godine.',
+    'Jurij Gagarin prvi je čovjek u svemiru: 12. travnja 1961.',
+    'Neil Armstrong prvi je hodao po Mjesecu, u srpnju 1969.',
+    'Mars je crven zbog željeznog oksida, hrđe, u prašini.',
+    'U svemiru nema zvuka: nema zraka koji bi ga prenio.',
+    'Uran je nagnut za oko 98°: oko Sunca se kotrlja na boku.',
+    'Sve zvijezde koje vidiš golim okom dio su naše galaksije, Mliječnog puta.',
+    'Na Merkuru je danju preko 400 °C, a noću ispod −170 °C.',
+    'Halleyev komet vraća se otprilike svakih 76 godina; sljedeći put 2061.',
+    'Žličica tvari neutronske zvijezde teži milijarde tona.',
+  ],
+  sport: [
+    'Hrvatska je na Svjetskom prvenstvu u nogometu osvojila srebro 2018. te bronce 1998. i 2022.',
+    'Luka Modrić dobio je Zlatnu loptu 2018.',
+    'Goran Ivanišević osvojio je Wimbledon 2001. s pozivnicom, jedini dosad.',
+    'Janica Kostelić ima četiri olimpijska zlata u skijanju.',
+    'Blanka Vlašić bila je svjetska prvakinja u skoku uvis 2007. i 2009.',
+    'Košarkaši su na Olimpijskim igrama 1992. osvojili srebro, iza američkog Dream Teama.',
+    'Vaterpolisti su olimpijski prvaci 2012. u Londonu.',
+    'Vaterpolisti su svjetski prvaci 2007., 2017. i 2024.',
+    'Rukometaši su olimpijski prvaci 1996. i 2004.',
+    'Sandra Perković osvojila je olimpijsko zlato u bacanju diska 2012. i 2016.',
+    'Sara Kolak olimpijska je pobjednica u bacanju koplja 2016.',
+    'Braća Sinković olimpijski su prvaci u veslanju 2016. i 2020.',
+    'Mate Parlov bio je olimpijski prvak 1972. i profesionalni svjetski prvak u boksu.',
+    'Marin Čilić osvojio je US Open 2014.',
+    'Hajduk je osnovan 1911. u praškoj pivnici U Fleků.',
+    'Dinamo Zagreb osnovan je 1945.',
+    'Prve moderne Olimpijske igre održane su u Ateni 1896.',
+    'Usain Bolt trčao je 100 m za 9,58 s: svjetski rekord iz 2009.',
+    'Nogometna lopta ima opseg od 68 do 70 cm.',
+    'Košarku je 1891. izmislio James Naismith, a koševi su bili košare za breskve.',
+  ],
+};
+FACTS.jezik = WORDS; // the Dalmatian words are the language topic
+let factsOnV = lsGet('vijuga-facts') !== '0';
+const factsOn = () => factsOnV;
+function setFactsOn(on) { factsOnV = !!on; lsSet('vijuga-facts', on ? '1' : '0'); }
+const jsonLs = (k, def) => { try { const v = JSON.parse(lsGet(k) || ''); return v && typeof v === 'object' ? v : def; } catch (e) { return def; } };
+const factOff = () => { const a = jsonLs('vijuga-facts-t', []); return Array.isArray(a) ? a : []; };
+const factTopics = () => { const off = factOff(); return Object.keys(FACT_TOPICS).filter(t => !off.includes(t)); };
+const factSeen = () => jsonLs('vijuga-facts-seen', {});
+const factSeenN = (t) => { const a = factSeen()[t]; return Array.isArray(a) ? Math.min(a.length, FACTS[t].length) : 0; };
+const factLiked = () => { const a = jsonLs('vijuga-facts-like', []); return Array.isArray(a) ? a : []; };
+function likeFact(f) { const a = factLiked(), k = f.t + ':' + f.i, j = a.indexOf(k); if (j >= 0) a.splice(j, 1); else a.push(k); lsSet('vijuga-facts-like', JSON.stringify(a.slice(-300))); return j < 0; }
+// the next fact: topics with something new first; a topic the player liked (👍) comes up more often; never `skip` again
+function nextFact(skip) {
+  const ts = factTopics(); if (!ts.length) return null;
+  const seen = factSeen(), likes = {}; for (const k of factLiked()) { const t = String(k).split(':')[0]; likes[t] = (likes[t] || 0) + 1; }
+  const open = ts.filter(t => factSeenN(t) < FACTS[t].length), pool = open.length ? open : ts;
+  const w = pool.map(t => 1 + Math.min(3, likes[t] || 0)); let r = Math.random() * w.reduce((a, b) => a + b, 0), t = pool[pool.length - 1];
+  for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r < 0) { t = pool[i]; break; } }
+  const s = Array.isArray(seen[t]) ? seen[t] : [], all = FACTS[t].map((_, i) => i).filter(i => !(skip && skip.t === t && skip.i === i));
+  const fresh = all.filter(i => !s.includes(i)), from = fresh.length ? fresh : all;
+  return from.length ? { t, i: from[Math.floor(Math.random() * from.length)] } : null;
+}
+// into the album; returns the topic whose tag was just won (or '')
+function markFact(f) {
+  if (!f || !FACTS[f.t] || !FACTS[f.t][f.i]) return ''; const s = factSeen(), a = Array.isArray(s[f.t]) ? s[f.t] : (s[f.t] = []);
+  if (!a.includes(f.i)) { a.push(f.i); lsSet('vijuga-facts-seen', JSON.stringify(s)); }
+  return factReward();
+}
+// a whole topic seen: its tag (price 0, so the server's wallet lets the save through) goes to the logged-in player
+function factReward() {
+  if (!profile) return ''; let got = '';
+  for (const [t, T] of Object.entries(FACT_TOPICS)) if (factSeenN(t) >= FACTS[t].length && !profile.owned.includes(T.r)) { profile.owned.push(T.r); got = t; }
+  if (got) saveProfile();
+  return got;
+}
+const capFirst = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+function factHtml(f) {
+  const x = FACTS[f.t][f.i]; if (!x) return '';
+  return Array.isArray(x) ? `<b>${esc(x[0].toUpperCase())}</b>: ${esc(x[1])}. <i>„${esc(x[2])}”</i>` : esc(x);
+}
+function factWonHtml(t) {
+  const T = FACT_TOPICS[t], b = T && BADGES[T.r]; if (!b) return '';
+  return `<div class="fdone">🎉 Album ${T.e} ${esc(T.n)} je pun! Natpis ${b.svg} je tvoj.${badgeIds(profile.eq, profile.owned).includes(T.r) ? '' : ` <button type="button" class="fbtn" data-fact="wear" data-id="${T.r}">Stavi uz ime</button>`}</div>`;
+}
+function wearFactTag(id) { if (!profile || !BADGES[id]) return; if (!badgeIds(profile.eq, profile.owned).includes(id)) wearBadge(id); saveProfile(); renderPlayers(); renderMe(); toast('Natpis je uz tvoje ime.'); }
+// the countdown: once a round, in the bar above the arena, unless a tip or a warning is up there already
+function factTipMaybe() {
+  if (!G || G.over || G.phase !== 'count' || G.factR === G.round || !factsOnV || $('#game').hidden) return;
+  G.factR = G.round; const box = $('#igMsgs');
+  if (igCur && box && box.contains(igCur)) { if (!igCur.classList.contains('fact')) return; igCur.remove(); igCur = null; clearTimeout(igT); } // last round's fact makes room
+  const f = nextFact(G.cdFact); if (!f) return; G.cdFact = f; const got = markFact(f);
+  showIgMsg(`💡 <b>Znaš li?</b> ${factHtml(f)}`, false, true, { cls: 'fact', ms: Math.max(5000, countLen() * 1000 + 2200) });
+  if (got) { const T = FACT_TOPICS[got]; showIgMsg(`🎉 Album ${T.e} ${esc(T.n)} je pun: natpis ${BADGES[T.r].svg} je tvoj (Moj profil).`, false, true, { cls: 'fact' }); }
+}
+// the results: a fact the countdown did not show
+function factCardInner(f) {
+  const T = FACT_TOPICS[f.t], n = factSeenN(f.t), all = FACTS[f.t].length, liked = factLiked().includes(f.t + ':' + f.i);
+  return `<div class="ft">💡 Znaš li?<span class="ftag">${T.e} ${esc(T.n.toUpperCase())}</span></div><p>${factHtml(f)}</p><div class="facts"><button type="button" class="fbtn ${liked ? 'on' : ''}" data-fact="like">👍 Zanimljivo</button><button type="button" class="fbtn" data-fact="next">Još jedna ›</button></div><div class="fprog">Album: ${esc(T.n)}<span class="tr"><i style="width:${Math.round(100 * n / all)}%"></i></span>${n}/${all}</div>${G && G.factWon ? factWonHtml(G.factWon) : ''}`;
+}
+function factCardHtml() {
+  if (!factsOnV || !G) return '';
+  if (!G.resFact) { const f = nextFact(G.cdFact); if (!f) return ''; G.resFact = f; const got = markFact(f); if (got) G.factWon = got; }
+  return `<div class="factcard" id="factCard">${factCardInner(G.resFact)}</div>`;
+}
+function wireFactCard(root) {
+  const c = root && root.querySelector('#factCard'); if (!c) return;
+  c.onclick = (e) => {
+    const b = e.target.closest('[data-fact]'); if (!b || !G || !G.resFact) return; e.preventDefault();
+    if (b.dataset.fact === 'like') { b.classList.toggle('on', likeFact(G.resFact)); buzz(15); return; }
+    if (b.dataset.fact === 'wear') { wearFactTag(b.dataset.id); b.remove(); return; }
+    const f = nextFact(G.resFact); if (!f) return; G.resFact = f; const got = markFact(f); if (got) G.factWon = got; c.innerHTML = factCardInner(f);
+  };
+}
+// the lobby: the same word all day, for everyone (the date in Croatia)
+function wordOfDay() { const d = Date.parse(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb' }).format(Date.now()) + 'T00:00:00Z') / 864e5; return ((Math.round(d) % WORDS.length) + WORDS.length) % WORDS.length; }
+let wordMarked = -1;
+function wordCardHtml() {
+  if (!factsOnV || !factTopics().includes('jezik')) return '';
+  const i = wordOfDay(), w = WORDS[i];
+  if (wordMarked !== i) { wordMarked = i; setTimeout(() => { const got = markFact({ t: 'jezik', i }); if (got) toast(`🎉 Album ${FACT_TOPICS[got].e} ${FACT_TOPICS[got].n} je pun: natpis ${BADGES[FACT_TOPICS[got].r].g} je tvoj (Moj profil).`); }, 0); }
+  return `<div class="wordday"><div class="ph">🗣️ RIJEČ DANA · dalmatinski</div><div class="w">${esc(w[0].toUpperCase())}</div><p>${esc(capFirst(w[1]))}.</p><div class="ex">„${esc(w[2])}”</div></div>`;
+}
+// Moj profil: on/off, the topics, the album
+function factBoxHtml() {
+  if (profile) factReward();
+  const off = factOff();
+  const chips = Object.entries(FACT_TOPICS).map(([t, T]) => `<button type="button" class="wchip ${off.includes(t) ? '' : 'on'}" data-ftopic="${t}">${T.e}<span>${esc(T.n)}</span>${off.includes(t) ? '' : '<i>✓</i>'}</button>`).join('');
+  const alb = Object.entries(FACT_TOPICS).map(([t, T]) => { const n = factSeenN(t), all = FACTS[t].length, b = BADGES[T.r]; return `<div class="fal ${n >= all ? 'done' : ''}" style="--c:${T.c}"><b>${T.e} ${esc(T.n)}</b><span class="tr"><i style="width:${Math.round(100 * n / all)}%"></i></span><small>${n}/${all} · ${n >= all ? b.svg : 'nagrada: natpis ' + esc(b.g)}</small></div>`; }).join('');
+  return `<label><input type="checkbox" id="factChk" ${factsOnV ? 'checked' : ''}> 💡 <b>Zanimljivosti</b></label><small class="hint">Jedna kratka zanimljivost dok se odbrojava i na rezultatima, a u predvorju riječ dana. Isključi kad god želiš.</small>${factsOnV ? `<div class="wrow">${chips}</div>` : ''}<b class="falbt">📚 Album zanimljivosti</b><small class="hint">Skupi cijelu temu i dobiješ natpis uz ime.</small><div class="falb">${alb}</div>`;
+}
+function wireFactBox(box) {
+  if (!box) return; const redraw = () => { box.innerHTML = factBoxHtml(); if (curTab === 'online') renderNet(); };
+  box.onchange = (e) => { if (e.target.id === 'factChk') { setFactsOn(e.target.checked); redraw(); } };
+  box.onclick = (e) => {
+    const b = e.target.closest('[data-ftopic]'); if (!b) return; e.preventDefault();
+    const t = b.dataset.ftopic, off = factOff(), j = off.indexOf(t); if (j >= 0) off.splice(j, 1); else off.push(t);
+    lsSet('vijuga-facts-t', JSON.stringify(off)); buzz(15); redraw();
+  };
+}
 let weekly = null, funFacts = [];
 async function loadWeekly() { try { const r = await fetch('https://vijuga.netlify.app/api/stats', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); weekly = j.weekly || null; funFacts = j.facts || []; renderOnbar(); } } catch (e) {} }
 setTimeout(loadWeekly, 2500); setInterval(loadWeekly, 600000);
@@ -5933,20 +6224,20 @@ const inMatch = () => !!(G && !G.over && $('#game') && !$('#game').hidden);
 // written; everything else (chat lines, kills, joins, potions, goals…) is left out. `force` lets a one-time tip through.
 // One line at a time, in the top bar above the arena (never over it); a warning pushes a plain line aside, the rest wait.
 let igCur = null, igQ = [], igT = 0; const igLog = []; // igLog: the last lines (for the tests)
-function showIgMsg(html, warn, force) {
+function showIgMsg(html, warn, force, opt) { // opt: {cls, ms}
   if (inMatch() && !warn && !force) return;
   igLog.push(html); if (igLog.length > 12) igLog.shift();
   const box = $('#igMsgs'); if (!box) { notify(html, { ms: 5000 }); return; }
   if (igCur && box.contains(igCur)) {
-    if (!(warn && !igCur.classList.contains('warn'))) { if (!igQ.some(q => q[0] === html)) igQ.push([html, warn]); if (igQ.length > 3) igQ.shift(); return; }
+    if (!(warn && !igCur.classList.contains('warn'))) { if (!igQ.some(q => q[0] === html)) igQ.push([html, warn, opt]); if (igQ.length > 3) igQ.shift(); return; }
   }
-  igShow(html, warn);
+  igShow(html, warn, opt);
 }
-function igShow(html, warn) {
+function igShow(html, warn, opt) {
   const box = $('#igMsgs'), hud = box && box.parentElement; if (!box) return;
   if (hud) { const hr = hud.getBoundingClientRect(), ls = [...hud.querySelectorAll('.iconbtn, .watchers')].filter(b => b.offsetParent).map(b => b.getBoundingClientRect()).filter(r => r.width > 0).map(r => r.left); box.style.setProperty('--msgR', Math.max(10, Math.round(hr.right - (ls.length ? Math.min(...ls) : hr.right - 10) + 6)) + 'px'); }
-  const el = document.createElement('div'); el.className = 'igmsg' + (warn ? ' warn' : ''); el.innerHTML = html; box.replaceChildren(el); igCur = el;
-  clearTimeout(igT); igT = setTimeout(() => { el.remove(); igCur = null; const n = igQ.shift(); if (n) igShow(n[0], n[1]); }, 4200);
+  const el = document.createElement('div'); el.className = 'igmsg' + (warn ? ' warn' : '') + (opt && opt.cls ? ' ' + opt.cls : ''); el.innerHTML = html; box.replaceChildren(el); igCur = el;
+  clearTimeout(igT); igT = setTimeout(() => { el.remove(); igCur = null; const n = igQ.shift(); if (n) igShow(n[0], n[1], n[2]); }, (opt && opt.ms) || 4200);
 }
 function igClear() { igQ = []; igCur = null; clearTimeout(igT); const b = $('#igMsgs'); if (b) b.replaceChildren(); }
 function resetCanvasFx() { const c = $('#cv'); if (c) { c.style.transform = ''; c.style.transition = ''; c.style.filter = ''; } }
@@ -6276,6 +6567,7 @@ function renderNet() {
   html.push(`<div class="go">${roomState.ready ? '<button class="btn ghost" id="netLeave">Izađi iz predvorja</button>' : '<button class="btn" id="netJoin">Uđi u predvorje</button>'}${roomState.ready && !host ? `<button class="btn ${myPres.ok ? 'ghost' : ''}" id="netStart">${myPres.ok ? '⏳ Spreman · odustani' : '✅ Spreman za meč'}</button>` : ''}${roomState.ready && !host && lobbyState().canGo ? `<button class="btn" id="netGo" title="Meč kreće odmah s onima koji su spremni; ostali ulaze od sljedeće runde">▶ Kreni odmah${readyCount() < 2 ? ' s botovima' : ''}</button>` : ''}${roomState.ready && !host && myRole() === 'master' ? `<button class="btn ghost sm" id="netForce" title="Admin: pokreni bez čekanja">▶ Pokreni odmah</button>` : ''}<label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="netBots" ${setup.netBots ? 'checked' : ''}> dopuni botovima do 4</label></div>`);
   if (roomState.ready) html.push(hotBarHtml()); // waiting for the match: the time to choose the hotkey
   html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgesHtml(presBadges(pr))}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${kickedSlug(pr.sl) ? '🚫 izbačen' : (pr.st || pr.hs) && !hostOver(p) ? 'domaćin' : pr.ig ? 'u meču' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${myRole() === 'master' && pr.sl && !(p.isMe && p.sameTab) && roleOfSlug(pr.sl) !== 'master' ? `<button class="pingbtn kickbtn" type="button" data-kick="${esc(pr.sl)}" data-kn="${esc(String(pr.nm || ''))}" title="${kickedSlug(pr.sl) ? 'Vrati u sobu' : 'Izbaci iz sobe'}" style="margin-left:8px">${kickedSlug(pr.sl) ? '↩️' : '🚫'}</button>` : ''}${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
+  if (roomState.ready) html.push(wordCardHtml());
   html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   // the lobby is redrawn on every presence change: keep the message being typed (and the caret) across redraws
   const oldIn = $('#lchatIn'); const typed = oldIn ? oldIn.value : '', hadFocus = !!oldIn && document.activeElement === oldIn, caret = oldIn ? oldIn.selectionStart : 0;
@@ -7480,6 +7772,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { renderOnbar, showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { facts: { FACTS, WORDS, FACT_TOPICS, nextFact, markFact, factSeen, factReward, wordOfDay, setOn: setFactsOn }, renderOnbar, showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
