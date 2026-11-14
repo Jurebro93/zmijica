@@ -504,6 +504,17 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .rbtn { width: 46px; height: 46px; border-radius: 10px; border: 0; background: var(--panel); font-size: 26px; line-height: 1; display: grid; place-items: center; transition: transform .08s; }
 .rbtn:active { transform: scale(.88); }
 .rrow2 { display: flex; flex-wrap: wrap; gap: 4px; }
+/* the lobby chat: the title and a few reactions in one line, ▾ opens the rest; the room goes to the messages */
+.chathead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.chathead .label { flex: 0 1 auto; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rquick { display: flex; gap: 4px; flex: none; margin-left: auto; }
+.rquick .rbtn, .rmore .rbtn { width: 36px; height: 36px; font-size: 20px; flex: none; }
+.rbtn[hidden] { display: none; }
+.rquick .rexp { width: 36px; height: 36px; flex: none; border-radius: 10px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 15px; display: grid; place-items: center; padding: 0; }
+.rquick .rexp.on { border-color: var(--amber); color: var(--amber); }
+.rmore { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.rmore[hidden] { display: none; }
+#lchatLog { max-height: 270px; }
 .rrow2 .rbtn { width: 38px; height: 38px; font-size: 21px; }
 .chip .re { font-size: 17px; line-height: 1; animation: rePop .35s ease-out; }
 .peer .re { font-size: 20px; margin-left: 4px; animation: rePop .35s ease-out; }
@@ -1842,6 +1853,7 @@ function openAll() {
 // the chat, reachable from anywhere in the menu: text, quick lines and voice messages
 const CHAT_QUICK = ['Ajmo partiju! 🎮', '🔊 Pojačajte zvuk! 🎤', 'Tko je za meč?', 'Evo me 👋', 'gg 👏', 'Revanš! 🔥', '😂'];
 function openChat() {
+  micWarmUp();
   if (!profile) { showLogin(); return; }
   setTimeout(markChatSeen, 300); // opened = read: the dot and the glow go at once
   const m = $('#regModal'); m.hidden = false;
@@ -4778,6 +4790,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'glas2', d: '2026-11-14', e: '🎤', t: 'Glasovne poruke: bez kašnjenja, čišći zvuk, igra ne zapinje', x: 'Drži 🎤 i odmah govori: prva riječ se više ne gubi (mikrofon ostaje spreman još malo nakon poruke, a poruka počinje i trenutak prije pritiska). Zvuk je dvostruko čišći, a poruka putuje zasebno, pa se meč više ne zaustavi dok netko šalje glasovnu.', go: 'chat', b: 'Otvori chat' },
   { id: 'znasli', d: '2026-11-13', e: '💡', t: 'Znaš li? Zanimljivosti uz igru', x: 'Dok se odbrojava, u traci iznad arene iskoči kratka zanimljivost, a na rezultatima kartica „Znaš li?” (👍 ako ti se svidi, „Još jedna” za novu). U predvorju te čeka dalmatinska riječ dana. Teme su Zmije, Hrvatska, Šibenik, Svemir, Sport i Jezik: biraš ih ili sve isključiš u Moj profil → 💡 Zanimljivosti. Skupi cijelu temu u albumu i dobiješ natpis uz ime (Zmijolog, Domoljub, Šibenski znalac…).', go: 'me', b: 'Moj album' },
   { id: 'dvoklik', d: '2026-11-13', e: '⚡', t: 'Dvoklik za zezalicu, glatkije kretanje i odlučujuća runda', x: 'Prečac zezalice sad ide dvoklikom: u Moj profil → ⭐ Prečac zezalice odaberi zezalicu ili napitak, a u meču samo dvaput brzo dodirni ZEZALICE (zezalica ode igraču koji vodi). Protivnici se kreću glatko i bez trzanja, a zavoji su obliji. Kad je na kraju meča izjednačeno za prvo mjesto, igra se ⚔️ odlučujuća runda.', go: 'me', b: 'Postavi prečac' },
   { id: 'pica', d: '2026-11-12', e: '🍻', t: 'Pića uz ime', x: 'U trgovini (Ikone → Brendovi) je nova polica 🍻 Pića: ikone 🍺 pive, 🥃 rakije, 🍷 vina, 🥂 šampanjca i 🍸 koktela uz ime, i natpisi poznatih marki: Ožujsko, Karlovačko, Heineken, Guinness, Corona, Pelinkovac, Maraschino, Aperol, Jägermeister, Jack Daniel\'s, Moët i Dom Pérignon (samo ime u boji marke, ne službeni logo).', go: 'shop:brands', b: 'Pogledaj pića', items: ['bd_dr_beer', 'bd_dr_rakija', 'bd_dr_bottle', 'bd_dr_ozujsko', 'bd_dr_karlovacko', 'bd_dr_moet'] },
@@ -4816,6 +4829,7 @@ function newsGo(go) {
   if (!go) return;
   if (go === 'push') { enablePush(); return; }
   if (go === 'me') { navGo('me'); return; }
+  if (go === 'chat') { navGo('chat'); return; }
   if (go.startsWith('tab:')) { closeModal(); showTab(go.slice(4)); const t = $('#tabs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (go.startsWith('shop:')) { closeModal(); showTab('shop'); const b = document.querySelector(`#shopCats [data-c="${go.slice(5)}"]`); if (b) b.click(); }
 }
@@ -6587,6 +6601,19 @@ function liveHost() { return pickHost(liveHosts().filter(h => !hostOver(h))); }
 // unless they have been sitting there for minutes (then they are probably gone, and a new match is offered instead)
 const RESULTS_JOIN_S = 180;
 function joinableHost() { return liveHost() || pickHost(liveHosts().filter(h => Number(h.presence.ho) < RESULTS_JOIN_S)); }
+// the lobby chat's reactions: as many as fit next to the title (6 at most, 3 at least; the title shortens to "Chat" when
+// fewer than 5 would fit beside the whole one), ▾ opens the rest under it; open or shut stays so across the lobby's redraws
+let reactOpen = false;
+function fitReactBar() {
+  const q = $('#lreact'), more = $('#lreactMore'), head = q && q.parentElement, lab = head && head.querySelector('.label'); if (!q || !more || !lab) return;
+  const btns = [...q.querySelectorAll('.rbtn')], fits = () => lab.scrollWidth <= lab.clientWidth + 1 && head.scrollWidth <= head.clientWidth + 1;
+  const show = (n) => btns.forEach((b, i) => { b.hidden = i >= n; });
+  lab.textContent = 'Chat i reakcije'; let n = 6; show(n);
+  while (!fits() && n > 5) show(--n); // the full title only with 5 or 6 reactions next to it
+  if (!fits()) { lab.textContent = 'Chat'; n = 6; show(n); while (!fits() && n > 3) show(--n); }
+  more.innerHTML = btns.filter(b => b.hidden).map(b => `<button type="button" class="rbtn" data-e="${b.dataset.e}" aria-label="Reakcija ${b.dataset.e}">${b.dataset.e}</button>`).join('');
+}
+{ let fT = 0; addEventListener('resize', () => { clearTimeout(fT); fT = setTimeout(fitReactBar, 200); }); try { document.fonts && document.fonts.ready.then(() => fitReactBar()); } catch (e) {} }
 function renderNet() {
   const box = $('#net'); if (!box) return;
   if (!roomNs && roomState.resolved) {
@@ -6615,14 +6642,16 @@ function renderNet() {
   if (roomState.ready) html.push(hotBarHtml()); // waiting for the match: the time to choose the hotkey
   html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgesHtml(presBadges(pr))}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${kickedSlug(pr.sl) ? '🚫 izbačen' : (pr.st || pr.hs) && !hostOver(p) ? 'domaćin' : pr.ig ? 'u meču' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${myRole() === 'master' && pr.sl && !(p.isMe && p.sameTab) && roleOfSlug(pr.sl) !== 'master' ? `<button class="pingbtn kickbtn" type="button" data-kick="${esc(pr.sl)}" data-kn="${esc(String(pr.nm || ''))}" title="${kickedSlug(pr.sl) ? 'Vrati u sobu' : 'Izbaci iz sobe'}" style="margin-left:8px">${kickedSlug(pr.sl) ? '↩️' : '🚫'}</button>` : ''}${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   if (roomState.ready) html.push(wordCardHtml());
-  html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
+  html.push(`<div class="chat"><div class="chathead"><span class="label">Chat i reakcije</span><div class="rquick" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}<button type="button" class="rexp ${reactOpen ? 'on' : ''}" id="lreactExp" aria-label="Još reakcija" aria-expanded="${reactOpen}">${reactOpen ? '▴' : '▾'}</button></div></div><div class="rmore" id="lreactMore" ${reactOpen ? '' : 'hidden'}></div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   // the lobby is redrawn on every presence change: keep the message being typed (and the caret) across redraws
   const oldIn = $('#lchatIn'); const typed = oldIn ? oldIn.value : '', hadFocus = !!oldIn && document.activeElement === oldIn, caret = oldIn ? oldIn.selectionStart : 0;
   box.innerHTML = html.join('');
   if (typed || hadFocus) { const ni = $('#lchatIn'); if (ni) { ni.value = typed; if (hadFocus) { ni.focus(); try { ni.setSelectionRange(caret, caret); } catch (e) {} } } }
   wireChat('#lchatIn', '#lchatSend'); renderChat();
   document.querySelectorAll('#net [data-ping]').forEach(b => b.onclick = () => sendPing(b.dataset.ping));
-  document.querySelectorAll('#lreact .rbtn').forEach(b => b.onclick = () => sendReaction(b.dataset.e));
+  fitReactBar();
+  for (const id of ['#lreact', '#lreactMore']) { const r = $(id); if (r) r.onclick = (e) => { const b = e.target.closest('.rbtn'); if (b) sendReaction(b.dataset.e); }; }
+  if ($('#lreactExp')) $('#lreactExp').onclick = () => { reactOpen = !reactOpen; const x = $('#lreactExp'), m = $('#lreactMore'); x.classList.toggle('on', reactOpen); x.textContent = reactOpen ? '▴' : '▾'; x.setAttribute('aria-expanded', String(reactOpen)); if (m) m.hidden = !reactOpen; };
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
   if ($('#netStart')) $('#netStart').onclick = toggleReady;
@@ -6722,6 +6751,7 @@ if (voicePlayer) {
 document.addEventListener('visibilitychange', () => { if (document.hidden || !voiceLater) return; const v = voiceLater; voiceLater = null; if (Date.now() - v.at < 90000) playVoice(v.src, true, v.from); });
 // auto: it just arrived (else: a tap on ▶, which plays it now, from the start). from: who sent it (for the pill)
 function playVoice(src, auto, from) {
+  if (typeof src === 'string' && src.startsWith('v:')) { voiceFetch(src).then(u => { if (u) playVoice(u, auto, from); else if (!auto) toast('Ova glasovna više nije dostupna.'); }); return; }
   if (!voicePlayer) { try { const au = new Audio(src); au.play().catch(() => toast('Ova glasovna se ne može pustiti na ovom uređaju.')); } catch (e) {} return; }
   if (!auto) { voiceQ.length = 0; voicePill(null); voiceStart({ src, from }, false); return; }
   if (document.hidden) { voiceLater = { src, from, at: Date.now() }; return; } // the phone is in a pocket: play it when the game is back
@@ -6760,7 +6790,7 @@ function volumeHint() {
   const up = IS_TOUCH ? 'pojačaj zvuk tipkama sa strane mobitela dok poruka svira' : 'pojačaj zvuk na računalu';
   toast(`🔊 Stigla je glasovna poruka. Ako je ne čuješ, ${up}; ▶ u chatu je pušta ponovno.`);
 }
-function setChatOpen(v) { chatOpen = v; $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; if (net) markChatSeen(); } updateUnread(); }
+function setChatOpen(v) { chatOpen = v; if (v) micWarmUp(); $('#gchat').hidden = !net || !chatOpen; if (chatOpen) { unread = 0; if (net) markChatSeen(); } updateUnread(); }
 function updateUnread() { document.querySelectorAll('.ptool.chat').forEach(b => b.classList.toggle('has', !!unread && !chatOpen)); const u = $('#unread'); if (!u) return; u.hidden = !unread || chatOpen; u.textContent = unread > 9 ? '9+' : String(unread); }
 function sendChat(text) {
   text = String(text || '').trim().slice(0, 80); if (!text) return;
@@ -6778,7 +6808,7 @@ const voiceEl = (() => { const el = document.createElement('div'); el.id = 'voic
 function voiceHint(state, note) {
   const el = voiceEl; clearTimeout(el._h);
   if (!state) { el.className = ''; el.setAttribute('aria-hidden', 'true'); return; }
-  const T = { wait: ['🎙️', 'Drži dok govoriš', 'pusti za slanje'], perm: ['🎙️', 'Dopusti mikrofon', 'pa drži 🎤 dok govoriš i pusti za slanje'], rec: ['🔴', 'Snimam… drži dok govoriš', 'pusti za slanje · najviše 5 s'], send: ['📤', 'Šaljem…', ''], sent: ['✅', 'Poslano svima', 'neka pojačaju zvuk 🔊 da te čuju'], alone: ['✅', 'Poslano', 'trenutno nitko drugi nije online'], short: ['✋', 'Prekratko', 'drži 🎤 dok govoriš, pa pusti za slanje'], ready: ['✅', 'Mikrofon je dopušten', 'sad drži 🎤 dok govoriš, pa pusti za slanje'] }[state];
+  const T = { wait: ['🎙️', 'Sekundu… palim mikrofon', 'počni govoriti kad zasvijetli 🔴'], perm: ['🎙️', 'Dopusti mikrofon', 'pa drži 🎤 dok govoriš i pusti za slanje'], rec: ['🔴', 'Snimam… drži dok govoriš', 'pusti za slanje · najviše 5 s'], send: ['📤', 'Šaljem…', ''], sent: ['✅', 'Poslano svima', 'neka pojačaju zvuk 🔊 da te čuju'], alone: ['✅', 'Poslano', 'trenutno nitko drugi nije online'], short: ['✋', 'Prekratko', 'drži 🎤 dok govoriš, pa pusti za slanje'], ready: ['✅', 'Mikrofon je dopušten', 'sad drži 🎤 dok govoriš, pa pusti za slanje'] }[state];
   const inGame = !$('#game').hidden;
   el.innerHTML = `<span class="ve">${T[0]}</span><div><b>${T[1]}</b>${note || T[2] ? `<small>${note || T[2]}</small>` : ''}</div>${state === 'rec' ? `<i class="vbar" style="animation-duration:${VOICE_MAX}ms"></i>` : ''}`;
   el.className = 'show v-' + state + (inGame ? ' ingame' : ''); el.removeAttribute('aria-hidden');
@@ -6793,43 +6823,182 @@ function micError(e) {
   if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'Ovaj uređaj nema mikrofon.';
   return 'Snimanje nije uspjelo.';
 }
+// ---------- the microphone, kept warm ----------
+// Opening a phone's microphone takes 0.3-1 s; recording used to start only then, so the first word was lost. Now the
+// microphone is opened by the first press and then stays open MIC_WARM_MS after the last message (and is closed at once
+// when the game goes to the background), so a later press records straight away, and the last PREROLL_S before the press
+// is kept as well: a word said together with the press is in the message. The samples are taken from the microphone
+// directly (Web Audio): no recorder to start and nothing to decode afterwards (decoding is what made the match stutter).
+const MIC_WARM_MS = 45000, PREROLL_S = 0.4;
+const mic = { stream: null, src: null, node: null, sink: null, rate: 48000, ring: null, ringPos: 0, ringFull: false, rec: null, recN: 0, closeT: 0, opening: null };
+const micLive = () => !!(mic.stream && mic.node && mic.stream.getAudioTracks().some(t => t.readyState === 'live'));
+function micOpen() {
+  if (micLive()) return Promise.resolve(true);
+  if (mic.opening) return mic.opening;
+  mic.opening = (async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true, autoGainControl: true } });
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; const ctx = actx || (actx = new AC());
+      if (ctx.state === 'suspended') { try { await ctx.resume(); } catch (e) {} }
+      const src = ctx.createMediaStreamSource(stream), node = ctx.createScriptProcessor(2048, 1, 1), sink = ctx.createGain(); sink.gain.value = 0; // nothing of the microphone is heard
+      mic.rate = ctx.sampleRate; mic.ring = new Float32Array(Math.ceil(PREROLL_S * ctx.sampleRate)); mic.ringPos = 0; mic.ringFull = false;
+      node.onaudioprocess = (e) => {
+        const d = e.inputBuffer.getChannelData(0);
+        if (mic.rec) { mic.rec.push(new Float32Array(d)); mic.recN += d.length; }
+        const r = mic.ring; let p = mic.ringPos; for (let i = 0; i < d.length; i++) { r[p++] = d[i]; if (p >= r.length) { p = 0; mic.ringFull = true; } } mic.ringPos = p;
+      };
+      src.connect(node); node.connect(sink); sink.connect(ctx.destination);
+      Object.assign(mic, { stream, src, node, sink });
+      stream.getAudioTracks().forEach(t => t.addEventListener('ended', () => { if (mic.stream === stream) micClose(); }));
+    } catch (e) { stream.getTracks().forEach(t => t.stop()); throw e; }
+    return true;
+  })().finally(() => { mic.opening = null; });
+  return mic.opening;
+}
+function micClose() {
+  clearTimeout(mic.closeT);
+  if (mic.node) { mic.node.onaudioprocess = null; try { mic.src.disconnect(); mic.node.disconnect(); mic.sink.disconnect(); } catch (e) {} }
+  if (mic.stream) mic.stream.getTracks().forEach(t => t.stop());
+  Object.assign(mic, { stream: null, src: null, node: null, sink: null, rec: null, recN: 0, ringFull: false });
+}
+// the chat opened: someone who already let the microphone in (this visit) may talk soon, so it gets ready now
+function micWarmUp() { try { if (!micGranted || micLive() || mic.opening || document.hidden) return; micOpen().then(() => { if (!recState) micKeepWarm(); }, () => {}); } catch (e) {} } // (try: it may be called before the voice code has run at start-up)
+function micKeepWarm() { clearTimeout(mic.closeT); mic.closeT = setTimeout(() => { if (!recState) micClose(); }, MIC_WARM_MS); }
+document.addEventListener('visibilitychange', () => { if (document.hidden && !recState) micClose(); });
+// what the microphone heard just before now (oldest first)
+function micPreroll() { const r = mic.ring; if (!r) return new Float32Array(0); if (!mic.ringFull) return r.slice(0, mic.ringPos); const o = new Float32Array(r.length); o.set(r.subarray(mic.ringPos)); o.set(r.subarray(0, mic.ringPos), r.length - mic.ringPos); return o; }
 async function startVoice(btn, ptrId) {
   if (recState || voiceStarting) return; // one finger owns the mic: a second press does not take it over
   if (profile && mutedUntil(profile.slug)) { toast('🔇 Utišan si.'); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toast('Ovaj preglednik ne snima zvuk.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !(window.AudioContext || window.webkitAudioContext)) { toast('Ovaj preglednik ne snima zvuk.'); return; }
   if (!roomNs) { toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
-  voiceWanted = true; voicePtr = ptrId == null ? null : ptrId; voiceStarting = true;
+  voiceWanted = true; voicePtr = ptrId == null ? null : ptrId;
   try { if (ptrId != null) btn.setPointerCapture(ptrId); } catch (e) {}
-  voiceHint('wait'); const asked = performance.now();
-  // is the browser going to ask for permission? (read in parallel: nothing may be awaited before getUserMedia)
-  voicePerm = micGranted ? 'granted' : null;
-  try { if (!micGranted && navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: 'microphone' }).then(st => { if (st && !micGranted) voicePerm = st.state; }, () => {}); } catch (e) {}
-  let stream;
-  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, echoCancellation: true } }); }
-  catch (e) { voiceStarting = false; voiceWanted = false; voiceHint(null); toast(micError(e)); return; }
-  voiceStarting = false; const wasAsked = voicePerm === 'prompt' || (voicePerm == null && !micGranted && performance.now() - asked > 700); micGranted = true;
-  if (!voiceWanted) { // let go before the microphone was ready: the first time that is the browser asking for permission
-    stream.getTracks().forEach(t => t.stop()); voiceHint(wasAsked ? 'ready' : 'short'); return; }
-  let mr;
-  try {
-    const safari = /AppleWebKit/.test(navigator.userAgent) && !/Chrome|CriOS|Chromium|Android|FxiOS|EdgiOS/.test(navigator.userAgent);
-    const type = (safari ? ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'] : ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm']).find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
-    mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 16000 } : { audioBitsPerSecond: 16000 });
-  } catch (e) { stream.getTracks().forEach(t => t.stop()); voiceWanted = false; voiceHint(null); toast('Ovaj preglednik ne može snimiti zvuk.'); return; }
-  const chunks = []; mr.ondataavailable = e => e.data.size && chunks.push(e.data);
-  const rs = { mr, t0: performance.now(), timer: setTimeout(() => stopVoice(), VOICE_MAX) };
-  mr.onstop = () => { clearTimeout(rs.timer); stream.getTracks().forEach(t => t.stop()); const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' }); const ms = performance.now() - rs.t0; if (recState === rs) recState = null; btn.classList.remove('rec'); voiceWanted = false;
-    if (ms < 400) { voiceHint('short'); return; }
-    if (!roomNs) { voiceHint(null); toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
-    voiceHint('send');
-    voiceWav(blob).catch(() => null).then((wav) => {
-    const fr = new FileReader(); fr.onload = () => { const url = String(fr.result); if (url.length > 120000) { voiceHint(null); toast('Poruka je preduga: snimi kraće.'); return; } chatN++; window.__voiceSentAt = performance.now(); netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); voiceHint(onlineOthers().length ? 'sent' : 'alone'); }; fr.onerror = () => { voiceHint(null); toast('Slanje nije uspjelo.'); }; fr.readAsDataURL(wav && wav.size > 44 ? wav : blob); }); };
-  try { mr.start(); } catch (e) { clearTimeout(rs.timer); stream.getTracks().forEach(t => t.stop()); voiceWanted = false; voiceHint(null); toast('Ovaj preglednik ne može snimiti zvuk.'); return; }
-  recState = rs; btn.classList.add('rec'); voiceHint('rec'); beep(880, .06, 'sine', .04);
+  const warm = micLive(), asked = performance.now();
+  if (!warm) {
+    voiceStarting = true; voiceHint('wait');
+    // is the browser going to ask for permission? (read in parallel: nothing may be awaited before getUserMedia)
+    voicePerm = micGranted ? 'granted' : null;
+    try { if (!micGranted && navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: 'microphone' }).then(st => { if (st && !micGranted) voicePerm = st.state; }, () => {}); } catch (e) {}
+    try { await micOpen(); } catch (e) { voiceStarting = false; voiceWanted = false; voiceHint(null); toast(micError(e)); return; }
+    voiceStarting = false;
+  }
+  const wasAsked = !warm && (voicePerm === 'prompt' || (voicePerm == null && !micGranted && performance.now() - asked > 700)); micGranted = true;
+  if (!voiceWanted) { micKeepWarm(); voiceHint(wasAsked ? 'ready' : 'short'); return; } // let go before the microphone was ready (the first time: the browser asking)
+  // the message: what the microphone heard just before the press, then everything until the finger lifts (at most 5 s)
+  const pre = warm ? micPreroll() : new Float32Array(0);
+  clearTimeout(mic.closeT); mic.rec = [pre]; mic.recN = pre.length;
+  recState = { t0: performance.now(), pre: pre.length, btn, timer: setTimeout(() => stopVoice(), VOICE_MAX) };
+  btn.classList.add('rec'); voiceHint('rec'); buzz(20); // no beep: the microphone would hear it
 }
-// A voice message goes as WAV (16 bit, 8 kHz, mono): every phone and browser plays it (a WebM recorded on Android does not
-// play on some iPhones), and 5 s always fit the room's limit (an iPhone's own recording can be too big). If this browser
-// cannot read back its own recording, the recording goes as it is.
+function stopVoice() {
+  const was = voiceWanted; voiceWanted = false;
+  if (recState) { finishVoice(recState); return; }
+  if (was && voiceEl.classList.contains('v-wait') && (voicePerm === 'prompt' || (voicePerm == null && !micGranted))) voiceHint('perm');
+}
+function finishVoice(rs) {
+  clearTimeout(rs.timer); const parts = mic.rec || []; mic.rec = null; mic.recN = 0; if (recState === rs) recState = null; rs.btn.classList.remove('rec'); micKeepWarm();
+  if (performance.now() - rs.t0 < 400) { voiceHint('short'); return; }
+  if (!roomNs) { voiceHint(null); toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
+  voiceHint('send');
+  const pcm = voicePrep(parts, mic.rate, rs.pre);
+  if (pcm.length < VOICE_RATE16 * 0.3) { voiceHint('short'); return; }
+  sendVoiceClip(pcm);
+}
+// the message as samples at 16 kHz: the pre-roll only from a little before the voice starts (not 0.4 s of room noise in
+// front of every message), each output sample the mean of the input samples it covers, brought up to one loudness
+// (a quiet microphone up to x12, never clipped), with a short fade at both ends (no click)
+const VOICE_RATE16 = 16000;
+function voicePrep(parts, rate, preLen) {
+  let n = 0; for (const p of parts) n += p.length; const all = new Float32Array(n); { let o = 0; for (const p of parts) { all.set(p, o); o += p.length; } }
+  let start = 0;
+  if (preLen > 0) { let peak = 0; for (let i = 0; i < n; i++) { const a = Math.abs(all[i]); if (a > peak) peak = a; } const thr = Math.max(0.02, peak * 0.12); let first = 0; while (first < n && Math.abs(all[first]) < thr) first++; start = Math.max(0, Math.min(preLen, first) - Math.round(0.12 * rate)); }
+  const step = rate / VOICE_RATE16, len = Math.max(0, Math.min(Math.floor((n - start) / step), Math.ceil((VOICE_MAX / 1000 + PREROLL_S + 0.2) * VOICE_RATE16)));
+  const out = new Float32Array(len); let peak = 0;
+  for (let i = 0; i < len; i++) { const a = start + Math.floor(i * step), b = Math.max(a + 1, Math.min(n, start + Math.floor((i + 1) * step))); let s = 0; for (let j = a; j < b; j++) s += all[j]; const v = s / (b - a); out[i] = v; const av = Math.abs(v); if (av > peak) peak = av; }
+  const gain = peak > 0.003 ? Math.min(12, 0.92 / peak) : 1, fade = Math.min(len >> 1, Math.round(0.015 * VOICE_RATE16));
+  for (let i = 0; i < len; i++) { let g = gain; if (i < fade) g *= i / fade; else if (i >= len - fade) g *= (len - 1 - i) / fade; out[i] = Math.max(-1, Math.min(1, out[i] * g)); }
+  return out;
+}
+// IMA ADPCM, 4 bits a sample: 16 kHz speech in 8 kB a second (a 5 s message ~40 kB, the old 8 kHz WAV was 80 kB).
+// The clip: "VJA1", the rate (u16), the number of samples (u32), 2 spare bytes, then two samples a byte (low nibble first).
+const IMA_STEP = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767];
+const IMA_IDX = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8];
+function adpcmEncode(f32, rate) {
+  const n = f32.length, out = new Uint8Array(12 + ((n + 1) >> 1)), dv = new DataView(out.buffer);
+  out.set([86, 74, 65, 49]); dv.setUint16(4, rate, true); dv.setUint32(6, n, true);
+  let pred = 0, idx = 0;
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-32768, Math.min(32767, Math.round(f32[i] * 32767)));
+    let step = IMA_STEP[idx], diff = s - pred, code = 0, dq = step >> 3;
+    if (diff < 0) { code = 8; diff = -diff; }
+    if (diff >= step) { code |= 4; diff -= step; dq += step; } step >>= 1;
+    if (diff >= step) { code |= 2; diff -= step; dq += step; } step >>= 1;
+    if (diff >= step) { code |= 1; dq += step; }
+    pred = Math.max(-32768, Math.min(32767, code & 8 ? pred - dq : pred + dq)); idx = Math.max(0, Math.min(88, idx + IMA_IDX[code]));
+    if (i & 1) out[12 + (i >> 1)] |= code << 4; else out[12 + (i >> 1)] = code;
+  }
+  return out;
+}
+function adpcmDecode(u8) {
+  if (!u8 || u8.length < 12 || u8[0] !== 86 || u8[1] !== 74 || u8[2] !== 65 || u8[3] !== 49) return null;
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), rate = dv.getUint16(4, true), n = Math.min(dv.getUint32(6, true), (u8.length - 12) * 2);
+  if (rate < 4000 || rate > 48000) return null;
+  const pcm = new Int16Array(n); let pred = 0, idx = 0;
+  for (let i = 0; i < n; i++) {
+    const code = (u8[12 + (i >> 1)] >> ((i & 1) * 4)) & 15, step = IMA_STEP[idx];
+    let dq = step >> 3; if (code & 4) dq += step; if (code & 2) dq += step >> 1; if (code & 1) dq += step >> 2;
+    pred = Math.max(-32768, Math.min(32767, code & 8 ? pred - dq : pred + dq)); idx = Math.max(0, Math.min(88, idx + IMA_IDX[code]));
+    pcm[i] = pred;
+  }
+  return { rate, pcm };
+}
+// a WAV (16 bit, mono) every phone plays: from 16-bit samples, or from float samples at another rate (the old 8 kHz one)
+function wavBlob(pcm, rate) {
+  const len = pcm.length, dv = new DataView(new ArrayBuffer(44 + len * 2)), W = (o, t) => { for (let i = 0; i < t.length; i++) dv.setUint8(o + i, t.charCodeAt(i)); };
+  W(0, 'RIFF'); dv.setUint32(4, 36 + len * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, rate, true); dv.setUint32(28, rate * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, len * 2, true);
+  for (let i = 0; i < len; i++) dv.setInt16(44 + i * 2, pcm[i], true);
+  return new Blob([dv.buffer], { type: 'audio/wav' });
+}
+const b64Bytes = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+// clips by message ("v:<id>") -> a promise of a playable URL
+const voiceClips = new Map();
+function voiceFetch(src) {
+  if (voiceClips.has(src)) return voiceClips.get(src);
+  const p = (async () => {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 12000);
+    try { const r = await fetch(API_BASE + '/voice?id=' + encodeURIComponent(src.slice(2)), { signal: ctl.signal }); if (!r.ok) return null; const d = adpcmDecode(new Uint8Array(await r.arrayBuffer())); return d ? URL.createObjectURL(wavBlob(d.pcm, d.rate)) : null; }
+    catch (e) { return null; } finally { clearTimeout(t); }
+  })();
+  voiceClips.set(src, p); p.then(u => { if (!u) voiceClips.delete(src); });
+  if (voiceClips.size > 40) { const k = voiceClips.keys().next().value; const old = voiceClips.get(k); voiceClips.delete(k); old.then(u => { if (u) URL.revokeObjectURL(u); }); }
+  return p;
+}
+// the message goes to the server once (its own request, beside the match's connection); the room gets only its id, and
+// every listener fetches the clip on its own. Without the server (or no answer in 6 s) it goes inside the message as
+// before (an 8 kHz WAV that travels the match connection).
+async function sendVoiceClip(pcm) {
+  const clip = adpcmEncode(pcm, VOICE_RATE16); let id = null;
+  if (profile) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+    try { const r = await fetch(API_BASE + '/voice', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: profile.slug, auth: profile.pinHash || '', data: b64Bytes(clip) }), signal: ctl.signal }); if (r.ok) { const j = await r.json().catch(() => null); if (j && /^[0-9]{13}-[a-z0-9]{8}$/.test(String(j.id))) id = j.id; } else if (r.status === 403) { const j = await r.json().catch(() => null); if (j && j.error === 'muted') { voiceHint(null); toast('🔇 Utišan si.'); return; } } }
+    catch (e) {} finally { clearTimeout(t); }
+  }
+  if (!roomNs) { voiceHint(null); toast('Chat trenutno nije dostupan: nema veze sa sobom.'); return; }
+  let src;
+  if (id) { src = 'v:' + id; const d = adpcmDecode(clip); voiceClips.set(src, Promise.resolve(URL.createObjectURL(wavBlob(d.pcm, d.rate)))); }
+  else {
+    const R8 = VOICE_RATE, k = VOICE_RATE16 / R8, n8 = Math.floor(pcm.length / k), p8 = new Int16Array(n8);
+    for (let i = 0; i < n8; i++) p8[i] = Math.round(Math.max(-1, Math.min(1, (pcm[i * k] + pcm[i * k + 1]) / 2)) * 32767);
+    src = 'data:audio/wav;base64,' + b64Bytes(new Uint8Array(await wavBlob(p8, R8).arrayBuffer()));
+    if (src.length > 120000) { voiceHint(null); toast('Poruka je preduga: snimi kraće.'); return; }
+  }
+  chatN++; window.__voiceSentAt = performance.now(); netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), src] }); collectChat();
+  voiceHint(onlineOthers().length ? 'sent' : 'alone');
+}
+// A voice message from an older game goes as WAV (16 bit, 8 kHz, mono) in the message itself; voiceWav turns a
+// recording into that (kept for that path and its tests).
 const VOICE_RATE = 8000;
 async function voiceWav(blob) {
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
@@ -6839,14 +7008,10 @@ async function voiceWav(blob) {
   const len = Math.max(1, Math.min(Math.floor(audio.duration * VOICE_RATE), Math.ceil((VOICE_MAX + 600) / 1000 * VOICE_RATE))), step = sr / VOICE_RATE, out = new Float32Array(len);
   let peak = 0;
   for (let i = 0; i < len; i++) { const a = Math.floor(i * step), b = Math.max(a + 1, Math.min(chs[0].length, Math.floor((i + 1) * step))); let sum = 0, k = 0; for (let j = a; j < b; j++) for (let c = 0; c < nch; c++) { sum += chs[c][j] || 0; k++; } const v = k ? sum / k : 0; out[i] = v; if (Math.abs(v) > peak) peak = Math.abs(v); }
-  const gain = peak > 0.002 ? Math.min(30, 0.9 / peak) : 1; // a quiet phone microphone is brought up (up to x30) to the same loudness, never clipped
-  const dv = new DataView(new ArrayBuffer(44 + len * 2)), W = (o, t) => { for (let i = 0; i < t.length; i++) dv.setUint8(o + i, t.charCodeAt(i)); };
-  W(0, 'RIFF'); dv.setUint32(4, 36 + len * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
-  dv.setUint32(24, VOICE_RATE, true); dv.setUint32(28, VOICE_RATE * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, len * 2, true);
-  for (let i = 0; i < len; i++) dv.setInt16(44 + i * 2, Math.round(Math.max(-1, Math.min(1, out[i] * gain)) * 32767), true);
-  return new Blob([dv.buffer], { type: 'audio/wav' });
+  const gain = peak > 0.002 ? Math.min(30, 0.9 / peak) : 1, pcm = new Int16Array(len);
+  for (let i = 0; i < len; i++) pcm[i] = Math.round(Math.max(-1, Math.min(1, out[i] * gain)) * 32767);
+  return wavBlob(pcm, VOICE_RATE);
 }
-function stopVoice() { const was = voiceWanted; voiceWanted = false; if (recState && recState.mr && recState.mr.state === 'recording') { clearTimeout(recState.timer); recState.mr.stop(); } else if (was && !recState && voiceEl.classList.contains('v-wait') && (voicePerm === 'prompt' || (voicePerm == null && !micGranted))) voiceHint('perm'); }
 // the lobby redraws its chat often, so a release anywhere ends the recording, but only the finger that holds the mic:
 // in a match the other thumb keeps steering, and letting go of LIJEVO / DESNO must not cut the message
 const voiceUp = (e) => { if (!(voiceWanted || recState)) return; if (voicePtr != null && e.pointerId !== voicePtr) return; stopVoice(); };
@@ -6870,7 +7035,8 @@ function collectChat() {
     const first = !(key in chatSeen); chatSeen[key] = m[1]; if (first && !(p.isMe && p.sameTab) && Date.now() - (Number(m[2]) || 0) > 60000) continue;
     if (mutedUntil(p.presence.sl) && !(p.isMe && p.sameTab)) continue;
     // only a plain base64 audio data URL is accepted: it is placed into HTML attributes, so no other characters may get through
-    const audio = typeof m[3] === 'string' && /^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 130000 ? m[3] : null;
+    // or "v:<id>": the clip waits on the server (it never travels the match connection)
+    const audio = typeof m[3] === 'string' && (/^v:[0-9]{13}-[a-z0-9]{8}$/.test(m[3]) || (/^data:audio\/[a-z0-9.+-]+(;codecs=[a-z0-9.+-]+)?;base64,[A-Za-z0-9+/=]+$/i.test(m[3]) && m[3].length < 130000)) ? m[3] : null;
     if (!pushChat({ sl: p.presence.sl, name: String(p.presence.nm || 'Netko').slice(0, 14), text: m[0].slice(0, 80), audio, cc: typeof m[4] === 'string' && EFFECTS[m[4]] && EFFECTS[m[4]].kind === 'cc' ? m[4] : '', me: p.isMe && p.sameTab, at: Number(m[2]) || Date.now(), t: performance.now(), peer: key })) continue;
     if (audio && !(p.isMe && p.sameTab) && (!first || Date.now() - (Number(m[2]) || 0) < 15000)) playVoice(audio, true, String(p.presence.nm || '').slice(0, 14));
     changed = true; if (!(p.isMe && p.sameTab) && !$('#game').hidden && !chatOpen) unread++;
@@ -7819,6 +7985,6 @@ $('#soundBtn').style.opacity = soundOn ? 1 : .4;
 
 renderMe(); renderPlayers(); renderSettings(); renderLegend(); renderShop(); showTab(curTab); pvStart();
 initCapabilities();
-window.__vijuga = { setSteer, get steerScreen() { return steerScreen; }, facts: { FACTS, WORDS, FACT_TOPICS, nextFact, markFact, factSeen, factReward, wordOfDay, setOn: setFactsOn }, renderOnbar, showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
+window.__vijuga = { voiceCodec: { adpcmEncode, adpcmDecode, voicePrep, wavBlob, sendVoiceClip, voiceFetch }, get mic() { return mic; }, micClose, micPreroll, setSteer, get steerScreen() { return steerScreen; }, facts: { FACTS, WORDS, FACT_TOPICS, nextFact, markFact, factSeen, factReward, wordOfDay, setOn: setFactsOn }, renderOnbar, showLeaveAsk, togglePause, showIgMsg, get igLog() { return igLog.slice(); }, showHotPicker, hotKey, hotChoices, toast, maybePushPop, showPushPop, pushState, renderCallAll, callAll, goShopItem, dailyOffer, checkVersion, offerUpdate, get newBuild() { return newBuild; }, claimStreak, get voiceState() { return { unlocked: voiceUnlocked, now: !!voiceNow, queue: voiceQ.length, later: !!voiceLater, pill: !!voicePill.shown }; }, playVoice, unlockVoice, sendVoiceUrl: (url) => { chatN++; netPresence({ msg: ['🎤 glasovna poruka', chatN, Date.now(), url] }); collectChat(); }, voiceWav, lockZoom, waDigestText, showWaDigest, matchShareText, collectGifts, showGift, srvOp, srvChanged, get G() { return G; }, get owner() { return owner; }, get GW() { return GW; }, get net() { return net; }, get profile() { return profile; }, get roomState() { return roomState; }, get setup() { return setup; }, get myPres() { return myPres; }, get queue() { return queueList(); }, BUILD, checkVersion, killMany, victoryFx, deathFx, get vsShow() { return vsShow; }, get tparts() { return tparts; }, showAchievements, ACH, achOf, sendTroll, prankMarkOf, payTour, loadTours, get tours() { return tours; }, showTrollPreview, paintTroll, receiveTroll, prankMarks, lvReq, lockedFor, BOX_LV, levelOf, findHost, liveHost, liveHosts, hostRoom, hostConflict, startNow, lobbyState, hostStale, drawAnim, navGo, openChat, sendChat, chatUnseen, get chatLog() { return chatLog; }, cryptoTick, cryptoText, cryptoPx, openBox, rollBox, checkReferrals, get accounts() { return accounts; }, claimStreak, streakState, dailyGreeting, BOXES, startGame, hostStart, hostSend, showResults, receiveTroll, luxStart, setFacts: (f) => { funFacts = f; }, humanIn: (p) => humanIn(p), get roomNs() { return roomNs; }, get trollFx() { return trollFx; }, saveProfile, stamp, bounds, get W() { return W; }, get H() { return H; }, fixColorClashes, sameColor, badgeIds, setBadges, wearBadge, get trailLights() { return trailLights; }, chatCC, pushChat, renderChat, weatherText, wxNow, wxFetch, renderTickers, SKIN_COLOR, COLORS, pokePlayer, showPlayer, showProfile, renderPushNag, dispColor, liveFetch, fanBonus, showClubTable, get liveNow() { return liveNow; }, isNight, get luxFx() { return luxFx; }, luxGate, showLuxPreview, showNews, PREMIUM, drawLux, entranceOf, BADGES, SKINS, EFFECTS, TROLLS, POWERUPS, STARTER_PU, itemPrice, SHIELD_PRICE, POTIONS, XP_BOXES, openXpBox, buyPotion, useCham, drinkCham, xpOf, levelOf, startSpectate, showWatchers, spectators, applyPu, spawnPrivate, srvUpdating, showDigestShare, digestText, digestImage, PREM_PU, liveText, teleport, useWeapon, tryJump, localJump, sprayPerfume, usePerfume, setLite, get LITE() { return LITE; }, speedOf, fixColorClashes, lookColor, colorNote, WEAPONS };
 })();
 </script>
