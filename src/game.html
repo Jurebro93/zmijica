@@ -504,6 +504,17 @@ canvas.abd { width: 1.4em; height: 1.4em; vertical-align: -0.32em; }
 .rbtn { width: 46px; height: 46px; border-radius: 10px; border: 0; background: var(--panel); font-size: 26px; line-height: 1; display: grid; place-items: center; transition: transform .08s; }
 .rbtn:active { transform: scale(.88); }
 .rrow2 { display: flex; flex-wrap: wrap; gap: 4px; }
+/* the lobby chat: the title and a few reactions in one line, ▾ opens the rest; the room goes to the messages */
+.chathead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.chathead .label { flex: 0 1 auto; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rquick { display: flex; gap: 4px; flex: none; margin-left: auto; }
+.rquick .rbtn, .rmore .rbtn { width: 36px; height: 36px; font-size: 20px; flex: none; }
+.rbtn[hidden] { display: none; }
+.rquick .rexp { width: 36px; height: 36px; flex: none; border-radius: 10px; border: 1px solid var(--line); background: var(--ink); color: var(--fg); font-size: 15px; display: grid; place-items: center; padding: 0; }
+.rquick .rexp.on { border-color: var(--amber); color: var(--amber); }
+.rmore { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.rmore[hidden] { display: none; }
+#lchatLog { max-height: 270px; }
 .rrow2 .rbtn { width: 38px; height: 38px; font-size: 21px; }
 .chip .re { font-size: 17px; line-height: 1; animation: rePop .35s ease-out; }
 .peer .re { font-size: 20px; margin-left: 4px; animation: rePop .35s ease-out; }
@@ -6587,6 +6598,19 @@ function liveHost() { return pickHost(liveHosts().filter(h => !hostOver(h))); }
 // unless they have been sitting there for minutes (then they are probably gone, and a new match is offered instead)
 const RESULTS_JOIN_S = 180;
 function joinableHost() { return liveHost() || pickHost(liveHosts().filter(h => Number(h.presence.ho) < RESULTS_JOIN_S)); }
+// the lobby chat's reactions: as many as fit next to the title (6 at most, 3 at least; the title shortens to "Chat" when
+// fewer than 5 would fit beside the whole one), ▾ opens the rest under it; open or shut stays so across the lobby's redraws
+let reactOpen = false;
+function fitReactBar() {
+  const q = $('#lreact'), more = $('#lreactMore'), head = q && q.parentElement, lab = head && head.querySelector('.label'); if (!q || !more || !lab) return;
+  const btns = [...q.querySelectorAll('.rbtn')], fits = () => lab.scrollWidth <= lab.clientWidth + 1 && head.scrollWidth <= head.clientWidth + 1;
+  const show = (n) => btns.forEach((b, i) => { b.hidden = i >= n; });
+  lab.textContent = 'Chat i reakcije'; let n = 6; show(n);
+  while (!fits() && n > 5) show(--n); // the full title only with 5 or 6 reactions next to it
+  if (!fits()) { lab.textContent = 'Chat'; n = 6; show(n); while (!fits() && n > 3) show(--n); }
+  more.innerHTML = btns.filter(b => b.hidden).map(b => `<button type="button" class="rbtn" data-e="${b.dataset.e}" aria-label="Reakcija ${b.dataset.e}">${b.dataset.e}</button>`).join('');
+}
+{ let fT = 0; addEventListener('resize', () => { clearTimeout(fT); fT = setTimeout(fitReactBar, 200); }); try { document.fonts && document.fonts.ready.then(() => fitReactBar()); } catch (e) {} }
 function renderNet() {
   const box = $('#net'); if (!box) return;
   if (!roomNs && roomState.resolved) {
@@ -6615,14 +6639,16 @@ function renderNet() {
   if (roomState.ready) html.push(hotBarHtml()); // waiting for the match: the time to choose the hotkey
   html.push(`<div class="peers">${peers.map(p => { const pr = p.presence || {}; const c = COLORS[Number(pr.cl)] || COLORS[0]; return `<div class="peer" ${pr.sl ? `data-player="${esc(pr.sl)}"` : ''}><span class="dot" style="background:${c}"></span><span>${nameHtml(pr.sl, String(pr.nm || 'Bez imena'))}${roleTag(pr.sl)}${badgesHtml(presBadges(pr))}${p.isMe && p.sameTab ? ' <span class="hint">(ti)</span>' : ''}${p.guest ? ' <span class="hint">gost</span>' : ''}${reactionOf(p.peer) ? '<span class="re">' + reactionOf(p.peer).e + '</span>' : ''}</span><span class="st ${pr.rd && pr.ok ? 'r' : ''}">${kickedSlug(pr.sl) ? '🚫 izbačen' : (pr.st || pr.hs) && !hostOver(p) ? 'domaćin' : pr.ig ? 'u meču' : pr.rd && pr.ok ? '✅ spreman' : pr.rd ? '⏳ u predvorju' : 'gleda'}</span>${myRole() === 'master' && pr.sl && !(p.isMe && p.sameTab) && roleOfSlug(pr.sl) !== 'master' ? `<button class="pingbtn kickbtn" type="button" data-kick="${esc(pr.sl)}" data-kn="${esc(String(pr.nm || ''))}" title="${kickedSlug(pr.sl) ? 'Vrati u sobu' : 'Izbaci iz sobe'}" style="margin-left:8px">${kickedSlug(pr.sl) ? '↩️' : '🚫'}</button>` : ''}${!(p.isMe && p.sameTab) && pr.nm && !pr.rd ? `<button class="pingbtn" type="button" data-ping="${esc(p.peer)}" style="margin-left:8px">Pozovi</button>` : ''}</div>`; }).join('') || '<p class="hint">Još nitko nije ovdje. Podijeli stranicu s prijateljima.</p>'}</div>`);
   if (roomState.ready) html.push(wordCardHtml());
-  html.push(`<div class="chat"><span class="label">Chat i reakcije</span><div class="rrow2" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}</div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
+  html.push(`<div class="chat"><div class="chathead"><span class="label">Chat i reakcije</span><div class="rquick" id="lreact">${REACTIONS.map(e => `<button type="button" class="rbtn" data-e="${e}" aria-label="Reakcija ${e}">${e}</button>`).join('')}<button type="button" class="rexp ${reactOpen ? 'on' : ''}" id="lreactExp" aria-label="Još reakcija" aria-expanded="${reactOpen}">${reactOpen ? '▴' : '▾'}</button></div></div><div class="rmore" id="lreactMore" ${reactOpen ? '' : 'hidden'}></div><div class="chatlog" id="lchatLog"></div><div class="chatrow"><input type="text" id="lchatIn" maxlength="80" placeholder="Poruka za sve u sobi…" aria-label="Poruka"><button type="button" id="lchatSend">Pošalji</button></div></div>`);
   // the lobby is redrawn on every presence change: keep the message being typed (and the caret) across redraws
   const oldIn = $('#lchatIn'); const typed = oldIn ? oldIn.value : '', hadFocus = !!oldIn && document.activeElement === oldIn, caret = oldIn ? oldIn.selectionStart : 0;
   box.innerHTML = html.join('');
   if (typed || hadFocus) { const ni = $('#lchatIn'); if (ni) { ni.value = typed; if (hadFocus) { ni.focus(); try { ni.setSelectionRange(caret, caret); } catch (e) {} } } }
   wireChat('#lchatIn', '#lchatSend'); renderChat();
   document.querySelectorAll('#net [data-ping]').forEach(b => b.onclick = () => sendPing(b.dataset.ping));
-  document.querySelectorAll('#lreact .rbtn').forEach(b => b.onclick = () => sendReaction(b.dataset.e));
+  fitReactBar();
+  for (const id of ['#lreact', '#lreactMore']) { const r = $(id); if (r) r.onclick = (e) => { const b = e.target.closest('.rbtn'); if (b) sendReaction(b.dataset.e); }; }
+  if ($('#lreactExp')) $('#lreactExp').onclick = () => { reactOpen = !reactOpen; const x = $('#lreactExp'), m = $('#lreactMore'); x.classList.toggle('on', reactOpen); x.textContent = reactOpen ? '▴' : '▾'; x.setAttribute('aria-expanded', String(reactOpen)); if (m) m.hidden = !reactOpen; };
   if ($('#netJoin')) $('#netJoin').onclick = () => joinLobby(true);
   if ($('#netLeave')) $('#netLeave').onclick = () => joinLobby(false);
   if ($('#netStart')) $('#netStart').onclick = toggleReady;
