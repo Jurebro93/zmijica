@@ -2976,7 +2976,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '3fb059f4f26a';
+const BUILD = 'ab4852a0f628';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
@@ -3957,12 +3957,14 @@ function flushTrail(p, keepLast) {
 // ---------- input ----------
 const touchHeld = {}; // player id -> { L: pointers, R: pointers }
 const tH = (p, k) => !!(p && touchHeld[p.id] && touchHeld[p.id][k] > 0);
-// ◀ ▶ "prema ekranu" (the default): ◀ turns the snake towards the left of the SCREEN. The snake's own left is the
+// ◀ ▶ "prema ekranu" (only when chosen in Moj profil; the default is "klasično"): ◀ turns the snake towards the left of the SCREEN. The snake's own left is the
 // screen's right while it comes down the screen (towards the player), so then the two are swapped. The way to turn is
 // chosen when the press starts and kept while it is held: a held arrow keeps circling the same way (no wobble).
-// "Klasično": ◀ is always the snake's own left, as before (Moj profil → 🎮 Upravljanje; on this device).
-let steerScreen = (() => { try { return localStorage.getItem('vijuga-steer') !== 'classic'; } catch (e) { return true; } })();
-function setSteer(screen) { steerScreen = !!screen; try { localStorage.setItem('vijuga-steer', screen ? 'screen' : 'classic'); } catch (e) {} }
+// "Klasično" (the default, as it always was): ◀ is always the snake's own left. Players who had learned it lost their snake
+// when the screen mode was the default for a day (it turned the other way round whenever the snake headed down), so
+// the screen mode is opt-in only, under a new key: nobody keeps it from that day without choosing it again.
+let steerScreen = (() => { try { return localStorage.getItem('vijuga-steer2') === 'screen'; } catch (e) { return false; } })();
+function setSteer(screen) { steerScreen = !!screen; try { localStorage.setItem('vijuga-steer2', screen ? 'screen' : 'classic'); } catch (e) {} }
 function steerOf(p, raw) {
   if (!p) return raw;
   if (!raw || !steerScreen) { p._st = null; return raw; }
@@ -4777,7 +4779,6 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
-  { id: 'smjer', d: '2026-11-13', e: '🎮', t: '◀ ▶ sad idu prema ekranu', x: 'Kad zmija ide prema dolje, ◀ je sad vodi na lijevu stranu ekrana, a ▶ na desnu, kako i očekuješ (dosad je bilo lijevo i desno gledano iz zmijine glave, pa se činilo obrnuto). Tko želi staro upravljanje, uključi ga u Moj profil → 🎮 Upravljanje. Ako ti se lijevo i desno ipak zamijene na 3 sekunde, netko ti je poslao 🪞 Zrcalo: piše u traci iznad arene.', go: 'me', b: 'Upravljanje' },
   { id: 'znasli', d: '2026-11-13', e: '💡', t: 'Znaš li? Zanimljivosti uz igru', x: 'Dok se odbrojava, u traci iznad arene iskoči kratka zanimljivost, a na rezultatima kartica „Znaš li?” (👍 ako ti se svidi, „Još jedna” za novu). U predvorju te čeka dalmatinska riječ dana. Teme su Zmije, Hrvatska, Šibenik, Svemir, Sport i Jezik: biraš ih ili sve isključiš u Moj profil → 💡 Zanimljivosti. Skupi cijelu temu u albumu i dobiješ natpis uz ime (Zmijolog, Domoljub, Šibenski znalac…).', go: 'me', b: 'Moj album' },
   { id: 'dvoklik', d: '2026-11-13', e: '⚡', t: 'Dvoklik za zezalicu, glatkije kretanje i odlučujuća runda', x: 'Prečac zezalice sad ide dvoklikom: u Moj profil → ⭐ Prečac zezalice odaberi zezalicu ili napitak, a u meču samo dvaput brzo dodirni ZEZALICE (zezalica ode igraču koji vodi). Protivnici se kreću glatko i bez trzanja, a zavoji su obliji. Kad je na kraju meča izjednačeno za prvo mjesto, igra se ⚔️ odlučujuća runda.', go: 'me', b: 'Postavi prečac' },
   { id: 'pica', d: '2026-11-12', e: '🍻', t: 'Pića uz ime', x: 'U trgovini (Ikone → Brendovi) je nova polica 🍻 Pića: ikone 🍺 pive, 🥃 rakije, 🍷 vina, 🥂 šampanjca i 🍸 koktela uz ime, i natpisi poznatih marki: Ožujsko, Karlovačko, Heineken, Guinness, Corona, Pelinkovac, Maraschino, Aperol, Jägermeister, Jack Daniel\'s, Moët i Dom Pérignon (samo ime u boji marke, ne službeni logo).', go: 'shop:brands', b: 'Pogledaj pića', items: ['bd_dr_beer', 'bd_dr_rakija', 'bd_dr_bottle', 'bd_dr_ozujsko', 'bd_dr_karlovacko', 'bd_dr_moet'] },
@@ -5682,7 +5683,7 @@ function wordCardHtml() {
 // Moj profil: on/off, the topics, the album
 function steerBoxHtml() {
   const c = (k, on, t) => `<button type="button" class="wchip ${on ? 'on' : ''}" data-steer="${k}">${t}${on ? '<i>✓</i>' : ''}</button>`;
-  return `<b>🎮 Upravljanje ◀ ▶</b><small class="hint"><b>Prema ekranu:</b> ◀ vodi zmiju na lijevu stranu ekrana, ▶ na desnu, i kad zmija ide prema dolje. <b>Klasično:</b> ◀ je lijevo gledano iz zmijine glave (kad ide prema dolje, to je desno na ekranu). Samo na ovom uređaju.</small><div class="wrow">${c('screen', steerScreen, '📱 Prema ekranu')}${c('classic', !steerScreen, '🐍 Klasično')}</div>`;
+  return `<b>🎮 Upravljanje ◀ ▶</b><small class="hint"><b>Klasično</b> (zadano): ◀ je lijevo gledano iz zmijine glave (kad zmija ide prema dolje, to je desno na ekranu). <b>Prema ekranu:</b> kad zmija ide prema dolje, ◀ i ▶ se zamijene. Samo na ovom uređaju.</small><div class="wrow">${c('classic', !steerScreen, '🐍 Klasično')}${c('screen', steerScreen, '📱 Prema ekranu')}</div>`;
 }
 function factBoxHtml() {
   if (profile) factReward();
