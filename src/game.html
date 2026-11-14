@@ -1,4 +1,37 @@
 <title>Vijuga</title>
+<link rel="canonical" href="https://zmijica.onrender.com/">
+<script>
+// One address for everybody: the game is played at zmijica.onrender.com (the address in every invite and message).
+// vijuga.netlify.app keeps only the game's services (/api); whoever opens the game there is moved over at once, with
+// the login and the settings of that address (in the link's #, which never leaves the phone), so nobody types anything
+// again. On zmijica.onrender.com what came along fills in only what is missing there (nothing there is overwritten),
+// and only when it really came from vijuga.netlify.app. Deploy previews, localhost and ?stay=1 are left alone.
+(function () {
+  var HOME = 'zmijica.onrender.com', FROM = 'vijuga.netlify.app', h = location.hostname;
+  var SKIP = /^vijuga-(wx|live|crypto|srv|reloaded|updated|updated-quiet|paying|push-on|pushpop|pushnag|left|kick)$/;
+  if (h === FROM && !/[?&]stay=1\b/.test(location.search)) {
+    var all = {}, n = 0;
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i), v = localStorage.getItem(k); if (k && k.indexOf('vijuga-') === 0 && !SKIP.test(k) && v != null && v.length < 40000) { all[k] = v; n++; } } } catch (e) {}
+    var frag = '';
+    try { if (n) { var js = JSON.stringify(all); if (js.length > 60000) { var keep = { 'vijuga-login': 1, 'vijuga-accounts': 1, 'vijuga-setup': 1 }; for (var k2 in all) if (!keep[k2]) delete all[k2]; js = JSON.stringify(all); } frag = '#selidba=' + btoa(unescape(encodeURIComponent(js))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); } } catch (e) {}
+    location.replace('https://' + HOME + location.pathname + location.search + frag);
+    return;
+  }
+  var m = /#selidba=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return;
+  try {
+    if (h === HOME && document.referrer.indexOf('https://' + FROM + '/') === 0) {
+      var o = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))))), here = localStorage.getItem('vijuga-login');
+      for (var key in o) {
+        if (key.indexOf('vijuga-') !== 0 || SKIP.test(key) || typeof o[key] !== 'string') continue;
+        if (key === 'vijuga-accounts') { var a = {}, b = {}; try { a = JSON.parse(localStorage.getItem(key) || '{}') || {}; b = JSON.parse(o[key]) || {}; } catch (e) {} for (var sl in b) if (!a[sl]) a[sl] = b[sl]; localStorage.setItem(key, JSON.stringify(a)); continue; }
+        if (key === 'vijuga-login') { if (!here) localStorage.setItem(key, o[key]); continue; }
+        if (localStorage.getItem(key) == null) localStorage.setItem(key, o[key]);
+      }
+    }
+  } catch (e) {}
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
