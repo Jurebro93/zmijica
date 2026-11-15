@@ -788,7 +788,7 @@ body:has(#regModal:not([hidden])) #bnav, body:has(#inviteModal:not([hidden])) #b
 .tpv { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #101b27; } .tpv canvas { display: block; width: 100%; height: auto; }
 .tpvpads { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: space-between; padding: 0 12px; pointer-events: none; }
 .tpvpads span { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: rgba(255,93,115,.25); border: 2px solid #ff5d73; } .tpvpads .j { font-size: 12px; font-weight: 800; color: #fff; }
-.troll .tq { font-style: normal; font-size: 12px; margin-left: 4px; opacity: .8; }
+.troll.all { border-color: rgba(255,181,71,.55); background: linear-gradient(180deg, rgba(255,181,71,.12), transparent 70%), var(--panel); } .troll .tq { font-style: normal; font-size: 12px; margin-left: 4px; opacity: .8; }
 .t2head { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
 .t2stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; } .t2stats div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 8px; text-align: center; display: grid; gap: 2px; } .t2stats b { font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--amber); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .t2stats span { font-size: 12px; color: var(--muted); line-height: 1.15; }
 @media (max-width: 520px) { .t2stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -2261,7 +2261,7 @@ const XP_BOXES = {
 };
 // napitci: Kameleon is drunk in an online match (the inventory keeps it till then); the XP potion is drunk when bought
 const POTIONS = {
-  cham:    { e: '🧪', name: 'Kameleon napitak', price: 300, s: 15, inv: true, d: 'U online meču ga popiješ (gumb 😈 → 🧪 Napitak) i 15 sekundi izgledaš kao protivnik kojeg odabereš: ista boja, isti trag. Zbuni ga!' },
+  cham:    { e: '🧪', name: 'Kameleon napitak', price: 300, s: 15, inv: true, d: 'U online meču ga popiješ (gumb 😈 → 🧪 Napitak) i 15 sekundi svakom protivniku izgledaš u njegovoj boji i s njegovim tragom: svatko misli da si on. Zbuni ih!' },
   perfume: { e: '🌸', name: 'Parfem', price: 400, s: 6, inv: true, d: 'U online meču (gumb 😈 → 🧪 Napitci) poprskaš oblak parfema gdje jesi: tko uđe u njega, 6 s vozi upola sporije, pa ga lako zaobiđeš i srušiš. Tebi ne smeta.' },
   xpboost: { e: '⚗️', name: 'Napitak dvostrukog XP-a', price: 1500, n: 5, d: 'Popiješ ga odmah pri kupnji: sljedećih 5 mečeva dobivaš dvostruki XP (zbraja se ako popiješ više).' },
 };
@@ -3515,7 +3515,7 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
 // the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
 const SKIN_COLOR = { sk_barbie: '#ff2fa0', sk_princess: '#c58cff', sk_unicorn: '#f3a6ff', sk_butterfly: '#5fd6c8', sk_flower: '#ffb3d1', sk_glitter: '#e7a3a9', sk_xmas: '#1e9e4a', sk_fart: '#8f9e46', sk_centi: '#b5652b', sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#f2c200', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_rainbow: null };
-function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return (!p.nc && SKIN_COLOR[p.skin]) || p.color; }
+function dispColor(p) { if (!p) return '#fff'; { const m = mimicOf(p); if (m) p = m; } if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return (!p.nc && SKIN_COLOR[p.skin]) || p.color; }
 // Two snakes that read as the same colour (a gold trail next to the yellow snake, the orange scarf next to the orange
 // snake…) are told apart before the match starts: the player with the lower level, then fewer matches, changes. A trail
 // that paints its own colour first falls back to the player's colour (nc); if that clashes too, the player gets a free colour.
@@ -4011,7 +4011,7 @@ function trailVert(p, down, widthChanged) {
 }
 function flushTrail(p, keepLast) {
   if (p.pts.length >= 2) {
-    const custom = applySkin(tctx, p.skin, p.color, p.ptsR, G.gt, p.nc);
+    const L = lookOf(p), custom = applySkin(tctx, L.skin, L.color, p.ptsR, G.gt, L.nc);
     if (!custom) tctx.lineWidth = p.ptsR * 2;
     // the trail is drawn in short pieces; a dashed skin must continue its pattern across pieces, so the dash offset follows the trail length
     tctx.lineDashOffset = -(p.dashLen || 0); let len = 0;
@@ -4019,7 +4019,7 @@ function flushTrail(p, keepLast) {
     for (let i = 2; i < p.pts.length; i += 2) { tctx.lineTo(p.pts[i], p.pts[i + 1]); len += Math.hypot(p.pts[i] - p.pts[i - 2], p.pts[i + 1] - p.pts[i - 1]); }
     tctx.stroke(); p.dashLen = (p.dashLen || 0) + len;
     tctx.shadowBlur = 0; tctx.setLineDash([]); tctx.lineDashOffset = 0;
-    skinAfter(tctx, p.skin, p.pts, p.ptsR, p);
+    skinAfter(tctx, L.skin, p.pts, p.ptsR, p);
   }
   p.pts = keepLast && p.pts.length >= 2 ? p.pts.slice(-2) : [];
 }
@@ -4100,7 +4100,7 @@ function spawnWeapon() {
 }
 function weaponsTick() {
   if (!G || G.phase !== 'run') return;
-  if (G.clouds && G.clouds.length) G.clouds = G.clouds.filter(c => c.until > G.gt);
+  if (G.clouds && G.clouds.length) { G.clouds = G.clouds.filter(c => c.until > G.gt); for (const c of G.clouds) if (c.follow) { const [x, y] = cloudAt(c); c.x = x; c.y = y; } }
   if (G.wpAt != null && G.gt >= G.wpAt && !G.wpick) { G.wpAt = null; spawnWeapon(); }
   if (G.ppAt != null && G.gt >= G.ppAt) { G.ppAt = null; spawnPrivate(); }
   if (G.wpick) { const b = bounds(); if (G.wpick.x < b.l + 8 || G.wpick.y < b.t + 8 || G.wpick.x > b.r - 8 || G.wpick.y > b.b - 8) G.wpick = null; } // the arena shrank over it
@@ -4116,7 +4116,9 @@ function useWeapon(p) {
   else if (k === 'smoke') { G.bombs.push({ x: p.x + Math.cos(p.a) * (r + 8), y: p.y + Math.sin(p.a) * (r + 8), vx: Math.cos(p.a) * SMOKE_V, vy: Math.sin(p.a) * SMOKE_V, t0: G.gt, from: p.id }); beep(300, 0.08, 'triangle', 0.06); }
 }
 // Parfem: a cloud where the snake is; whoever else drives into it is half as fast for as long as they are inside
-function sprayPerfume(p) { if (!p || !p.alive || !G || G.phase !== 'run') return false; G.clouds.push({ k: 'perfume', x: p.x, y: p.y, r: 85, until: G.gt + POTIONS.perfume.s, from: p.id, t0: G.gt }); return true; }
+// the cloud goes along with the head of whoever sprayed it (a little wider than it was), until it fades or they crash
+function sprayPerfume(p) { if (!p || !p.alive || !G || G.phase !== 'run') return false; G.clouds.push({ k: 'perfume', x: p.x, y: p.y, r: 100, until: G.gt + POTIONS.perfume.s, from: p.id, t0: G.gt, follow: 1 }); return true; }
+function cloudAt(cl) { if (cl.follow) { const o = G.players.find(q => q.id === cl.from); if (o && o.alive) return [o.x, o.y]; } return [cl.x, cl.y]; }
 function usePerfume() {
   if (!profile || !G || G.over) return;
   const me = myMatchPlayer();
@@ -4124,7 +4126,7 @@ function usePerfume() {
   if ((profile.inv.perfume || 0) < 1) { toast('Nemaš parfem. Kupi ga u trgovini (🧪 Napitci).'); return; }
   profile.inv.perfume--; saveProfile();
   if (net && net.role === 'client') netPresence({ pf: [Date.now()] }); else sprayPerfume(me);
-  sfx.pick(); showIgMsg(`🌸 Psst… oblak parfema! Tko uđe u njega, vozi upola sporije (${POTIONS.perfume.s} s). Tebi ne smeta.`);
+  sfx.pick(); showIgMsg(`🌸 Psst… oblak parfema te prati ${POTIONS.perfume.s} s! Tko uđe u njega, vozi upola sporije. Tebi ne smeta.`);
   const pop = $('#trollPop'); if (pop) pop.hidden = true;
 }
 // what a round of weapons looks like on any screen (the host's state, or the last snapshot): under the heads the
@@ -4133,10 +4135,10 @@ function drawCombat(c, over) {
   const now = G.gt;
   if (!over) {
     for (const cl of G.clouds || []) { if (cl.k !== 'perfume') continue; const left = cl.until - now; if (left <= 0) continue;
-      const a = Math.min(1, left / 1.2) * Math.min(1, (now - (cl.t0 || 0)) / 0.4 + 0.2), g = c.createRadialGradient(cl.x, cl.y, cl.r * 0.1, cl.x, cl.y, cl.r);
+      const [cx, cy] = cloudAt(cl), a = Math.min(1, left / 1.2) * Math.min(1, (now - (cl.t0 || 0)) / 0.4 + 0.2), g = c.createRadialGradient(cx, cy, cl.r * 0.1, cx, cy, cl.r);
       g.addColorStop(0, `rgba(255,120,200,${0.42 * a})`); g.addColorStop(0.7, `rgba(255,150,220,${0.24 * a})`); g.addColorStop(1, 'rgba(255,170,230,0)');
-      c.fillStyle = g; c.beginPath(); c.arc(cl.x, cl.y, cl.r, 0, 6.283); c.fill();
-      if (!LITE) { c.save(); c.globalAlpha = 0.7 * a; c.font = `14px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; for (let i = 0; i < 5; i++) { const an = i * 1.256 + now * 0.6; c.fillText('🌸', cl.x + Math.cos(an) * cl.r * 0.55, cl.y + Math.sin(an) * cl.r * 0.55); } c.restore(); } }
+      c.fillStyle = g; c.beginPath(); c.arc(cx, cy, cl.r, 0, 6.283); c.fill();
+      if (!LITE) { c.save(); c.globalAlpha = 0.7 * a; c.font = `14px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; for (let i = 0; i < 5; i++) { const an = i * 1.256 + now * 0.6; c.fillText('🌸', cx + Math.cos(an) * cl.r * 0.55, cy + Math.sin(an) * cl.r * 0.55); } c.restore(); } }
     if (G.wpick) { const w = G.wpick, t = performance.now(); c.save(); c.beginPath(); c.arc(w.x, w.y, PU_R + 3 + Math.sin(t / 200) * 2, 0, 6.283); c.fillStyle = 'rgba(255,80,80,.18)'; c.fill(); c.strokeStyle = '#ff6b6b'; c.lineWidth = 2; c.stroke();
       c.font = `${Math.round(PU_R * 1.4)}px ${EMO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(WEAPONS[w.k].e, w.x, w.y + Math.sin(t / 180) * 2); c.restore(); }
     return;
@@ -4549,13 +4551,13 @@ function render() {
   // snake never seems to float ahead of its own trail
   if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     if (p.alive && p.live && p.hq) { // a played-back snake: the trail points it passed since the last baked one
-      const rr = radiusOf(p); let on = false; const custom = applySkin(ctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) ctx.lineWidth = rr * 2; ctx.lineCap = 'round'; ctx.beginPath();
+      const rr = radiusOf(p); let on = false; const L = lookOf(p), custom = applySkin(ctx, L.skin, L.color, rr, G.gt, L.nc); if (!custom) ctx.lineWidth = rr * 2; ctx.lineCap = 'round'; ctx.beginPath();
       for (let i = 1; i < p.live.length; i++) { const a = p.live[i - 1], b = p.live[i]; if (!b[2]) { on = false; continue; } if (!on) ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); on = true; }
       ctx.stroke(); ctx.shadowBlur = 0; ctx.setLineDash([]); ctx.globalAlpha = 1; continue;
     }
     if (!p.alive || !p.drawing || p.sx == null || (p.jumpUntil && p.jumpUntil > G.gt)) continue;
     const d = Math.hypot(p.x - p.sx, p.y - p.sy); if (d < 0.3 || d > 40) continue;
-    const rr = radiusOf(p); const custom = applySkin(ctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) ctx.lineWidth = rr * 2;
+    const rr = radiusOf(p); const L = lookOf(p), custom = applySkin(ctx, L.skin, L.color, rr, G.gt, L.nc); if (!custom) ctx.lineWidth = rr * 2;
     ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.sx, p.sy); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.shadowBlur = 0; ctx.setLineDash([]); ctx.globalAlpha = 1;
   }
   if (innerWidth < 760 || (net && G.players.length > 4)) drawBoard(ctx);
@@ -4587,7 +4589,7 @@ function render() {
     } }
   if (net && net.role === 'client' && (G.phase === 'run' || lapOn())) for (const p of G.players) {
     const pv = net.prev[p.id]; if (!p.alive || !pv || !pv.d || p.jumpUntil > G.gt || Math.hypot(p.x - pv.x, p.y - pv.y) > 40) continue;
-    ctx.save(); ctx.lineCap = 'round'; if (!applySkin(ctx, p.skin, p.color, pv.rr, G.gt, p.nc)) { ctx.strokeStyle = p.color; ctx.lineWidth = pv.rr * 2; }
+    ctx.save(); ctx.lineCap = 'round'; { const L = lookOf(p); if (!applySkin(ctx, L.skin, L.color, pv.rr, G.gt, L.nc)) { ctx.strokeStyle = L.color; ctx.lineWidth = pv.rr * 2; } }
     ctx.beginPath(); ctx.moveTo(pv.x, pv.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.restore();
   }
   drawCombat(ctx, 0);
@@ -4850,6 +4852,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'zasve', d: '2026-11-15', e: '🌍', t: 'Zezalice za cijelu mapu, parfem koji te prati, novi Kameleon', x: 'Nove zezalice pogađaju SVE u meču osim tebe: 🌫️ Magla za sve, 🌑 Mrak za sve, 🌋 Potres za sve i 🪩 Disko za sve (Trgovina → Zezalice). 🌸 Parfem sad putuje s tvojom glavom i oblak je malo širi. 🧪 Kameleon: 15 s svaki protivnik te vidi u SVOJOJ boji i sa svojim tragom, pa ne zna gdje je on, a gdje ti.', go: 'shop:trolls', b: 'Pogledaj zezalice' },
   { id: 'princeze', d: '2026-11-15', e: '👑', t: 'Nova kolekcija tragova: Za princeze', x: 'Barbie 👑 (jarko roza, kruna na glavi i iskrice), Princeza 👸 (biseri), Jednorog 🦄 (pastelna duga i zvjezdice), Leptirić 🦋, Cvjetić 🌸 i Šljokice ✨. U Trgovini → Skinovi traga, na vlastitoj polici.', go: 'shop:skins', b: 'Pogledaj tragove' },
   { id: 'glas2', d: '2026-11-14', e: '🎤', t: 'Glasovne poruke: bez kašnjenja, čišći zvuk, igra ne zapinje', x: 'Drži 🎤 i odmah govori: prva riječ se više ne gubi (mikrofon ostaje spreman još malo nakon poruke, a poruka počinje i trenutak prije pritiska). Zvuk je dvostruko čišći, a poruka putuje zasebno, pa se meč više ne zaustavi dok netko šalje glasovnu.', go: 'chat', b: 'Otvori chat' },
   { id: 'znasli', d: '2026-11-13', e: '💡', t: 'Znaš li? Zanimljivosti uz igru', x: 'Dok se odbrojava, u traci iznad arene iskoči kratka zanimljivost, a na rezultatima kartica „Znaš li?” (👍 ako ti se svidi, „Još jedna” za novu). U predvorju te čeka dalmatinska riječ dana. Teme su Zmije, Hrvatska, Šibenik, Svemir, Sport i Jezik: biraš ih ili sve isključiš u Moj profil → 💡 Zanimljivosti. Skupi cijelu temu u albumu i dobiješ natpis uz ime (Zmijolog, Domoljub, Šibenski znalac…).', go: 'me', b: 'Moj album' },
@@ -5947,6 +5950,11 @@ const TROLLS = {
   fakepu: { e: '🎁', name: 'Lažni power-up', price: 110, ms: 4500, d: 'Ispred njega se pojavi lažni power-up. Prevaren!' },
   colors: { e: '🎨', name: 'Lude boje', price: 90, ms: 4000, d: 'Sve boje mu se izmiješaju na 4 sekunde' },
   pads:   { e: '🐸', name: 'Ludi gumbi', price: 150, ms: 60000, d: 'Strelice za upravljanje mu postanu 🐸, 🦆, 🍒 ili 💩 na minutu' },
+  // for the whole map: everybody in the sender's match except the sender (a shield still stops it); `base` is the effect
+  fogall:   { e: '🌫️', name: 'Magla za sve', price: 600, ms: 3500, all: true, base: 'fog', d: 'SVIMA U MEČU (osim tebi) cijela se arena zamagli na 3,5 s' },
+  darkall:  { e: '🌑', name: 'Mrak za sve', price: 800, ms: 4000, all: true, base: 'dark', d: 'SVIMA U MEČU (osim tebi) padne mrak: 4 s vide samo oko svoje glave' },
+  shakeall: { e: '🌋', name: 'Potres za sve', price: 450, ms: 2500, all: true, base: 'shake', d: 'SVIMA U MEČU (osim tebi) trese se ekran' },
+  discoall: { e: '🪩', name: 'Disko za sve', price: 350, ms: 4000, all: true, base: 'colors', d: 'SVIMA U MEČU (osim tebi) boje polude na 4 s' },
 };
 const trollFx = []; let lastTrollSent = -1e9, trollN = 0, dmN = 0, blockN = 0; const seenTb = {};
 const seenDm = {}, seenTr = {};
@@ -6274,32 +6282,31 @@ function drawBounties(c) {
     c.save(); c.font = '700 14px "Barlow Semi Condensed", sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ff5d73'; c.fillText(`🎯 ${b.amount}`, p.x, p.y - 22); c.restore(); }
 }
 function mirrorOn() { return performance.now() < mirrorUntil; }
-// Kameleon napitak: for POTIONS.cham.s seconds the snake looks like another one (colour, trail skin); the look it had
-// is kept in p.disg (sent in full snapshots, so a host who takes the match over can undo it)
-function drinkCham(p, tid) {
-  const t = G && G.players.find(q => q.id === tid);
-  if (!p || !t || t === p || !p.alive || G.phase !== 'run') return false;
-  if (!p.disg) p.disg = { color: p.color, skin: p.skin, nc: p.nc ? 1 : 0 };
-  const look = t.disg || { color: t.color, skin: t.skin, nc: t.nc ? 1 : 0 };
-  p.disg.until = G.gt + POTIONS.cham.s; p.color = look.color; p.skin = look.skin; p.nc = look.nc;
+// Kameleon napitak: for POTIONS.cham.s seconds every OTHER player sees the drinker in their own colour and trail (each
+// one their own: "is that me?"); the drinker sees themselves as always, ringed. p.disg {…, mimic, until} goes in full snapshots.
+function drinkCham(p) {
+  if (!p || !p.alive || !G || G.phase !== 'run' || p.disg) return false;
+  p.disg = { color: p.color, skin: p.skin, nc: p.nc ? 1 : 0, until: G.gt + POTIONS.cham.s, mimic: 1 };
   G.plDirty = true; hudDirty = true; return true;
 }
+// whom this screen shows instead of p (the viewer's own snake), while p's Kameleon works
+function mimicOf(p) { if (!p || !p.disg || !p.disg.mimic || !G || G.gt >= p.disg.until) return null; const me = myMatchPlayer(); return me && me !== p ? me : null; }
+function lookOf(p) { const m = mimicOf(p); return m ? { skin: m.skin, color: m.color, nc: m.nc } : p; }
 function undisguise() {
   if (!G) return;
   for (const p of G.players) if (p.disg && (G.phase !== 'run' || !p.alive || G.gt >= p.disg.until)) { p.color = p.disg.color; p.skin = p.disg.skin; p.nc = p.disg.nc; p.disg = null; G.plDirty = true; hudDirty = true; }
 }
 function myMatchPlayer() { return !G ? null : net && net.role === 'client' ? (net.myId == null ? null : G.players.find(p => p.id === net.myId)) : G.players.find(p => p.mine) || null; }
-function useCham(tid) {
+function useCham() {
   if (!profile || !G || G.over) return;
-  const me = myMatchPlayer(), t = G.players.find(q => q.id === tid);
+  const me = myMatchPlayer();
   if (!me || !me.alive || G.phase !== 'run') { toast('Napitak se pije dok runda traje i dok si u igri.'); return; }
   if ((profile.inv.cham || 0) < 1) { toast('Nemaš Kameleon napitak. Kupi ga u trgovini (🧪 Napitci).'); return; }
-  if (me.disg) { toast('Već izgledaš kao netko drugi.'); return; }
-  if (!t || t === me) return;
+  if (me.disg) { toast('Kameleon već radi.'); return; }
   profile.inv.cham--; saveProfile();
-  if (net && net.role === 'client') netPresence({ po: [Date.now(), tid] }); // the host changes the look and everybody sees it
-  else drinkCham(me, tid);
-  sfx.pick(); showIgMsg(`🧪 Glup glup… ${POTIONS.cham.s} s izgledaš kao <b style="color:${dispColor(t)}">${esc(t.name)}</b>`);
+  if (net && net.role === 'client') netPresence({ po: [Date.now(), 'm'] }); // the host starts it and every screen shows its own look
+  else drinkCham(me);
+  sfx.pick(); showIgMsg(`🧪 Glup glup… ${POTIONS.cham.s} s svakom protivniku izgledaš u njegovoj boji. Zbuni ih!`);
   const pop = $('#trollPop'); if (pop) pop.hidden = true;
 }
 // only I see which snake is me while I look like someone else
@@ -6319,26 +6326,26 @@ function sendTroll(peer, id) {
   lastTrollSent = performance.now(); trollN++;
   if (stocked) profile.inv[id]--; else { profile.coins -= t.price; profile.spent = (profile.spent || 0) + t.price; }
   profile.trollsSent = (profile.trollsSent || 0) + 1; dailyCount({ t: 1 }); saveProfile(); checkAchievements();
-  netPresence({ tr: [peer, id, trollN, Date.now()] }); markPrank(peer, id);
+  netPresence({ tr: [peer, id, trollN, Date.now()] }); if (peer !== '*') markPrank(peer, id);
   { const pe = roomState.peers.find(q => q.peer === peer); const to = pe && pe.presence && pe.presence.sl; if (to && to !== profile.slug) fetch(API_BASE + '/troll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ from: profile.slug, auth: profile.pinHash || '', to, id }) }).catch(() => {}); }
   toast(`${t.e} ${t.name} poslano! ${TROLL_HOW[id] ? TROLL_HOW[id].split('.')[0] + '.' : ''}${stocked ? ` (ostalo ${profile.inv[id]})` : ` (−${t.price})`}`); beep(520, .08); renderSpecBar(); renderTrollPop(); setTimeout(() => { renderSpecBar(); renderTrollPop(); }, 5100);
 }
 function receiveTroll(id, fromName, fromPeer) {
-  const t = TROLLS[id]; if (!t) return;
+  const t = TROLLS[id]; if (!t) return; const base = t.base || id;
   if (profile && (profile.inv.shield || 0) > 0 && !$('#game').hidden && G) {
     profile.inv.shield--; saveProfile(); blockN++; netPresence({ tb: [fromPeer, id, blockN, Date.now()] });
     showIgMsg(`🛡️ Štit je odbio: ${t.e} ${t.name} od ${esc(fromName)} (ostalo štitova: ${profile.inv.shield})`); beep(880, .12, 'triangle', .06); return;
   }
-  if (id === 'mirror') mirrorUntil = performance.now() + t.ms;
-  if (id === 'pads') { padPrank = { e: ['🐸', '🦆', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
+  if (base === 'mirror') mirrorUntil = performance.now() + t.ms;
+  if (base === 'pads') { padPrank = { e: ['🐸', '🦆', '🍒', '💩', '🌭', '🐔'][Math.floor(Math.random() * 6)], until: Date.now() + t.ms }; refreshPadIcons(); setTimeout(refreshPadIcons, t.ms + 100); }
   if (profile) { profile.trollsGot = (profile.trollsGot || 0) + 1; profileDirty = true; }
   const now = performance.now();
   if ($('#game').hidden || !G) return; // a prank while I am not playing: nothing to show
-  const fx = { id, start: now, until: now + t.ms, from: fromName, seed: Math.random() * 1000 };
+  const fx = { id: base, start: now, until: now + t.ms, from: fromName, seed: Math.random() * 1000 };
   trollFx.push(fx); if (trollFx.length > 4) trollFx.shift();
-  trollSound(id); if (roomState.me) markPrank(roomState.me, id);
-  try { navigator.vibrate && navigator.vibrate(id === 'shake' ? [80, 40, 80, 40, 120] : 60); } catch (e) {}
-  showIgMsg(`${t.e} ${esc(fromName)} ti šalje: ${t.name}`, true);
+  trollSound(base); if (roomState.me && !t.all) markPrank(roomState.me, id);
+  try { navigator.vibrate && navigator.vibrate(base === 'shake' ? [80, 40, 80, 40, 120] : 60); } catch (e) {}
+  showIgMsg(t.all ? `${t.e} ${esc(fromName)} šalje svima: ${t.name}` : `${t.e} ${esc(fromName)} ti šalje: ${t.name}`, true);
 }
 const inMatch = () => !!(G && !G.over && $('#game') && !$('#game').hidden);
 // During a match the arena stays clean: only what the player must know (a prank on me, I was dropped or kicked) is
@@ -6427,6 +6434,8 @@ function trollSound(id) {
 }
 // ---- what a prank looks like: a small live arena where it plays on "your" snake, on a loop
 const TROLL_HOW = {
+  fogall: 'Svima u meču, osim tebi, cijela se arena zamagli. Ti jedini vidiš jasno.', darkall: 'Svima u meču, osim tebi, padne mrak: svatko vidi samo oko svoje glave.',
+  shakeall: 'Svima u meču, osim tebi, trese se ekran, a mobiteli zavibriraju.', discoall: 'Svima u meču, osim tebi, boje polude: tko je tko?',
   hearts: 'Preko cijele arene mu padaju srčeka. Ne smeta igri, samo je slatko.', horn: 'Glasna truba i veliki natpis TUUUUT preko sredine ekrana.',
   poop: 'Kakice mu padaju preko arene i prekrivaju tragove.', shake: 'Cijeli ekran mu se trese, a mobitel zavibrira.',
   sticker: 'Veliki emotikon (🤡 🐸 🦆 💩 👻 🐔) mu sjedne točno ispred glave i prati ga kamo god krene.', flash: 'Ekran mu na trenutak zabljesne potpuno bijelo.',
@@ -6448,12 +6457,12 @@ function showTrollPreview(id) {
   const cv = $('#tpvCv'), c = cv.getContext('2d'), w = cv.width, h = cv.height;
   const snakes = [{ col: '#ff5d73', a: 0, cx: w * .5, cy: h * .55, R: h * .26, sp: .9, me: true }, { col: '#4cc9f0', a: 2, cx: w * .3, cy: h * .4, R: h * .18, sp: -1.2 }, { col: '#3ddc97', a: 4, cx: w * .72, cy: h * .38, R: h * .2, sp: 1.1 }];
   const trails = snakes.map(() => []);
-  const T0 = performance.now(); let fx = { id, start: T0 + 600, until: T0 + 600 + Math.min(t.ms, 6000), from: 'Netko', seed: Math.random() * 1000 };
+  const T0 = performance.now(), fid = t.base || id; let fx = { id: fid, start: T0 + 600, until: T0 + 600 + Math.min(t.ms, 6000), from: 'Netko', seed: Math.random() * 1000 };
   if (trollPrev) cancelAnimationFrame(trollPrev);
   const loop = () => {
     if (!document.body.contains(cv)) { trollPrev = null; applyTrollStyle(cv, '', 0, 0); return; }
     const now = performance.now(), tt = (now - T0) / 1000;
-    if (now > fx.until + 900) fx = { id, start: now + 300, until: now + 300 + Math.min(t.ms, 6000), from: 'Netko', seed: Math.random() * 1000 };
+    if (now > fx.until + 900) fx = { id: fid, start: now + 300, until: now + 300 + Math.min(t.ms, 6000), from: 'Netko', seed: Math.random() * 1000 };
     c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#101b27'; c.fillRect(0, 0, w, h);
     c.fillStyle = 'rgba(131,150,171,0.16)'; for (let x = 25; x < w; x += 25) for (let y = 25; y < h; y += 25) c.fillRect(x - .8, y - .8, 1.6, 1.6);
     let me = null;
@@ -6468,7 +6477,7 @@ function showTrollPreview(id) {
     trollPrev = requestAnimationFrame(loop);
   };
   trollPrev = requestAnimationFrame(loop);
-  $('#tpvSound').onclick = () => trollSound(id);
+  $('#tpvSound').onclick = () => trollSound(t.base || id);
   $('#tpvOk').onclick = () => closeModal();
 }
 // everybody in the match sees which snake is being pranked right now: the prank's emoji above its head
@@ -6482,6 +6491,7 @@ function collectDirect() {
     const pr = p.presence || {}, from = String(pr.nm || 'Netko').slice(0, 14);
     if (Array.isArray(pr.dm) && pr.dm[0] === me) { const key = p.peer + ':' + pr.dm[2]; if (!seenDm[key]) { seenDm[key] = 1; if (Date.now() - (Number(pr.dm[3]) || 0) < 30000) { const txt = esc(String(pr.dm[1]).slice(0, 60)); if (!$('#game').hidden) showIgMsg(`💬 <b>${esc(from)}</b>${pr.watch === me ? ' (gleda te)' : ''}: ${txt}`); else notify(`💬 <b>${esc(from)}</b>: ${txt}`, { ms: 7000 }); beep(880, .06, 'triangle', .04); } } }
     if (Array.isArray(pr.tr) && pr.tr[0] === me) { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; if (Date.now() - (Number(pr.tr[3]) || 0) < 20000 && (Number(pr.tr[3]) || 0) > PAGE_T0 - 1500) receiveTroll(pr.tr[1], from, p.peer); } }
+    else if (Array.isArray(pr.tr) && pr.tr[0] === '*') { const key = p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; const t = TROLLS[pr.tr[1]]; if (t && t.all && !p.isMe && Date.now() - (Number(pr.tr[3]) || 0) < 20000 && (Number(pr.tr[3]) || 0) > PAGE_T0 - 1500 && G && !$('#game').hidden && G.players.some(q => peerOfPlayer(q) === p.peer)) receiveTroll(pr.tr[1], from, p.peer); } }
     else if (Array.isArray(pr.tr) && !(p.isMe && p.sameTab) && G && !$('#game').hidden) { const key = 'w:' + p.peer + ':' + pr.tr[2]; if (!seenTr[key]) { seenTr[key] = 1; const tgt = roomState.peers.find(q => q.peer === pr.tr[0]); const t = TROLLS[pr.tr[1]]; if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) markPrank(pr.tr[0], pr.tr[1]); if (t && tgt && Date.now() - (Number(pr.tr[3]) || 0) < 20000) showIgMsg(`${t.e} <b>${esc(from)}</b> → <b>${esc(String((tgt.presence && tgt.presence.nm) || 'igrač'))}</b>: ${t.name}`); } }
     if (Array.isArray(pr.bt)) { const key = p.peer + ':' + pr.bt[3]; if (!seenBt[key]) { seenBt[key] = 1; if (Date.now() - (Number(pr.bt[4]) || 0) < 600000 && pr.bt[0] === curMid()) { const amt = Math.max(0, Math.min(5000, Number(pr.bt[2]) || 0)); addBounty(pr.bt[0] + ':' + pr.bt[1], amt, from); if (!$('#game').hidden) showIgMsg(`🎯 ${esc(from)} je stavio ucjenu ${amt} na ${esc(String(pr.bt[5] || '').slice(0, 14))}!`, true); } } }
     if (Array.isArray(pr.tb) && pr.tb[0] === me) { const key = p.peer + ':' + pr.tb[2]; if (!seenTb[key]) { seenTb[key] = 1; if (Date.now() - (Number(pr.tb[3]) || 0) < 20000) { const t = TROLLS[pr.tb[1]] || { e: '', name: '' }; showIgMsg(`🛡️ ODBIJENO! ${esc(from)} je imao štit (${t.e} ${t.name})`, true); notify(`🛡️ <b>${esc(from)}</b> je odbio tvoju zezanciju štitom!`, { warn: true, ms: 4000 }); } } }
@@ -7275,7 +7285,7 @@ function hostReadInputs() {
         if (is !== (p.lastIs || 0) || !p.inAt) { p.lastIs = is; p.inAt = now; }
         p.remoteIn = Math.max(-1, Math.min(1, Number(pr.presence.in) || 0));
         const j = Number(pr.presence.j) || 0; if (j > p.lastJ) { p.lastJ = j; tryJump(p); }
-        const po = pr.presence.po; if (Array.isArray(po) && Number(po[0]) > (p.lastPo || 0)) { p.lastPo = Number(po[0]); drinkCham(p, Number(po[1])); }
+        const po = pr.presence.po; if (Array.isArray(po) && Number(po[0]) > (p.lastPo || 0)) { p.lastPo = Number(po[0]); drinkCham(p); }
         const pf = pr.presence.pf; if (Array.isArray(pf) && Number(pf[0]) > (p.lastPf || 0)) { p.lastPf = Number(pf[0]); sprayPerfume(p); }
       }
       if (is && now - p.inAt > 1200) p.remoteIn = 0; // no word from the player for a while: stop turning
@@ -7325,8 +7335,8 @@ function snapTrail(p, from) {
 function buildSnap(full = true) {
   const TH = net || G, m2 = TH.tvM2 || {}, m1 = {}; if (!TH.tvE) TH.tvE = 1 + Math.floor(Math.random() * 1e9); TH.tvM2 = TH.tvM1 || {}; TH.tvM1 = m1;
   for (const p of G.players) { p._tv = snapTrail(p, m2[p.id] || 0); m1[p.id] = p.tvN || 0; }
-  return { W, H, tw: Math.round(performance.now()), te: TH.tvE, tb: G.tb || undefined, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2)]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
-    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1)] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
+  return { W, H, tw: Math.round(performance.now()), te: TH.tvE, tb: G.tb || undefined, r: G.round, ph: G.phase, pt: +G.phaseT.toFixed(2), ix: G.phase === 'count' && G.intro ? G.intro : undefined, it: G.phase === 'count' && G.intro ? +G.introT.toFixed(2) : undefined, gt: +G.gt.toFixed(3), cs: G.clrS || undefined, in: Math.round(G.inset), wa: +G.wrapAllUntil.toFixed(2), tg: G.target, bg: G.bg || '', pz: G.pz || null, wk: G.wpick ? [G.wpick.k, Math.round(G.wpick.x), Math.round(G.wpick.y)] : null, sh: (G.shots || []).map(x => [Math.round(x.x), Math.round(x.y), +x.a.toFixed(3)]), cl: (G.clouds || []).map(c => [c.k === 'smoke' ? 1 : 2, Math.round(c.x), Math.round(c.y), Math.round(c.r), +c.until.toFixed(2), c.from, +(c.t0 || 0).toFixed(2), c.follow ? 1 : 0]).concat((G.bombs || []).map(b => [3, Math.round(b.x), Math.round(b.y), 0, 0, b.from, +b.t0.toFixed(2)])), dr: G.drop || null, sm: G.speedMul, wt: G.winTeam == null ? -1 : G.winTeam, ff: G.ff ? 1 : 0, clr: G.clr, ov: G.over ? 1 : 0, wn: G.winner == null ? null : G.winner, rk: G.rank, pa: paused ? 1 : 0, mid: (net && net.mid) || G.mid,
+    pl: G.players.map(p => Object.assign(full ? { co: Math.max(0, COLORS.indexOf(p.color)), cx: COLORS.includes(p.color) ? undefined : p.color, nc: p.nc ? 1 : undefined, n: p.name, sl: p.slug || '', h: p.human ? 1 : 0, sk: p.skin, bd: p.badge, bx: pBadges(p).filter(x => x !== p.badge).join(','), pm: p.pm || '', tm: p.team == null ? -1 : p.team, te: p.te || '', ds: p.ds || '', vs: p.vs || '', dg: p.disg ? [p.disg.color, p.disg.skin, p.disg.nc ? 1 : 0, +p.disg.until.toFixed(1), p.disg.mimic ? 1 : 0] : undefined, cw: p.clashWith || undefined } : {}, { i: p.id, tv: p._tv, wp: p.wp === 'gun' ? 1 : p.wp === 'smoke' ? 2 : undefined, x: +p.x.toFixed(1), y: +p.y.toFixed(1), a: +p.a.toFixed(3), al: p.alive ? 1 : 0, d: p.drawing && p.alive ? 1 : 0, rr: +radiusOf(p).toFixed(2), ju: +p.jumpUntil.toFixed(2), jr: p.jumpReady === Infinity ? 999 : +p.jumpReady.toFixed(2), fx: p.fx.filter(f => f.until > G.gt).map(f => [f.k, +f.until.toFixed(2)]), sc: p.score, k: p.kills, w: p.wins, jn: p.jumps, pk: p.picks, kb: p.killer ? p.killer.id : -1, rm: p.remote || null, pe: p.remote || (p.mine ? roomState.me : null) })),
     pu: G.pus.map(u => [u.k, Math.round(u.x), Math.round(u.y), +u.born.toFixed(2), u.own == null ? -1 : u.own]),
     ts: G.toast && G.gt - G.toast.t < 1.2 ? [G.toast.text, G.toast.color, Math.round(G.toast.x), Math.round(G.toast.y), +G.toast.t.toFixed(2)] : null,
     s: { walls: setup.walls, shrink: setup.shrink, jump: setup.jump, arena: setup.arena || 'klasicna' } };
@@ -7358,10 +7368,10 @@ function clientBegin(host, key = 'st', spectate = false) {
 }
 // one piece of a snake's trail on a guest's screen: the same stroke and the same collision stamps as on the host
 function guestLine(p, x0, y0, x1, y1, rr, ang) {
-  const custom = applySkin(tctx, p.skin, p.color, rr, G.gt, p.nc); if (!custom) tctx.lineWidth = rr * 2;
+  const L = lookOf(p), custom = applySkin(tctx, L.skin, L.color, rr, G.gt, L.nc); if (!custom) tctx.lineWidth = rr * 2;
   const d = Math.hypot(x1 - x0, y1 - y0);
   tctx.lineDashOffset = -(p.dashLen || 0); tctx.beginPath(); tctx.moveTo(x0, y0); tctx.lineTo(x1, y1); tctx.stroke(); tctx.shadowBlur = 0; tctx.setLineDash([]); tctx.lineDashOffset = 0; p.dashLen = (p.dashLen || 0) + d;
-  skinAfter(tctx, p.skin, [x0, y0, x1, y1], rr, p);
+  skinAfter(tctx, L.skin, [x0, y0, x1, y1], rr, p);
   const n = Math.max(1, Math.ceil(d * 2)), g = { id: p.id, x: 0, y: 0 }, sr = Math.max(1, rr * skinW(p) - 0.35); for (let k = 0; k <= n; k++) { g.x = x0 + (x1 - x0) * k / n; g.y = y0 + (y1 - y0) * k / n; stamp(g, sr); }
 }
 function drawTrailHistory(th) {
@@ -7416,7 +7426,7 @@ function applyState(st, first) {
   G.pus = st.pu.map(u => ({ k: u[0], x: u[1], y: u[2], born: u[3], own: u[4] != null && u[4] >= 0 ? u[4] : null })).filter(u => POWERUPS[u.k]);
   G.wpick = Array.isArray(st.wk) && WEAPONS[st.wk[0]] ? { k: st.wk[0], x: Number(st.wk[1]) || 0, y: Number(st.wk[2]) || 0 } : null;
   { const ns = Array.isArray(st.sh) ? st.sh.map(x => ({ x: Number(x[0]) || 0, y: Number(x[1]) || 0, a: Number(x[2]) || 0 })) : []; if (ns.length > (G.shots || []).length) beep(190, 0.12, 'square', 0.09, -120); G.shots = ns; }
-  { const cl = Array.isArray(st.cl) ? st.cl : []; G.clouds = cl.filter(c => c[0] !== 3).map(c => ({ k: c[0] === 1 ? 'smoke' : 'perfume', x: Number(c[1]) || 0, y: Number(c[2]) || 0, r: Math.min(200, Number(c[3]) || 0), until: Number(c[4]) || 0, from: c[5], t0: Number(c[6]) || 0 })); G.bombs = cl.filter(c => c[0] === 3).map(c => ({ x: Number(c[1]) || 0, y: Number(c[2]) || 0, t0: Number(c[6]) || 0, from: c[5] })); }
+  { const cl = Array.isArray(st.cl) ? st.cl : []; G.clouds = cl.filter(c => c[0] !== 3).map(c => ({ k: c[0] === 1 ? 'smoke' : 'perfume', x: Number(c[1]) || 0, y: Number(c[2]) || 0, r: Math.min(200, Number(c[3]) || 0), until: Number(c[4]) || 0, from: c[5], t0: Number(c[6]) || 0, follow: c[7] ? 1 : 0 })); G.bombs = cl.filter(c => c[0] === 3).map(c => ({ x: Number(c[1]) || 0, y: Number(c[2]) || 0, t0: Number(c[6]) || 0, from: c[5] })); }
   G.toast = st.ts ? { text: st.ts[0], color: st.ts[1], x: st.ts[2], y: st.ts[3], t: st.ts[4] } : null;
   { // the host paused (Esc / pause button): tell the guests why nothing moves
     const hp = !!st.pa && (G.phase === 'run' || G.phase === 'count');
@@ -7430,7 +7440,7 @@ function applyState(st, first) {
     if (!p) { p = { id: q.i, color: COLORS[q.i] || '#fff', pts: [], touchL: false, touchR: false }; }
     const wasAlive = p.alive;
     { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
-    if (q.n !== undefined) { p.disg = Array.isArray(q.dg) && /^#[0-9a-f]{6}$/i.test(String(q.dg[0])) ? { color: q.dg[0], skin: SKINS[q.dg[1]] ? q.dg[1] : 'sk_none', nc: q.dg[2] ? 1 : 0, until: Number(q.dg[3]) || 0 } : null; if (p.disg && q.rm === mePeer) net.colorTold = true; p.clashWith = q.cw ? String(q.cw).slice(0, 14) : ''; }
+    if (q.n !== undefined) { p.disg = Array.isArray(q.dg) && /^#[0-9a-f]{6}$/i.test(String(q.dg[0])) ? { color: q.dg[0], skin: SKINS[q.dg[1]] ? q.dg[1] : 'sk_none', nc: q.dg[2] ? 1 : 0, until: Number(q.dg[3]) || 0, mimic: q.dg[4] ? 1 : 0 } : null; if (p.disg && q.rm === mePeer) net.colorTold = true; p.clashWith = q.cw ? String(q.cw).slice(0, 14) : ''; }
     if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: SKINS[q.sk] ? q.sk : 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     { const w = q.wp === 1 ? 'gun' : q.wp === 2 ? 'smoke' : null; if (w && !p.wp && q.rm === mePeer) showIgMsg(weaponHint(w), false, wpTipOnce()); p.wp = w; }
@@ -7947,8 +7957,9 @@ function renderHotBadge() { const h = hotKey(); document.querySelectorAll('#pads
 function fireHotKey() { // ZEZALICE held 2 s in a match
   const h = hotKey(); if (!h) { toast('⭐ Prečac nije postavljen. Postavi ga prije meča: Moj profil → ⭐ Prečac zezalice.'); return; }
   if (h.k === 'perf') { usePerfume(); return; }
-  if (h.k === 'cham') { const me = myMatchPlayer(), pick = G && trollChosen && G.players.find(q => peerOfPlayer(q) === trollChosen && q.alive && q !== me), t = pick || (G ? G.players.filter(q => q !== me && q.alive).sort((a, b) => b.score - a.score)[0] : null); if (!t) { toast('Nema koga oponašati.'); return; } useCham(t.id); return; }
+  if (h.k === 'cham') { useCham(); return; }
   const id = h.id; if (!profile || !((profile.inv || {})[id] > 0)) { toast(`Nemaš više: ${TROLLS[id].e} ${TROLLS[id].name}. Kupi u trgovini.`); return; }
+  if (TROLLS[id].all) { if (!trollTargets().length) { toast('U meču nema drugih pravih igrača.'); return; } if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; } sendTroll('*', id); return; }
   const targets = trollTargets(), plOf = (t) => G.players.find(p => peerOfPlayer(p) === t.peer) || {};
   const lead = targets.slice().sort((a, b) => (!!plOf(b).alive - !!plOf(a).alive) || ((plOf(b).score || 0) - (plOf(a).score || 0)))[0];
   trollPick = targets.some(t => t.peer === trollChosen) ? trollChosen : (lead || {}).peer || null;
@@ -7980,8 +7991,8 @@ function renderTrollPop() {
   const tabs = `<div class="tptabs">${show.map(t => `<button type="button" class="tpt ${trollTab === t ? 'on' : ''}" data-t="${t}">${TT[t]}</button>`).join('')}<button type="button" class="tpx" aria-label="Zatvori">×</button></div>`;
   if (trollTab === 'n') {
     const me = myMatchPlayer(), have = profile ? (profile.inv.cham || 0) : 0, others = G ? G.players.filter(p => p !== me && p.alive) : [], can = !!(me && me.alive && G.phase === 'run' && !me.disg && have);
-    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Već izgledaš kao netko drugi.' : `Odaberi koga oponašaš: ${POTIONS.cham.s} s imaš njegovu boju i trag.`}</p>${have ? `<div class="tp-t">${others.map(t => `<button type="button" class="stg ${can ? '' : 'dis'} ${hotKey() && hotKey().k === 'cham' ? 'hot' : ''}" data-pid="${t.id}"><i style="background:${dispColor(t)}"></i>${esc(t.name)}</button>`).join('') || '<span class="hint">Nema protivnika u igri.</span>'}</div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak na tvom mjestu: tko uđe, ${POTIONS.perfume.s} s vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg ${canP ? '' : 'dis'} ${hotKey() && hotKey().k === 'perf' ? 'hot' : ''}" id="tpPerf">🌸 Poprskaj${hotKey() && hotKey().k === 'perf' ? ' ⭐' : ''}</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
-    pop.querySelectorAll('[data-pid]').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'cham' }); renderTrollPop(); }, () => { useCham(Number(b.dataset.pid)); pop.hidden = true; }));
+    pop.innerHTML = tabs + `<b style="font-size:15px">🧪 Kameleon napitak <small class="hint">imaš ${have}</small></b><p class="hint" style="margin:0">${me && me.disg ? 'Kameleon radi: svatko te vidi u svojoj boji.' : `${POTIONS.cham.s} s svakom protivniku izgledaš u njegovoj boji i s njegovim tragom: misli da si on!`}</p>${have ? `<div class="tp-t"><button type="button" class="stg ${can ? '' : 'dis'} ${hotKey() && hotKey().k === 'cham' ? 'hot' : ''}" id="tpCham">🧪 Popij${hotKey() && hotKey().k === 'cham' ? ' ⭐' : ''}</button></div>` : '<p class="hint" style="margin:0">Nemaš ga. Kupi ga u trgovini (🧪 Napitci) između mečeva.</p>'}${(() => { const hp = profile ? (profile.inv.perfume || 0) : 0, canP = !!(me && me.alive && G.phase === 'run' && hp); return `<b style="font-size:15px;margin-top:6px">🌸 Parfem <small class="hint">imaš ${hp}</small></b><p class="hint" style="margin:0">Oblak oko tvoje glave te prati ${POTIONS.perfume.s} s: tko uđe, vozi upola sporije.</p>${hp ? `<div class="tp-t"><button type="button" class="stg ${canP ? '' : 'dis'} ${hotKey() && hotKey().k === 'perf' ? 'hot' : ''}" id="tpPerf">🌸 Poprskaj${hotKey() && hotKey().k === 'perf' ? ' ⭐' : ''}</button></div>` : ''}`; })()}${profile && Number(profile.xpx) > 0 ? `<p class="hint" style="margin:0">⚗️ Dvostruki XP: još ${profile.xpx} ${Number(profile.xpx) === 1 ? 'meč' : 'mečeva'}</p>` : ''}`;
+    { const cb = pop.querySelector('#tpCham'); if (cb) holdButton(cb, HOLD_SET, () => { setHotKey({ k: 'cham' }); renderTrollPop(); }, () => { useCham(); pop.hidden = true; }); }
     { const pb = pop.querySelector('#tpPerf'); if (pb) holdButton(pb, HOLD_SET, () => { setHotKey({ k: 'perf' }); renderTrollPop(); }, () => { usePerfume(); pop.hidden = true; }); }
     pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
     return;
@@ -8007,15 +8018,16 @@ function renderTrollPop() {
   }
   pop.innerHTML = tabs + `<b style="font-size:15px">😈 Zezni protivnika</b>
     ${targets.length ? `<div class="tp-t">${targets.map(t => `<button type="button" class="stg ${t.peer === trollPick ? 'on' : ''}" data-peer="${esc(t.peer)}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>` : '<p class="hint" style="margin:0">U meču nema drugih pravih igrača.</p>'}
-    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${hotPrank() === id ? 'hot' : ''} ${cool || !trollPick ? 'dis' : ''}" data-id="${id}" title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
+    ${owned.length ? `<div class="trolls">${owned.map(([id, t]) => `<button type="button" class="troll ${t.all ? 'all' : ''} ${hotPrank() === id ? 'hot' : ''} ${cool || (!trollPick && !t.all) ? 'dis' : ''}" data-id="${id}" title="${esc(t.d)}"><span>${t.e}</span><b>${t.name}${hotPrank() === id ? ' ⭐' : ''}</b><small>imaš ${inv[id]}</small><i class="tq" data-tq="${id}" title="Kako izgleda">ℹ️</i></button>`).join('')}</div>` : '<p class="hint" style="margin:0">Nemaš zezalica. Kupi ih u trgovini (kartica Trgovina → Zezalice) između mečeva.</p>'}
     ${trollPick ? `<div class="betrow"><span>🎯 Ucjena na ${esc((targets.find(t => t.peer === trollPick) || {}).name || '')}:</span>${[50, 150].map(a => `<button type="button" class="bntb" data-a="${a}" ${!profile || profile.coins < a ? 'disabled' : ''}>${a}</button>`).join('')}</div>` : ''}
     ${cool ? '<p class="hint" style="margin:0">Pričekaj par sekundi.</p>' : ''}${owned.length ? `<p class="hint" style="margin:0">⭐ Prečac${hotKey() ? `: <b>${hotLabel(hotKey())}</b>` : ''}: dvaput brzo dodirni ZEZALICE i ode. Biraš ga u Moj profil → ⭐ Prečac (ili ovdje držanjem zezalice 3 s).</p>` : ''}`;
   pop.querySelectorAll('.tpt').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollTab = b.dataset.t; renderTrollPop(); }); pop.querySelector('.tpx').onclick = (e) => { e.stopPropagation(); pop.hidden = true; }; pop.onclick = (e) => e.stopPropagation();
   pop.querySelectorAll('.stg').forEach(b => b.onclick = (e) => { e.stopPropagation(); trollPick = trollChosen = b.dataset.peer; renderTrollPop(); });
   pop.querySelectorAll('.troll').forEach(b => holdButton(b, HOLD_SET, () => { setHotKey({ k: 'troll', id: b.dataset.id }); renderTrollPop(); }, (e) => { // a tap sends it (and the panel closes); held 3 s it becomes the hotkey
     if (e && e.target && e.target.closest && e.target.closest('[data-tq]')) { const id = b.dataset.id; toast(`${TROLLS[id].e} ${TROLLS[id].name}: ${TROLL_HOW[id] || TROLLS[id].d}`); return; }
-    if (!trollPick) { toast('Prvo odaberi koga zezaš.'); return; } if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
-    sendTroll(trollPick, b.dataset.id); pop.hidden = true; }));
+    const all = !!TROLLS[b.dataset.id].all;
+    if (!trollPick && !all) { toast('Prvo odaberi koga zezaš.'); return; } if (all && !targets.length) { toast('U meču nema drugih pravih igrača.'); return; } if (performance.now() - lastTrollSent < 5000) { toast('Pričekaj par sekundi.'); return; }
+    sendTroll(all ? '*' : trollPick, b.dataset.id); pop.hidden = true; }));
   pop.querySelectorAll('.bntb').forEach(b => b.onclick = (e) => { e.stopPropagation(); const t = G.players.find(x => peerOfPlayer(x) === trollPick); if (t) placeBounty(t.id, Number(b.dataset.a)); renderTrollPop(); });
 }
 $('#trollBtn').onclick = (e) => { e.stopPropagation(); $('#reactPop').hidden = true; const p = $('#trollPop'); p.hidden = !p.hidden; renderTrollPop(); };
