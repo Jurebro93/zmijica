@@ -28,11 +28,12 @@
 // vijuga.netlify.app keeps only the game's services (/api); whoever opens the game there is moved over at once, with
 // the login and the settings of that address (in the link's #, which never leaves the phone), so nobody types anything
 // again. On zmijica.onrender.com what came along fills in only what is missing there (nothing there is overwritten),
-// and only when it really came from vijuga.netlify.app. Deploy previews, localhost and ?stay=1 are left alone.
+// and only when it really came from vijuga.netlify.app. Every other address the page is opened on (a deploy preview,
+// any copy) goes to the one address too; only a phone's or computer's own test server (localhost, LAN) is left alone.
 (function () {
   var HOME = 'zmijica.onrender.com', FROM = 'vijuga.netlify.app', h = location.hostname;
   var SKIP = /^vijuga-(wx|live|crypto|srv|reloaded|updated|updated-quiet|paying|push-on|pushpop|pushnag|left|kick)$/;
-  if (h === FROM && !/[?&]stay=1\b/.test(location.search)) {
+  if (h !== HOME && location.protocol === 'https:' && !/^(localhost|127\.|10\.|192\.168\.|\[)/.test(h)) {
     var all = {}, n = 0;
     try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i), v = localStorage.getItem(k); if (k && k.indexOf('vijuga-') === 0 && !SKIP.test(k) && v != null && v.length < 40000) { all[k] = v; n++; } } } catch (e) {}
     var frag = '';
@@ -3067,52 +3068,48 @@ function announceUnique() {
   if (n) n.querySelector('[data-go-shop]').onclick = () => { n.remove(); showTab('shop'); const u = $('.uniquebox'); if (u) u.scrollIntoView({ behavior: 'smooth' }); };
 }
 setTimeout(announceUnique, 5000);
-// ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
-// The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
-// going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '2cfa3c6f1fac';
+// ---- one version for everybody. After every release ALL pages refresh: an old page does not know the newest things,
+// and an old page that hosts or watches a match mixes old and new for everybody (a new trail seen in its colour by some
+// and as a plain colour by others). Nobody is thrown out of a running round: a player refreshes when the match is over
+// (and is back in the online lobby by itself), a spectator at once (and watches on), the menu and the lobby after a 4 s
+// notice (the lobby: back in it, ready). A message being typed or a voice message being recorded is finished first.
+// version.txt is looked at 8 s after the start, then every minute, when the game comes back on the screen, and at once
+// when somebody in the room runs another build (bv in the presence).
+const BUILD = '27711bf4ecaf';
+let verAt = 0;
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
+  verAt = Date.now();
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
 }
-// A new version of the game is live. Nobody is interrupted in a match: the pop-up comes in the menu, and on the
-// results screen there is a button. A tab nobody is looking at refreshes by itself (once per version). The refresh
-// saves the profile first and asks for the new page past every cache (?v=), then says what is new.
-let newBuild = null; const upd = { snooze: 0 };
-function newVersion(v) {
-  newBuild = v;
-  let tried = ''; try { tried = sessionStorage.getItem('vijuga-reloaded') || ''; } catch (e) { tried = v; }
-  if (document.hidden && !inMatchNow() && !recState && !net && tried !== v) { try { sessionStorage.setItem('vijuga-reloaded', v); } catch (e) {} reloadToNew(true); return; }
-  offerUpdate();
+function peerBuild(bv) { if (bv && bv !== BUILD && !newBuild && /^[a-f0-9]{6,40}$/.test(String(bv)) && Date.now() - verAt > 15000) checkVersion(); }
+let newBuild = null, updTimer = 0;
+function newVersion(v) { newBuild = v; if (!updTimer) updTimer = setInterval(offerUpdate, 2000); offerUpdate(); }
+// a refresh to this version was just tried (a cache may have handed the old page back): at most one try per 3 minutes
+function triedLately() { try { const t = JSON.parse(sessionStorage.getItem('vijuga-reloaded') || 'null'); return !!(t && t.v === newBuild && Date.now() - Number(t.t) < 180000); } catch (e) { return true; } }
+function markTried() { try { sessionStorage.setItem('vijuga-reloaded', JSON.stringify({ v: newBuild, t: Date.now() })); } catch (e) {} }
+function setResume(k) { try { sessionStorage.setItem('vijuga-resume', JSON.stringify({ k: String(k), t: Date.now() })); } catch (e) {} }
+const watchingOnly = () => !!(net && net.role === 'client' && net.myId == null);
+// what happens after the refresh: null = the menu; 'online' = the online lobby (ready); 'watch:<slug>' = watch on
+function resumeAfter() {
+  if (inMatchNow() && G) {
+    if (watchingOnly()) { const t = roomState.peers.find(p => p.peer === (net.target || net.hostPeer)); return net.wantJoin || roomState.ready ? 'online' : t && t.presence && t.presence.sl ? 'watch:' + t.presence.sl : 'online'; }
+    return net ? 'online' : null;
+  }
+  return roomState.ready ? 'online' : null;
 }
 function offerUpdate() {
-  if (!newBuild) return;
-  if (inMatchNow()) { // a match: never a pop-up; on its results a button
-    const b = G && G.over ? $('#overlay .banner') : null;
-    if (b && !b.querySelector('.updrow')) { const row = document.createElement('div'); row.className = 'row updrow'; row.innerHTML = '<button class="btn updbtn" type="button">🆕 Nova verzija · 🔄 Osvježi</button>'; b.insertBefore(row, b.children[2] || null); row.querySelector('button').onclick = () => reloadToNew(); }
-    return;
-  }
-  if (document.querySelector('.updov') || recState) return;
-  // In the menu with nothing going on the page refreshes by itself after a short notice (once per version): an old page
-  // that stays open does not know the newest things, and when it hosts a match the others do not see them either (a
-  // new trail turns into a plain colour). Waiting in the lobby or typing: the pop-up with „Kasnije”, as before.
-  let tried = ''; try { tried = sessionStorage.getItem('vijuga-reloaded') || ''; } catch (e) { tried = newBuild; }
-  const ae = document.activeElement, typing = !!(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && String(ae.value || '').trim());
-  if (tried !== newBuild && !typing && !roomState.ready && !net) {
-    const ov = document.createElement('div'); ov.className = 'achov updov'; let n = 4;
-    ov.innerHTML = `<div class="achcard updcard" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updico">🆕</div><h3 id="updT">Nova verzija igre</h3><p>Osvježavam igru za <b class="updn">${n}</b> s, da svi igrate istu verziju i vidite iste stvari. Napredak ostaje spremljen.</p><button class="btn updgo" type="button">🔄 Osvježi odmah</button></div>`;
-    document.body.appendChild(ov);
-    const go = () => { clearInterval(t); try { sessionStorage.setItem('vijuga-reloaded', newBuild); } catch (e) {} reloadToNew(); };
-    const t = setInterval(() => { if (!ov.isConnected || inMatchNow() || recState) { clearInterval(t); ov.remove(); return; } n--; const b = ov.querySelector('.updn'); if (b) b.textContent = String(Math.max(0, n)); if (n <= 0) go(); }, 1000);
-    ov.querySelector('.updgo').onclick = go;
-    return;
-  }
-  if (Date.now() < upd.snooze) return;
+  if (!newBuild || triedLately() || document.querySelector('.updov') || recState) return;
+  const ae = document.activeElement; if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && String(ae.value || '').trim()) return; // a message is being typed: after it
+  if (inMatchNow() && G && !G.over && !watchingOnly()) return; // a round is never broken: when the match is over
+  const resume = resumeAfter(); let n = inMatchNow() && G && G.over ? 6 : 4;
   const ov = document.createElement('div'); ov.className = 'achov updov';
-  ov.innerHTML = `<div class="achcard updcard" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updico">🆕</div><h3 id="updT">Nova verzija igre</h3><p>Stigle su nove stvari i popravci. Osvježi igru da ih dobiješ i da igraš po istim pravilima kao ostali. Traje par sekundi, tvoj napredak ostaje spremljen.</p><button class="btn updgo" type="button">🔄 Osvježi</button><button class="btn ghost updlater" type="button">Kasnije</button></div>`;
+  ov.innerHTML = `<div class="achcard updcard" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updico">🆕</div><h3 id="updT">Nova verzija igre</h3><p>Osvježavam igru za <b class="updn">${n}</b> s, da svi igrate istu verziju i vidite iste stvari${resume === 'online' ? ', pa si opet u online predvorju' : resume ? ', pa gledaš dalje' : ''}. Napredak ostaje spremljen.</p><button class="btn updgo" type="button">🔄 Osvježi odmah</button></div>`;
   document.body.appendChild(ov);
-  ov.querySelector('.updgo').onclick = () => reloadToNew();
-  ov.querySelector('.updlater').onclick = () => { ov.remove(); upd.snooze = Date.now() + 10 * 60000; };
+  const go = () => { clearInterval(t); if (!ov.isConnected) return; markTried(); const r = resumeAfter(); if (r) setResume(r); reloadToNew(); };
+  const t = setInterval(() => { if (!ov.isConnected) { clearInterval(t); return; } if (recState || (inMatchNow() && G && !G.over && !watchingOnly())) { clearInterval(t); ov.remove(); return; } // a match began meanwhile: when it is over
+    n--; const b = ov.querySelector('.updn'); if (b) b.textContent = String(Math.max(0, n)); if (n <= 0) go(); }, 1000);
+  ov.querySelector('.updgo').onclick = go;
 }
 async function reloadToNew(quiet) {
   document.querySelectorAll('.updgo, .updbtn').forEach(b => { b.disabled = true; b.textContent = '⏳ Osvježavam…'; });
@@ -3120,13 +3117,11 @@ async function reloadToNew(quiet) {
   try { if (profile) { localSave(profile); if (profileDirty) { profileDirty = false; saveProfile(); } const t0 = Date.now(); while (saveBusy && Date.now() - t0 < 3000) await new Promise(r => setTimeout(r, 100)); } } catch (e) {}
   const u = new URL(location.href); u.searchParams.set('v', newBuild || String(Date.now())); location.replace(u.toString());
 }
-// An old page (a newer version is live) does not go online as it is: it refreshes first and then does what was tapped
-// by itself (into the lobby, start now, watch someone). An old page that hosts or watches mixes old and new: the newest
-// trails turned into a plain colour for everyone (Mavija's Barbie seen red). Once per version, so a cache can never loop it.
+// An old page that is about to go online (Igraj online, Kreni odmah, Gledaj) refreshes first and then does what was
+// tapped by itself.
 function freshFirst(kind) {
-  if (!newBuild) return false;
-  try { if (sessionStorage.getItem('vijuga-reloaded') === newBuild) return false; sessionStorage.setItem('vijuga-reloaded', newBuild); sessionStorage.setItem('vijuga-resume', JSON.stringify({ k: String(kind), t: Date.now() })); } catch (e) { return false; }
-  toast('🆕 Nova verzija igre: osvježavam pa nastavljaš…'); reloadToNew(true); return true;
+  if (!newBuild || triedLately()) return false;
+  markTried(); setResume(kind); toast('🆕 Nova verzija igre: osvježavam pa nastavljaš…'); reloadToNew(true); return true;
 }
 (() => { let r = null; try { r = JSON.parse(sessionStorage.getItem('vijuga-resume') || 'null'); sessionStorage.removeItem('vijuga-resume'); } catch (e) {}
   if (!r || !r.k || Date.now() - Number(r.t) > 90000) return;
@@ -3141,7 +3136,7 @@ function freshFirst(kind) {
   try { const u = new URL(location.href); if (u.searchParams.has('v')) { u.searchParams.delete('v'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch (e) {}
   if (was && !quiet) setTimeout(() => { const n = notify('✅ Igra je osvježena na <b>najnoviju verziju</b>.', { ms: 9000, actions: '<button class="pingbtn" type="button" data-news="1">Što je novo</button>' }); const b = n && n.querySelector('[data-news]'); if (b) b.onclick = () => { n.remove(); showNews(); }; }, 1500);
 })();
-setTimeout(checkVersion, 30000); setInterval(() => { if (!document.hidden) checkVersion(); }, 2 * 60000);
+setTimeout(checkVersion, 8000); setInterval(() => { if (!document.hidden) checkVersion(); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(checkVersion, 1500); });
 function showTab(t) {
   curTab = t; if (liteReady) setLiteView('tab');
@@ -5454,7 +5449,7 @@ function netPresence(patch) { Object.assign(myPres, patch); if (roomNs) roomNs.p
 // shape of the arena this screen would like (width / height), so the host can pick one that suits everybody
 function myArenaRatio() { const st = $('#stage'); const r = st && st.getBoundingClientRect(); if (r && r.width > 100 && r.height > 100) return +(Math.min(2.1, Math.max(0.55, (r.width - 16) / (r.height - 16)))).toFixed(2); const land = innerWidth > innerHeight && innerHeight < 560; return +(Math.min(2.1, Math.max(0.55, (innerWidth - (land ? 200 : 16)) / Math.max(100, innerHeight - (land ? 60 : 200))))).toFixed(2); }
 let netRatio = 0;
-function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? badgeIds(profile.eq, profile.owned)[0] || 'bd_none' : 'bd_none', bx: profile ? badgeIds(profile.eq, profile.owned).slice(1).join(',') : '', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0, ar: myArenaRatio() }; }
+function myLobbyPres() { if (!roomState.ready) roomState.rqAt = 0; else if (!roomState.rqAt) roomState.rqAt = Date.now(); return { rq: roomState.ready ? roomState.rqAt : null, sl: profile ? profile.slug : '', nm: profile ? profile.name : '', cl: profile ? profile.color : 0, bd: profile ? badgeIds(profile.eq, profile.owned)[0] || 'bd_none' : 'bd_none', bx: profile ? badgeIds(profile.eq, profile.owned).slice(1).join(',') : '', sk: profile ? profile.eq.skin : 'sk_none', pu: profile ? profile.eq.pu : '', rd: roomState.ready ? 1 : 0, ar: myArenaRatio(), bv: BUILD.charAt(0) === '_' ? undefined : BUILD }; }
 { let arT = 0; addEventListener('resize', () => { clearTimeout(arT); arT = setTimeout(() => { if (roomNs && $('#game').hidden) netPresence({ ar: myArenaRatio() }); }, 1500); }); }
 // ---------- who is online, pings between real players ----------
 const social = { seen: {}, lastNotice: {}, settled: false, pingN: 0, pingSent: {}, pingSeen: {}, pongSeen: {}, pendingFrom: null, autoStart: false, accepted: [], lastAnswer: 0 };
@@ -6359,11 +6354,13 @@ function drinkCham(p) {
 // a page that was not refreshed after a release does not know the newest trails and sends 'sk_none' instead (everybody
 // saw Mavija's Barbie as a plain red snake when such a page hosted), so a 'sk_none' from the host is checked against
 // what the player says she wears.
+// (A short picture carries no name, slug or trail: then the player is found by the connection alone.)
 function ownTrail(q, mePeer) {
-  if (!q || !q.h || q.dg || !q.sl) return '';
+  if (!q || q.dg || (q.n !== undefined && !q.h)) return '';
+  const id = q.rm || q.pe; if (!q.sl && !id) return '';
   let sk = '';
-  if (q.rm && q.rm === mePeer) sk = profile && profile.slug === q.sl ? profile.eq.skin : '';
-  else { const id = q.rm || q.pe; const pe = (id && roomState.peers.find(x => x.peer === id && x.presence && x.presence.sl === q.sl)) || roomState.peers.find(x => x.presence && x.presence.sl === q.sl && x.presence.pg !== 'stats' && !x.presence.obs); sk = pe ? String(pe.presence.sk || '') : ''; }
+  if (id && id === mePeer) sk = profile && (!q.sl || profile.slug === q.sl) ? profile.eq.skin : '';
+  else { const pe = (id && roomState.peers.find(x => x.peer === id && x.presence && (!q.sl || x.presence.sl === q.sl))) || (q.sl && roomState.peers.find(x => x.presence && x.presence.sl === q.sl && x.presence.pg !== 'stats' && !x.presence.obs)); sk = pe ? String(pe.presence.sk || '') : ''; }
   return sk !== 'sk_none' && SKINS[sk] ? sk : '';
 }
 function mimicOf(p) { if (!p || !p.disg || !p.disg.mimic || !G || G.gt >= p.disg.until) return null; const me = myMatchPlayer(); return me && me !== p ? me : null; }
@@ -7335,6 +7332,7 @@ function hostSend(force) {
   const gap = !net.supa ? 40 : window.__srvMode ? ((G.phase === 'run' || G.phase === 'count' || lapOn()) ? SNAP_MS : 300) : (G.phase === 'run' || G.phase === 'count') && !G.pz ? 100 : 500; if (!force && now - net.lastSend < gap) return;
   if (!force && roomNs && roomNs.busy && roomNs.busy()) { net.skipped = (net.skipped || 0) + 1; if (net.skipped < 8) return; } // the connection is backed up: hold this frame (but never for long)
   net.skipped = 0; net.lastSend = now; net.sendN = (net.sendN || 0) + 1;
+  { const me = roomState.me; let f = 0; for (const pe of roomState.peers) if (pe.presence && pe.presence.fol === me && pe.peer !== me) f++; if (f > (net.folN || 0)) G.plDirty = true; net.folN = f; } // somebody new follows: the next picture is a full one
   netPresence({ st: buildSnap(force || net.sendN % 8 === 1 || !!G.plDirty) }); G.plDirty = false;
 }
 // a guest has left this match when their tab follows nobody (or another host) and the game is hidden: back in the menu
@@ -7517,7 +7515,7 @@ function applyState(st, first) {
     const wasAlive = p.alive;
     { const qc = typeof q.cx === 'string' && /^#[0-9a-f]{6}$/i.test(q.cx) ? q.cx : q.co != null ? COLORS[q.co] : null; if (qc && p.color !== qc) { p.color = qc; hudDirty = true; } if (q.co != null) p.nc = q.nc ? 1 : 0; }
     if (q.n !== undefined) { p.disg = Array.isArray(q.dg) && /^#[0-9a-f]{6}$/i.test(String(q.dg[0])) ? { color: q.dg[0], skin: SKINS[q.dg[1]] ? q.dg[1] : 'sk_none', nc: q.dg[2] ? 1 : 0, until: Number(q.dg[3]) || 0, mimic: q.dg[4] ? 1 : 0 } : null; if (p.disg && q.rm === mePeer) net.colorTold = true; p.clashWith = q.cw ? String(q.cw).slice(0, 14) : ''; }
-    if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: q.sk !== 'sk_none' && SKINS[q.sk] ? q.sk : ownTrail(q, mePeer) || 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
+    if (q.n !== undefined) Object.assign(p, { pm: q.pm || '', team: q.tm >= 0 ? q.tm : null, te: q.te || '', ds: q.ds || '', vs: q.vs || '', name: String(q.n).slice(0, 14), human: !!q.h, skin: q.sk !== 'sk_none' && SKINS[q.sk] ? q.sk : ownTrail(q, mePeer) || 'sk_none', badge: BADGES[q.bd] ? q.bd : 'bd_none', badges: badgeIds({ badge: q.bd, bx: q.bx }) }); else if (p.name === undefined) { p.name = '…'; p.human = true; p.skin = ownTrail(q, mePeer) || 'sk_none'; p.badge = 'bd_none'; p.pm = ''; p.te = p.ds = p.vs = ''; }
     Object.assign(p, { drawing: !!q.d, x: q.x, y: q.y, a: q.a, alive: !!q.al, jumpUntil: q.ju, jumpReady: q.jr, fx: (q.fx || []).map(f => ({ k: f[0], until: f[1] })), score: q.sc, kills: q.k, wins: q.w, jumps: q.jn, picks: q.pk, remote: q.rm, peerId: q.pe || q.rm });
     { const w = q.wp === 1 ? 'gun' : q.wp === 2 ? 'smoke' : null; if (w && !p.wp && q.rm === mePeer) showIgMsg(weaponHint(w), false, wpTipOnce()); p.wp = w; }
     if (q.sl) p.slug = q.sl;
@@ -7922,7 +7920,7 @@ async function initCapabilities() {
     roomNs.onPeers(ch => {
       roomState.peers = ch.peers; if (ch.game) return; // a game-state patch: the match reads roomState.peers itself
       const me = ch.peers.find(p => p.isMe && p.sameTab); if (me) roomState.me = me.peer;
-      collectChat(); collectSocial(); collectDirect(); collectKicks(); tryWatchSlug(); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
+      collectChat(); collectSocial(); collectDirect(); collectKicks(); tryWatchSlug(); for (const pe of roomState.peers) if (pe.presence && pe.presence.bv && !(pe.isMe && pe.sameTab)) peerBuild(pe.presence.bv); if (watchingNow() || !$('#specBar').hidden) renderSpecBarSoon();
       if (net && net.role === 'host') { const h = hostConflict(); if (h) { const same = ((h.presence.st && typeof h.presence.st === 'object' && h.presence.st.mid) || h.presence.pmid) === net.mid, fold = !!net.fold, playing = !(G && G.over) || (net.startedAt && performance.now() - net.startedAt < 8000); net = null; netPresence({ st: null, pls: null, pn: null, nj: null, pmid: null, hm: null, hb: null, ho: null }); if (same) { roomState.ready = true; netPresence({ rd: 1, ok: 1 }); followHost(h.peer); if (h.presence.st && typeof h.presence.st === 'object') clientBegin(h); else joinHost(h); if (net) net.deadHosts = new Set(); showIgMsg('Dva domaćina istog meča – nastavljaš kao igrač.'); } else { toMenu(); if ((fold || playing) && profile && !iAmKicked()) { if (!roomState.ready) joinLobby(true); netPresence({ ok: 1 }); joinHost(h); toast('Drugi meč je krenuo u isto vrijeme – spajam te s njim.'); } } } } // whoever was starting or playing goes on in the match that stays, instead of being left in the menu // net is dropped first: toMenu's own presence patch re-enters this handler
       if (!net && roomState.ready && myPres.ok && $('#game').hidden) { const h = liveHost(); if (h && !(h.isMe && h.sameTab)) joinHost(h); }
       else if (!net && $('#game').hidden && profile && !iAmKicked()) { const h = findHost(); let leftMid = ''; try { leftMid = localStorage.getItem('vijuga-left') || ''; } catch (e) {} if (h && !(h.isMe && h.sameTab) && h.presence && Array.isArray(h.presence.pls) && h.presence.pls.includes(profile.slug) && h.presence.pmid && h.presence.pmid !== leftMid) { if (!roomState.ready) joinLobby(true); joinHost(h); } }
