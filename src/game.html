@@ -953,7 +953,7 @@ body.lite .garder:not([open]) > summary { display: block; background: var(--pane
         <div class="premiumbox" data-cat="live"><h2>🌍 Uživo <small>pravi podaci svaki dan: klubovi (sljedeća utakmica, rezultat uživo, tablica), more, bura, zrak, tečaj, zlato, potresi, svemirska postaja, Formula 1</small></h2><div class="shop" id="shopLive"></div></div>
         <div class="premiumbox" data-cat="weather"><h2>🌦️ Vremenske ikone <small>pravo vrijeme uživo: temperatura, kiša i bura u tvom gradu, uz ime i iznad zmije. Od svakog grada samo 3 komada; rasprodano možeš zatražiti na Aukciji 🔨</small></h2><div class="shop" id="shopWeather"></div></div>
         <div class="premiumbox" data-cat="bgs"><h2>🖼️ Pozadine arene <small>boje, prozirni uzorci i slike: vrijede kad si domaćin ili igraš s botovima, vide ih svi u meču</small></h2><div class="shop" id="shopBgs"></div></div>
-        <div data-cat="skins"><h2>Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
+        <div data-cat="skins"><h2>👑 Za princeze <small>Barbie, Princeza, Jednorog, Leptirić, Cvjetić i Šljokice</small></h2><div class="shop" id="shopGirlSkins"></div><h2 style="margin-top:16px">Skinovi traga</h2><div class="shop" id="shopSkins"></div></div>
         <div data-cat="badges"><h2>Ikone uz ime</h2><div class="shop" id="shopBadges"></div><h2 style="margin-top:16px">😜 Šaljive ikone <small>za smijeh u predvorju i u meču</small></h2><div class="shop" id="shopFun"></div><h2 style="margin-top:16px">🌊 Dalmatinski natpisi <small>uzrečice i dalmatinska kuhinja: natpis uz ime i iznad zmije</small></h2><div class="shop" id="shopDalm"></div></div>
         <div data-cat="pu"><h2>Početni power-upovi <small>djeluju na početku svake runde, jedan aktivan</small></h2><div class="shop" id="shopPu"></div><h2 style="margin-top:16px">💎 Premium power-upovi <small>samo tvoji: jednom po rundi jedan od njih padne samo tebi, samo ga ti vidiš i samo ga ti pokupiš</small></h2><div class="shop" id="shopPremPu"></div></div>
         <div data-cat="fx"><h2>Efekti ✨ <small>trag, animacija kad ispadneš i zvuk kad pobijediš rundu</small></h2><div class="shop" id="shopFx"></div></div>
@@ -1144,6 +1144,13 @@ const SKINS = {
   sk_xmas:    { name: 'Božićni 🎄', d: 'Zelena girlanda s lampicama u bojama koje trepere, a na čelu Djed Božićnjak', price: 600 },
   sk_fart:    { name: 'Prdonja 💨', d: 'Za sobom pušta oblačiće prdeža. Prrrt!', price: 300 },
   sk_centi:   { name: 'Stonoga 🐛', d: 'Trag s nožicama i glava s ticalima, kao prava stonoga', price: 380 },
+  // 👑 Za princeze: a collection of its own (its own shelf; the master can give the whole of it to a player at once)
+  sk_barbie:  { name: 'Barbie 👑', d: 'ZA PRINCEZE: jarko roza trag koji se sjaji, kruna na glavi i iskrice iza', price: 1500, girl: true },
+  sk_princess:{ name: 'Princeza 👸', d: 'ZA PRINCEZE: nježno ljubičasti trag s nizom bisera, a na čelu princeza', price: 1500, girl: true },
+  sk_unicorn: { name: 'Jednorog 🦄', d: 'ZA PRINCEZE: pastelni trag u svim bojama duge, zvjezdice iza i jednorog na čelu', price: 2000, girl: true },
+  sk_butterfly:{ name: 'Leptirić 🦋', d: 'ZA PRINCEZE: tirkizni trag uz koji lete leptirići, a leptir je na čelu', price: 900, girl: true },
+  sk_flower:  { name: 'Cvjetić 🌸', d: 'ZA PRINCEZE: svijetlo roza trag i cvjetovi trešnje koji padaju uz njega', price: 700, girl: true },
+  sk_glitter: { name: 'Šljokice ✨', d: 'ZA PRINCEZE: trag boje ružičastog zlata pun šljokica koje svjetlucaju', price: 1200, girl: true },
 };
 // an animated icon lives on a small canvas wherever a badge is shown in the page; the same routine draws it in the arena
 const CBD = (sym, glyph, col) => '<span class="cbd" data-c="' + sym + '" style="--cc:' + col + '"><span class="cg">' + glyph + '</span><span class="cp">…</span></span>';
@@ -1607,7 +1614,7 @@ function showPlayer(slug) {
     <span class="label">Premium i luksuz</span>${premiumListHtml(P)}
     <span class="label">Zezalice u džepu</span><div class="wrow">${inv.map(([k, v]) => chip(false, `${TROLLS[k].name} ×${v}`, `<em>${TROLLS[k].e}</em>`)).join('') || none}</div>
     ${myRole() === 'master' ? `<div class="rolepick"><b>Uloga</b>${[['', 'Igrač'], ['moderator', '🛡️ Moderator'], ['turnir', '🏆 Voditelj turnira'], ['admin', '⭐ Admin']].map(([k, n]) => `<button type="button" class="rp ${roleOfSlug(P.slug) === k ? 'on' : ''}" data-r="${k}">${n}</button>`).join('')}</div>` : ''}
-    ${myRole() === 'master' ? `<div class="rolepick"><b>Pokloni</b><button type="button" class="rp" id="pGrant">💰 Zlatnici</button><button type="button" class="rp" id="pGrantItem">🎁 Zezalica</button></div>` : ''}
+    ${myRole() === 'master' ? `<div class="rolepick"><b>Pokloni</b><button type="button" class="rp" id="pGrant">💰 Zlatnici</button><button type="button" class="rp" id="pGrantItem">🎁 Zezalica</button><button type="button" class="rp" id="pGrantGirl">👑 Kolekcija za princeze</button></div>` : ''}
     ${canMute() && roleOfSlug(P.slug) !== 'master' ? `<div class="rolepick"><b>Chat</b>${mutedUntil(P.slug) ? '<button type="button" class="mu" data-m="0">🔊 Ukini utišavanje</button>' : [[10, '🔇 10 min'], [60, '🔇 1 h'], [1440, '🔇 1 dan']].map(([m, n]) => `<button type="button" class="mu" data-m="${m}">${n}</button>`).join('')}</div>` : ''}
     ${myRole() === 'master' && roleOfSlug(P.slug) !== 'master' ? `<div class="rolepick"><b>Soba</b><button type="button" id="pKick" data-kick="${esc(P.slug)}" data-kn="${esc(P.name)}">${kickedSlug(P.slug) ? '↩️ Vrati u sobu' : '🚫 Izbaci iz sobe (5 min)'}</button></div>` : ''}
     ${['master', 'admin'].includes(myRole()) && raw.hasPin ? '<div class="rolepick"><b>Račun</b><button type="button" id="pReset">🔑 Obriši zaboravljeni PIN</button></div>' : ''}
@@ -1621,6 +1628,13 @@ function showPlayer(slug) {
   if ($('#pGift')) $('#pGift').onclick = () => showGift(P);
   if ($('#pPoke')) $('#pPoke').onclick = () => pokePlayer(P, pe);
   m.querySelectorAll('.rp').forEach(b => b.onclick = async () => { const r = b.dataset.r; if (!confirm(r ? `Dati ulogu „${ROLE_INFO[r].n}” igraču ${P.name}?` : `Oduzeti ulogu igraču ${P.name}?`)) return; if (await roleCall('set', { target: P.slug, role: r })) { toast(r ? `${P.name} je sada ${ROLE_INFO[r].n}.` : `${P.name} više nema ulogu.`); showPlayer(P.slug); } });
+  if ($('#pGrantGirl')) $('#pGrantGirl').onclick = async () => {
+    const ids = Object.keys(SKINS).filter(k => SKINS[k].girl && !(Array.isArray(P.owned) && P.owned.includes(k)));
+    if (!ids.length) { toast(`${P.name} već ima cijelu kolekciju.`); return; }
+    if (!confirm(`Pokloniti igraču ${P.name} kolekciju Za princeze (${ids.map(k => SKINS[k].name).join(', ')})?`)) return;
+    let n = 0; for (const id of ids) { const j = await roleCall('grant', { target: P.slug, item: id, note: `${profile.name}: poklon za princezu` }); if (j) n++; }
+    if (n) toast(`👑 ${P.name} dobiva ${n} ${n === 1 ? 'trag' : 'tragova'} pri sljedećem otvaranju igre.`);
+  };
   if ($('#pGrantItem')) $('#pGrantItem').onclick = async () => { const ids = Object.keys(TROLLS).concat('shield'); const id = String(prompt(`Koju zezalicu dati igraču ${P.name}?\n${ids.join(', ')}`, 'hearts') || '').trim(); if (!ids.includes(id)) { if (id) toast('Nepoznata zezalica.'); return; } const j = await roleCall('grant', { target: P.slug, item: id, note: `${profile.name} (admin): poklon` }); if (j) toast(`🎁 ${P.name} dobiva ${(TROLLS[id] || { name: 'Štit' }).name} pri sljedećem otvaranju igre.`); };
   if ($('#pGrant')) $('#pGrant').onclick = async () => { const v = Math.floor(Number(prompt(`Koliko zlatnika dati igraču ${P.name}? (1–50000)`, '500')) || 0); if (!v) return; const j = await roleCall('grant', { target: P.slug, amount: v, note: `${profile.name} (admin): bonus` }); if (j) toast(`💰 ${P.name} dobiva ${v} zlatnika pri sljedećem otvaranju igre.`); };
   m.querySelectorAll('.mu').forEach(b => b.onclick = async () => { const mm = Number(b.dataset.m); if (await roleCall('mute', { target: P.slug, minutes: mm })) { toast(mm ? `🔇 Utišano: ${P.name}.` : `🔊 ${P.name} opet može pisati.`); showPlayer(P.slug); } });
@@ -2154,7 +2168,7 @@ function skinPreview(cv, skinId, color) {
   const xe = w - 10;
   c.beginPath(); for (let x = 10; x <= xe; x += 4) { const y = h / 2 + Math.sin(x / 22) * 12; if (x === 10) c.moveTo(x, y); else c.lineTo(x, y); }
   c.stroke();
-  if (['sk_glowdash', 'sk_blink', 'sk_xmas', 'sk_fart', 'sk_centi', 'sk_gold'].includes(skinId)) { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { preview: true, color, decoAcc: 30 }); }
+  if (['sk_glowdash', 'sk_blink', 'sk_xmas', 'sk_fart', 'sk_centi', 'sk_gold', 'sk_barbie', 'sk_princess', 'sk_unicorn', 'sk_butterfly', 'sk_flower', 'sk_glitter'].includes(skinId)) { const pts = []; for (let x = 10; x <= xe; x += 4) pts.push(x, h / 2 + Math.sin(x / 22) * 12); skinAfter(c, skinId, pts, 3, { preview: true, color, decoAcc: 30 }); }
 }
 const BX_MAX = 4;
 // the icons someone wears, the main one first; `owned` (when known) drops anything no longer theirs
@@ -2218,6 +2232,12 @@ function applySkin0(c, skinId, color, r, gt) {
     case 'sk_centi': c.strokeStyle = '#b5652b'; break;
     case 'sk_hajduk': c.strokeStyle = '#ffffff'; c.shadowBlur = 4; c.shadowColor = 'rgba(255,255,255,.55)'; break;
     case 'sk_dinamo': c.strokeStyle = '#1d5be0'; c.shadowBlur = 9; c.shadowColor = '#6aa8ff'; break;
+    case 'sk_barbie': c.strokeStyle = '#ff2fa0'; c.shadowBlur = 8; c.shadowColor = '#ff8fd0'; break;
+    case 'sk_princess': c.strokeStyle = '#c58cff'; c.shadowBlur = 5; c.shadowColor = '#f3e6ff'; break;
+    case 'sk_unicorn': c.strokeStyle = `hsl(${(gt * 90) % 360} 90% 80%)`; c.shadowBlur = 6; c.shadowColor = '#ffffff'; break; // pastel rainbow
+    case 'sk_butterfly': c.strokeStyle = '#5fd6c8'; break;
+    case 'sk_flower': c.strokeStyle = '#ffb3d1'; break;
+    case 'sk_glitter': c.strokeStyle = '#e7a3a9'; c.shadowBlur = 4; c.shadowColor = '#ffe3c2'; break;
   }
 }
 function dayHash(salt) { const d = zDay(Date.now()) + salt; let h = 0; for (const c of d) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
@@ -2499,7 +2519,8 @@ function renderShopNow() {
     });
   };
   make($('#shopFanSkins'), Object.entries(SKINS).filter(([, it]) => it.fan), 'skin');
-  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
+  make($('#shopGirlSkins'), Object.entries(SKINS).filter(([, it]) => it.girl), 'skin');
+  make($('#shopSkins'), Object.entries(SKINS).filter(([id, it]) => !it.premium && !it.girl && (it.season == null || it.season === seasonNow() || (profile && profile.owned.includes(id)))), 'skin');
   make($('#shopPremiumSkins'), Object.entries(SKINS).filter(([, it]) => it.premium), 'skin');
   make($('#shopBadges'), Object.entries(BADGES).filter(([, it]) => !it.local && !it.unique && !it.premium && !it.crypto && !it.wx && !it.live && !it.fun && !it.brand && !it.drink && !it.earn), 'badge');
   make($('#shopBrands'), Object.entries(BADGES).filter(([, it]) => it.brand), 'badge');
@@ -3493,7 +3514,7 @@ function bounds() { const i = G.inset; return { l: i, t: i, r: W - i, b: H - i }
 // ---------- grid ----------
 function cellIdx(x, y) { const gx = x / CELL | 0, gy = y / CELL | 0; if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return -1; return gy * GW + gx; }
 // the colour a player is shown with everywhere (HUD, labels, results): the trail colour when the skin recolours the trail
-const SKIN_COLOR = { sk_xmas: '#1e9e4a', sk_fart: '#8f9e46', sk_centi: '#b5652b', sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#f2c200', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_rainbow: null };
+const SKIN_COLOR = { sk_barbie: '#ff2fa0', sk_princess: '#c58cff', sk_unicorn: '#f3a6ff', sk_butterfly: '#5fd6c8', sk_flower: '#ffb3d1', sk_glitter: '#e7a3a9', sk_xmas: '#1e9e4a', sk_fart: '#8f9e46', sk_centi: '#b5652b', sk_funcuti: '#ff7a1a', sk_hajduk: '#ffffff', sk_dinamo: '#2a6cf0', sk_gold: '#f2c200', sk_boat: '#4cc9f0', sk_dog: '#b07a4f', sk_dragon: '#1f8a4c', sk_galaxy: '#7a5cff', sk_bolt: '#e8fbff', sz_pumpkin: '#ff8c1a', sz_snow: '#e9f6ff', sz_love: '#ff5d9e', sz_sun: '#ffb020', sk_diamond: '#9fe9ff', sk_rainbow: null };
 function dispColor(p) { if (!p) return '#fff'; if (p.skin === 'sk_rainbow') return `hsl(${((G ? G.gt : 0) * 160) % 360} 90% 62%)`; return (!p.nc && SKIN_COLOR[p.skin]) || p.color; }
 // Two snakes that read as the same colour (a gold trail next to the yellow snake, the orange scarf next to the orange
 // snake…) are told apart before the match starts: the player with the lower level, then fewer matches, changes. A trail
@@ -3506,7 +3527,7 @@ function sameColor(a, b) {
   const grey = (X) => X.s < 0.22 || X.l > 0.9 || X.l < 0.12; if (grey(A) || grey(B)) return grey(A) && grey(B) && Math.abs(A.l - B.l) < 0.16;
   const dh = Math.min(Math.abs(A.h - B.h), 360 - Math.abs(A.h - B.h)); return dh < 20 && Math.abs(A.l - B.l) < 0.18;
 }
-const PATTERN_SKINS = new Set(['sk_rainbow', 'sk_funcuti']); // a pattern (rainbow, the Funcuti scarf stripes) never looks like a plain colour
+const PATTERN_SKINS = new Set(['sk_rainbow', 'sk_funcuti', 'sk_unicorn']); // a pattern (rainbow, the Funcuti scarf stripes) never looks like a plain colour
 const lookColor = (p) => PATTERN_SKINS.has(p.skin) && !p.nc ? null : (!p.nc && SKIN_COLOR[p.skin]) || p.color;
 function rankOfSlug(slug, mine) { const a = mine && profile ? profile : slug ? accounts.list.find(x => x.slug === slug) : null; return a ? [levelOf(a).lv, Number(a.matches) || 0] : [0, 0]; }
 const rankOf = (p) => p.human ? rankOfSlug(p.slug, p.mine) : [-1, 0];
@@ -3624,7 +3645,7 @@ function skinAfter(c, skin, pts, r, p) {
     c.strokeStyle = '#e3a466'; c.lineWidth = Math.max(1.1, r * 0.42); c.stroke(legs);
     c.strokeStyle = 'rgba(60,25,8,.55)'; c.lineWidth = Math.max(0.6, r * 0.25); c.stroke(rings); c.restore();
   }
-  const DECO = { sk_boat: 9, sk_dog: 26, sk_dragon: 7, sk_galaxy: 4, sk_bolt: 12, sz_snow: 30, sz_love: 42, sk_fart: 46 };
+  const DECO = { sk_boat: 9, sk_dog: 26, sk_dragon: 7, sk_galaxy: 4, sk_bolt: 12, sz_snow: 30, sz_love: 42, sk_fart: 46, sk_barbie: 26, sk_princess: 11, sk_unicorn: 22, sk_butterfly: 58, sk_flower: 34, sk_glitter: 5 };
   if (DECO[skin] && p && pts.length >= 4) {
     // decorations are spaced by distance travelled (the trail comes in tiny pieces)
     c.save(); c.shadowBlur = 0; c.setLineDash([]);
@@ -3642,6 +3663,11 @@ function skinAfter(c, skin, pts, r, p) {
         c.fillStyle = 'rgba(170,200,90,.35)'; for (const [ox, oy, rr] of [[0, 0, 1.6], [-1.3, 0.9, 1.1], [1.1, 1.1, 1.0]]) { c.beginPath(); c.arc(bx + ox * r, by + oy * r, rr * r, 0, 6.283); c.fill(); }
         c.font = `${Math.round(r * 3.2)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💨', bx, by);
         if (p.decoN % 4 === 0) { c.font = `italic 700 ${Math.max(8, Math.round(r * 2.4))}px "Barlow Semi Condensed", sans-serif`; c.fillStyle = 'rgba(200,220,120,.85)'; c.fillText('prrt', bx - nx * side * r * 3.4, by - ny * side * r * 3.4); } }
+      else if (skin === 'sk_barbie') { c.fillStyle = p.decoN % 3 ? '#ffd1ec' : '#ffffff'; c.font = `${Math.round(r * 2.6)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✦', x1 + nx * side * r * 1.9, y1 + ny * side * r * 1.9); }
+      else if (skin === 'sk_princess') { c.fillStyle = '#fff7fe'; c.beginPath(); c.arc(x1 + nx * side * r * 1.25, y1 + ny * side * r * 1.25, Math.max(0.9, r * 0.45), 0, 6.283); c.fill(); if (p.decoN % 7 === 0) { c.fillStyle = '#ffd6f5'; c.font = `${Math.round(r * 2.3)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✧', x1 - nx * side * r * 2, y1 - ny * side * r * 2); } }
+      else if (skin === 'sk_unicorn') { c.fillStyle = `hsl(${(p.decoN * 47) % 360} 90% 80%)`; c.font = `${Math.round(r * 2.4)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('★', x1 + nx * side * r * 2, y1 + ny * side * r * 2); }
+      else if (skin === 'sk_butterfly' || skin === 'sk_flower') { c.font = `${Math.round(r * (skin === 'sk_flower' ? 2.8 : 3.2))}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(skin === 'sk_flower' ? '🌸' : '🦋', x1 + nx * side * r * 2.3, y1 + ny * side * r * 2.3); }
+      else if (skin === 'sk_glitter') { const o = (Math.random() - .5) * r * 2.4; c.fillStyle = ['#fff6d6', '#ffd1dc', '#ffffff', '#ffc46b'][(Math.random() * 4) | 0]; c.fillRect(x1 + nx * o - 0.75, y1 + ny * o - 0.75, 1.5, 1.5); }
       else if (skin === 'sz_love') { c.font = `${Math.round(r * 3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💘', x1 + nx * side * r * 2.2, y1 + ny * side * r * 2.2); }
     }
     c.restore();
@@ -4576,7 +4602,8 @@ function render() {
     if (p.team != null) { ctx.beginPath(); ctx.arc(p.x, p.y, hr + 5, 0, 6.283); ctx.strokeStyle = TEAM_C[p.team]; ctx.lineWidth = 2.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, 6.283); ctx.fillStyle = has(p, 'reverse') ? '#ffffff' : hc; ctx.fill();
     if (p.skin === 'sk_centi' && p.alive && !LITE) drawCentiHead(ctx, p.x, p.y, p.a, hr);
-    if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas') && p.alive && !LITE) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶' }[p.skin], 0, 0); ctx.restore(); }
+    if (p.skin === 'sk_barbie' && p.alive && !LITE) { ctx.save(); ctx.font = '17px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👑', p.x, p.y - 1); ctx.restore(); } // the crown sits upright, whichever way she goes
+    if ((p.skin === 'sk_dragon' || p.skin === 'sk_boat' || p.skin === 'sk_dog' || p.skin === 'sk_xmas' || p.skin === 'sk_princess' || p.skin === 'sk_unicorn' || p.skin === 'sk_butterfly') && p.alive && !LITE) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + (Math.cos(p.a) < 0 ? Math.PI : 0)); if (Math.cos(p.a) < 0) ctx.scale(-1, 1); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText({ sk_xmas: '🎅', sk_dragon: '🐉', sk_boat: '⛵', sk_dog: '🐶', sk_princess: '👸', sk_unicorn: '🦄', sk_butterfly: '🦋' }[p.skin], 0, 0); ctx.restore(); }
     { const pm = p.alive && net && G.phase !== 'run' ? prankMarkOf(p) : null; if (pm) { const bob = Math.sin(performance.now() / 160) * 3; ctx.save(); ctx.font = '22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(pm.e, p.x, p.y - hr - 30 + bob); ctx.restore(); } }
     // while the snakes move nothing rides above them (icons, tags, prank marks, chat): the arena stays clean
     // the survivor of the round rides a victory lap with a crown above the head (and their own icon above the crown)
@@ -4823,6 +4850,7 @@ function achBtnHtml(P) { const got = achOf(P), last = got.slice(-6).map(a => a.e
 // newest one with the number not seen yet, the window lists them with a button straight to the thing, the shop marks the
 // new items, a returning player is told once, and the master can send one entry to every phone with notifications on.
 const NEWS = [
+  { id: 'princeze', d: '2026-11-15', e: '👑', t: 'Nova kolekcija tragova: Za princeze', x: 'Barbie 👑 (jarko roza, kruna na glavi i iskrice), Princeza 👸 (biseri), Jednorog 🦄 (pastelna duga i zvjezdice), Leptirić 🦋, Cvjetić 🌸 i Šljokice ✨. U Trgovini → Skinovi traga, na vlastitoj polici.', go: 'shop:skins', b: 'Pogledaj tragove' },
   { id: 'glas2', d: '2026-11-14', e: '🎤', t: 'Glasovne poruke: bez kašnjenja, čišći zvuk, igra ne zapinje', x: 'Drži 🎤 i odmah govori: prva riječ se više ne gubi (mikrofon ostaje spreman još malo nakon poruke, a poruka počinje i trenutak prije pritiska). Zvuk je dvostruko čišći, a poruka putuje zasebno, pa se meč više ne zaustavi dok netko šalje glasovnu.', go: 'chat', b: 'Otvori chat' },
   { id: 'znasli', d: '2026-11-13', e: '💡', t: 'Znaš li? Zanimljivosti uz igru', x: 'Dok se odbrojava, u traci iznad arene iskoči kratka zanimljivost, a na rezultatima kartica „Znaš li?” (👍 ako ti se svidi, „Još jedna” za novu). U predvorju te čeka dalmatinska riječ dana. Teme su Zmije, Hrvatska, Šibenik, Svemir, Sport i Jezik: biraš ih ili sve isključiš u Moj profil → 💡 Zanimljivosti. Skupi cijelu temu u albumu i dobiješ natpis uz ime (Zmijolog, Domoljub, Šibenski znalac…).', go: 'me', b: 'Moj album' },
   { id: 'dvoklik', d: '2026-11-13', e: '⚡', t: 'Dvoklik za zezalicu, glatkije kretanje i odlučujuća runda', x: 'Prečac zezalice sad ide dvoklikom: u Moj profil → ⭐ Prečac zezalice odaberi zezalicu ili napitak, a u meču samo dvaput brzo dodirni ZEZALICE (zezalica ode igraču koji vodi). Protivnici se kreću glatko i bez trzanja, a zavoji su obliji. Kad je na kraju meča izjednačeno za prvo mjesto, igra se ⚔️ odlučujuća runda.', go: 'me', b: 'Postavi prečac' },
