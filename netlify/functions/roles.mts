@@ -11,7 +11,7 @@
 import type { Config, Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { accountsIndex, authed as authedReq, cas } from "./guard.mts";
-import { zDay } from "./wallet.mts";
+import { isThing, zDay } from "./wallet.mts";
 
 const cors = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
@@ -74,9 +74,9 @@ export default async (req: Request, context: Context) => {
     return json({ master: MASTER, roles: next, mutes });
   }
   if (context.params.action === "grant") {
-    // master gives a player coins (as a gift the player's game collects on its next load)
+    // master gives a player coins, a prank or a thing from the shop (as a gift the player's game collects on its next load)
     if (mine !== "master") return json({ error: "master only" }, 403);
-    const item = typeof b.item === "string" && /^[a-z]{2,12}$/.test(b.item) && b.item !== "coins" ? b.item : null;
+    const item = typeof b.item === "string" && ((/^[a-z]{2,12}$/.test(b.item) && b.item !== "coins") || isThing(b.item)) ? b.item : null; // a prank or shield, or a thing from the shop (a trail, an icon…)
     const raw = Number(b.amount), amount = Number.isFinite(raw) ? Math.floor(raw) : 0; if (!item && (amount < 1 || amount > 50000)) return json({ error: "bad amount" }, 400);
     const acc = await getStore({ name: "vijuga-accounts", consistency: "strong" }).get(target, { type: "json" }) as Record<string, unknown> | null; if (!acc) return json({ error: "unknown player" }, 404);
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
