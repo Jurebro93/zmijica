@@ -1168,7 +1168,7 @@ const SKINS = {
   sk_fart:    { name: 'Prdonja 💨', d: 'Za sobom pušta oblačiće prdeža. Prrrt!', price: 300 },
   sk_centi:   { name: 'Stonoga 🐛', d: 'Trag s nožicama i glava s ticalima, kao prava stonoga', price: 380 },
   // 👑 Za princeze: a collection of its own (its own shelf; the master can give the whole of it to a player at once)
-  sk_barbie:  { name: 'Barbie 👑', d: 'ZA PRINCEZE: jarko roza trag koji se sjaji, kruna na glavi i iskrice iza', price: 1500, girl: true },
+  sk_barbie:  { name: 'Barbie 👑', d: 'JEDINSTVEN, POSTOJI SAMO 1: jarko roza trag koji se sjaji, kruna na glavi i iskrice iza. Ima ga samo jedna igračica; drugi ga mogu dobiti samo kad ga ona proda na aukciji', price: 1500, girl: true, limit: 1 },
   sk_princess:{ name: 'Princeza 👸', d: 'ZA PRINCEZE: nježno ljubičasti trag s nizom bisera, a na čelu princeza', price: 1500, girl: true },
   sk_unicorn: { name: 'Jednorog 🦄', d: 'ZA PRINCEZE: pastelni trag u svim bojama duge, zvjezdice iza i jednorog na čelu', price: 2000, girl: true },
   sk_butterfly:{ name: 'Leptirić 🦋', d: 'ZA PRINCEZE: tirkizni trag uz koji lete leptirići, a leptir je na čelu', price: 900, girl: true },
@@ -1652,7 +1652,7 @@ function showPlayer(slug) {
   if ($('#pPoke')) $('#pPoke').onclick = () => pokePlayer(P, pe);
   m.querySelectorAll('.rp').forEach(b => b.onclick = async () => { const r = b.dataset.r; if (!confirm(r ? `Dati ulogu „${ROLE_INFO[r].n}” igraču ${P.name}?` : `Oduzeti ulogu igraču ${P.name}?`)) return; if (await roleCall('set', { target: P.slug, role: r })) { toast(r ? `${P.name} je sada ${ROLE_INFO[r].n}.` : `${P.name} više nema ulogu.`); showPlayer(P.slug); } });
   if ($('#pGrantGirl')) $('#pGrantGirl').onclick = async () => {
-    const ids = Object.keys(SKINS).filter(k => SKINS[k].girl && !(Array.isArray(P.owned) && P.owned.includes(k)));
+    const ids = Object.keys(SKINS).filter(k => SKINS[k].girl && !SKINS[k].limit && !(Array.isArray(P.owned) && P.owned.includes(k)));
     if (!ids.length) { toast(`${P.name} već ima cijelu kolekciju.`); return; }
     if (!confirm(`Pokloniti igraču ${P.name} kolekciju Za princeze (${ids.map(k => SKINS[k].name).join(', ')})?`)) return;
     let n = 0; for (const id of ids) { const j = await roleCall('grant', { target: P.slug, item: id, note: `${profile.name}: poklon za princezu` }); if (j) n++; }
@@ -3064,7 +3064,7 @@ setTimeout(announceUnique, 5000);
 // ---- one version for everybody: a page that stayed open through a release would mix old and new rules of online play.
 // The build stamps its id here and into version.txt; when they differ a newer build is live. In the menu with nothing
 // going on the page reloads by itself (once per version), otherwise it offers a button.
-const BUILD = '40774af0bf1d';
+const BUILD = 'e9d0e638bfa7';
 async function checkVersion() {
   if (BUILD.charAt(0) === '_') return; // the bare source, not a build
   try { const r = await fetch('version.txt?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const v = (await r.text()).trim(); if (v !== BUILD && /^[a-f0-9]{6,40}$/.test(v)) newVersion(v); } catch (e) {}
